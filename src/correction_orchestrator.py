@@ -314,9 +314,11 @@ class CorrectionOrchestrator:
 
             # Early convergence check
             if best_nmse_residual < self.convergence_nmse:
-                if self.verbose:
-                    print(f"[CONVERGED] Converged at iteration {iteration} (Residual NMSE={best_nmse_residual:.2e} < {self.convergence_nmse:.2e})")
-                break
+                best_n_params = len([k for k in best_theta.keys() if k.startswith("theta_")])
+                if best_n_params <= 1:
+                    if self.verbose:
+                        print(f"[CONVERGED] Converged at iteration {iteration} (Residual NMSE={best_nmse_residual:.2e} < {self.convergence_nmse:.2e} with simple model)")
+                    break
 
         total_time = time.time() - start_time
         converged = best_nmse_residual < self.convergence_nmse

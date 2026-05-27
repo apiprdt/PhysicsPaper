@@ -130,8 +130,18 @@ def compute_levenshtein_distance(seq1: List[str], seq2: List[str]) -> int:
     return int(matrix[size_x - 1, size_y - 1])
 
 def bic_score(nmse: float, n_params: int, n_points: int) -> float:
-    """Lower is better. Penalizes parameter count."""
-    rss = nmse * n_points  # Residual sum of squares (proportional)
+    """Lower is better. Penalizes parameter count.
+    
+    A noise floor of 1e-6 is applied to NMSE before computing the log-likelihood.
+    This prevents BIC from rewarding extra parameters when NMSE falls into 
+    floating-point precision territory (< 1e-6), where numerical noise dominates 
+    and additional parameters provide no real information gain.
+    """
+    # Noise floor: differences below 1e-6 NMSE are numerically indistinguishable
+    # Without this, a 3-param model that shaves 1e-14 off a 1e-14 NMSE beats a
+    # 1-param model via BIC despite conveying zero additional physical information.
+    nmse_floored = max(nmse, 1e-6)
+    rss = nmse_floored * n_points
     log_likelihood = -n_points / 2 * np.log(rss / n_points + 1e-30)
     return float(-2 * log_likelihood + n_params * np.log(n_points))
 
