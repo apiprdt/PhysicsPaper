@@ -1,3 +1,5 @@
+import os
+import argparse
 import time
 import logging
 import json
@@ -17,9 +19,9 @@ from src.jax_optimizer import JAXOptimizer
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("CorrectionDiscoveryBenchmark")
 
-def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_iter: int = 4) -> Dict[str, Any]:
+def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_iter: int = 4, proposer_type: str = "mock") -> Dict[str, Any]:
     """Runs a single scenario under the specified noise level and returns metrics."""
-    logger.info(f"Starting discovery: Scenario='{scenario.name}', Noise={noise_level * 100:.1f}%")
+    logger.info(f"Starting discovery: Scenario='{scenario.name}', Noise={noise_level * 100:.1f}%, Proposer={proposer_type}")
     
     # 1. Setup dynamic physical limit regime (ARC Scorer)
     validator = ASTValidator()  # defaults: max_depth=7, max_tokens=20
@@ -40,7 +42,23 @@ def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_it
     scorer = ARCScorer(regimes=regimes)
     pipeline = Stage1Pipeline(validator, checker, scorer)
     optimizer = JAXOptimizer()
-    proposer = CorrectionMockProposer(seed=42)
+    
+    if proposer_type == "mock":
+        proposer = CorrectionMockProposer(seed=42)
+    elif proposer_type == "gemini":
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            raise ValueError("GEMINI_API_KEY environment variable is required for Gemini proposer.")
+        from src.llm_proposer import CorrectionGeminiProposer
+        proposer = CorrectionGeminiProposer(api_key=api_key)
+    elif proposer_type == "hybrid":
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            raise ValueError("GEMINI_API_KEY environment variable is required for Hybrid proposer.")
+        from src.llm_proposer import HybridCorrectionProposer
+        proposer = HybridCorrectionProposer(api_key=api_key, seed=42)
+    else:
+        raise ValueError(f"Unknown proposer type: {proposer_type}")
     
     orchestrator = CorrectionOrchestrator(
         proposer=proposer,
@@ -86,8 +104,13 @@ def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_it
     }
 
 def main():
+    parser = argparse.ArgumentParser(description="Run ADCD Anomaly-Driven Correction Discovery benchmark.")
+    parser.add_argument("--proposer", type=str, default="mock", choices=["mock", "gemini", "hybrid"],
+                        help="The type of proposer to use: mock, gemini, or hybrid.")
+    args = parser.parse_args()
+    
     print("======================================================================")
-    print("      STARTING ADCD BENCHMARK: ANOMALY-DRIVEN CORRECTION DISCOVERY     ")
+    print(f"      STARTING ADCD BENCHMARK: {args.proposer.upper()} PROPOSER      ")
     print("======================================================================")
     
     scenarios = get_all_scenarios()
@@ -98,7 +121,7 @@ def main():
     for scenario in scenarios:
         for noise in noise_levels:
             # We run textbook and simple ones with 4 iterations, synthetics with 4 iterations for speed
-            run_res = run_scenario_benchmark(scenario, noise, max_iter=4)
+            run_res = run_scenario_benchmark(scenario, noise, max_iter=4, proposer_type=args.proposer)
             results.append(run_res)
             
             # Print brief progress
@@ -108,7 +131,10 @@ def main():
                   f"ClassMatch={run_res['class_match']}")
             
     # Save raw results
-    output_path = "scratch_correction_results.json"
+    output_path = f"scratch_correction_results_{args.proposer}.json"
+    if args.proposer == "mock":
+        output_path = "scratch_correction_results.json"
+        
     with open(output_path, "w") as f:
         json.dump(results, f, indent=2)
     print(f"\nSaved raw benchmark results to {output_path}")

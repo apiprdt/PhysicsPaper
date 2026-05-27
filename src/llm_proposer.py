@@ -4,7 +4,7 @@ import json
 import urllib.request
 import urllib.error
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Dict, List, Tuple, Optional, Any
 import sympy as sp
 
@@ -837,10 +837,40 @@ HARD CONSTRAINTS (violation = immediate rejection):
 3. Use 'theta_0', 'theta_1', 'theta_2', ... for free parameter symbols (which fit constants).
 4. Maximum complexity: {context.max_nodes} AST nodes.
 
-PREVIOUS BEST CORRECTIONS AND THEIR RESIDUAL SCORES:
-{prev_best_str}
+         Output ONLY raw SymPy-parseable correction expression strings, one per line. No markdown, no comments, no explanation."""
 
-Consider structural hints: {hints_str}
 
-Output ONLY raw SymPy-parseable correction expression strings, one per line. No markdown, no comments, no explanation."""
+class HybridCorrectionProposer(BaseProposer):
+    """Combines Mock templates with LLM-generated candidates."""
+    def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash", seed: int = 42):
+        self.mock = CorrectionMockProposer(seed=seed)
+        self.gemini = CorrectionGeminiProposer(api_key=api_key, model_name=model_name)
+
+    def propose(self, context: ProposalContext) -> List[str]:
+        # Divide candidates between mock and Gemini
+        n_mock = max(1, context.n_candidates // 2)
+        n_gemini = max(1, context.n_candidates - n_mock)
+        
+        # Propose mock candidates
+        mock_context = replace(context, n_candidates=n_mock)
+        mock_candidates = self.mock.propose(mock_context)
+        
+        # Propose gemini candidates
+        gemini_context = replace(context, n_candidates=n_gemini)
+        try:
+            gemini_candidates = self.gemini.propose(gemini_context)
+        except Exception as e:
+            logger.warning(f"Gemini proposer failed: {e}. Falling back to more mock candidates.")
+            fallback_context = replace(context, n_candidates=context.n_candidates)
+            return self.mock.propose(fallback_context)
+
+        # Merge and deduplicate, keeping order
+        seen = set()
+        unique = []
+        for c in mock_candidates + gemini_candidates:
+            if c not in seen:
+                seen.add(c)
+                unique.append(c)
+        return unique[:context.n_candidates]
+
 

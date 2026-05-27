@@ -125,3 +125,35 @@ def test_correction_orchestrator_integration():
     assert result.evaluation is not None
     # We should have successfully matched structural class (polynomial)
     assert result.evaluation.class_match
+
+
+def test_hybrid_correction_proposer():
+    """Verify that HybridCorrectionProposer falls back gracefully or returns candidates."""
+    from src.llm_proposer import HybridCorrectionProposer, ProposalContext
+    
+    proposer = HybridCorrectionProposer(api_key="mock_key_or_invalid_key", seed=42)
+    context = ProposalContext(
+        variable_names=["m", "v"],
+        target_name="residual",
+        data_statistics={},
+        n_candidates=10,
+        iteration=0,
+        stuck_count=0,
+        domain="relativistic mechanics",
+        classical_expr="0.5 * m * v**2",
+        variables_with_units={"m": "kg", "v": "m/s", "c": "m/s"},
+        anomaly_description="high speeds v approaching c",
+        known_limits=[{"variable": "v", "limit": "0", "expected": "0"}],
+        classical_limit_condition="v -> 0",
+        max_nodes=15,
+        structural_hints=[],
+        previous_best=None,
+        constants={"c": 3.0e8},
+        residual_features=None
+    )
+    # Since api_key is invalid/mock, the Gemini call will fail and it should gracefully fall back to mock candidates.
+    candidates = proposer.propose(context)
+    assert len(candidates) > 0
+    assert len(candidates) <= 10
+
+
