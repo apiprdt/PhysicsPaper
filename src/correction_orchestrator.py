@@ -9,7 +9,7 @@ from src.llm_proposer import BaseProposer, ProposalContext
 from src.pipeline import Stage1Pipeline
 from src.jax_optimizer import JAXOptimizer, OptimizationResult
 from src.anomaly_scenarios import AnomalyScenario
-from src.metrics import evaluate_correction, CorrectionEvaluation
+from src.metrics import evaluate_correction, CorrectionEvaluation, bic_score
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +106,14 @@ class CorrectionOrchestrator:
         # 1. Generate anomalous data and compute residual
         X, y_obs, y_classical, residual = scenario.generate_data(noise_level=noise_level, seed=seed)
         
+        # 1b. Analyze residual for physical feature prior weights
+        from src.residual_analyzer import analyze_residual
+        primary_var_name = scenario.classical_limit_variable
+        if primary_var_name in X:
+            res_feat = analyze_residual(X[primary_var_name], residual)
+        else:
+            res_feat = None
+        
         # 2. Compute statistics of residual data for ProposalContext
         data_statistics = {}
         for var in scenario.classical_variables:
@@ -118,12 +126,11 @@ class CorrectionOrchestrator:
                     "max": float(np.max(arr)),
                 }
         
-        # Skip dimensional gate entirely for correction terms — let JAX handle fitting
         target_dim_key = None
-
         # Global search state tracking
         best_expr: str = ""
         best_nmse_residual: float = float("inf")
+        best_bic: float = float("inf")
         best_theta: Dict[str, float] = {}
         stuck_count: int = 0
         prev_best_nmse_res: float = float("inf")
@@ -161,8 +168,10 @@ class CorrectionOrchestrator:
                 max_nodes=10,
                 structural_hints=[],
                 previous_best=previous_best if previous_best else None,
-                constants=scenario.classical_constants
+                constants=scenario.classical_constants,
+                residual_features=res_feat
             )
+
             
             # Step 2: Propose candidates
             proposed_candidates = self.proposer.propose(context)
@@ -244,12 +253,22 @@ class CorrectionOrchestrator:
                 scenario.classical_variables
             )
 
-            # Step 5: Update global best
+            # Step 5: Update global best using BIC reranking
+            stage2_results_with_bic = []
             if stage2_results:
-                best_iter_cand = min(stage2_results, key=lambda x: x[2])
-                iter_best_expr, _, iter_best_nmse, _, iter_opt_res = best_iter_cand
+                for expr_str, stage2_combined, opt_nmse, arc_score, opt_result in stage2_results:
+                    n_params = len([k for k in opt_result.theta.keys() if k.startswith("theta_")])
+                    n_points = len(residual)
+                    b_score = bic_score(opt_nmse, n_params, n_points)
+                    stage2_results_with_bic.append((expr_str, stage2_combined, opt_nmse, arc_score, opt_result, b_score))
+                
+                # Sort by BIC ascending
+                stage2_results_with_bic = sorted(stage2_results_with_bic, key=lambda x: x[5])
+                best_iter_cand = stage2_results_with_bic[0]
+                iter_best_expr, _, iter_best_nmse, _, iter_opt_res, iter_best_bic = best_iter_cand
 
-                if iter_best_nmse < best_nmse_residual:
+                if iter_best_bic < best_bic:
+                    best_bic = iter_best_bic
                     best_nmse_residual = iter_best_nmse
                     best_expr = iter_best_expr
                     best_theta = iter_opt_res.theta
@@ -262,16 +281,20 @@ class CorrectionOrchestrator:
             prev_best_nmse_res = best_nmse_residual
 
             # Feedback loop
-            iter_feedback = [(r[0], r[2]) for r in stage2_results if np.isfinite(r[2])]
-            previous_best.extend(iter_feedback)
-            previous_best = sorted(previous_best, key=lambda x: x[1])[:20]
+            if stage2_results_with_bic:
+                iter_feedback = [(r[0], r[5]) for r in stage2_results_with_bic if np.isfinite(r[2])]
+                previous_best.extend(iter_feedback)
+                previous_best = sorted(previous_best, key=lambda x: x[1])[:20]
 
             # Build full reconstruction NMSE
-            temp_eval = evaluate_correction(best_expr, scenario, X, y_obs, y_classical, best_theta)
-            best_nmse_full = temp_eval.nmse_full
+            if best_expr:
+                temp_eval = evaluate_correction(best_expr, scenario, X, y_obs, y_classical, best_theta)
+                best_nmse_full = temp_eval.nmse_full
+            else:
+                best_nmse_full = float("inf")
 
             iter_time = time.time() - iter_start_time
-            top_5 = [(r[0], r[2]) for r in stage2_results[:5]]
+            top_5 = [(r[0], r[2]) for r in stage2_results_with_bic[:5]]
             
             iter_res = CorrectionIterationResult(
                 iteration=iteration,
@@ -287,7 +310,7 @@ class CorrectionOrchestrator:
             history.append(iter_res)
 
             if self.verbose:
-                print(f"[Iter {iteration}/{self.max_iterations}] Proposed: {n_proposed} | Stage 1: {n_survived} | Residual NMSE: {best_nmse_residual:.6f} | Full NMSE: {best_nmse_full:.6f} | stuck: {stuck_count}")
+                print(f"[Iter {iteration}/{self.max_iterations}] Proposed: {n_proposed} | Stage 1: {n_survived} | Residual NMSE: {best_nmse_residual:.6f} | BIC: {best_bic:.2f} | Full NMSE: {best_nmse_full:.6f} | stuck: {stuck_count}")
 
             # Early convergence check
             if best_nmse_residual < self.convergence_nmse:

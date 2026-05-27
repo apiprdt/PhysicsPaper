@@ -80,6 +80,8 @@ class Stage1Pipeline:
                 arc_score = float(self.scorer.score(expr, constants=constants))
             except Exception:
                 continue
+            if arc_score <= 0.0:
+                continue
 
             # Gate 4: Empirical Data Assessment (Coarse Numerical Evaluation)
             mse = 0.0

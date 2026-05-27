@@ -12,6 +12,7 @@ class CorrectionEvaluation:
     class_match: bool                  # True if same structural family
     ast_edit_distance: int             # Levenshtein distance on AST preorder token representation
     parameter_error: Dict[str, float]  # Percentage error for recovered free parameters |θ_fit - θ_true|/|θ_true|
+    bic: float                         # Bayesian Information Criterion score
 
 def classify_structure(expr: Union[str, sp.Expr]) -> str:
     """
@@ -128,6 +129,13 @@ def compute_levenshtein_distance(seq1: List[str], seq2: List[str]) -> int:
                 )
     return int(matrix[size_x - 1, size_y - 1])
 
+def bic_score(nmse: float, n_params: int, n_points: int) -> float:
+    """Lower is better. Penalizes parameter count."""
+    rss = nmse * n_points  # Residual sum of squares (proportional)
+    log_likelihood = -n_points / 2 * np.log(rss / n_points + 1e-30)
+    return float(-2 * log_likelihood + n_params * np.log(n_points))
+
+
 def evaluate_correction(
     discovered_expr_str: str,
     scenario,
@@ -153,7 +161,8 @@ def evaluate_correction(
             discovered_class="unparseable",
             class_match=False,
             ast_edit_distance=999,
-            parameter_error={}
+            parameter_error={},
+            bic=9999.0
         )
 
     # 2. Structural classification
@@ -229,6 +238,11 @@ def evaluate_correction(
                 err = abs(fit_v - true_v)
             param_errors[true_k] = float(err)
 
+    # 6. BIC calculation
+    n_params = len([k for k in theta_fit.keys() if k.startswith("theta_")])
+    n_points = len(y_obs)
+    bic_val = bic_score(nmse_res, n_params, n_points)
+
     return CorrectionEvaluation(
         nmse_residual=float(nmse_res),
         nmse_full=float(nmse_full),
@@ -236,5 +250,6 @@ def evaluate_correction(
         discovered_class=disc_cls,
         class_match=class_match,
         ast_edit_distance=ast_dist,
-        parameter_error=param_errors
+        parameter_error=param_errors,
+        bic=bic_val
     )

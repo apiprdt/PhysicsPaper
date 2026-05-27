@@ -34,6 +34,8 @@ class ProposalContext:
     previous_best: Optional[List[Tuple[str, float]]] = None  # List of (expr, nmse)
     physical_hints: Optional[List[str]] = None  # Kept for compatibility
     constants: Dict[str, float] = field(default_factory=dict)
+    residual_features: Optional[Any] = None
+
 
 class BaseProposer(ABC):
     @abstractmethod
@@ -535,6 +537,10 @@ class CorrectionMockProposer(BaseProposer):
             "theta_0 * ({v1} / {c1})**2",
             "theta_0 * ({v1} / {c1})**theta_1",
             "theta_0 * ({v1} / {c1})**2 + theta_1 * ({v1} / {c1})**4",
+            "theta_0 * ({v1} / theta_1)**(-theta_2)",
+            "theta_0 * ({v1} / {c1})**(-theta_1)",
+            "theta_0 * ({v1} / theta_1)**(-4)",
+            "theta_0 * ({v1} / {c1})**(-4)",
             
             # Exponential family
             "theta_0 * exp(-{v1} / theta_1)",
@@ -566,6 +572,51 @@ class CorrectionMockProposer(BaseProposer):
             "theta_0 * {v1}**2",
             "theta_0 * {v1}**3"
         ]
+        
+        self.families = {
+            "power_law": [
+                "theta_0 * ({v1} / theta_1)**theta_2",
+                "theta_0 * ({v1} / {c1})**theta_1",
+                "theta_0 * ({v1} / theta_1)**(-theta_2)",
+                "theta_0 * ({v1} / {c1})**(-theta_1)",
+                "theta_0 * ({v1} / theta_1)**(-4)",
+                "theta_0 * ({v1} / {c1})**(-4)"
+            ],
+            "polynomial": [
+                "theta_0 * ({v1} / theta_1)**2",
+                "theta_0 * ({v1} / theta_1)**2 + theta_2 * ({v1} / theta_1)**4",
+                "theta_0 * ({v1} / {c1})**2",
+                "theta_0 * ({v1} / {c1})**2 + theta_1 * ({v1} / {c1})**4",
+                "theta_0 * {v1}**4",
+                "theta_0 * {v1}**2",
+                "theta_0 * {v1}**3"
+            ],
+            "exponential": [
+                "theta_0 * exp(-{v1} / theta_1)",
+                "theta_0 * exp(-theta_1 / {v1})",
+                "theta_0 * (1.0 - exp(-{v1} / theta_1))",
+                "exp(-{v1} / theta_1) - 1.0",
+                "exp(-{v1} / {c1}) - 1.0",
+                "theta_0 * exp(-{v1} / {c1})"
+            ],
+            "rational": [
+                "theta_0 * {v1} / ({v1} + theta_1)",
+                "theta_0 / (1.0 + theta_1 * {v1}**2)",
+                "theta_0 * {v1}**2 / ({v1}**2 + theta_1**2)"
+            ],
+            "trigonometric": [
+                "theta_0 * sin({v1} / theta_1)",
+                "-theta_0 * tanh(theta_1 / {v1})**2",
+                "theta_0 * tanh(theta_1 / {v1})**2",
+                "theta_0 * sin({v1} / theta_1) / ({v1} / theta_1)",
+                "sin({v1} / theta_1) / ({v1} / theta_1) - 1.0"
+            ],
+            "logarithmic": [
+                "theta_0 * log(1.0 + {v1} / theta_1)",
+                "log(1.0 + {v1} / theta_1) / ({v1} / theta_1) - 1.0",
+                "theta_0 * log(1.0 + {v1} / theta_1) / ({v1} / theta_1)"
+            ]
+        }
 
     def propose(self, context: ProposalContext) -> List[str]:
         rng = np.random.RandomState(self.seed + context.iteration)
@@ -581,50 +632,90 @@ class CorrectionMockProposer(BaseProposer):
             sym_locals[c] = sp.Symbol(c)
         for i in range(100):
             sym_locals[f"theta_{i}"] = sp.Symbol(f"theta_{i}")
+ 
+        # Phase 1: Determine prior weights for template families based on residual features
+        weights = {
+            "power_law": 1.0,
+            "polynomial": 1.0,
+            "exponential": 1.0,
+            "rational": 1.0,
+            "trigonometric": 1.0,
+            "logarithmic": 1.0
+        }
+        
+        if context.residual_features:
+            rf = context.residual_features
+            # 1. Monotonic decay points strongly to exponential or rational decay
+            if rf.decay_rate > 0.4:
+                weights["exponential"] += 8.0
+                weights["rational"] += 4.0
+            
+            # 2. Curvature and high monotonicity without exponential decay point to logarithmic/power law
+            if abs(rf.monotonicity) > 0.7:
+                if rf.decay_rate < 0.2:
+                    weights["logarithmic"] += 6.0
+                    weights["power_law"] += 4.0
+                    weights["rational"] += 2.0
+            
+            # 3. High oscillation score points to trigonometric (or tanh squared)
+            if rf.oscillation_score > 0.15:
+                weights["trigonometric"] += 10.0
+            
+            # 4. Low oscillation and strong curvature sign/symmetry points to polynomial
+            if rf.oscillation_score < 0.05:
+                if hasattr(rf, 'symmetry') and abs(rf.symmetry) > 0.1: # Even/Odd symmetry detected
+                    if rf.symmetry > 0: # Even dominated
+                        weights["polynomial"] += 8.0
+                    else: # Odd dominated
+                        weights["polynomial"] += 4.0
+                else:
+                    weights["polynomial"] += 4.0
 
-        # 1. Deterministic Injection of textbook target corrections (handles standard expectations)
-        if context.classical_expr:
-            expr_lower = context.classical_expr.lower()
-            if "0.5 * m * v**2" in expr_lower or ("m" in vars_available and "v" in vars_available and "c" in constants_available):
-                candidates.append("theta_0 * (v / c)**2")
-                candidates.append("theta_0 * (v / c)**2 + theta_1 * (v / c)**4")
-            if "r" in vars_available and ("g" in constants_available or "G" in constants_available or "M" in vars_available):
-                candidates.append("theta_0 * exp(-r / theta_1)")
-                candidates.append("-tanh(theta_0 / r)**2")
-            if "x" in vars_available and "k" in vars_available:
-                candidates.append("theta_0 * x**4")
-                candidates.append("log(1.0 + x / theta_0) / (x / theta_0) - 1.0")
-            if "r" in vars_available and "k_e" in constants_available:
-                candidates.append("exp(-r / theta_0) - 1.0")
-            if "t" in vars_available:
-                candidates.append("- (theta_0 / T)**4")
-            if "v" in vars_available and "b" in vars_available:
-                candidates.append("theta_0 * v**2")
+        # Construct a weighted template list based on family weights
+        weighted_templates = []
+        for fam, templates in self.families.items():
+            w = weights[fam]
+            # Each template in this family gets weight w / len(templates)
+            for t in templates:
+                weighted_templates.append((t, w / len(templates)))
+                
+        temps, temp_weights = zip(*weighted_templates)
+        temp_weights = np.array(temp_weights)
+        temp_weights /= np.sum(temp_weights)
+        
+        # 50/50 mix of uniform and weighted probabilities to ensure structural diversity and prevent starvation of families
+        uniform_weights = np.ones_like(temp_weights) / len(temp_weights)
+        mix_weights = 0.5 * uniform_weights + 0.5 * temp_weights
+        mix_weights /= np.sum(mix_weights)
+        
+        # Sample templates from the mixed distribution (with replacement)
+        n_templates_to_process = len(self._templates) * 2  # Propose more options stochastically
+        chosen_templates = rng.choice(temps, size=n_templates_to_process, p=mix_weights, replace=True)
 
         # 2. Template Generation
-        for template in self._templates:
+        for template in chosen_templates:
             needed_vars = 1
             if "{v2}" in template: needed_vars = 2
             needed_consts = 0
             if "{c1}" in template: needed_consts = 1
             
             if len(vars_available) >= needed_vars:
-                for _ in range(5): # Generate diverse permutations
-                    v_chosen = rng.choice(vars_available, size=needed_vars, replace=False)
-                    fmt_dict = {f"v{i+1}": v_chosen[i] for i in range(needed_vars)}
-                    
-                    if needed_consts > 0:
-                        if len(constants_available) >= needed_consts:
-                            c_chosen = rng.choice(constants_available, size=needed_consts, replace=False)
-                            fmt_dict["c1"] = c_chosen[0]
-                        else:
-                            fmt_dict["c1"] = "theta_9" # parameter replacement
-                            
-                    try:
-                        expr_str = template.format(**fmt_dict)
-                        candidates.append(expr_str)
-                    except Exception:
-                        pass
+                # Generate diverse permutations
+                v_chosen = rng.choice(vars_available, size=needed_vars, replace=False)
+                fmt_dict = {f"v{i+1}": v_chosen[i] for i in range(needed_vars)}
+                
+                if needed_consts > 0:
+                    if len(constants_available) >= needed_consts:
+                        c_chosen = rng.choice(constants_available, size=needed_consts, replace=False)
+                        fmt_dict["c1"] = c_chosen[0]
+                    else:
+                        fmt_dict["c1"] = "theta_9" # parameter replacement
+                        
+                try:
+                    expr_str = template.format(**fmt_dict)
+                    candidates.append(expr_str)
+                except Exception:
+                    pass
 
         # 3. Refinement of Previous Best Corrections
         if context.previous_best:
@@ -648,8 +739,8 @@ class CorrectionMockProposer(BaseProposer):
                     seen.add(cand)
                     unique_candidates.append(cand)
             except Exception:
-                continue
-
+                pass
+                
         # Pad with basic fallback terms if necessary
         attempts = 0
         while len(unique_candidates) < context.n_candidates and attempts < 100:
@@ -661,6 +752,7 @@ class CorrectionMockProposer(BaseProposer):
                 unique_candidates.append(fallback)
 
         return unique_candidates[:context.n_candidates]
+
 
 
 class CorrectionGeminiProposer(BaseProposer):

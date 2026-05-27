@@ -65,8 +65,10 @@ def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_it
             discovered_class="failed",
             class_match=False,
             ast_edit_distance=999,
-            parameter_error={}
+            parameter_error={},
+            bic=9999.0
         )
+
         
     return {
         "scenario": scenario.name,
