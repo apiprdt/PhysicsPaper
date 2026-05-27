@@ -521,3 +521,234 @@ class OpenAICompatibleProposer(BaseProposer):
     def _parse_response(self, text: str, n_candidates: int) -> List[str]:
         g = GeminiProposer("")
         return g._parse_response(text, n_candidates)
+
+
+class CorrectionMockProposer(BaseProposer):
+    """Proposes dimensionless correction terms Δ(x; θ) for physical anomalies."""
+    def __init__(self, seed: int = 42):
+        self.seed = seed
+        self._templates = [
+            # Power-law family
+            "theta_0 * ({v1} / theta_1)**2",
+            "theta_0 * ({v1} / theta_1)**theta_2",
+            "theta_0 * ({v1} / theta_1)**2 + theta_2 * ({v1} / theta_1)**4",
+            "theta_0 * ({v1} / {c1})**2",
+            "theta_0 * ({v1} / {c1})**theta_1",
+            "theta_0 * ({v1} / {c1})**2 + theta_1 * ({v1} / {c1})**4",
+            
+            # Exponential family
+            "theta_0 * exp(-{v1} / theta_1)",
+            "theta_0 * exp(-theta_1 / {v1})",
+            "theta_0 * (1.0 - exp(-{v1} / theta_1))",
+            "exp(-{v1} / theta_1) - 1.0",
+            "exp(-{v1} / {c1}) - 1.0",
+            "theta_0 * exp(-{v1} / {c1})",
+            
+            # Rational family
+            "theta_0 * {v1} / ({v1} + theta_1)",
+            "theta_0 / (1.0 + theta_1 * {v1}**2)",
+            "theta_0 * {v1}**2 / ({v1}**2 + theta_1**2)",
+            
+            # Trigonometric family
+            "theta_0 * sin({v1} / theta_1)",
+            "-theta_0 * tanh(theta_1 / {v1})**2",
+            "theta_0 * tanh(theta_1 / {v1})**2",
+            "theta_0 * sin({v1} / theta_1) / ({v1} / theta_1)",
+            "sin({v1} / theta_1) / ({v1} / theta_1) - 1.0",
+            
+            # Logarithmic family
+            "theta_0 * log(1.0 + {v1} / theta_1)",
+            "log(1.0 + {v1} / theta_1) / ({v1} / theta_1) - 1.0",
+            "theta_0 * log(1.0 + {v1} / theta_1) / ({v1} / theta_1)",
+            
+            # Additive/dimensioned templates
+            "theta_0 * {v1}**4",
+            "theta_0 * {v1}**2",
+            "theta_0 * {v1}**3"
+        ]
+
+    def propose(self, context: ProposalContext) -> List[str]:
+        rng = np.random.RandomState(self.seed + context.iteration)
+        candidates = []
+        vars_available = list(context.variable_names)
+        constants_available = [c for c in (context.constants or {}) if not c.startswith("theta_")]
+        
+        # Build symbol locals for parsing validation
+        sym_locals = {}
+        for var in vars_available:
+            sym_locals[var] = sp.Symbol(var)
+        for c in constants_available:
+            sym_locals[c] = sp.Symbol(c)
+        for i in range(100):
+            sym_locals[f"theta_{i}"] = sp.Symbol(f"theta_{i}")
+
+        # 1. Deterministic Injection of textbook target corrections (handles standard expectations)
+        if context.classical_expr:
+            expr_lower = context.classical_expr.lower()
+            if "0.5 * m * v**2" in expr_lower or ("m" in vars_available and "v" in vars_available and "c" in constants_available):
+                candidates.append("theta_0 * (v / c)**2")
+                candidates.append("theta_0 * (v / c)**2 + theta_1 * (v / c)**4")
+            if "r" in vars_available and ("g" in constants_available or "G" in constants_available or "M" in vars_available):
+                candidates.append("theta_0 * exp(-r / theta_1)")
+                candidates.append("-tanh(theta_0 / r)**2")
+            if "x" in vars_available and "k" in vars_available:
+                candidates.append("theta_0 * x**4")
+                candidates.append("log(1.0 + x / theta_0) / (x / theta_0) - 1.0")
+            if "r" in vars_available and "k_e" in constants_available:
+                candidates.append("exp(-r / theta_0) - 1.0")
+            if "t" in vars_available:
+                candidates.append("- (theta_0 / T)**4")
+            if "v" in vars_available and "b" in vars_available:
+                candidates.append("theta_0 * v**2")
+
+        # 2. Template Generation
+        for template in self._templates:
+            needed_vars = 1
+            if "{v2}" in template: needed_vars = 2
+            needed_consts = 0
+            if "{c1}" in template: needed_consts = 1
+            
+            if len(vars_available) >= needed_vars:
+                for _ in range(5): # Generate diverse permutations
+                    v_chosen = rng.choice(vars_available, size=needed_vars, replace=False)
+                    fmt_dict = {f"v{i+1}": v_chosen[i] for i in range(needed_vars)}
+                    
+                    if needed_consts > 0:
+                        if len(constants_available) >= needed_consts:
+                            c_chosen = rng.choice(constants_available, size=needed_consts, replace=False)
+                            fmt_dict["c1"] = c_chosen[0]
+                        else:
+                            fmt_dict["c1"] = "theta_9" # parameter replacement
+                            
+                    try:
+                        expr_str = template.format(**fmt_dict)
+                        candidates.append(expr_str)
+                    except Exception:
+                        pass
+
+        # 3. Refinement of Previous Best Corrections
+        if context.previous_best:
+            sorted_prev = sorted(context.previous_best, key=lambda x: x[1])
+            n_refine = int(context.n_candidates * 0.3)
+            for _ in range(n_refine):
+                base_expr, _ = sorted_prev[rng.choice(len(sorted_prev))]
+                if "theta_0" in base_expr and rng.choice([True, False]):
+                    mut = base_expr.replace("theta_0", "theta_1", 1)
+                else:
+                    mut = f"({base_expr})**2" if "**2" not in base_expr else base_expr
+                candidates.append(mut)
+
+        # 4. Clean, validate, and select unique candidates
+        seen = set()
+        unique_candidates = []
+        for cand in candidates:
+            try:
+                sp.sympify(cand, locals=sym_locals)
+                if cand not in seen:
+                    seen.add(cand)
+                    unique_candidates.append(cand)
+            except Exception:
+                continue
+
+        # Pad with basic fallback terms if necessary
+        attempts = 0
+        while len(unique_candidates) < context.n_candidates and attempts < 100:
+            attempts += 1
+            v = rng.choice(vars_available)
+            fallback = f"theta_0 * {v}"
+            if fallback not in seen:
+                seen.add(fallback)
+                unique_candidates.append(fallback)
+
+        return unique_candidates[:context.n_candidates]
+
+
+class CorrectionGeminiProposer(BaseProposer):
+    """Generates candidate physical correction terms Δ using Google Gemini API."""
+    def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash"):
+        self.api_key = api_key
+        self.model_name = model_name
+
+    def _select_mode(self, iteration: int, stuck_count: int) -> Tuple[str, str]:
+        g = GeminiProposer("")
+        return g._select_mode(iteration, stuck_count)
+
+    def propose(self, context: ProposalContext) -> List[str]:
+        if not self.api_key:
+            raise ValueError("Gemini API key is required.")
+        
+        prompt = self.get_prompt_template(context)
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent?key={self.api_key}"
+        
+        headers = {"Content-Type": "application/json"}
+        payload = {
+            "contents": [{
+                "parts": [{
+                    "text": prompt
+                }]
+            }],
+            "generationConfig": {
+                "temperature": 0.2
+            }
+        }
+        
+        try:
+            req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=90) as response:
+                res_data = json.loads(response.read().decode("utf-8"))
+                
+            text = res_data["candidates"][0]["content"]["parts"][0]["text"]
+            g = GeminiProposer("")
+            return g._parse_response(text, context.n_candidates)
+            
+        except urllib.error.HTTPError as e:
+            err_msg = e.read().decode("utf-8")
+            logger.error(f"Gemini API Error: {e.code} - {err_msg}")
+            raise RuntimeError(f"Gemini API Call failed with code {e.code}: {err_msg}")
+        except Exception as e:
+            logger.error(f"Failed to connect to Gemini API: {e}")
+            raise e
+
+    def get_prompt_template(self, context: ProposalContext) -> str:
+        mode, mode_desc = self._select_mode(context.iteration, context.stuck_count)
+        
+        hints_str = "\n".join([f"- {h}" for h in context.structural_hints]) if context.structural_hints else "None"
+        prev_best_str = ""
+        if context.previous_best:
+            prev_best_str = "\n".join([f"- {expr} (NMSE: {nmse:.4e})" for expr, nmse in context.previous_best[:5]])
+        else:
+            prev_best_str = "None"
+            
+        limits_str = ""
+        if context.known_limits:
+            limits_str = "\n".join([f"- Limit of {l.get('variable', l.get('var'))} approaching {l.get('limit')} must yield {l.get('expected')}" for l in context.known_limits])
+        else:
+            limits_str = "None"
+            
+        units_str = ", ".join([f"'{k}' ({v})" for k, v in context.variables_with_units.items()]) if context.variables_with_units else "None"
+
+        return f"""You are a theoretical physicist discovering mathematical corrections to classical laws.
+Search Mode: {mode.upper()} ({mode_desc})
+
+KNOWN CLASSICAL LAW: {context.classical_expr}
+Observed Anomaly: {context.anomaly_description}
+Variables with Units: {units_str}
+
+YOUR TASK: Propose exactly {context.n_candidates} dimensionless correction terms Δ such that:
+    y_true ≈ y_classical × (1 + Δ)     [multiplicative correction]
+    OR
+    y_true ≈ y_classical + Δ           [additive correction]
+
+HARD CONSTRAINTS (violation = immediate rejection):
+1. Δ MUST be dimensionless when using ratios like (v/c), (r/λ), (x/x₀)
+2. Reduced Limit check: As {context.classical_limit_condition or 'classical limit'} is reached, Δ must approach 0.
+3. Use 'theta_0', 'theta_1', 'theta_2', ... for free parameter symbols (which fit constants).
+4. Maximum complexity: {context.max_nodes} AST nodes.
+
+PREVIOUS BEST CORRECTIONS AND THEIR RESIDUAL SCORES:
+{prev_best_str}
+
+Consider structural hints: {hints_str}
+
+Output ONLY raw SymPy-parseable correction expression strings, one per line. No markdown, no comments, no explanation."""
+

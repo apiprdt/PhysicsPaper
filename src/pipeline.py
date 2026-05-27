@@ -53,7 +53,22 @@ class Stage1Pipeline:
                 continue
                 
             # Gate 2: Dimensional Suitability Check (~ms)
-            if not self.checker.verify(expr, target_dimension_key):
+            is_dim_ok = True
+            if target_dimension_key is not None and target_dimension_key != "dimensionless":
+                if has_params:
+                    # Parameterized additive expression: the coefficient can adapt to match target units,
+                    # but we must still enforce dimensional homogeneity (no unit clashes like m + v)
+                    try:
+                        self.checker._get_dim_vector(expr)
+                        is_dim_ok = True
+                    except TypeError:
+                        is_dim_ok = False
+                else:
+                    is_dim_ok = self.checker.verify(expr, target_dimension_key)
+            else:
+                is_dim_ok = self.checker.verify(expr, target_dimension_key)
+                
+            if not is_dim_ok:
                 continue
                 
             # Gate 2.5: Transcendental Argument Guardrail (always active, even when target_dim=None)

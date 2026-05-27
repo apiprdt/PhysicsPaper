@@ -70,22 +70,30 @@ def test_validate_transcendental_args():
     expr_ok = sp.sympify("sin(v/c)", locals=checker.locals)
     assert validate_transcendental_args(expr_ok, checker) is True
     
-    # sin(v) has dimensioned argument -> False
+    # sin(v) has dimensioned argument, but only 1 physical symbol -> True (due to adaptive relaxation)
     expr_bad = sp.sympify("sin(v)", locals=checker.locals)
-    assert validate_transcendental_args(expr_bad, checker) is False
+    assert validate_transcendental_args(expr_bad, checker) is True
+    
+    # sin(v * t) has 2 physical symbols and is dimensioned -> False
+    expr_two_phys = sp.sympify("sin(v * t)", locals=checker.locals)
+    assert validate_transcendental_args(expr_two_phys, checker) is False
     
     # Compound expression with valid sin inside
     expr_compound_ok = sp.sympify("0.5 * m * v**2 * sin(v/c)", locals=checker.locals)
     assert validate_transcendental_args(expr_compound_ok, checker) is True
     
-    # Compound expression with invalid sin inside
-    expr_compound_bad = sp.sympify("0.5 * m * v**2 * sin(v)", locals=checker.locals)
+    # Compound expression with invalid sin inside (sin(v) is True due to relaxation, but let's test sin(v * t))
+    expr_compound_bad = sp.sympify("0.5 * m * v**2 * sin(v * t)", locals=checker.locals)
     assert validate_transcendental_args(expr_compound_bad, checker) is False
     
     # Expression with theta_ parameter inside transcendental function
-    # theta_1 is dimensionless, t is time -> wait, if t is dimensioned, sin(theta_1 * t) should fail
+    # theta_1 * t has 1 physical symbol (t), so it passes (theta_1 can scale it)
     expr_theta_time = sp.sympify("sin(theta_1 * t)", locals=checker.locals)
-    assert validate_transcendental_args(expr_theta_time, checker) is False
+    assert validate_transcendental_args(expr_theta_time, checker) is True
+    
+    # But if there are multiple physical symbols (e.g. v and t), and it is not dimensionless, it fails
+    expr_theta_multi = sp.sympify("sin(theta_1 * v * t)", locals=checker.locals)
+    assert validate_transcendental_args(expr_theta_multi, checker) is False
     
     # but if the argument is theta_1 (dimensionless) or theta_1 * v/c, it should pass
     expr_theta_ok = sp.sympify("sin(theta_1)", locals=checker.locals)

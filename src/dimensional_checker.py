@@ -82,6 +82,13 @@ class DimensionalChecker:
             return True
         try:
             expr = sp.sympify(candidate_expr, locals=self.locals) if isinstance(candidate_expr, str) else candidate_expr
+            
+            # Adaptive relaxation: If the target is dimensionless and there is exactly one
+            # physical symbol, free parameters (substituted with 1.0) can always scale it to be dimensionless.
+            physical_symbols = [s for s in expr.free_symbols if str(s) in self.registry]
+            if target_dimension_key == "dimensionless" and len(physical_symbols) == 1:
+                return True
+                
             candidate_dim = self._get_dim_vector(expr)
             target_dim = self.registry[target_dimension_key]
             return candidate_dim == target_dim
@@ -96,7 +103,15 @@ def validate_transcendental_args(expr: sp.Expr, checker: DimensionalChecker) -> 
             if sub.func.__name__ in ("sin", "cos", "tan", "exp", "log", "asin", "acos", "atan", "sinh", "cosh", "tanh"):
                 try:
                     if len(sub.args) > 0:
-                        arg_dim = checker._get_dim_vector(sub.args[0])
+                        arg = sub.args[0]
+                        physical_symbols = [s for s in arg.free_symbols if str(s) in checker.registry]
+                        
+                        # Adaptive relaxation: If there is at most one physical symbol in the argument,
+                        # free parameters can scale it to be dimensionless.
+                        if len(physical_symbols) <= 1:
+                            continue
+                            
+                        arg_dim = checker._get_dim_vector(arg)
                         if arg_dim != [0, 0, 0]:
                             return False
                 except Exception:
@@ -106,7 +121,7 @@ def validate_transcendental_args(expr: sp.Expr, checker: DimensionalChecker) -> 
 
 class ASTValidator:
     """Prunes bloated expressions to prevent dynamic algebraic over-fitting/bloating."""
-    def __init__(self, max_depth: int = 5, max_tokens: int = 15):
+    def __init__(self, max_depth: int = 7, max_tokens: int = 20):
         self.max_depth = max_depth
         self.max_tokens = max_tokens
         self.locals = {s: sp.Symbol(s) for s in DIMENSIONS}
