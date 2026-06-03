@@ -1,0 +1,29 @@
+Title: Anomaly-Driven Correction Discovery (ADCD): Physics-Constrained Symbolic
+       Regression for Evolutionary Scientific Discovery
+
+Authors: [Your Name]
+
+Abstract: [Copy from main.tex abstract section]
+
+Primary Category: cs.AI (Artificial Intelligence)
+Cross-list: physics.comp-ph (Computational Physics), cs.LG (Machine Learning)
+
+Comments: 12 pages, 4 figures, 6 tables. Code available at
+          https://github.com/apiprdt/PhysicsPaper
+
+License: CC BY 4.0
+
+Keywords: symbolic regression, physics-informed machine learning, automated
+          scientific discovery, anomaly detection, correction discovery,
+          asymptotic constraints, Bayesian model selection
+
+Submission checklist:
+  [ ] Paper compiles without errors (pdflatex main.tex x2)
+  [ ] All figures present in paper/figures/ (PDF format)
+  [ ] No "undefined reference" warnings in main.log
+  [ ] Abstract < 1920 characters (arXiv limit)
+  [ ] Author name finalized
+  [ ] Zip file: main.tex + figures/ + (optional .bbl file)
+  [ ] Submit at https://arxiv.org/submit
+  [ ] Select primary category: cs.AI
+  [ ] Cross-list: physics.comp-ph, cs.LG
