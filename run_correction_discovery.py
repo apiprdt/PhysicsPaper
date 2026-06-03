@@ -19,9 +19,9 @@ from src.jax_optimizer import JAXOptimizer
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("CorrectionDiscoveryBenchmark")
 
-def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_iter: int = 4, proposer_type: str = "mock") -> Dict[str, Any]:
+def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_iter: int = 4, proposer_type: str = "mock", seed: int = 42) -> Dict[str, Any]:
     """Runs a single scenario under the specified noise level and returns metrics."""
-    logger.info(f"Starting discovery: Scenario='{scenario.name}', Noise={noise_level * 100:.1f}%, Proposer={proposer_type}")
+    logger.info(f"Starting discovery: Scenario='{scenario.name}', Noise={noise_level * 100:.1f}%, Proposer={proposer_type}, Seed={seed}")
     
     # 1. Setup dynamic physical limit regime (ARC Scorer)
     validator = ASTValidator()  # defaults: max_depth=7, max_tokens=20
@@ -44,7 +44,7 @@ def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_it
     optimizer = JAXOptimizer()
     
     if proposer_type == "mock":
-        proposer = CorrectionMockProposer(seed=42)
+        proposer = CorrectionMockProposer(seed=seed)
     elif proposer_type == "gemini":
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
@@ -71,7 +71,7 @@ def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_it
     )
     
     start_time = time.time()
-    search_res = orchestrator.search_correction(scenario, noise_level=noise_level, seed=42)
+    search_res = orchestrator.search_correction(scenario, noise_level=noise_level, seed=seed)
     elapsed = time.time() - start_time
     
     eval_res = search_res.evaluation

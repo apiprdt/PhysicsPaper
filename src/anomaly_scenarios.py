@@ -77,6 +77,19 @@ class AnomalyScenario:
             X["k"] = rng.uniform(10.0, 100.0, size=n_points)
             X["x"] = rng.uniform(0.1, 5.0, size=n_points)
             
+        elif self.name == "Blind-1: Van der Waals":
+            X["n"] = rng.uniform(1.0, 5.0, size=n_points)
+            X["T"] = rng.uniform(250.0, 450.0, size=n_points)
+            X["V"] = rng.uniform(1.0, 5.0, size=n_points)
+            
+        elif self.name == "Blind-2: Stokes-Einstein":
+            X["T"] = rng.uniform(270.0, 350.0, size=n_points)
+            X["r"] = rng.uniform(1.0, 5.0, size=n_points)
+            
+        elif self.name == "Blind-3: Wien Displacement":
+            X["T"] = rng.uniform(1000.0, 6000.0, size=n_points)
+            X["f"] = rng.uniform(1e12, 1e14, size=n_points)
+            
         else:
             # Fallback random generator for arbitrary names
             for var in self.classical_variables:
@@ -291,5 +304,68 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             classical_limit_variable="x",
             classical_limit_direction="0",
             correction_class="logarithmic"
+        ),
+        
+        # ── BLIND TEST SCENARIOS ──────────────────────────────────────────────
+        # Ground truth DISEMBUNYIKAN dari pipeline. Kita hanya tahu correction_class.
+        # Ini untuk membuktikan generalisasi di luar benchmark yang dibuat sendiri.
+        
+        AnomalyScenario(
+            name="Blind-1: Van der Waals",
+            tier="blind",
+            domain="thermodynamics",
+            # Classical: Ideal gas law: P = nRT/V
+            # Anomaly: Van der Waals correction factor (a/V^2 pressure term)
+            classical_expr="n * R * T / V",
+            classical_variables=["n", "T", "V"],
+            classical_constants={"R": 8.314},
+            correction_type="multiplicative",
+            # Correction: (1 - a*n^2/V^2) factor, simplified as additive delta
+            correction_expr="theta_0 * n**2 / V**2",
+            correction_constants={"theta_0": 0.364},  # 'a' for CO2 in Pa·m^6/mol^2
+            anomaly_regime="high pressure / low volume gas, V < 5L",
+            variables_with_units={"n": "mol", "T": "K", "V": "m^3"},
+            classical_limit_variable="V",
+            classical_limit_direction="oo",  # correction -> 0 as V -> infinity (ideal gas limit)
+            correction_class="rational"
+        ),
+        AnomalyScenario(
+            name="Blind-2: Stokes-Einstein",
+            tier="blind",
+            domain="biophysics",
+            # Classical: Einstein diffusion D = kT/(6*pi*eta*r)
+            # Anomaly: Shape correction factor for non-spherical particles
+            classical_expr="k_B * T / (6 * pi * eta * r)",
+            classical_variables=["T", "r"],
+            classical_constants={"k_B": 1.380649e-23, "pi": 3.14159, "eta": 1e-3},
+            correction_type="multiplicative",
+            # Oblate spheroid correction: (3/8)*sqrt(pi)*r^0.5 - 1  (simplified)
+            correction_expr="theta_0 * (r / theta_1)**0.5",
+            correction_constants={"theta_0": 0.15, "theta_1": 1.0},
+            anomaly_regime="non-spherical macromolecules, r > 5nm",
+            variables_with_units={"T": "K", "r": "m"},
+            classical_limit_variable="r",
+            classical_limit_direction="0",
+            correction_class="power_law"
+        ),
+        AnomalyScenario(
+            name="Blind-3: Wien Displacement",
+            tier="blind",
+            domain="quantum_optics",
+            # Classical: Rayleigh-Jeans law: I = 2*k*T*f^2/c^2 (low freq)
+            # Anomaly: Planck quantum correction
+            classical_expr="2 * k_B * T * f**2 / c**2",
+            classical_variables=["T", "f"],
+            classical_constants={"k_B": 1.380649e-23, "c": 3e8},
+            correction_type="multiplicative",
+            # Quantum correction: (hf/kT)/(exp(hf/kT) - 1) relative to kT/hf limit
+            # Simplified as: exp(-theta_0 * f / T) correction
+            correction_expr="exp(-theta_0 * f / T) / (1 - exp(-theta_0 * f / T)) * (theta_0 * f / T)",
+            correction_constants={"theta_0": 4.799e-11},  # h/k_B
+            anomaly_regime="high frequency UV/visible regime, f > 1e13 Hz",
+            variables_with_units={"T": "K", "f": "Hz"},
+            classical_limit_variable="f",
+            classical_limit_direction="0",
+            correction_class="exponential"
         )
     ]

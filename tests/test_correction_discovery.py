@@ -13,7 +13,7 @@ from src.jax_optimizer import JAXOptimizer
 def test_anomaly_scenario_data_generation():
     """Verify that all 9 scenarios generate valid data shapes and proper residuals."""
     scenarios = get_all_scenarios()
-    assert len(scenarios) == 9
+    assert len(scenarios) == 12
     
     for scenario in scenarios:
         n_points = 50
