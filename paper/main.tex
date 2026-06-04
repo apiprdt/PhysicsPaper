@@ -67,7 +67,65 @@ Consider three prominent historical examples of this evolutionary paradigm:
 
 Motivated by these historical precedents, we propose the \textbf{Anomaly-Driven Correction Discovery (ADCD)} framework. By focusing the symbolic search space purely on the dimensionless correction factor $\Delta$, ADCD restricts the hypothesis space to physically meaningful corrections. Furthermore, by embedding fundamental physical principles---dimensional consistency, asymptotic limits, and Occam's razor---directly into the symbolic selection gates, ADCD eliminates physically impossible equations (such as taking the exponential of a dimensioned quantity or proposing corrections that blow up in the classical limit) before they can overfit noisy data.
 
+
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Symbolic Regression}
+The discovery of mathematical laws from data has a long history in machine
+learning. BACON \cite{langley1987scientific} pioneered rule-based numerical
+law discovery from experimental tables. Genetic programming approaches
+such as Eureqa \cite{schmidt2009distilling} and PySR \cite{cranmer2020pysr}
+demonstrate that evolved expression trees can recover compact physical
+laws in low-noise regimes. AI Feynman \cite{udrescu2020ai} improved upon
+this by exploiting physics-motivated structural priors (separability,
+symmetry) to decompose complex equations into simpler sub-problems. Deep
+Symbolic Regression (DSR) \cite{petersen2021deep} applies reinforcement
+learning to navigate the symbolic search tree. A key distinction between
+these methods and ADCD is that they all operate \textit{tabula rasa}: the
+entire equation must be discovered. ADCD instead focuses the search on the
+much smaller space of physically meaningful \textit{corrections} to known
+laws, exploiting the prior knowledge embedded in the classical theory.
+
+\subsection{Physics-Informed Machine Learning}
+Physics-Informed Neural Networks (PINNs) \cite{raissi2019physics} embed
+differential equation constraints into the training loss of neural networks,
+enforcing physical consistency during learning. Hamiltonian Neural Networks
+\cite{greydanus2019hamiltonian} and Lagrangian Neural Networks
+\cite{cranmer2020lagrangian} directly parameterize the energy function,
+guaranteeing energy conservation by construction. SINDy
+\cite{brunton2016sindy} identifies governing equations from data via sparse
+regression over a library of candidate functions. These approaches embed
+physics into the \textit{model architecture or training loss}. ADCD differs
+by embedding physics into the \textit{search space constraints}: the four
+cascaded gates (complexity, dimensional analysis, transcendental guard,
+asymptotic limit) prune candidates \textit{before} any numerical
+optimization occurs, making the filtering independent of the optimizer.
+
+\subsection{Automated Scientific Discovery}
+The Nobel Turing Challenge \cite{kitano2021nobel} articulates a vision for
+AI systems that can autonomously generate and test scientific hypotheses.
+FunSearch \cite{romeraparedes2024funsearch} demonstrates that large language
+models paired with evolutionary search can discover novel mathematical
+structures in combinatorics. ADCD contributes to this goal by automating
+the specific sub-task of anomaly characterization: given a regime where a
+classical law fails, ADCD systematically identifies the mathematical form of
+the deviation. This positions ADCD as a component in a broader autonomous
+discovery pipeline.
+
+\subsection{Model Selection and Complexity Control}
+Bayesian Information Criterion (BIC) \cite{schwarz1978bic} provides a
+principled trade-off between goodness-of-fit and model complexity. Minimum
+Description Length (MDL) \cite{rissanen1978mdl} offers an information-
+theoretic complement. Both are related to Solomonoff's algorithmic
+complexity. ADCD uses BIC as a \textit{post-hoc reranker} after the
+physics gates have already filtered the search space, rather than as a
+primary search objective. This separation of concerns allows the gates to
+guarantee physical plausibility while BIC selects the most parsimonious
+survivor.
+
 \section{The ADCD Framework}
+
 \label{sec:method}
 The ADCD pipeline operates as a closed-loop physics-informed search. A high-level overview of the architecture is illustrated in \Cref{fig:architecture}.
 
@@ -330,7 +388,51 @@ To quantify the benefit of the physics gates and BIC reranking, we performed abl
     \item \textbf{Without BIC Reranking (pure NMSE)}: Under 5\% noise, the Anharmonic Spring was fitted as $(x/\theta_9)^{\theta_1}$ (where $\theta_1 \approx 4.02$ and $\theta_9 \approx 1.01$). While numerically equivalent, this was classified as a `power\_law` structural class instead of `polynomial` due to the inclusion of the unnecessary scaling exponent $\theta_1$. BIC successfully penalizes this excess parameter, identifying the parsimonious $x^4$ form.
 \end{itemize}
 
+
+\section{Limitations and Future Work}
+\label{sec:limitations}
+
+\paragraph{Single-variable corrections.}
+The current ADCD framework discovers corrections $\Delta(x;\theta)$ as
+functions of a single primary limit variable. Real physical corrections often
+depend on multiple coupled variables (e.g., GR corrections depend on both
+velocity $v/c$ and gravitational potential $GM/rc^2$). Extension to
+multi-variable corrections $\Delta(x_1, x_2, \ldots; \theta)$ is a natural
+and important next step.
+
+\paragraph{Proposer expressiveness bound.}
+The correction candidates are drawn from a fixed template bank (mock
+proposer) or generated by an LLM (Gemini proposer). The discovery is
+consequently bounded by the expressiveness of the proposer vocabulary.
+Novel mathematical structures outside the template space cannot be
+discovered. Expanding the template bank or fine-tuning the LLM on
+domain-specific physics literature would directly improve coverage.
+
+\paragraph{Information-theoretic limits at high noise.}
+As demonstrated by the Yukawa Gravity scenario at $\geq 5\%$ noise,
+certain mathematical structures (exponential decay $e^{-r/\lambda}$ vs.
+logarithmic quotient $\ln(1+r/\lambda)/(r/\lambda)$) are
+fundamentally indistinguishable when the signal-to-noise ratio is
+sufficiently low. This is not a failure of the framework but a
+data information limit: no algorithm can reliably distinguish
+numerically near-identical functions from finite, noisy samples.
+Higher-quality experimental data or stronger asymptotic priors would
+be required to resolve such ambiguities.
+
+\paragraph{Correction mode specification.}
+The user must currently specify whether the correction is multiplicative
+($y = y_{\text{cls}}(1+\Delta)$) or additive ($y = y_{\text{cls}}+\Delta$).
+Automated mode detection from residual statistics is a promising direction
+that would reduce the required domain knowledge.
+
+\paragraph{Synthetic validation.}
+Our 9 benchmark scenarios, while physically motivated, use synthetically
+generated data. Rigorous validation against curated experimental archives
+(e.g., NIST atomic spectra, JPL planetary ephemerides, CERN particle data)
+remains an open task.
+
 \section{Conclusion}
+
 We have presented Anomaly-Driven Correction Discovery (ADCD), a physics-informed symbolic regression framework that discovers physical corrections rather than equations from scratch. By using statistical residual feature priors, strict physical gates, traced L-BFGS-B parameter fitting, and Bayesian Information Criterion reranking, ADCD achieves a structural recovery rate of 94.4\% on a 9-anomaly benchmark suite. Future work will investigate extending ADCD to partial differential equations (PDEs) representing anomalies in spatio-temporal datasets, such as general relativistic corrections to classical fluid flows.
 
 \bibliographystyle{plain}
@@ -356,6 +458,47 @@ G. Schwarz, ``Estimating the dimension of a model,''
 \bibitem{hornik1989universal}
 K. Hornik, M. Stinchcombe, and H. White, ``Universal approximation of an unknown mapping,'' 
 \textit{Neural Networks}, vol. 2, no. 5, pp. 359--366, 1989.
+
+\bibitem{raissi2019physics}
+M. Raissi, P. Perdikaris, and G.~E. Karniadakis,
+``Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations,''
+\textit{Journal of Computational Physics}, vol. 378, pp. 686--707, 2019.
+
+\bibitem{greydanus2019hamiltonian}
+S. Greydanus, M. Dzamba, and J. Yosinski,
+``Hamiltonian neural networks,''
+in \textit{Advances in Neural Information Processing Systems (NeurIPS)}, vol. 32, 2019.
+
+\bibitem{cranmer2020lagrangian}
+M. Cranmer, S. Greydanus, S. Hoyer, P. Battaglia, D. Spergel, and S. Ho,
+``Lagrangian neural networks,''
+in \textit{ICLR 2020 Deep Differential Equations Workshop}, 2020.
+
+\bibitem{petersen2021deep}
+B.~K. Petersen et al.,
+``Deep symbolic regression: Recovering mathematical expressions from data via risk-seeking policy gradients,''
+in \textit{International Conference on Learning Representations (ICLR)}, 2021.
+
+\bibitem{kitano2021nobel}
+H. Kitano,
+``Nobel Turing challenge: creating the engine for scientific discovery,''
+\textit{npj Systems Biology and Applications}, vol. 7, no. 29, 2021.
+
+\bibitem{romeraparedes2024funsearch}
+B. Romera-Paredes et al.,
+``Mathematical discoveries from program search with large language models,''
+\textit{Nature}, vol. 625, pp. 468--475, 2024.
+
+\bibitem{rissanen1978mdl}
+J. Rissanen,
+``Modeling by shortest data description,''
+\textit{Automatica}, vol. 14, no. 5, pp. 465--471, 1978.
+
+\bibitem{langley1987scientific}
+P. Langley, H.~A. Simon, G.~L. Bradshaw, and J.~M. Zytkow,
+\textit{Scientific Discovery: Computational Explorations of the Creative Processes}.
+Cambridge, MA: MIT Press, 1987.
+
 \end{thebibliography}
 
 \end{document}

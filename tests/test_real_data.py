@@ -18,7 +18,7 @@ from src.real_data_loader import (
     load_muon_g2,
     load_all_real_data,
 )
-from src.real_scenarios import get_real_scenarios
+from src.real_scenarios import get_real_scenarios, RealAnomalyScenario
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -212,10 +212,29 @@ class TestRealScenarios:
             assert len(s.classical_variables) > 0, \
                 f"{s.name}: classical_variables must be non-empty"
 
-    def test_scenarios_generate_data(self):
-        """Scenarios must be able to generate data via the standard interface
-        (uses the generic fallback branch in AnomalyScenario.generate_data)."""
+    def test_scenarios_are_real_anomaly_scenario_subclass(self):
+        """All returned objects must be RealAnomalyScenario instances."""
         for s in self.scenarios:
-            X, y_obs, y_cls, residual = s.generate_data(n_points=50, seed=0)
-            assert len(y_obs) == 50, f"{s.name}: generate_data returned wrong length"
-            assert np.all(np.isfinite(y_obs)), f"{s.name}: y_obs contains non-finite values"
+            assert isinstance(s, RealAnomalyScenario), \
+                f"{s.name} must be a RealAnomalyScenario, got {type(s).__name__}"
+
+    def test_scenarios_generate_data(self):
+        """Scenarios must produce real loader data (not uniform random fallback).
+
+        Verifies that generate_data() delegates to the actual physics loaders
+        by checking the expected sample sizes for each dataset.
+        """
+        expected_sizes = {
+            "Real: Mercury Perihelion":  200,
+            "Real: Hydrogen Lamb Shift": 18,
+            "Real: Blackbody Radiation": 200,
+            "Real: Muon g-2":            100,
+        }
+        for s in self.scenarios:
+            X, y_obs, y_cls, residual = s.generate_data(seed=42)
+            expected_n = expected_sizes[s.name]
+            assert len(y_obs) == expected_n, \
+                f"{s.name}: expected {expected_n} points from real loader, got {len(y_obs)}"
+            assert np.all(np.isfinite(y_obs)), \
+                f"{s.name}: y_obs contains non-finite values"
+

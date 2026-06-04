@@ -4,63 +4,63 @@
     "tier": "real_data",
     "noise": 0.0,
     "discovered_expr": "theta_0*v**2",
-    "nmse_residual": 1.0,
-    "nmse_full": 1.0,
+    "nmse_residual": 1.1077762698880854e-05,
+    "nmse_full": 1.1077762698880854e-05,
     "discovered_class": "polynomial",
     "class_match": true,
     "ast_edit_distance": 3,
     "parameter_error": {
-      "theta_0": 1.0
+      "theta_0": 0.9999999999999999
     },
-    "time_seconds": 9.984557390213013,
+    "time_seconds": 7.83946418762207,
     "converged": true
   },
   {
     "scenario": "Real: Hydrogen Lamb Shift",
     "tier": "real_data",
     "noise": 0.0,
-    "discovered_expr": "theta_0 * (n / theta_1)**(-theta_2)",
-    "nmse_residual": 9.290954180553589e-12,
-    "nmse_full": 3.848972306173952e-14,
+    "discovered_expr": "theta_0 * (n / theta_9)**(-theta_1)",
+    "nmse_residual": 1.2019013478275405e-07,
+    "nmse_full": 1.6948162775182498e-18,
     "discovered_class": "power_law",
     "class_match": true,
     "ast_edit_distance": 6,
     "parameter_error": {
-      "theta_0": 0.1879301298784437
+      "theta_0": 0.9890932904005872
     },
-    "time_seconds": 14.523577451705933,
+    "time_seconds": 9.891584873199463,
     "converged": true
   },
   {
     "scenario": "Real: Blackbody Radiation",
     "tier": "real_data",
     "noise": 0.0,
-    "discovered_expr": "theta_0*exp(-theta_1/f)",
-    "nmse_residual": 0.819347095570692,
-    "nmse_full": 1.0,
-    "discovered_class": "exponential",
-    "class_match": true,
-    "ast_edit_distance": 4,
+    "discovered_expr": "theta_0*(3.33555703802535e-9*f)**theta_1",
+    "nmse_residual": 0.0746353112543275,
+    "nmse_full": 674.0918738116278,
+    "discovered_class": "power_law",
+    "class_match": false,
+    "ast_edit_distance": 6,
     "parameter_error": {
-      "theta_0": 20837674512.329956
+      "theta_0": 32331023.14018923
     },
-    "time_seconds": 9.032503366470337,
-    "converged": true
+    "time_seconds": 7.6662633419036865,
+    "converged": false
   },
   {
     "scenario": "Real: Muon g-2",
     "tier": "real_data",
     "noise": 0.0,
-    "discovered_expr": "alpha*theta_0",
-    "nmse_residual": 3.728613335162459e-31,
-    "nmse_full": 3.728613335162459e-31,
-    "discovered_class": "polynomial",
-    "class_match": true,
-    "ast_edit_distance": 3,
+    "discovered_expr": "theta_0*(0.318309886183791*alpha)**theta_1",
+    "nmse_residual": 7.936568727333642e-07,
+    "nmse_full": 7.936568727333642e-07,
+    "discovered_class": "power_law",
+    "class_match": false,
+    "ast_edit_distance": 4,
     "parameter_error": {
-      "theta_0": 0.6816901138162089
+      "theta_0": 0.03721125399962588
     },
-    "time_seconds": 3.1868746280670166,
+    "time_seconds": 10.227826356887817,
     "converged": true
   }
 ]
