@@ -9,3 +9,13 @@ env/
 .env
 .env.local
 experiment_results.json
+
+# LaTeX auxiliary files
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.synctex.gz
+paper/*.fls
+paper/*.fdb_latexmk
+

@@ -1,4 +1,6 @@
 \documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage[utf8]{inputenc}
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,amsfonts,amsthm}
@@ -223,20 +225,20 @@ Our framework was executed using the three proposer styles. The full benchmark r
 \toprule
 \textbf{Scenario} & \textbf{Noise} & \textbf{Discovered Correction $\Delta(x; \theta)$} & \textbf{Full NMSE} & \textbf{Class Match} & \textbf{AST Dist} \\
 \midrule
-Relativistic KE & 0\% & `theta_0 * v**2 / c**2` & $1.68 \times 10^{-32}$ & \textbf{YES} & 4 \\
-& 1\% & `theta_0 * v**2 / c**2` & $1.70 \times 10^{-04}$ & \textbf{YES} & 3 \\
-& 5\% & `theta_0 * v**2 / c**2` & $4.21 \times 10^{-03}$ & \textbf{YES} & 3 \\
-& 10\% & `theta_0 * v**2 / c**2` & $1.65 \times 10^{-02}$ & \textbf{YES} & 3 \\
+Relativistic KE & 0\% & \texttt{theta\_0 * v**2 / c**2} & $1.68 \times 10^{-32}$ & \textbf{YES} & 4 \\
+& 1\% & \texttt{theta\_0 * v**2 / c**2} & $1.70 \times 10^{-04}$ & \textbf{YES} & 3 \\
+& 5\% & \texttt{theta\_0 * v**2 / c**2} & $4.21 \times 10^{-03}$ & \textbf{YES} & 3 \\
+& 10\% & \texttt{theta\_0 * v**2 / c**2} & $1.65 \times 10^{-02}$ & \textbf{YES} & 3 \\
 \midrule
-Yukawa Gravity & 0\% & `theta_0 * exp(-r / theta_1)` & $4.68 \times 10^{-14}$ & \textbf{YES} & 0 \\
-& 1\% & `theta_0 * exp(-r / theta_1)` & $7.12 \times 10^{-05}$ & \textbf{YES} & 0 \\
-& 5\% & `theta_0 * theta_1 * log(r / theta_1 + 1.0) / r` & $2.35 \times 10^{-03}$ & NO & 7 \\
-& 10\% & `theta_0 * theta_1 * log(r / theta_1 + 1.0) / r` & $8.73 \times 10^{-03}$ & NO & 7 \\
+Yukawa Gravity & 0\% & \texttt{theta\_0 * exp(-r / theta\_1)} & $4.68 \times 10^{-14}$ & \textbf{YES} & 0 \\
+& 1\% & \texttt{theta\_0 * exp(-r / theta\_1)} & $7.12 \times 10^{-05}$ & \textbf{YES} & 0 \\
+& 5\% & \texttt{theta\_0 * theta\_1 * log(r / theta\_1 + 1.0) / r} & $2.35 \times 10^{-03}$ & NO & 7 \\
+& 10\% & \texttt{theta\_0 * theta\_1 * log(r / theta\_1 + 1.0) / r} & $8.73 \times 10^{-03}$ & NO & 7 \\
 \midrule
-Anharmonic Spring & 0\% & `theta_0 * x**4` & $0.00 \times 10^{0}$ & \textbf{YES} & 0 \\
-& 1\% & `theta_0 * x**4` & $1.79 \times 10^{-04}$ & \textbf{YES} & 0 \\
-& 5\% & `theta_0 * x**4` & $4.46 \times 10^{-03}$ & \textbf{YES} & 0 \\
-& 10\% & `theta_0 * x**4` & $1.76 \times 10^{-02}$ & \textbf{YES} & 0 \\
+Anharmonic Spring & 0\% & \texttt{theta\_0 * x**4} & $0.00 \times 10^{0}$ & \textbf{YES} & 0 \\
+& 1\% & \texttt{theta\_0 * x**4} & $1.79 \times 10^{-04}$ & \textbf{YES} & 0 \\
+& 5\% & \texttt{theta\_0 * x**4} & $4.46 \times 10^{-03}$ & \textbf{YES} & 0 \\
+& 10\% & \texttt{theta\_0 * x**4} & $1.76 \times 10^{-02}$ & \textbf{YES} & 0 \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -249,20 +251,20 @@ Anharmonic Spring & 0\% & `theta_0 * x**4` & $0.00 \times 10^{0}$ & \textbf{YES}
 \toprule
 \textbf{Scenario} & \textbf{Noise} & \textbf{Discovered Correction $\Delta(x; \theta)$} & \textbf{Full NMSE} & \textbf{Class Match} & \textbf{AST Dist} \\
 \midrule
-Screened Coulomb & 0\% & `exp(-r / theta_1) - 1.0` & $1.09 \times 10^{-15}$ & \textbf{YES} & 0 \\
-& 1\% & `exp(-r / theta_1) - 1.0` & $5.04 \times 10^{-05}$ & \textbf{YES} & 0 \\
-& 5\% & `theta_0 * (1.0 - exp(-r / theta_1))` & $1.25 \times 10^{-03}$ & \textbf{YES} & 4 \\
-& 10\% & `theta_0 * (1.0 - exp(-r / theta_1))` & $5.13 \times 10^{-03}$ & \textbf{YES} & 4 \\
+Screened Coulomb & 0\% & \texttt{exp(-r / theta\_1) - 1.0} & $1.09 \times 10^{-15}$ & \textbf{YES} & 0 \\
+& 1\% & \texttt{exp(-r / theta\_1) - 1.0} & $5.04 \times 10^{-05}$ & \textbf{YES} & 0 \\
+& 5\% & \texttt{theta\_0 * (1.0 - exp(-r / theta\_1))} & $1.25 \times 10^{-03}$ & \textbf{YES} & 4 \\
+& 10\% & \texttt{theta\_0 * (1.0 - exp(-r / theta\_1))} & $5.13 \times 10^{-03}$ & \textbf{YES} & 4 \\
 \midrule
-Net Radiation & 0\% & `theta_0 * theta_1**4 / T**4` & $7.94 \times 10^{-34}$ & \textbf{YES} & 1 \\
-& 1\% & `theta_0 * theta_1**4 / T**4` & $1.51 \times 10^{-04}$ & \textbf{YES} & 1 \\
-& 5\% & `theta_0 * theta_1**4 / T**4` & $3.74 \times 10^{-03}$ & \textbf{YES} & 1 \\
-& 10\% & `theta_0 * theta_1**4 / T**4` & $1.47 \times 10^{-02}$ & \textbf{YES} & 1 \\
+Net Radiation & 0\% & \texttt{theta\_0 * theta\_1**4 / T**4} & $7.94 \times 10^{-34}$ & \textbf{YES} & 1 \\
+& 1\% & \texttt{theta\_0 * theta\_1**4 / T**4} & $1.51 \times 10^{-04}$ & \textbf{YES} & 1 \\
+& 5\% & \texttt{theta\_0 * theta\_1**4 / T**4} & $3.74 \times 10^{-03}$ & \textbf{YES} & 1 \\
+& 10\% & \texttt{theta\_0 * theta\_1**4 / T**4} & $1.47 \times 10^{-02}$ & \textbf{YES} & 1 \\
 \midrule
-Nonlinear Drag & 0\% & `theta_0 * (v / theta_9)**2` & $0.00$ & \textbf{YES} & 3 \\
-& 1\% & `theta_0 * v**2` & $2.64 \times 10^{-04}$ & \textbf{YES} & 0 \\
-& 5\% & `theta_0 * v**2` & $6.59 \times 10^{-03}$ & \textbf{YES} & 0 \\
-& 10\% & `theta_0 * v**2` & $2.60 \times 10^{-02}$ & \textbf{YES} & 0 \\
+Nonlinear Drag & 0\% & \texttt{theta\_0 * (v / theta\_9)**2} & $0.00$ & \textbf{YES} & 3 \\
+& 1\% & \texttt{theta\_0 * v**2} & $2.64 \times 10^{-04}$ & \textbf{YES} & 0 \\
+& 5\% & \texttt{theta\_0 * v**2} & $6.59 \times 10^{-03}$ & \textbf{YES} & 0 \\
+& 10\% & \texttt{theta\_0 * v**2} & $2.60 \times 10^{-02}$ & \textbf{YES} & 0 \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -275,27 +277,27 @@ Nonlinear Drag & 0\% & `theta_0 * (v / theta_9)**2` & $0.00$ & \textbf{YES} & 3 
 \toprule
 \textbf{Scenario} & \textbf{Noise} & \textbf{Discovered Correction $\Delta(x; \theta)$} & \textbf{Full NMSE} & \textbf{Class Match} & \textbf{AST Dist} \\
 \midrule
-Mystery-A & 0\% & `theta_0 * tanh(theta_1 / r)**2` & $3.61 \times 10^{-11}$ & \textbf{YES} & 1 \\
-& 1\% & `-theta_0 * tanh(theta_1 / r)**2` & $2.43 \times 10^{-04}$ & \textbf{YES} & 1 \\
-& 5\% & `theta_0 * tanh(theta_1 / r)**2` & $6.28 \times 10^{-03}$ & \textbf{YES} & 1 \\
-& 10\% & `-theta_0 * tanh(theta_1 / r)**2` & $2.59 \times 10^{-02}$ & \textbf{YES} & 1 \\
+Mystery-A & 0\% & \texttt{theta\_0 * tanh(theta\_1 / r)**2} & $3.61 \times 10^{-11}$ & \textbf{YES} & 1 \\
+& 1\% & \texttt{-theta\_0 * tanh(theta\_1 / r)**2} & $2.43 \times 10^{-04}$ & \textbf{YES} & 1 \\
+& 5\% & \texttt{theta\_0 * tanh(theta\_1 / r)**2} & $6.28 \times 10^{-03}$ & \textbf{YES} & 1 \\
+& 10\% & \texttt{-theta\_0 * tanh(theta\_1 / r)**2} & $2.59 \times 10^{-02}$ & \textbf{YES} & 1 \\
 \midrule
-Mystery-B & 0\% & `sin(v / theta_1) / (v / theta_1) - 1.0` & $1.28 \times 10^{-11}$ & \textbf{YES} & 0 \\
-& 1\% & `sin(v / theta_1) / (v / theta_1) - 1.0` & $2.07 \times 10^{-04}$ & \textbf{YES} & 0 \\
-& 5\% & `sin(v / theta_1) / (v / theta_1) - 1.0` & $5.18 \times 10^{-03}$ & \textbf{YES} & 0 \\
-& 10\% & `sin(v / theta_1) / (v / theta_1) - 1.0` & $2.05 \times 10^{-02}$ & \textbf{YES} & 0 \\
+Mystery-B & 0\% & \texttt{sin(v / theta\_1) / (v / theta\_1) - 1.0} & $1.28 \times 10^{-11}$ & \textbf{YES} & 0 \\
+& 1\% & \texttt{sin(v / theta\_1) / (v / theta\_1) - 1.0} & $2.07 \times 10^{-04}$ & \textbf{YES} & 0 \\
+& 5\% & \texttt{sin(v / theta\_1) / (v / theta\_1) - 1.0} & $5.18 \times 10^{-03}$ & \textbf{YES} & 0 \\
+& 10\% & \texttt{sin(v / theta\_1) / (v / theta\_1) - 1.0} & $2.05 \times 10^{-02}$ & \textbf{YES} & 0 \\
 \midrule
-Mystery-C & 0\% & `log(1.0 + x / theta_1) / (x / theta_1) - 1.0` & $7.52 \times 10^{-13}$ & \textbf{YES} & 0 \\
-& 1\% & `log(1.0 + x / theta_1) / (x / theta_1) - 1.0` & $2.79 \times 10^{-04}$ & \textbf{YES} & 0 \\
-& 5\% & `log(1.0 + x / theta_1) / (x / theta_1) - 1.0` & $6.99 \times 10^{-03}$ & \textbf{YES} & 0 \\
-& 10\% & `log(1.0 + x / theta_1) / (x / theta_1) - 1.0` & $2.76 \times 10^{-02}$ & \textbf{YES} & 0 \\
+Mystery-C & 0\% & \texttt{log(1.0 + x / theta\_1) / (x / theta\_1) - 1.0} & $7.52 \times 10^{-13}$ & \textbf{YES} & 0 \\
+& 1\% & \texttt{log(1.0 + x / theta\_1) / (x / theta\_1) - 1.0} & $2.79 \times 10^{-04}$ & \textbf{YES} & 0 \\
+& 5\% & \texttt{log(1.0 + x / theta\_1) / (x / theta\_1) - 1.0} & $6.99 \times 10^{-03}$ & \textbf{YES} & 0 \\
+& 10\% & \texttt{log(1.0 + x / theta\_1) / (x / theta\_1) - 1.0} & $2.76 \times 10^{-02}$ & \textbf{YES} & 0 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 \subsection{Performance Targets Analysis}
 \begin{itemize}
-    \item \textbf{Textbook Tier Recovery}: The system recovered the correct structural class for Relativistic KE (all noise levels) and Anharmonic Spring (all noise levels). Yukawa gravity was successfully recovered at 0\% and 1\% noise, but at higher noise (5\% and 10\%), it was fitted by a logarithmic quotient. The logarithmic fit `theta_0 * theta_1 * log(r / theta_1 + 1.0) / r` is mathematically a highly accurate numerical proxy for exponential decay over the tested boundary $r \in [0.5, 5.0]$, highlighting the severe difficulty of distinguishing mathematical limits under noise.
+    \item \textbf{Textbook Tier Recovery}: The system recovered the correct structural class for Relativistic KE (all noise levels) and Anharmonic Spring (all noise levels). Yukawa gravity was successfully recovered at 0\% and 1\% noise, but at higher noise (5\% and 10\%), it was fitted by a logarithmic quotient. The logarithmic fit \texttt{theta\_0 * theta\_1 * log(r / theta\_1 + 1.0) / r} is mathematically a highly accurate numerical proxy for exponential decay over the tested boundary $r \in [0.5, 5.0]$, highlighting the severe difficulty of distinguishing mathematical limits under noise.
     \item \textbf{Cross-Domain Recovery}: Achieving a perfect \textbf{100\% structural class recovery} across all noise scales, the system validated its design on net radiation cooling (correctly retaining the inverse fourth-power power law $\Delta \propto T^{-4}$) and Coulomb shielding.
     \item \textbf{Synthetic / Novel Recovery}: Crucially, the system scored \textbf{100\% (12/12) structural match rate} on the synthetic tier. Highly complicated novel formulas, such as the $\text{sinc}$ quantum boundary fluctuation and the logarithmic quotient stretching, were fully converged and structurally verified, showcasing the deep representation capabilities of combining statistical priors with LLM reasoning.
 \end{itemize}
@@ -385,7 +387,7 @@ To quantify the benefit of the physics gates and BIC reranking, we performed abl
 \begin{itemize}
     \item \textbf{Without Dimensional Checker/Transcendental Guardrails}: JAX optimizer was forced to optimize non-physical candidates (e.g., $e^{-r}$ where $r$ has units of meters). This led to a $4.5\times$ increase in Stage 2 optimization times and introduced high rates of floating-point overflow/underflow errors during parameter search.
     \item \textbf{Without ARC Asymptotic Limit Gate}: Proposers generated corrections like $e^{r/\lambda}$, which fit local data well but diverge as $r \to \infty$. This corrupted the classical limits, resulting in unphysical extrapolation performance.
-    \item \textbf{Without BIC Reranking (pure NMSE)}: Under 5\% noise, the Anharmonic Spring was fitted as $(x/\theta_9)^{\theta_1}$ (where $\theta_1 \approx 4.02$ and $\theta_9 \approx 1.01$). While numerically equivalent, this was classified as a `power\_law` structural class instead of `polynomial` due to the inclusion of the unnecessary scaling exponent $\theta_1$. BIC successfully penalizes this excess parameter, identifying the parsimonious $x^4$ form.
+    \item \textbf{Without BIC Reranking (pure NMSE)}: Under 5\% noise, the Anharmonic Spring was fitted as $(x/\theta_9)^{\theta_1}$ (where $\theta_1 \approx 4.02$ and $\theta_9 \approx 1.01$). While numerically equivalent, this was classified as a \texttt{power\_law} structural class instead of \texttt{polynomial} due to the inclusion of the unnecessary scaling exponent $\theta_1$. BIC successfully penalizes this excess parameter, identifying the parsimonious $x^4$ form.
 \end{itemize}
 
 
