@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import sympy as sp
-from src.coarse_evaluator import CoarseEvaluator
+from adcd.coarse_evaluator import CoarseEvaluator
 
 def test_coarse_evaluator_basic():
     # Setup simple synthetic data

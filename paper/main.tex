@@ -16,7 +16,7 @@
 \usepackage{float}
 \usepackage{tabularx}
 \usepackage{tikz}
-\usetikzlibrary{shapes,arrows,positioning,calc}
+\usetikzlibrary{shapes,arrows,arrows.meta,positioning,calc}
 
 \hypersetup{
     colorlinks=true,
@@ -25,7 +25,12 @@
     urlcolor=cyan,
     pdftitle={Anomaly-Driven Correction Discovery (ADCD)},
     pdfpagemode=FullScreen,
+    hypertexnames=false,
 }
+
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
 
 \lstset{
     backgroundcolor=\color{gray!5},
@@ -39,15 +44,17 @@
 }
 
 \title{\textbf{Anomaly-Driven Correction Discovery (ADCD): Physics-Constrained Symbolic Regression for Evolutionary Scientific Discovery}}
-\author{\textbf{Antigravity AI} \and \textbf{Pair-Programming Scholar}}
-\date{\today}
+\author{Muhammad Afif Erdita \\
+\small SMA Negeri 23 Kabupaten Tangerang \\
+\small \texttt{maeapip10@gmail.com}}
+\date{June 2026}
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-Traditional symbolic regression algorithms attempt to discover mathematical laws from physical experimental data starting from a blank slate. While successful in reconstructing simple textbook equations, this tabula rasa approach becomes computationally intractable and highly susceptible to overfitting when applied to complex physical systems, particularly under observational noise. In this work, we present \textbf{Anomaly-Driven Correction Discovery (ADCD)}, a physics-informed symbolic regression framework designed to mimic the evolutionary nature of scientific discovery. Rather than learning entire equations from scratch, ADCD takes a known classical physical law and seeks to discover the mathematical structure of the dimensionless correction term ($\Delta$) that explains the discrepancy between classical predictions and anomalous experimental observations. By utilizing a cascaded pipeline of physical filters---including AST complexity limits, dimensional homogeneity, transcendental argument constraints, and asymptotic limits (ARC)---coupled with a JAX-traced L-BFGS-B parameter optimizer and Bayesian Information Criterion (BIC) reranking, ADCD guarantees physical plausibility and robustness to experimental error. We benchmark ADCD on 9 complex physical anomalies across textbook, cross-domain, and novel synthetic physical systems under noise levels up to 10\%. ADCD achieves a remarkable \textbf{94.4\% (34/36) structural class match rate}, recovering highly non-linear, multi-scale transcendental corrections (such as relativistic kinetic energy, screened Coulomb potentials, and quantum mechanical sinc fluctuations) while demonstrating superior noise tolerance compared to unconstrained symbolic regression baselines like PySR.
+Traditional symbolic regression algorithms attempt to discover mathematical laws from physical experimental data starting from a blank slate. While successful in reconstructing simple textbook equations, this tabula rasa approach becomes computationally intractable and highly susceptible to overfitting when applied to complex physical systems, particularly under observational noise. In this work, we present \textbf{Anomaly-Driven Correction Discovery (ADCD)}, a physics-informed symbolic regression framework designed to mimic the evolutionary nature of scientific discovery. Rather than learning entire equations from scratch, ADCD takes a known classical physical law and seeks to discover the mathematical structure of the dimensionless correction term ($\Delta$) that explains the discrepancy between classical predictions and anomalous experimental observations. By utilizing a cascaded pipeline of physical filters---including AST complexity limits, dimensional homogeneity, transcendental argument constraints, and asymptotic limits (ARC)---coupled with a JAX-traced L-BFGS-B parameter optimizer and Bayesian Information Criterion (BIC) reranking, ADCD strongly enforces physical plausibility on the candidate search space and demonstrates robustness to experimental error. We benchmark ADCD on 9 complex physical anomalies across textbook, cross-domain, and novel synthetic physical systems under noise levels up to 10\%. ADCD achieves a remarkable \textbf{94.4\% (34/36) structural class match rate}, recovering highly non-linear, multi-scale transcendental corrections (such as relativistic kinetic energy, screened Coulomb potentials, and quantum mechanical sinc fluctuations) while demonstrating superior noise tolerance compared to unconstrained symbolic regression baselines like PySR.
 \end{abstract}
 
 \section{Introduction}
@@ -59,12 +66,12 @@ While this tabula rasa approach has achieved significant milestones, it fundamen
 Consider three prominent historical examples of this evolutionary paradigm:
 \begin{enumerate}
     \item \textbf{Relativistic Mechanics}: Albert Einstein did not discard the classical kinetic energy formula $\frac{1}{2}mv^2$. Instead, by analyzing the anomalous behavior of high-velocity particles, the relativistic correction $\Delta_{\text{rel}} \approx \frac{3}{4}\frac{v^2}{c^2}$ was uncovered, leading to the full expansion of relativistic kinetic energy:
-    $$E_{\text{k}} = \frac{1}{2}mv^2 \left( 1 + \frac{3}{4}\frac{v^2}{c^2} + \frac{5}{8}\frac{v^4}{c^4} + \dots \right)$$
+    \[E_{\text{k}} = \frac{1}{2}mv^2 \left( 1 + \frac{3}{4}\frac{v^2}{c^2} + \frac{5}{8}\frac{v^4}{c^4} + \dots \right)\]
     \item \textbf{Electrostatics (Debye Shielding)}: When analyzing electric potentials in high-density plasmas, classical Coulomb potential $k_e \frac{q_1 q_2}{r}$ fails due to collective shielding. Physicists discovered the Screened Coulomb (Yukawa-like) potential by applying an exponential correction term:
-    $$\Phi(r) = k_e \frac{q_1 q_2}{r} \left( e^{-r/\lambda_{\text{D}}} \right)$$
+    \[\Phi(r) = k_e \frac{q_1 q_2}{r} \left( e^{-r/\lambda_{\text{D}}} \right)\]
     Here, the correction term is multiplicative: $1 + \Delta = e^{-r/\lambda_{\text{D}}}$, implying $\Delta = e^{-r/\lambda_{\text{D}}} - 1$, which naturally decays to 0 at the classical limit $r \to 0$ (at very short distances shielding is negligible).
     \item \textbf{Fluid Dynamics (Turbulence)}: Classical laminar flow is governed by linear Stokes drag $F = bv$. As the velocity $v$ increases and the system enters turbulent regimes, a quadratic correction term emerges, leading to the additive formulation:
-    $$F_{\text{drag}} = bv + \alpha v^2$$
+    \[F_{\text{drag}} = bv + \alpha v^2\]
 \end{enumerate}
 
 Motivated by these historical precedents, we propose the \textbf{Anomaly-Driven Correction Discovery (ADCD)} framework. By focusing the symbolic search space purely on the dimensionless correction factor $\Delta$, ADCD restricts the hypothesis space to physically meaningful corrections. Furthermore, by embedding fundamental physical principles---dimensional consistency, asymptotic limits, and Occam's razor---directly into the symbolic selection gates, ADCD eliminates physically impossible equations (such as taking the exponential of a dimensioned quantity or proposing corrections that blow up in the classical limit) before they can overfit noisy data.
@@ -134,16 +141,54 @@ The ADCD pipeline operates as a closed-loop physics-informed search. A high-leve
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[node distance=1.5cm, auto]
-    % Style definitions
-    \tikzstyle{block} = [rectangle, draw, fill=blue!10, text width=4.5cm, text centered, rounded corners, minimum height=1cm]
-    \tikzstyle{gate} = [rectangle, draw, fill=green!10, text width=4.5cm, text centered, minimum height=1cm]
-    \tikzstyle{opt} = [rectangle, draw, fill=yellow!15, text width=4.5cm, text centered, rounded corners, minimum height=1cm]
-    \tikzstyle{line} = [draw, -latex', thick]
+    % Modern Style definitions
+    \definecolor{primarycolor}{RGB}{30, 64, 175}   % Sleek dark blue
+    \definecolor{secondarycolor}{RGB}{13, 148, 136} % Teal
+    \definecolor{accentcolor}{RGB}{234, 88, 12}     % Warm orange/red
+
+    \tikzset{
+        block/.style={
+            rectangle, 
+            draw=primarycolor!80, 
+            fill=primarycolor!5, 
+            text width=5.2cm, 
+            text centered, 
+            rounded corners=4pt, 
+            minimum height=1.1cm,
+            thick
+        },
+        gate/.style={
+            rectangle, 
+            draw=secondarycolor!80, 
+            fill=secondarycolor!5, 
+            text width=5.2cm, 
+            text centered, 
+            rounded corners=4pt,
+            minimum height=1.1cm,
+            thick
+        },
+        opt/.style={
+            rectangle, 
+            draw=accentcolor!80, 
+            fill=accentcolor!5, 
+            text width=5.2cm, 
+            text centered, 
+            rounded corners=4pt, 
+            minimum height=1.1cm,
+            thick
+        },
+        line/.style={
+            draw, 
+            -Latex, 
+            thick,
+            color=gray!80!black
+        }
+    }
     
     % Nodes
     \node [block] (scenario) {\textbf{Stage 0: Anomaly Scenario}\\Classical Law + Noisy Data\\$\Downarrow$\\Residual Extraction ($\delta$)};
-    \node [block, below=0.8cm of scenario] (proposer) {\textbf{Stage 0b: Proposer}\\• Stochastic Template Sampling\\• LLM-Guided Physical Hints\\• Residual Feature Prior Bias};
-    \node [gate, below=0.8cm of proposer] (stage1) {\textbf{Stage 1: Physics Gates}\\• AST Complexity ($\leq 20$ tokens)\\• Dimensional Homogeneity\\• Asymptotic Limits ($\Delta \to 0$)};
+    \node [block, below=0.8cm of scenario] (proposer) {\textbf{Stage 0b: Proposer}\\[0.1em] \textbullet\ Stochastic Template Sampling\\ \textbullet\ LLM-Guided Physical Hints\\ \textbullet\ Residual Feature Prior Bias};
+    \node [gate, below=0.8cm of proposer] (stage1) {\textbf{Stage 1: Physics Gates}\\[0.1em] \textbullet\ AST Complexity ($\leq 20$ tokens)\\ \textbullet\ Dimensional Homogeneity\\ \textbullet\ Asymptotic Limits ($\Delta \to 0$)};
     \node [opt, below=0.8cm of stage1] (stage2) {\textbf{Stage 2: JAX Optimizer}\\JIT-Traced L-BFGS-B Parameter Optimization};
     \node [block, below=0.8cm of stage2] (rerank) {\textbf{Occam's Razor Reranking}\\Bayesian Information Criterion\\$\text{BIC} = N \ln(\text{NMSE}) + k \ln(N)$};
     
@@ -152,7 +197,7 @@ The ADCD pipeline operates as a closed-loop physics-informed search. A high-leve
     \path [line] (proposer) -- (stage1);
     \path [line] (stage1) -- (stage2);
     \path [line] (stage2) -- (rerank);
-    \path [line] (rerank.west) -- ++(-1,0) |- node [near start, left] {Feedback (stuck count)} (proposer.west);
+    \path [line] (rerank.west) -- ++(-0.8,0) |- node [near start, left] {Feedback (stuck count)} (proposer.west);
 \end{tikzpicture}
 \caption{System architecture of the Anomaly-Driven Correction Discovery (ADCD) framework.}
 \label{fig:architecture}
@@ -162,9 +207,9 @@ The ADCD pipeline operates as a closed-loop physics-informed search. A high-leve
 Let $y_{\text{classical}} = g(X; \phi)$ be a known classical physical law with variables $X$ and fixed constants $\phi$. Let $y_{\text{obs}}$ be the anomalous experimental data containing observational noise. We define the physical residual $\delta$ depending on the correction mode:
 \begin{itemize}
     \item \textbf{Multiplicative Mode}: The true physical law is assumed to scale the classical law, $y_{\text{true}} = y_{\text{classical}} (1 + \Delta(X; \theta))$. The target residual is:
-    $$\delta_{\text{mult}} = \frac{y_{\text{obs}}}{y_{\text{classical}}} - 1$$
+    \[\delta_{\text{mult}} = \frac{y_{\text{obs}}}{y_{\text{classical}}} - 1\]
     \item \textbf{Additive Mode}: The true physical law is assumed to append a correction, $y_{\text{true}} = y_{\text{classical}} + \Delta(X; \theta)$. The target residual is:
-    $$\delta_{\text{add}} = y_{\text{obs}} - y_{\text{classical}}$$
+    \[\delta_{\text{add}} = y_{\text{obs}} - y_{\text{classical}}\]
 \end{itemize}
 
 \subsection{Residual Feature Intelligence}
@@ -221,24 +266,24 @@ Our framework was executed using the three proposer styles. The full benchmark r
 \centering
 \caption{Tier 1 (Textbook) Benchmark Results using the Hybrid Proposer.}
 \label{tab:textbook}
-\begin{tabularx}{\textwidth}{l c l c c c}
+\begin{tabularx}{\textwidth}{l c L c c c}
 \toprule
 \textbf{Scenario} & \textbf{Noise} & \textbf{Discovered Correction $\Delta(x; \theta)$} & \textbf{Full NMSE} & \textbf{Class Match} & \textbf{AST Dist} \\
 \midrule
-Relativistic KE & 0\% & \texttt{theta\_0 * v**2 / c**2} & $1.68 \times 10^{-32}$ & \textbf{YES} & 4 \\
-& 1\% & \texttt{theta\_0 * v**2 / c**2} & $1.70 \times 10^{-04}$ & \textbf{YES} & 3 \\
-& 5\% & \texttt{theta\_0 * v**2 / c**2} & $4.21 \times 10^{-03}$ & \textbf{YES} & 3 \\
-& 10\% & \texttt{theta\_0 * v**2 / c**2} & $1.65 \times 10^{-02}$ & \textbf{YES} & 3 \\
+Relativistic KE & 0\% & $\theta_0 v^2 / c^2$ & $1.68 \times 10^{-32}$ & \textbf{YES} & 4 \\
+& 1\% & $\theta_0 v^2 / c^2$ & $1.70 \times 10^{-04}$ & \textbf{YES} & 3 \\
+& 5\% & $\theta_0 v^2 / c^2$ & $4.21 \times 10^{-03}$ & \textbf{YES} & 3 \\
+& 10\% & $\theta_0 v^2 / c^2$ & $1.65 \times 10^{-02}$ & \textbf{YES} & 3 \\
 \midrule
-Yukawa Gravity & 0\% & \texttt{theta\_0 * exp(-r / theta\_1)} & $4.68 \times 10^{-14}$ & \textbf{YES} & 0 \\
-& 1\% & \texttt{theta\_0 * exp(-r / theta\_1)} & $7.12 \times 10^{-05}$ & \textbf{YES} & 0 \\
-& 5\% & \texttt{theta\_0 * theta\_1 * log(r / theta\_1 + 1.0) / r} & $2.35 \times 10^{-03}$ & NO & 7 \\
-& 10\% & \texttt{theta\_0 * theta\_1 * log(r / theta\_1 + 1.0) / r} & $8.73 \times 10^{-03}$ & NO & 7 \\
+Yukawa Gravity & 0\% & $\theta_0 e^{-r / \theta_1}$ & $4.68 \times 10^{-14}$ & \textbf{YES} & 0 \\
+& 1\% & $\theta_0 e^{-r / \theta_1}$ & $7.12 \times 10^{-05}$ & \textbf{YES} & 0 \\
+& 5\% & $\frac{\theta_0 \theta_1 \ln(r / \theta_1 + 1)}{r}$ & $2.35 \times 10^{-03}$ & NO & 7 \\
+& 10\% & $\frac{\theta_0 \theta_1 \ln(r / \theta_1 + 1)}{r}$ & $8.73 \times 10^{-03}$ & NO & 7 \\
 \midrule
-Anharmonic Spring & 0\% & \texttt{theta\_0 * x**4} & $0.00 \times 10^{0}$ & \textbf{YES} & 0 \\
-& 1\% & \texttt{theta\_0 * x**4} & $1.79 \times 10^{-04}$ & \textbf{YES} & 0 \\
-& 5\% & \texttt{theta\_0 * x**4} & $4.46 \times 10^{-03}$ & \textbf{YES} & 0 \\
-& 10\% & \texttt{theta\_0 * x**4} & $1.76 \times 10^{-02}$ & \textbf{YES} & 0 \\
+Anharmonic Spring & 0\% & $\theta_0 x^4$ & $0.00 \times 10^{0}$ & \textbf{YES} & 0 \\
+& 1\% & $\theta_0 x^4$ & $1.79 \times 10^{-04}$ & \textbf{YES} & 0 \\
+& 5\% & $\theta_0 x^4$ & $4.46 \times 10^{-03}$ & \textbf{YES} & 0 \\
+& 10\% & $\theta_0 x^4$ & $1.76 \times 10^{-02}$ & \textbf{YES} & 0 \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -247,24 +292,24 @@ Anharmonic Spring & 0\% & \texttt{theta\_0 * x**4} & $0.00 \times 10^{0}$ & \tex
 \centering
 \caption{Tier 2 (Cross-Domain) Benchmark Results using the Hybrid Proposer.}
 \label{tab:cross_domain}
-\begin{tabularx}{\textwidth}{l c l c c c}
+\begin{tabularx}{\textwidth}{l c L c c c}
 \toprule
 \textbf{Scenario} & \textbf{Noise} & \textbf{Discovered Correction $\Delta(x; \theta)$} & \textbf{Full NMSE} & \textbf{Class Match} & \textbf{AST Dist} \\
 \midrule
-Screened Coulomb & 0\% & \texttt{exp(-r / theta\_1) - 1.0} & $1.09 \times 10^{-15}$ & \textbf{YES} & 0 \\
-& 1\% & \texttt{exp(-r / theta\_1) - 1.0} & $5.04 \times 10^{-05}$ & \textbf{YES} & 0 \\
-& 5\% & \texttt{theta\_0 * (1.0 - exp(-r / theta\_1))} & $1.25 \times 10^{-03}$ & \textbf{YES} & 4 \\
-& 10\% & \texttt{theta\_0 * (1.0 - exp(-r / theta\_1))} & $5.13 \times 10^{-03}$ & \textbf{YES} & 4 \\
+Screened Coulomb & 0\% & $e^{-r / \theta_1} - 1$ & $1.09 \times 10^{-15}$ & \textbf{YES} & 0 \\
+& 1\% & $e^{-r / \theta_1} - 1$ & $5.04 \times 10^{-05}$ & \textbf{YES} & 0 \\
+& 5\% & $\theta_0 (1 - e^{-r / \theta_1})$ & $1.25 \times 10^{-03}$ & \textbf{YES} & 4 \\
+& 10\% & $\theta_0 (1 - e^{-r / \theta_1})$ & $5.13 \times 10^{-03}$ & \textbf{YES} & 4 \\
 \midrule
-Net Radiation & 0\% & \texttt{theta\_0 * theta\_1**4 / T**4} & $7.94 \times 10^{-34}$ & \textbf{YES} & 1 \\
-& 1\% & \texttt{theta\_0 * theta\_1**4 / T**4} & $1.51 \times 10^{-04}$ & \textbf{YES} & 1 \\
-& 5\% & \texttt{theta\_0 * theta\_1**4 / T**4} & $3.74 \times 10^{-03}$ & \textbf{YES} & 1 \\
-& 10\% & \texttt{theta\_0 * theta\_1**4 / T**4} & $1.47 \times 10^{-02}$ & \textbf{YES} & 1 \\
+Net Radiation & 0\% & $\theta_0 \theta_1^4 / T^4$ & $7.94 \times 10^{-34}$ & \textbf{YES} & 1 \\
+& 1\% & $\theta_0 \theta_1^4 / T^4$ & $1.51 \times 10^{-04}$ & \textbf{YES} & 1 \\
+& 5\% & $\theta_0 \theta_1^4 / T^4$ & $3.74 \times 10^{-03}$ & \textbf{YES} & 1 \\
+& 10\% & $\theta_0 \theta_1^4 / T^4$ & $1.47 \times 10^{-02}$ & \textbf{YES} & 1 \\
 \midrule
-Nonlinear Drag & 0\% & \texttt{theta\_0 * (v / theta\_9)**2} & $0.00$ & \textbf{YES} & 3 \\
-& 1\% & \texttt{theta\_0 * v**2} & $2.64 \times 10^{-04}$ & \textbf{YES} & 0 \\
-& 5\% & \texttt{theta\_0 * v**2} & $6.59 \times 10^{-03}$ & \textbf{YES} & 0 \\
-& 10\% & \texttt{theta\_0 * v**2} & $2.60 \times 10^{-02}$ & \textbf{YES} & 0 \\
+Nonlinear Drag & 0\% & $\theta_0 (v / \theta_1)^2$ & $0.00$ & \textbf{YES} & 3 \\
+& 1\% & $\theta_0 v^2$ & $2.64 \times 10^{-04}$ & \textbf{YES} & 0 \\
+& 5\% & $\theta_0 v^2$ & $6.59 \times 10^{-03}$ & \textbf{YES} & 0 \\
+& 10\% & $\theta_0 v^2$ & $2.60 \times 10^{-02}$ & \textbf{YES} & 0 \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -273,24 +318,24 @@ Nonlinear Drag & 0\% & \texttt{theta\_0 * (v / theta\_9)**2} & $0.00$ & \textbf{
 \centering
 \caption{Tier 3 (Synthetic/Novel) Benchmark Results using the Hybrid Proposer.}
 \label{tab:synthetic}
-\begin{tabularx}{\textwidth}{l c l c c c}
+\begin{tabularx}{\textwidth}{l c L c c c}
 \toprule
 \textbf{Scenario} & \textbf{Noise} & \textbf{Discovered Correction $\Delta(x; \theta)$} & \textbf{Full NMSE} & \textbf{Class Match} & \textbf{AST Dist} \\
 \midrule
-Mystery-A & 0\% & \texttt{theta\_0 * tanh(theta\_1 / r)**2} & $3.61 \times 10^{-11}$ & \textbf{YES} & 1 \\
-& 1\% & \texttt{-theta\_0 * tanh(theta\_1 / r)**2} & $2.43 \times 10^{-04}$ & \textbf{YES} & 1 \\
-& 5\% & \texttt{theta\_0 * tanh(theta\_1 / r)**2} & $6.28 \times 10^{-03}$ & \textbf{YES} & 1 \\
-& 10\% & \texttt{-theta\_0 * tanh(theta\_1 / r)**2} & $2.59 \times 10^{-02}$ & \textbf{YES} & 1 \\
+Mystery-A & 0\% & $\theta_0 \tanh^2(\theta_1 / r)$ & $3.61 \times 10^{-11}$ & \textbf{YES} & 1 \\
+& 1\% & $-\theta_0 \tanh^2(\theta_1 / r)$ & $2.43 \times 10^{-04}$ & \textbf{YES} & 1 \\
+& 5\% & $\theta_0 \tanh^2(\theta_1 / r)$ & $6.28 \times 10^{-03}$ & \textbf{YES} & 1 \\
+& 10\% & $-\theta_0 \tanh^2(\theta_1 / r)$ & $2.59 \times 10^{-02}$ & \textbf{YES} & 1 \\
 \midrule
-Mystery-B & 0\% & \texttt{sin(v / theta\_1) / (v / theta\_1) - 1.0} & $1.28 \times 10^{-11}$ & \textbf{YES} & 0 \\
-& 1\% & \texttt{sin(v / theta\_1) / (v / theta\_1) - 1.0} & $2.07 \times 10^{-04}$ & \textbf{YES} & 0 \\
-& 5\% & \texttt{sin(v / theta\_1) / (v / theta\_1) - 1.0} & $5.18 \times 10^{-03}$ & \textbf{YES} & 0 \\
-& 10\% & \texttt{sin(v / theta\_1) / (v / theta\_1) - 1.0} & $2.05 \times 10^{-02}$ & \textbf{YES} & 0 \\
+Mystery-B & 0\% & $\frac{\sin(v / \theta_1)}{v / \theta_1} - 1$ & $1.28 \times 10^{-11}$ & \textbf{YES} & 0 \\
+& 1\% & $\frac{\sin(v / \theta_1)}{v / \theta_1} - 1$ & $2.07 \times 10^{-04}$ & \textbf{YES} & 0 \\
+& 5\% & $\frac{\sin(v / \theta_1)}{v / \theta_1} - 1$ & $5.18 \times 10^{-03}$ & \textbf{YES} & 0 \\
+& 10\% & $\frac{\sin(v / \theta_1)}{v / \theta_1} - 1$ & $2.05 \times 10^{-02}$ & \textbf{YES} & 0 \\
 \midrule
-Mystery-C & 0\% & \texttt{log(1.0 + x / theta\_1) / (x / theta\_1) - 1.0} & $7.52 \times 10^{-13}$ & \textbf{YES} & 0 \\
-& 1\% & \texttt{log(1.0 + x / theta\_1) / (x / theta\_1) - 1.0} & $2.79 \times 10^{-04}$ & \textbf{YES} & 0 \\
-& 5\% & \texttt{log(1.0 + x / theta\_1) / (x / theta\_1) - 1.0} & $6.99 \times 10^{-03}$ & \textbf{YES} & 0 \\
-& 10\% & \texttt{log(1.0 + x / theta\_1) / (x / theta\_1) - 1.0} & $2.76 \times 10^{-02}$ & \textbf{YES} & 0 \\
+Mystery-C & 0\% & $\frac{\ln(1 + x / \theta_1)}{x / \theta_1} - 1$ & $7.52 \times 10^{-13}$ & \textbf{YES} & 0 \\
+& 1\% & $\frac{\ln(1 + x / \theta_1)}{x / \theta_1} - 1$ & $2.79 \times 10^{-04}$ & \textbf{YES} & 0 \\
+& 5\% & $\frac{\ln(1 + x / \theta_1)}{x / \theta_1} - 1$ & $6.99 \times 10^{-03}$ & \textbf{YES} & 0 \\
+& 10\% & $\frac{\ln(1 + x / \theta_1)}{x / \theta_1} - 1$ & $2.76 \times 10^{-02}$ & \textbf{YES} & 0 \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -337,10 +382,13 @@ Mystery-C & 0\% & \texttt{log(1.0 + x / theta\_1) / (x / theta\_1) - 1.0} & $7.5
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/fig4_ablation.pdf}
-\caption{Ablation study at 5\% observational noise. Each bar disables one physics gate.
-         The ARC asymptotic consistency gate (Gate 3) and coarse data evaluation (Gate 4)
-         contribute the largest individual improvements. Removing all gates drops performance
-         by $\Delta = 33.3\%$ percentage points.}
+\caption{Ablation study at 5\% observational noise. Each bar disables one component.
+         Removing individual gates does not change structural accuracy on this benchmark,
+         as the correct expression class still survives under each single-gate ablation.
+         Only removing \emph{all} gates simultaneously allows physically non-plausible
+         expressions to dominate, dropping performance by $\Delta = 33.3$ percentage points
+         (from 8/9 to 5/9). This confirms that the gates act as a \emph{collective} physical
+         consistency filter rather than as independently separable classifiers.}
 \label{fig:ablation}
 \end{figure}
 
@@ -385,9 +433,9 @@ For the remaining two scenarios (Van der Waals and Wien), ADCD converged on powe
 \section{Discussion and Ablation Studies}
 To quantify the benefit of the physics gates and BIC reranking, we performed ablation studies by running the discovery loop with specific filters deactivated:
 \begin{itemize}
-    \item \textbf{Without Dimensional Checker/Transcendental Guardrails}: JAX optimizer was forced to optimize non-physical candidates (e.g., $e^{-r}$ where $r$ has units of meters). This led to a $4.5\times$ increase in Stage 2 optimization times and introduced high rates of floating-point overflow/underflow errors during parameter search.
-    \item \textbf{Without ARC Asymptotic Limit Gate}: Proposers generated corrections like $e^{r/\lambda}$, which fit local data well but diverge as $r \to \infty$. This corrupted the classical limits, resulting in unphysical extrapolation performance.
-    \item \textbf{Without BIC Reranking (pure NMSE)}: Under 5\% noise, the Anharmonic Spring was fitted as $(x/\theta_9)^{\theta_1}$ (where $\theta_1 \approx 4.02$ and $\theta_9 \approx 1.01$). While numerically equivalent, this was classified as a \texttt{power\_law} structural class instead of \texttt{polynomial} due to the inclusion of the unnecessary scaling exponent $\theta_1$. BIC successfully penalizes this excess parameter, identifying the parsimonious $x^4$ form.
+    \item \textbf{Without Dimensional Checker/Transcendental Guardrails}: The JAX optimizer was forced to evaluate non-physical candidate expressions (e.g., $e^{-r}$ where $r$ has units of meters). These expressions routinely produce numerical overflow and underflow during parameter search, resulting in qualitatively increased optimization overhead compared to the dimensionally consistent candidate set. On this benchmark, the structural class match rate at 5\% noise was unchanged ($\Delta = 0$), indicating that the gates primarily improve reliability and computational safety rather than altering the best-found expression on well-conditioned scenarios.
+    \item \textbf{Without ARC Asymptotic Limit Gate}: The gate prevents diverging candidates such as $e^{r/\lambda}$ from reaching the optimizer. Without this gate, such expressions can fit training data locally yet diverge as $r \to \infty$, producing unphysical extrapolation behavior. On this benchmark, the in-distribution structural accuracy was unchanged ($\Delta = 0$ at 5\% noise), but the ARC gate provides a principled guarantee of classical-limit consistency that cannot be assessed by accuracy alone.
+    \item \textbf{Without BIC Reranking (pure NMSE)}: Under 5\% noise, the Anharmonic Spring was fitted as $(x/\theta_2)^{\theta_1}$ (where $\theta_1 \approx 4.02$ and $\theta_2 \approx 1.01$). While numerically equivalent, this was classified as a \texttt{power\_law} structural class instead of \texttt{polynomial} due to the inclusion of the unnecessary scaling exponent $\theta_1$. BIC successfully penalizes this excess parameter, identifying the parsimonious $x^4$ form.
 \end{itemize}
 
 
@@ -432,6 +480,10 @@ Our 9 benchmark scenarios, while physically motivated, use synthetically
 generated data. Rigorous validation against curated experimental archives
 (e.g., NIST atomic spectra, JPL planetary ephemerides, CERN particle data)
 remains an open task.
+
+\section*{Acknowledgments}
+
+The author thanks Google DeepMind's Antigravity AI assistant for assistance in code development, benchmark execution, figure generation, and manuscript drafting. All scientific content, experimental design decisions, and intellectual contributions are the author's own. AI assistance was used as a pair-programming and writing tool.
 
 \section{Conclusion}
 

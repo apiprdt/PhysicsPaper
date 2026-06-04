@@ -21,8 +21,8 @@ import numpy as np
 import sympy as sp
 from pysr import PySRRegressor
 
-from src.anomaly_scenarios import get_all_scenarios
-from src.metrics import classify_structure
+from adcd.anomaly_scenarios import get_all_scenarios
+from adcd.metrics import classify_structure
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("PySRBaseline")

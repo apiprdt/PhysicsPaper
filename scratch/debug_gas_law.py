@@ -2,8 +2,8 @@ import os
 import sys
 import numpy as np
 import sympy as sp
-from src.feynman_dataset import get_problem
-from src.coarse_evaluator import CoarseEvaluator
+from adcd.feynman_dataset import get_problem
+from adcd.coarse_evaluator import CoarseEvaluator
 
 problem = get_problem("Ideal Gas Law")
 X, y_obs = problem.generate_data(n_points=100, seed=42)

@@ -1,6 +1,6 @@
 import pytest
 import sympy as sp
-from src.arc_scorer import AsymptoticRegime, ARCScorer
+from adcd.arc_scorer import AsymptoticRegime, ARCScorer
 
 
 def test_classical_kinetic_energy():

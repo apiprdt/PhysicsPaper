@@ -1,9 +1,9 @@
 import pytest
 import sympy as sp
 import numpy as np
-from src.dimensional_checker import ASTValidator, DimensionalChecker
-from src.arc_scorer import ARCScorer, AsymptoticRegime
-from src.pipeline import Stage1Pipeline
+from adcd.dimensional_checker import ASTValidator, DimensionalChecker
+from adcd.arc_scorer import ARCScorer, AsymptoticRegime
+from adcd.pipeline import Stage1Pipeline
 
 def test_complete_cascading_pipeline_structural():
     # Setup dependencies

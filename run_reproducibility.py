@@ -16,7 +16,7 @@ import numpy as np
 
 # Reuse existing run_scenario_benchmark
 from run_correction_discovery import run_scenario_benchmark
-from src.anomaly_scenarios import get_all_scenarios
+from adcd.anomaly_scenarios import get_all_scenarios
 
 logging.basicConfig(level=logging.WARNING)
 

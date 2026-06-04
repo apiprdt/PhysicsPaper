@@ -11,14 +11,14 @@ Tests verify:
 import pytest
 import numpy as np
 
-from src.real_data_loader import (
+from adcd.real_data_loader import (
     load_mercury_perihelion,
     load_hydrogen_lamb_shift,
     load_blackbody_radiation,
     load_muon_g2,
     load_all_real_data,
 )
-from src.real_scenarios import get_real_scenarios, RealAnomalyScenario
+from adcd.real_scenarios import get_real_scenarios, RealAnomalyScenario
 
 
 # ─────────────────────────────────────────────────────────────────────────────

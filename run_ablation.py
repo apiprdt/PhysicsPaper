@@ -25,14 +25,14 @@ import sympy as sp
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 
-from src.anomaly_scenarios import get_all_scenarios, AnomalyScenario
-from src.metrics import evaluate_correction, CorrectionEvaluation, classify_structure, bic_score
-from src.llm_proposer import CorrectionMockProposer
-from src.correction_orchestrator import CorrectionOrchestrator
-from src.dimensional_checker import ASTValidator, DimensionalChecker
-from src.arc_scorer import ARCScorer, AsymptoticRegime
-from src.pipeline import Stage1Pipeline
-from src.jax_optimizer import JAXOptimizer
+from adcd.anomaly_scenarios import get_all_scenarios, AnomalyScenario
+from adcd.metrics import evaluate_correction, CorrectionEvaluation, classify_structure, bic_score
+from adcd.llm_proposer import CorrectionMockProposer
+from adcd.correction_orchestrator import CorrectionOrchestrator
+from adcd.dimensional_checker import ASTValidator, DimensionalChecker
+from adcd.arc_scorer import ARCScorer, AsymptoticRegime
+from adcd.pipeline import Stage1Pipeline
+from adcd.jax_optimizer import JAXOptimizer
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -64,10 +64,10 @@ class AblatedPipeline(Stage1Pipeline):
     def execute(self, candidates, target_dimension_key, X=None, y_obs=None,
                 beta=1.0, constants=None):
         """Override execute dengan kontrol ablation per gate."""
-        from src.coarse_evaluator import CoarseEvaluator
+        from adcd.coarse_evaluator import CoarseEvaluator
         import sympy as sp
         import numpy as np
-        from src.dimensional_checker import validate_transcendental_args
+        from adcd.dimensional_checker import validate_transcendental_args
 
         screened_candidates = []
         evaluator = None

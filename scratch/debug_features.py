@@ -1,6 +1,6 @@
 import numpy as np
-from src.anomaly_scenarios import get_all_scenarios
-from src.residual_analyzer import analyze_residual
+from adcd.anomaly_scenarios import get_all_scenarios
+from adcd.residual_analyzer import analyze_residual
 
 scenarios = get_all_scenarios()
 for scenario in scenarios:

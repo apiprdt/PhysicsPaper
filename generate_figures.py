@@ -22,8 +22,14 @@ from matplotlib import rcParams
 # Publication styling
 rcParams.update({
     'font.family': 'serif',
-    'font.size': 11,
-    'axes.linewidth': 1.2,
+    'mathtext.fontset': 'cm',        # Computer Modern math font for LaTeX feel
+    'font.size': 10,
+    'axes.labelsize': 11,
+    'axes.titlesize': 12,
+    'xtick.labelsize': 9.5,
+    'ytick.labelsize': 9.5,
+    'legend.fontsize': 9.5,
+    'axes.linewidth': 1.0,
     'figure.dpi': 300,
     'axes.spines.top': False,
     'axes.spines.right': False,
@@ -60,7 +66,7 @@ def load_all():
 
 def fig1_noise_robustness(adcd, pysr, mlp):
     """Figure 1: Noise robustness curve — Class Match Rate vs Noise Level."""
-    fig, ax = plt.subplots(figsize=(7, 4.5))
+    fig, ax = plt.subplots(figsize=(6, 4))
 
     def get_rates(data):
         rates = []
@@ -70,27 +76,31 @@ def fig1_noise_robustness(adcd, pysr, mlp):
             rates.append(rate)
         return rates
 
+    # Colors: Navy blue for ADCD, Crimson for PySR
+    adcd_color = '#1E3A8A'
+    pysr_color = '#B91C1C'
+
     adcd_rates = get_rates(adcd)
-    ax.plot(NOISE_LABELS, adcd_rates, 'o-', color='#2563EB', lw=2.5,
-            ms=10, mfc='white', mew=2.5, label='ADCD (ours)', zorder=5)
+    ax.plot(NOISE_LABELS, adcd_rates, 'o-', color=adcd_color, lw=2.5,
+            ms=8, mfc='white', mew=2.5, label='ADCD (ours)', zorder=5)
 
     if pysr:
         pysr_rates = get_rates(pysr)
-        ax.plot(NOISE_LABELS, pysr_rates, 's--', color='#DC2626', lw=2.0,
-                ms=9, mfc='white', mew=2.0, label='PySR (symbolic, unconstrained)', zorder=4)
+        ax.plot(NOISE_LABELS, pysr_rates, 's--', color=pysr_color, lw=1.8,
+                ms=7, mfc='white', mew=1.8, label='PySR (unconstrained)', zorder=4)
 
     for i, rate in enumerate(adcd_rates):
         ax.annotate(f'{rate:.1f}%', (NOISE_LABELS[i], rate),
-                    xytext=(0, 12), textcoords='offset points',
-                    ha='center', fontsize=10, fontweight='bold', color='#2563EB')
+                    xytext=(0, 10), textcoords='offset points',
+                    ha='center', fontsize=9.5, fontweight='bold', color=adcd_color)
 
-    ax.set_xlabel("Observational Noise Level", fontsize=13, fontweight='bold')
-    ax.set_ylabel("Structural Class Match Rate (%)", fontsize=13, fontweight='bold')
-    ax.set_title("Noise Robustness: ADCD vs PySR", fontsize=14, fontweight='bold')
+    ax.set_xlabel("Observational Noise Level", fontsize=11, labelpad=8)
+    ax.set_ylabel("Structural Class Match Rate (%)", fontsize=11, labelpad=8)
+    ax.set_title("Noise Robustness: ADCD vs PySR", fontsize=12, pad=12, fontweight='bold')
     ax.set_ylim(0, 115)
-    ax.legend(fontsize=11, loc='lower left', framealpha=0.9)
-    ax.grid(True, alpha=0.25, ls='--')
-    ax.axhline(100, color='green', alpha=0.15, lw=1)
+    ax.legend(fontsize=9.5, loc='lower left', framealpha=0.9, frameon=True)
+    ax.grid(True, alpha=0.15, ls='--', color='gray')
+    ax.axhline(100, color='green', alpha=0.1, lw=1)
 
     plt.tight_layout()
     plt.savefig("paper/figures/fig1_noise_robustness.pdf", bbox_inches='tight')
@@ -111,26 +121,39 @@ def fig2_nmse_heatmap(adcd):
                 nmse_matrix[i, j] = np.log10(max(r[0]["nmse_full"], 1e-35))
                 match_matrix[i, j] = r[0]["class_match"]
 
-    fig, ax = plt.subplots(figsize=(7, 6))
-    im = ax.imshow(nmse_matrix, aspect='auto', cmap='RdYlGn_r', vmin=-35, vmax=0)
+    fig, ax = plt.subplots(figsize=(6.5, 5.5))
+    # Elegant, professional, color-blind friendly sequential colormap
+    im = ax.imshow(nmse_matrix, aspect='auto', cmap='YlGnBu_r', vmin=-35, vmax=0)
 
     ax.set_xticks(range(len(NOISE_LABELS)))
-    ax.set_xticklabels(NOISE_LABELS, fontsize=11)
+    ax.set_xticklabels(NOISE_LABELS, fontsize=10)
     ax.set_yticks(range(len(SCENARIOS_ORDER)))
-    ax.set_yticklabels(SCENARIOS_ORDER, fontsize=10)
-    ax.set_xlabel("Noise Level", fontsize=13, fontweight='bold')
-    ax.set_title("log10(Full NMSE) - All Scenarios", fontsize=13, fontweight='bold')
+    ax.set_yticklabels(SCENARIOS_ORDER, fontsize=9.5)
+    ax.set_xlabel("Noise Level", fontsize=11, labelpad=8)
+    ax.set_title(r"$\log_{10}(\text{Full NMSE})$ across all Anomaly Scenarios", fontsize=12, pad=12, fontweight='bold')
 
+    # Annotate cells with checkmarks and crosses
     for i in range(len(SCENARIOS_ORDER)):
         for j in range(len(NOISE_LEVELS)):
-            sym = "OK" if match_matrix[i, j] else "X"
-            ax.text(j, i, sym, ha="center", va="center", fontsize=13, fontweight='bold',
-                    color="white" if nmse_matrix[i, j] < -18 else "black")
+            sym = r"$\checkmark$" if match_matrix[i, j] else r"$\times$"
+            # White text for dark backgrounds (lower NMSE values)
+            text_color = "white" if nmse_matrix[i, j] < -16 else "black"
+            ax.text(j, i, sym, ha="center", va="center", fontsize=14,
+                    color=text_color, fontweight='bold' if not match_matrix[i, j] else 'normal')
 
-    ax.axhline(2.5, color='white', lw=2)
-    ax.axhline(5.5, color='white', lw=2)
-    cbar = plt.colorbar(im, ax=ax, shrink=0.8)
-    cbar.set_label("log10(NMSE)", fontsize=11)
+    # Grid separation lines for clarity
+    for i in range(len(SCENARIOS_ORDER) - 1):
+        ax.axhline(i + 0.5, color='white', lw=1.0, alpha=0.3)
+    for j in range(len(NOISE_LEVELS) - 1):
+        ax.axvline(j + 0.5, color='white', lw=1.0, alpha=0.3)
+
+    # Thick lines separating tiers
+    ax.axhline(2.5, color='white', lw=2.0)
+    ax.axhline(5.5, color='white', lw=2.0)
+
+    cbar = plt.colorbar(im, ax=ax, shrink=0.85, pad=0.04)
+    cbar.set_label(r"$\log_{10}(\text{NMSE})$", fontsize=10)
+    cbar.ax.tick_params(labelsize=9)
 
     plt.tight_layout()
     plt.savefig("paper/figures/fig2_nmse_heatmap.pdf", bbox_inches='tight')
@@ -143,9 +166,10 @@ def fig3_tier_bars(adcd):
     """Figure 3: Match rate grouped by tier and noise level."""
     tiers = ["textbook", "cross_domain", "synthetic"]
     tier_labels = ["Tier 1\n(Textbook)", "Tier 2\n(Cross-Domain)", "Tier 3\n(Synthetic)"]
-    colors = ['#2563EB', '#7C3AED', '#EA580C', '#DC2626']
+    # Cohesive, beautiful palette (gradient from navy to violet/rose)
+    colors = ['#1E3A8A', '#3B82F6', '#8B5CF6', '#EC4899']
 
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(7, 4.5))
     x = np.arange(len(tiers))
     bw = 0.18
 
@@ -159,16 +183,16 @@ def fig3_tier_bars(adcd):
                       color=color, alpha=0.85, edgecolor='white', lw=0.5)
         for bar, rate in zip(bars, rates):
             ax.text(bar.get_x() + bar.get_width() / 2., bar.get_height() + 1.5,
-                    f'{rate:.0f}%', ha='center', va='bottom', fontsize=8, fontweight='bold')
+                    f'{rate:.0f}%', ha='center', va='bottom', fontsize=8.5, fontweight='bold')
 
-    ax.set_xlabel("Anomaly Tier", fontsize=13, fontweight='bold')
-    ax.set_ylabel("Structural Class Match Rate (%)", fontsize=13, fontweight='bold')
-    ax.set_title("ADCD Performance by Tier and Noise Level", fontsize=14, fontweight='bold')
+    ax.set_xlabel("Anomaly Tier", fontsize=11, labelpad=8)
+    ax.set_ylabel("Structural Class Match Rate (%)", fontsize=11, labelpad=8)
+    ax.set_title("ADCD Performance by Tier and Noise Level", fontsize=12, pad=12, fontweight='bold')
     ax.set_xticks(x)
-    ax.set_xticklabels(tier_labels, fontsize=11)
+    ax.set_xticklabels(tier_labels, fontsize=10)
     ax.set_ylim(0, 115)
-    ax.legend(fontsize=10, loc='lower left', ncol=2)
-    ax.grid(True, alpha=0.2, axis='y', ls='--')
+    ax.legend(fontsize=9.5, loc='lower left', ncol=2, frameon=True)
+    ax.grid(True, alpha=0.15, axis='y', ls='--', color='gray')
 
     plt.tight_layout()
     plt.savefig("paper/figures/fig3_tier_bars.pdf", bbox_inches='tight')
@@ -184,9 +208,19 @@ def fig4_ablation(ablation):
         return
 
     conditions = list({r["condition"] for r in ablation})
-    # Pastikan urutan yang konsisten
     order = ["Full_ADCD", "No_ARC", "No_AST", "No_Dim", "No_DataGate", "No_Gates"]
     conditions = [c for c in order if c in conditions]
+
+    # Human-readable labels mapping
+    labels_map = {
+        "Full_ADCD": "Full ADCD",
+        "No_ARC": "w/o ARC Gate",
+        "No_AST": "w/o AST Gate",
+        "No_Dim": "w/o Dim Gate",
+        "No_DataGate": "w/o Data Gate",
+        "No_Gates": "No Gates"
+    }
+    x_labels = [labels_map.get(c, c) for c in conditions]
 
     rates = []
     for cond in conditions:
@@ -194,20 +228,21 @@ def fig4_ablation(ablation):
         rate = sum(1 for r in subset if r["class_match"]) / len(subset) * 100
         rates.append(rate)
 
-    fig, ax = plt.subplots(figsize=(8, 4.5))
-    colors = ['#2563EB' if c == 'Full_ADCD' else '#94A3B8' for c in conditions]
-    bars = ax.bar(conditions, rates, color=colors, edgecolor='white', lw=0.5, alpha=0.9)
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+    # Elegant navy for Full ADCD, professional gray/slate for ablation cases
+    colors = ['#1E3A8A' if c == 'Full_ADCD' else '#64748B' for c in conditions]
+    bars = ax.bar(x_labels, rates, color=colors, edgecolor='white', lw=0.5, alpha=0.9)
 
     for bar, rate in zip(bars, rates):
         ax.text(bar.get_x() + bar.get_width() / 2., bar.get_height() + 1.5,
-                f'{rate:.1f}%', ha='center', va='bottom', fontsize=10, fontweight='bold')
+                f'{rate:.1f}%', ha='center', va='bottom', fontsize=9.5, fontweight='bold')
 
-    ax.set_ylabel("Class Match Rate @ 5% Noise (%)", fontsize=12, fontweight='bold')
-    ax.set_title("Ablation Study: Contribution of Each Physics Gate", fontsize=13, fontweight='bold')
+    ax.set_ylabel("Class Match Rate @ 5% Noise (%)", fontsize=11, labelpad=8)
+    ax.set_title("Ablation Study: Contribution of Each Physics Gate", fontsize=12, pad=12, fontweight='bold')
     ax.set_ylim(0, 115)
-    ax.axhline(rates[0], color='#2563EB', ls='--', alpha=0.4, lw=1.5, label='Full ADCD baseline')
-    ax.legend(fontsize=10)
-    ax.grid(True, alpha=0.2, axis='y', ls='--')
+    ax.axhline(rates[0], color='#1E3A8A', ls='--', alpha=0.3, lw=1.5, label='Full ADCD Baseline')
+    ax.legend(fontsize=9.5)
+    ax.grid(True, alpha=0.15, axis='y', ls='--', color='gray')
     plt.xticks(rotation=15)
 
     plt.tight_layout()

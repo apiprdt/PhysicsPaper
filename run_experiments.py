@@ -5,13 +5,13 @@ import numpy as np
 import sympy as sp
 from typing import Dict, List, Tuple, Optional, Any
 
-from src.feynman_dataset import get_all_problems, FeynmanProblem
-from src.llm_proposer import MockProposer, GeminiProposer, ProposalContext
-from src.dimensional_checker import ASTValidator, DimensionalChecker
-from src.arc_scorer import ARCScorer, AsymptoticRegime
-from src.pipeline import Stage1Pipeline
-from src.jax_optimizer import JAXOptimizer
-from src.orchestrator import SROrchestrator, SearchResult
+from adcd.feynman_dataset import get_all_problems, FeynmanProblem
+from adcd.llm_proposer import MockProposer, GeminiProposer, ProposalContext
+from adcd.dimensional_checker import ASTValidator, DimensionalChecker
+from adcd.arc_scorer import ARCScorer, AsymptoticRegime
+from adcd.pipeline import Stage1Pipeline
+from adcd.jax_optimizer import JAXOptimizer
+from adcd.orchestrator import SROrchestrator, SearchResult
 
 def get_target_name(problem_name: str) -> str:
     mapping = {

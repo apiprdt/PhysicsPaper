@@ -23,13 +23,13 @@ import logging
 import numpy as np
 import sympy as sp
 
-from src.anomaly_scenarios import get_all_scenarios, AnomalyScenario
-from src.llm_proposer import CorrectionMockProposer, ProposalContext
-from src.correction_orchestrator import CorrectionOrchestrator
-from src.dimensional_checker import ASTValidator, DimensionalChecker
-from src.arc_scorer import ARCScorer, AsymptoticRegime
-from src.pipeline import Stage1Pipeline
-from src.jax_optimizer import JAXOptimizer
+from adcd.anomaly_scenarios import get_all_scenarios, AnomalyScenario
+from adcd.llm_proposer import CorrectionMockProposer, ProposalContext
+from adcd.correction_orchestrator import CorrectionOrchestrator
+from adcd.dimensional_checker import ASTValidator, DimensionalChecker
+from adcd.arc_scorer import ARCScorer, AsymptoticRegime
+from adcd.pipeline import Stage1Pipeline
+from adcd.jax_optimizer import JAXOptimizer
 
 logging.basicConfig(level=logging.WARNING)
 

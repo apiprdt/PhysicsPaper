@@ -7,14 +7,14 @@ import numpy as np
 import sympy as sp
 from typing import Dict, List, Any
 
-from src.anomaly_scenarios import get_all_scenarios, AnomalyScenario
-from src.metrics import CorrectionEvaluation, classify_structure
-from src.llm_proposer import CorrectionMockProposer
-from src.correction_orchestrator import CorrectionOrchestrator
-from src.dimensional_checker import ASTValidator, DimensionalChecker
-from src.arc_scorer import ARCScorer, AsymptoticRegime
-from src.pipeline import Stage1Pipeline
-from src.jax_optimizer import JAXOptimizer
+from adcd.anomaly_scenarios import get_all_scenarios, AnomalyScenario
+from adcd.metrics import CorrectionEvaluation, classify_structure
+from adcd.llm_proposer import CorrectionMockProposer
+from adcd.correction_orchestrator import CorrectionOrchestrator
+from adcd.dimensional_checker import ASTValidator, DimensionalChecker
+from adcd.arc_scorer import ARCScorer, AsymptoticRegime
+from adcd.pipeline import Stage1Pipeline
+from adcd.jax_optimizer import JAXOptimizer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("CorrectionDiscoveryBenchmark")
@@ -49,13 +49,13 @@ def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_it
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
             raise ValueError("GEMINI_API_KEY environment variable is required for Gemini proposer.")
-        from src.llm_proposer import CorrectionGeminiProposer
+        from adcd.llm_proposer import CorrectionGeminiProposer
         proposer = CorrectionGeminiProposer(api_key=api_key)
     elif proposer_type == "hybrid":
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
             raise ValueError("GEMINI_API_KEY environment variable is required for Hybrid proposer.")
-        from src.llm_proposer import HybridCorrectionProposer
+        from adcd.llm_proposer import HybridCorrectionProposer
         proposer = HybridCorrectionProposer(api_key=api_key, seed=42)
     else:
         raise ValueError(f"Unknown proposer type: {proposer_type}")

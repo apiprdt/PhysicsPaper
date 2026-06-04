@@ -19,7 +19,7 @@ import json
 import time
 import logging
 
-from src.real_scenarios import get_real_scenarios
+from adcd.real_scenarios import get_real_scenarios
 from run_correction_discovery import run_scenario_benchmark
 
 logging.basicConfig(level=logging.WARNING,

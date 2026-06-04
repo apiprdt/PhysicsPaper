@@ -1,29 +1,69 @@
 Title: Anomaly-Driven Correction Discovery (ADCD): Physics-Constrained Symbolic
        Regression for Evolutionary Scientific Discovery
 
-Authors: [Your Name]
+Authors: Erdita, Muhammad Afif
+         SMA Negeri 23 Kabupaten Tangerang
+         maeapip10@gmail.com
 
-Abstract: [Copy from main.tex abstract section]
+Abstract:
+Traditional symbolic regression algorithms attempt to discover mathematical
+laws from physical experimental data starting from a blank slate. While
+successful in reconstructing simple textbook equations, this tabula rasa
+approach becomes computationally intractable and highly susceptible to
+overfitting when applied to complex physical systems, particularly under
+observational noise. In this work, we present Anomaly-Driven Correction
+Discovery (ADCD), a physics-informed symbolic regression framework designed
+to mimic the evolutionary nature of scientific discovery. Rather than learning
+entire equations from scratch, ADCD takes a known classical physical law and
+seeks to discover the mathematical structure of the dimensionless correction
+term (Delta) that explains the discrepancy between classical predictions and
+anomalous experimental observations. By utilizing a cascaded pipeline of
+physical filters---including AST complexity limits, dimensional homogeneity,
+transcendental argument constraints, and asymptotic limits (ARC)---coupled
+with a JAX-traced L-BFGS-B parameter optimizer and Bayesian Information
+Criterion (BIC) reranking, ADCD strongly enforces physical plausibility on
+the candidate search space and demonstrates robustness to experimental error.
+We benchmark ADCD on 9 complex physical anomalies across textbook,
+cross-domain, and novel synthetic physical systems under noise levels up to
+10%. ADCD achieves a 94.4% (34/36) structural class match rate, recovering
+highly non-linear, multi-scale transcendental corrections while demonstrating
+superior noise tolerance compared to unconstrained symbolic regression
+baselines like PySR.
 
 Primary Category: cs.AI (Artificial Intelligence)
 Cross-list: physics.comp-ph (Computational Physics), cs.LG (Machine Learning)
 
-Comments: 12 pages, 4 figures, 6 tables. Code available at
-          https://github.com/apiprdt/PhysicsPaper
+Comments: 13 pages, 4 figures, 5 tables. Code and data available at
+          https://zenodo.org/uploads/20534940
 
 License: CC BY 4.0
 
 Keywords: symbolic regression, physics-informed machine learning, automated
           scientific discovery, anomaly detection, correction discovery,
-          asymptotic constraints, Bayesian model selection
+          asymptotic constraints, Bayesian model selection, JAX
 
 Submission checklist:
-  [ ] Paper compiles without errors (pdflatex main.tex x2)
-  [ ] All figures present in paper/figures/ (PDF format)
-  [ ] No "undefined reference" warnings in main.log
-  [ ] Abstract < 1920 characters (arXiv limit)
-  [ ] Author name finalized
-  [ ] Zip file: main.tex + figures/ + (optional .bbl file)
-  [ ] Submit at https://arxiv.org/submit
-  [ ] Select primary category: cs.AI
+  [x] Paper compiles without errors (pdflatex main.tex x2) -- 0 errors, 0 warnings
+  [x] Author corrected: Muhammad Afif Erdita (single human author)
+  [x] Author email updated: maeapip10@gmail.com
+  [x] Acknowledgments section added (AI tool disclosure)
+  [x] All figures present in paper/figures/ (PDF format)
+  [x] No "Overfull hbox" warnings in main.log
+  [x] No duplicate hyperref destination warnings in main.log
+  [x] Abstract < 1920 characters (arXiv limit) -- estimated ~1500 chars
+  [x] Zenodo DOI obtained and linked in Comments field
+  [x] CLAIM AUDIT PASSED:
+        - 94.4% (34/36) accuracy: verified vs reproducibility_results.json
+        - PySR comparison: 22.2/66.7/44.4/44.4% verified vs pysr_baseline_results.json
+        - MLP NMSE: 8.56e-5 / 8.01e-3 verified vs mlp_baseline_results.json
+        - ADCD NMSE: 5.51e-12 / 4.56e-3 verified vs reproducibility_results.json
+        - Ablation delta=33.3 pp (No_Gates: 5/9) verified vs ablation_results.json
+  [x] OVERCLAIMS FIXED:
+        - "guarantees" -> "strongly enforces" (abstract + metadata)
+        - Ablation figure caption: removed false claim that individual
+          gates have measurable accuracy impact (data shows delta=0
+          for each single-gate ablation; only No_Gates drops to 5/9)
+        - Discussion: removed fabricated "4.5x timing" figure;
+          replaced with honest qualitative description
+  [ ] Submit at https://zenodo.org (upload ZIP)
   [ ] Cross-list: physics.comp-ph, cs.LG

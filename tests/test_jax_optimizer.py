@@ -20,7 +20,7 @@ import numpy as np
 import pytest
 import sympy as sp
 
-from src.jax_optimizer import JAXOptimizer, OptimizationResult, NMSE_FAIL
+from adcd.jax_optimizer import JAXOptimizer, OptimizationResult, NMSE_FAIL
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

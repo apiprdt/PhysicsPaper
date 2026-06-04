@@ -1,8 +1,8 @@
 import os
 os.environ["JAX_PLATFORM_NAME"] = "cpu"
 import numpy as np
-from src.feynman_dataset import get_problem
-from src.jax_optimizer import JAXOptimizer
+from adcd.feynman_dataset import get_problem
+from adcd.jax_optimizer import JAXOptimizer
 
 problem = get_problem("Ideal Gas Law")
 X, y_obs = problem.generate_data(n_points=100, seed=42)

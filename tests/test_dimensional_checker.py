@@ -1,5 +1,5 @@
 import pytest
-from src.dimensional_checker import DimensionalChecker, ASTValidator, validate_transcendental_args
+from adcd.dimensional_checker import DimensionalChecker, ASTValidator, validate_transcendental_args
 
 def test_valid_and_invalid_dimensions():
     checker = DimensionalChecker()

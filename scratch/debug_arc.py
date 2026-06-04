@@ -1,8 +1,8 @@
 import sympy as sp
-from src.anomaly_scenarios import get_all_scenarios
-from src.arc_scorer import ARCScorer, AsymptoticRegime
-from src.pipeline import Stage1Pipeline
-from src.dimensional_checker import ASTValidator, DimensionalChecker
+from adcd.anomaly_scenarios import get_all_scenarios
+from adcd.arc_scorer import ARCScorer, AsymptoticRegime
+from adcd.pipeline import Stage1Pipeline
+from adcd.dimensional_checker import ASTValidator, DimensionalChecker
 
 scenarios = get_all_scenarios()
 yukawa = [s for s in scenarios if s.name == "Yukawa Gravity"][0]

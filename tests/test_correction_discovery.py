@@ -1,14 +1,14 @@
 import pytest
 import sympy as sp
 import numpy as np
-from src.anomaly_scenarios import get_all_scenarios, AnomalyScenario
-from src.metrics import classify_structure, get_ast_tokens, compute_levenshtein_distance, evaluate_correction
-from src.llm_proposer import CorrectionMockProposer, ProposalContext
-from src.correction_orchestrator import CorrectionOrchestrator
-from src.dimensional_checker import ASTValidator, DimensionalChecker
-from src.arc_scorer import ARCScorer, AsymptoticRegime
-from src.pipeline import Stage1Pipeline
-from src.jax_optimizer import JAXOptimizer
+from adcd.anomaly_scenarios import get_all_scenarios, AnomalyScenario
+from adcd.metrics import classify_structure, get_ast_tokens, compute_levenshtein_distance, evaluate_correction
+from adcd.llm_proposer import CorrectionMockProposer, ProposalContext
+from adcd.correction_orchestrator import CorrectionOrchestrator
+from adcd.dimensional_checker import ASTValidator, DimensionalChecker
+from adcd.arc_scorer import ARCScorer, AsymptoticRegime
+from adcd.pipeline import Stage1Pipeline
+from adcd.jax_optimizer import JAXOptimizer
 
 def test_anomaly_scenario_data_generation():
     """Verify that all 9 scenarios generate valid data shapes and proper residuals."""
@@ -129,7 +129,7 @@ def test_correction_orchestrator_integration():
 
 def test_hybrid_correction_proposer():
     """Verify that HybridCorrectionProposer falls back gracefully or returns candidates."""
-    from src.llm_proposer import HybridCorrectionProposer, ProposalContext
+    from adcd.llm_proposer import HybridCorrectionProposer, ProposalContext
     
     proposer = HybridCorrectionProposer(api_key="mock_key_or_invalid_key", seed=42)
     context = ProposalContext(

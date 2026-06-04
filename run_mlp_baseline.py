@@ -17,7 +17,7 @@ import numpy as np
 from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import StandardScaler
 
-from src.anomaly_scenarios import get_all_scenarios
+from adcd.anomaly_scenarios import get_all_scenarios
 
 NOISE_LEVELS = [0.0, 0.01, 0.05, 0.10]
 

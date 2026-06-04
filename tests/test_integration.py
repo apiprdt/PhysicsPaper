@@ -3,13 +3,13 @@ import numpy as np
 import sympy as sp
 from typing import Dict
 
-from src.feynman_dataset import get_all_problems, get_problem, FeynmanProblem
-from src.llm_proposer import MockProposer, AnthropicProposer, ProposalContext
-from src.dimensional_checker import ASTValidator, DimensionalChecker
-from src.arc_scorer import ARCScorer, AsymptoticRegime
-from src.pipeline import Stage1Pipeline
-from src.jax_optimizer import JAXOptimizer
-from src.orchestrator import SROrchestrator, SearchResult
+from adcd.feynman_dataset import get_all_problems, get_problem, FeynmanProblem
+from adcd.llm_proposer import MockProposer, AnthropicProposer, ProposalContext
+from adcd.dimensional_checker import ASTValidator, DimensionalChecker
+from adcd.arc_scorer import ARCScorer, AsymptoticRegime
+from adcd.pipeline import Stage1Pipeline
+from adcd.jax_optimizer import JAXOptimizer
+from adcd.orchestrator import SROrchestrator, SearchResult
 
 def test_feynman_problems_and_data_generation():
     """Verify that all 20 benchmark equations can be retrieved and generate valid data."""
