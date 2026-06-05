@@ -18,6 +18,11 @@ class DimensionalChecker:
     """
     Verifies the physical dimensional consistency of a candidate expression
     using linear algebra over SI base unit exponent vectors.
+    
+    Example:
+        >>> checker = DimensionalChecker()
+        >>> checker.verify("v**2 / r", "v")  # False
+        >>> checker.verify("v**2 / r", "G")  # False
     """
     def __init__(self, unit_registry: Dict[str, List[int]] = None):
         self.registry = dict(unit_registry) if unit_registry is not None else dict(DIMENSIONS)
@@ -77,7 +82,19 @@ class DimensionalChecker:
         raise NotImplementedError(f"Operator {type(expr)} not yet supported in dimensional analysis.")
 
     def verify(self, candidate_expr: Union[str, sp.Expr], target_dimension_key: Optional[str]) -> bool:
-        """Returns True if the expression's units match the physical target dimension."""
+        """
+        Returns True if the expression's units match the physical target dimension.
+        
+        Args:
+            candidate_expr: The expression string or SymPy expression to check.
+            target_dimension_key: The target dimension key in the registry (e.g. "dimensionless").
+            
+        Returns:
+            bool: True if consistent, False otherwise.
+            
+        Example:
+            >>> checker.verify("v**2 / r", "dimensionless")
+        """
         if target_dimension_key is None:
             return True
         try:
@@ -97,7 +114,19 @@ class DimensionalChecker:
 
 
 def validate_transcendental_args(expr: sp.Expr, checker: DimensionalChecker) -> bool:
-    """Returns True if all transcendental function arguments are dimensionless."""
+    """
+    Returns True if all transcendental function arguments are dimensionless.
+    
+    Args:
+        expr: The SymPy expression to check.
+        checker: The DimensionalChecker unit mapping.
+        
+    Returns:
+        bool: True if argument dimensions are valid, False otherwise.
+        
+    Example:
+        >>> validate_transcendental_args(sp.sympify("sin(v/c)"), checker)
+    """
     for sub in sp.preorder_traversal(expr):
         if isinstance(sub, sp.Function):
             if sub.func.__name__ in ("sin", "cos", "tan", "exp", "log", "asin", "acos", "atan", "sinh", "cosh", "tanh"):
@@ -120,7 +149,13 @@ def validate_transcendental_args(expr: sp.Expr, checker: DimensionalChecker) -> 
 
 
 class ASTValidator:
-    """Prunes bloated expressions to prevent dynamic algebraic over-fitting/bloating."""
+    """
+    Prunes bloated expressions to prevent dynamic algebraic over-fitting/bloating.
+    
+    Example:
+        >>> validator = ASTValidator(max_depth=5, max_tokens=15)
+        >>> validator.verify("x**2 + y**2")
+    """
     def __init__(self, max_depth: int = 7, max_tokens: int = 20):
         self.max_depth = max_depth
         self.max_tokens = max_tokens
@@ -132,7 +167,15 @@ class ASTValidator:
         return 1 + max(self._get_depth(arg) for arg in expr.args)
 
     def verify(self, candidate_expr: Union[str, sp.Expr]) -> bool:
-        """Returns True if the expression complexity falls within limits."""
+        """
+        Returns True if the expression complexity falls within depth and token limits.
+        
+        Args:
+            candidate_expr: The expression string or SymPy expression to check.
+            
+        Returns:
+            bool: True if complexity is within bounds, False otherwise.
+        """
         try:
             expr = sp.sympify(candidate_expr, locals=self.locals) if isinstance(candidate_expr, str) else candidate_expr
             depth = self._get_depth(expr)
@@ -142,7 +185,14 @@ class ASTValidator:
             return False
 
     def set_threshold_relative_to(self, target_expr: Union[str, sp.Expr], delta_tokens: int = 5, delta_depth: int = 2):
-        """Dynamically adjusts the complexity bounds based on the target ground-truth formula."""
+        """
+        Dynamically adjusts the complexity bounds based on a target ground-truth formula.
+        
+        Args:
+            target_expr: The target reference expression.
+            delta_tokens: Token slack to add to the target count.
+            delta_depth: Depth slack to add to the target depth.
+        """
         try:
             expr = sp.sympify(target_expr, locals=self.locals) if isinstance(target_expr, str) else target_expr
             depth = self._get_depth(expr)

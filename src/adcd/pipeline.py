@@ -9,6 +9,15 @@ class Stage1Pipeline:
     """
     Orchestrates the cascading coarse screening workflow to protect low-resource CPU
     hardware from processing mathematically flawed candidates.
+    
+    Example:
+        >>> from adcd.pipeline import Stage1Pipeline
+        >>> from adcd.dimensional_checker import ASTValidator, DimensionalChecker
+        >>> from adcd.arc_scorer import ARCScorer
+        >>> validator = ASTValidator()
+        >>> checker = DimensionalChecker()
+        >>> scorer = ARCScorer(regimes=[...])
+        >>> pipeline = Stage1Pipeline(validator, checker, scorer)
     """
     def __init__(self, validator: ASTValidator, checker: DimensionalChecker, scorer: ARCScorer):
         self.validator = validator
@@ -24,9 +33,21 @@ class Stage1Pipeline:
                 beta: float = 1.0,
                 constants: Dict[str, float] = None) -> List[Tuple[str, float, float, float]]:
         """
-        Runs candidate strings through the filter cascade. Returns a sorted list 
-        of valid (candidate, combined_score, mse, arc_score) tuples in descending 
-        order of combined_score.
+        Runs candidate strings through the filter cascade.
+        
+        Args:
+            candidates: A list of candidate strings, or list of tuples (cand_str, has_params).
+            target_dimension_key: The target dimension registry key (e.g. "dimensionless").
+            X: Dictionary of independent variable arrays.
+            y_obs: The observed residual array to fit.
+            beta: Exponential weight factor scaling the influence of coarse NMSE.
+            constants: Physical constants to substitute during evaluation.
+            
+        Returns:
+            List of sorted tuples (candidate, combined_score, mse, arc_score) in descending order of combined_score.
+            
+        Example:
+            >>> results = pipeline.execute(["theta_0 * x**2", "x"], "dimensionless", X, y)
         """
         screened_candidates = []
         

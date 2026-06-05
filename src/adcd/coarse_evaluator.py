@@ -12,6 +12,10 @@ class CoarseEvaluator:
     """
     Evaluates the empirical accuracy (MSE and Normalized MSE) of candidate
     equations on observed physical datasets using high-speed lambdified numpy arrays.
+    
+    Example:
+        >>> evaluator = CoarseEvaluator(X={"x": np.array([1, 2, 3])}, y_obs=np.array([2, 4, 6]))
+        >>> mse, nmse = evaluator.evaluate(sp.sympify("2 * x"))
     """
     def __init__(self, X: Dict[str, np.ndarray], y_obs: np.ndarray, constants: Dict[str, float] = None):
         if not X:
@@ -31,8 +35,16 @@ class CoarseEvaluator:
     def evaluate(self, expr: sp.Expr, has_params: bool = False) -> Tuple[float, float]:
         """
         Evaluates the candidate SymPy expression on the dataset.
-        Returns a tuple of (MSE, NMSE).
-        Returns (float('inf'), float('inf')) if any numerical or evaluation error occurs.
+        
+        Args:
+            expr: The SymPy expression to evaluate.
+            has_params: If True, scales the prediction to fit the observation (1D OLS).
+            
+        Returns:
+            Tuple of (MSE, NMSE). Returns (inf, inf) if any numerical overflow/error occurs.
+            
+        Example:
+            >>> mse, nmse = evaluator.evaluate(sp.sympify("theta_0 * x"), has_params=True)
         """
         free_syms = list(expr.free_symbols)
         sym_names = [str(sym) for sym in free_syms]

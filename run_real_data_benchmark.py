@@ -1,7 +1,15 @@
 """
-Benchmark ADCD pipeline on real experimental data (ADCD v2.0).
+Benchmark ADCD pipeline on synthetic-real hybrid physical scenarios (ADCD v2.0).
 
-Runs the full correction discovery pipeline on 4 real physics datasets:
+Note on Real-World Data:
+These datasets are "synthetic-real hybrid" formulations. They generate physically-accurate
+simulated values utilizing real experimentally-measured constants (e.g. JPL DE440 parameters
+for Mercury, NIST energy levels for Hydrogen, CODATA values for muon g-2). They demonstrate
+the pipeline's ability to extract physical corrections from data governed by realistic scales
+and noise, rather than raw instrument logs which typically require custom pre-filtering 
+(such as removing solar system N-body perturbations for Mercury's precession).
+
+Runs the full correction discovery pipeline on 4 physical datasets:
   - Mercury perihelion precession (GR correction)
   - Hydrogen Lamb shift (QED correction)
   - Blackbody radiation (Planck correction to Rayleigh-Jeans)

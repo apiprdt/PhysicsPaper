@@ -4,6 +4,16 @@ from dataclasses import dataclass
 
 @dataclass
 class ResidualFeatures:
+    """
+    Features extracted from physical residuals.
+    
+    Attributes:
+        monotonicity: Spearman correlation of residual vs primary variable
+        curvature_sign: Sign of quadratic coefficient in polynomial fit
+        oscillation_score: Detrended zero-crossing density
+        decay_rate: R² value of exponential decay fit
+        symmetry: Relative alignment to even vs odd polynomial bases
+    """
     monotonicity: float      # Spearman correlation of residual vs primary variable
     curvature_sign: float    # Sign of quadratic coefficient in polynomial fit
     oscillation_score: float # Number of zero-crossings of smoothed/detrended residual / n_points
@@ -13,6 +23,17 @@ class ResidualFeatures:
 def analyze_residual(x: np.ndarray, residual: np.ndarray) -> ResidualFeatures:
     """
     Extracts statistical features from the physical residual to identify the structural class.
+    
+    Args:
+        x: Independent variable array.
+        residual: Observed residual values (observed - classical).
+        
+    Returns:
+        ResidualFeatures containing the analyzed properties.
+        
+    Example:
+        >>> features = analyze_residual(x_data, y_obs - y_classical)
+        >>> print(features.decay_rate)
     """
     n_points = len(x)
     if n_points < 5:
