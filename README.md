@@ -39,38 +39,51 @@ pip install -e ".[dev]"
 
 ### Usage
 
-```python
-from adcd import get_all_scenarios, CorrectionOrchestrator
-from adcd import ASTValidator, DimensionalChecker, ARCScorer
-from adcd import Stage1Pipeline, JAXOptimizer
-from adcd.llm_proposer import CorrectionMockProposer
+Running ADCD is now extremely simple using the high-level scientific API:
 
-# Load a benchmark scenario
-scenarios = get_all_scenarios()
+```python
+import adcd
+
+# 1. Load a pre-defined benchmark scenario
+scenarios = adcd.get_all_scenarios()
 scenario = scenarios[0]  # Relativistic Kinetic Energy
 
-# Build the pipeline
-validator = ASTValidator(max_depth=6, max_ops=12)
-checker = DimensionalChecker(scenario.unit_registry)
-scorer = ARCScorer(scenario.asymptotic_regime)
-pipeline = Stage1Pipeline(validator, checker, scorer)
-
-# Create proposer + optimizer
-proposer = CorrectionMockProposer()
-optimizer = JAXOptimizer()
-
-# Run discovery
-orchestrator = CorrectionOrchestrator(
-    proposer=proposer,
-    pipeline=pipeline,
-    optimizer=optimizer,
-    scenario=scenario,
-)
-result = orchestrator.run()
+# 2. Run discovery in a single line!
+result = adcd.discover_correction(scenario, max_iterations=5, proposer="mock")
 
 print(f"Discovered correction: {result.best_expr}")
-print(f"Structural class: {result.structural_class}")
-print(f"NMSE: {result.best_nmse:.2e}")
+print(f"Residual NMSE: {result.best_nmse_residual:.2e}")
+print(f"Parameters: {result.best_theta}")
+
+# 3. Export LaTeX or plot residuals (great for Jupyter Notebooks)
+print(result.export_latex())
+# result.plot_residuals()
+```
+
+For custom experimental data, use `adcd.fit(...)`:
+
+```python
+import numpy as np
+import adcd
+
+# Generate some custom data (e.g., classical y = 2*x with a correction term)
+x = np.linspace(1.0, 5.0, 100)
+X = {"x": x}
+y_classical = 2.0 * x
+y_observed = 2.0 * x + 0.5 * x**2  # contains a hidden x**2 correction
+
+# Discover the correction term
+result = adcd.fit(
+    X=X,
+    y_obs=y_observed,
+    y_classical=y_classical,
+    limit_variable="x",
+    limit_direction="0",
+    correction_mode="additive"
+)
+
+result.summary()
+# result.plot_residuals()
 ```
 
 ## Benchmark Results

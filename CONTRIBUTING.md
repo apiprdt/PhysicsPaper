@@ -5,13 +5,13 @@ Thank you for your interest in contributing to **Anomaly-Driven Correction Disco
 ## How to Contribute
 
 ### Reporting Bugs
-Open a [Bug Report issue](https://github.com/maeapip10/adcd/issues/new?template=bug_report.md) with:
+Open a [Bug Report issue](https://github.com/apiprdt/PhysicsPaper/issues/new?template=bug_report.md) with:
 - OS and Python version
 - Exact command and full traceback
 - Minimal reproducible example
 
 ### Suggesting Features
-Open a [Feature Request issue](https://github.com/maeapip10/adcd/issues/new?template=feature_request.md) describing:
+Open a [Feature Request issue](https://github.com/apiprdt/PhysicsPaper/issues/new?template=feature_request.md) describing:
 - The motivation (what problem does it solve?)
 - A sketch of the proposed API or behavior
 

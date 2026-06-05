@@ -338,3 +338,127 @@ class CorrectionOrchestrator:
             converged=converged,
             evaluation=final_evaluation
         )
+
+
+def main_cli():
+    import argparse
+    import sys
+    import os
+    from adcd.anomaly_scenarios import get_all_scenarios
+    from adcd.llm_proposer import CorrectionMockProposer, CorrectionGeminiProposer, HybridCorrectionProposer
+    from adcd.dimensional_checker import ASTValidator, DimensionalChecker
+    from adcd.arc_scorer import ARCScorer
+    from adcd.pipeline import Stage1Pipeline
+    from adcd.jax_optimizer import JAXOptimizer
+
+    parser = argparse.ArgumentParser(description="ADCD: Anomaly-Driven Correction Discovery CLI")
+    parser.add_argument("--scenario", type=str, help="Name of the scenario to run")
+    parser.add_argument("--noise", type=float, default=0.0, help="Noise level (default: 0.0)")
+    parser.add_argument("--max-iter", type=int, default=5, help="Maximum number of search iterations (default: 5)")
+    parser.add_argument("--proposer", type=str, choices=["mock", "gemini", "hybrid"], default="mock", help="Proposer type (default: mock)")
+    parser.add_argument("--list", action="store_true", help="List all available scenarios and exit")
+    parser.add_argument("--api-key", type=str, default=None, help="API key for LLM proposer (if using gemini or hybrid)")
+
+    args = parser.parse_args()
+
+    scenarios = get_all_scenarios()
+
+    if args.list:
+        print("Available Scenarios:")
+        for idx, sc in enumerate(scenarios, 1):
+            print(f"{idx}. {sc.name} ({sc.domain}, tier: {sc.tier})")
+        sys.exit(0)
+
+    if not args.scenario:
+        print("Error: --scenario or --list must be provided.", file=sys.stderr)
+        parser.print_help()
+        sys.exit(1)
+
+    # Find the scenario
+    selected_scenario = None
+    for sc in scenarios:
+        if sc.name.lower() == args.scenario.lower():
+            selected_scenario = sc
+            break
+
+    if not selected_scenario:
+        print(f"Error: Scenario '{args.scenario}' not found.", file=sys.stderr)
+        print("Use --list to see all available scenarios.", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Running ADCD for Scenario: {selected_scenario.name}")
+    print(f"Domain: {selected_scenario.domain}")
+    print(f"Classical Expression: {selected_scenario.classical_expr}")
+    print(f"Asymptotic Regime: {selected_scenario.classical_limit_variable} -> {selected_scenario.classical_limit_direction}")
+    print(f"Noise Level: {args.noise}")
+    print(f"Proposer: {args.proposer}")
+    print(f"Max Iterations: {args.max_iter}\n")
+
+    # Set up proposer
+    if args.proposer == "mock":
+        proposer = CorrectionMockProposer()
+    elif args.proposer == "gemini":
+        api_key = args.api_key or os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            print("Error: API key must be provided via --api-key or GEMINI_API_KEY environment variable.", file=sys.stderr)
+            sys.exit(1)
+        proposer = CorrectionGeminiProposer(api_key=api_key)
+    elif args.proposer == "hybrid":
+        api_key = args.api_key or os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            print("Error: API key must be provided via --api-key or GEMINI_API_KEY environment variable.", file=sys.stderr)
+            sys.exit(1)
+        proposer = HybridCorrectionProposer(api_key=api_key)
+
+    import sympy as sp
+    from adcd.arc_scorer import ARCScorer, AsymptoticRegime
+
+    # Set up pipeline & optimizer
+    validator = ASTValidator()
+    checker = DimensionalChecker()
+
+    limit_var = sp.Symbol(selected_scenario.classical_limit_variable)
+    limit_target = sp.oo if selected_scenario.classical_limit_direction == "oo" else 0
+    regimes = [
+        AsymptoticRegime(
+            variable=limit_var,
+            limit_target=limit_target,
+            ground_truth_expr="0",
+            weight=1.0
+        )
+    ]
+    scorer = ARCScorer(regimes=regimes)
+    pipeline = Stage1Pipeline(validator, checker, scorer)
+    optimizer = JAXOptimizer()
+
+    orchestrator = CorrectionOrchestrator(
+        proposer=proposer,
+        pipeline=pipeline,
+        optimizer=optimizer,
+        max_iterations=args.max_iter,
+        verbose=True
+    )
+
+    result = orchestrator.search_correction(selected_scenario, noise_level=args.noise)
+
+    print("\n" + "="*40)
+    print("RESULTS SUMMARY")
+    print("="*40)
+    print(f"Best Discovered Correction: {result.best_expr}")
+    print(f"Residual NMSE: {result.best_nmse_residual:.6e}")
+    print(f"Full Model NMSE: {result.best_nmse_full:.6e}")
+    print(f"Optimized Parameters (theta):")
+    if result.best_theta:
+        for k, v in result.best_theta.items():
+            print(f"  {k}: {v:.6f}")
+    else:
+        print("  None")
+    print(f"Total time: {result.total_time_seconds:.2f} seconds")
+    print(f"Converged: {result.converged}")
+    print("="*40)
+
+
+if __name__ == "__main__":
+    main_cli()
+
+

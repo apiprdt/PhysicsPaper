@@ -8,15 +8,20 @@ DOI: 10.5281/zenodo.20534940
 
 Quick Start
 -----------
->>> from adcd import discover_correction, get_all_scenarios
->>> scenarios = get_all_scenarios()
->>> result = discover_correction(scenarios[0])
+>>> import adcd
+>>> scenarios = adcd.get_all_scenarios()
+>>> result = adcd.discover_correction(scenarios[0])
+>>> print(result.best_expr)
 """
 
 __version__ = "1.1.0"
 __author__ = "Muhammad Afif Erdita"
 __email__ = "maeapip10@gmail.com"
 __license__ = "MIT"
+
+# High-level API entries
+from adcd.api import fit, discover_correction
+from adcd.result import ADCDResult
 
 # Core discovery API
 from adcd.correction_orchestrator import (
@@ -50,6 +55,10 @@ from adcd.dimensional_checker import ASTValidator, DimensionalChecker
 from adcd.arc_scorer import ARCScorer, AsymptoticRegime
 
 __all__ = [
+    # High-level API
+    "fit",
+    "discover_correction",
+    "ADCDResult",
     # Discovery
     "CorrectionOrchestrator",
     "CorrectionIterationResult",
@@ -73,3 +82,4 @@ __all__ = [
     # Metadata
     "__version__",
 ]
+

@@ -527,8 +527,9 @@ class OpenAICompatibleProposer(BaseProposer):
 
 class CorrectionMockProposer(BaseProposer):
     """Proposes dimensionless correction terms Δ(x; θ) for physical anomalies."""
-    def __init__(self, seed: int = 42):
+    def __init__(self, seed: int = 42, extended: bool = True):
         self.seed = seed
+        self.extended = extended
         self._templates = [
             # Power-law family
             "theta_0 * ({v1} / theta_1)**2",
@@ -617,6 +618,83 @@ class CorrectionMockProposer(BaseProposer):
                 "theta_0 * log(1.0 + {v1} / theta_1) / ({v1} / theta_1)"
             ]
         }
+        
+        if extended:
+            self._extend_templates()
+
+    def _extend_templates(self):
+        # Extend standard families with multi-variable physics templates
+        self.families["power_law"].extend([
+            "theta_0 * {v1}**theta_1 * {v2}**theta_2",
+            "theta_0 * ({v1} / {v2})**theta_1",
+            "theta_0 * ({v1} * {v2})**theta_1",
+            "theta_0 * ({v1} / ({v2} * theta_1))**theta_2",
+            "theta_0 * ({v1} * {v2} / theta_1)**theta_2",
+            "theta_0 * ({v1} / (theta_1 + {v2}))**theta_2",
+            "theta_0 * sqrt({v1} * {v2}) / theta_1",
+            "theta_0 * ({v1}**theta_1) * ({v2}**(-theta_2))",
+        ])
+        
+        self.families["polynomial"].extend([
+            "theta_0 * {v1} * {v2}",
+            "theta_0 * {v1}**2 * {v2}",
+            "theta_0 * {v1} * {v2}**2",
+            "theta_0 * {v1}**2 * {v2}**2",
+            "theta_0 * ({v1} / theta_1)**2 + theta_2 * ({v2} / theta_3)**2",
+            "theta_0 * ({v1} / theta_1) * ({v2} / theta_2)",
+            "theta_0 * {v1}**3 * {v2}**(-1)",
+            "theta_0 * {v1}**2 + theta_1 * {v2}**2 + theta_2 * {v1} * {v2}",
+        ])
+        
+        self.families["exponential"].extend([
+            "theta_0 * exp(-{v1} * {v2} / theta_1)",
+            "theta_0 * exp(-{v1} / ({v2} * theta_1))",
+            "theta_0 * exp(-({v1} / theta_1)**2 - ({v2} / theta_2)**2)",
+            "theta_0 * exp(-sqrt({v1}**2 + {v2}**2) / theta_1)",
+            "theta_0 * (1.0 - exp(-{v1} * {v2} / theta_1))",
+            "theta_0 * (1.0 - exp(-{v1} / ({v2} * theta_1)))",
+            "exp(-{v1} * {v2} / theta_1) - 1.0",
+            "exp(-{v1} / ({v2} * theta_1)) - 1.0",
+        ])
+        
+        self.families["rational"].extend([
+            "theta_0 * {v1} / ({v1} + {v2})",
+            "theta_0 * {v1} * {v2} / ({v1} + {v2} + theta_1)",
+            "theta_0 * {v1}**2 / ({v1}**2 + {v2}**2 + theta_1**2)",
+            "theta_0 * {v1} * {v2} / ({v1}**2 + {v2}**2 + theta_1**2)",
+            "theta_0 / (1.0 + theta_1 * {v1}**2 + theta_2 * {v2}**2)",
+            "theta_0 * {v1} / ({v2} + theta_1)",
+            "theta_0 * ({v1} - {v2}) / ({v1} + {v2} + theta_1)",
+            "theta_0 * {v1}**2 / ({v2} + theta_1)**2",
+        ])
+        
+        self.families["trigonometric"].extend([
+            "theta_0 * sin({v1} / {v2})",
+            "theta_0 * sin({v1} * {v2} / theta_1)",
+            "theta_0 * cos({v1} / {v2})",
+            "theta_0 * cos({v1} * {v2} / theta_1)",
+            "theta_0 * tanh({v1} / {v2})**2",
+            "theta_0 * tanh({v1} * {v2} / theta_1)**2",
+            "theta_0 * sin({v1} / theta_1) * cos({v2} / theta_2)",
+            "theta_0 * sin({v1} / theta_1) * sin({v2} / theta_2)",
+            "theta_0 * cos({v1} / theta_1) * cos({v2} / theta_2)",
+        ])
+        
+        self.families["logarithmic"].extend([
+            "theta_0 * log(1.0 + {v1} / {v2})",
+            "theta_0 * log(1.0 + {v1} * {v2} / theta_1)",
+            "theta_0 * log(theta_1 + {v1} / {v2})",
+            "theta_0 * log(1.0 + ({v1} / theta_1)**2 + ({v2} / theta_2)**2)",
+            "log(1.0 + {v1} / {v2}) / ({v1} / {v2}) - 1.0",
+            "theta_0 * log(1.0 + {v1} / {v2}) / ({v1} / {v2})",
+        ])
+        
+        # Synchronize list of all templates
+        all_templates = []
+        for templates in self.families.values():
+            all_templates.extend(templates)
+        self._templates = list(set(all_templates))
+
 
     def propose(self, context: ProposalContext) -> List[str]:
         rng = np.random.RandomState(self.seed + context.iteration)

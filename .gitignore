@@ -18,4 +18,8 @@ paper/*.toc
 paper/*.synctex.gz
 paper/*.fls
 paper/*.fdb_latexmk
-
+# Python packaging and build directories
+*.egg-info/
+dist/
+build/
+*.egg

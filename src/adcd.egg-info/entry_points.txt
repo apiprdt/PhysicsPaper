@@ -1,2 +1,0 @@
-[console_scripts]
-adcd-discover = adcd.correction_orchestrator:main_cli

@@ -3,7 +3,7 @@ name: Bug Report
 about: Report a reproducible bug in ADCD
 title: "[BUG] "
 labels: bug
-assignees: maeapip10
+assignees: apiprdt
 ---
 
 ## Describe the Bug
