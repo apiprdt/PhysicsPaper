@@ -126,7 +126,11 @@ class CorrectionOrchestrator:
                     "max": float(np.max(arr)),
                 }
         
-        target_dim_key = None
+        if scenario.correction_type == "multiplicative":
+            target_dim_key = "dimensionless"
+        else:
+            target_dim_key = scenario.classical_expr
+            
         # Global search state tracking
         best_expr: str = ""
         best_nmse_residual: float = float("inf")

@@ -1,0 +1,117 @@
+[
+  {
+    "scenario": "Baseline Truth: Relativistic KE",
+    "tier": "textbook",
+    "noise": 0.01,
+    "discovered_expr": "-1.0 + exp(-3.33333333333333e-9*v)",
+    "nmse_residual": 1.0000178532459016,
+    "nmse_full": 0.00018926997292094823,
+    "discovered_class": "exponential",
+    "class_match": false,
+    "ast_edit_distance": 6,
+    "parameter_error": {},
+    "bic": 0.0035706173068693397,
+    "time_seconds": 3.5607895851135254,
+    "converged": false
+  },
+  {
+    "scenario": "Misspecification 1: Wrong Baseline Form",
+    "tier": "synthetic",
+    "noise": 0.01,
+    "discovered_expr": "theta_0 * m**theta_1 * v**theta_2",
+    "nmse_residual": 0.005562644205026524,
+    "nmse_full": 0.0035620568559561134,
+    "discovered_class": "power_law",
+    "class_match": false,
+    "ast_edit_distance": 7,
+    "parameter_error": {
+      "theta_0": 6.749326154156368
+    },
+    "bic": -1022.4413893656883,
+    "time_seconds": 2.0888564586639404,
+    "converged": false
+  },
+  {
+    "scenario": "Misspecification 2: Missing Variable",
+    "tier": "synthetic",
+    "noise": 0.01,
+    "discovered_expr": "",
+    "nmse_residual": 1.0,
+    "nmse_full": 1.0,
+    "discovered_class": "unparseable",
+    "class_match": false,
+    "ast_edit_distance": 999,
+    "parameter_error": {},
+    "bic": 9999.0,
+    "time_seconds": 0.9774365425109863,
+    "converged": false
+  },
+  {
+    "scenario": "Misspecification 3: Spurious Variable",
+    "tier": "synthetic",
+    "noise": 0.01,
+    "discovered_expr": "theta_0 * T**theta_1 * x**theta_2",
+    "nmse_residual": 0.03587906773919898,
+    "nmse_full": 0.00019159462860801973,
+    "discovered_class": "power_law",
+    "class_match": false,
+    "ast_edit_distance": 4,
+    "parameter_error": {
+      "theta_0": 0.6324390917993525
+    },
+    "bic": -649.6252928746763,
+    "time_seconds": 5.3696067333221436,
+    "converged": false
+  },
+  {
+    "scenario": "Subtle Misspecification D: Constant 5% Off",
+    "tier": "synthetic",
+    "noise": 0.01,
+    "discovered_expr": "m*theta_0*v**2",
+    "nmse_residual": 0.0684470996885147,
+    "nmse_full": 0.0001825763858687612,
+    "discovered_class": "polynomial",
+    "class_match": true,
+    "ast_edit_distance": 9,
+    "parameter_error": {
+      "theta_0": 1.0334019693757812
+    },
+    "bic": -531.0405025108386,
+    "time_seconds": 1.8025596141815186,
+    "converged": false
+  },
+  {
+    "scenario": "Subtle Misspecification E: Constant Offset",
+    "tier": "synthetic",
+    "noise": 0.01,
+    "discovered_expr": "m**2*theta_0*v",
+    "nmse_residual": 0.9999693006828048,
+    "nmse_full": 0.00018247794565128176,
+    "discovered_class": "polynomial",
+    "class_match": true,
+    "ast_edit_distance": 6,
+    "parameter_error": {
+      "theta_0": 4032.6755318542323
+    },
+    "bic": 5.292177408862252,
+    "time_seconds": 2.194376230239868,
+    "converged": false
+  },
+  {
+    "scenario": "Subtle Misspecification F: Wrong Structural Coefficient",
+    "tier": "synthetic",
+    "noise": 0.01,
+    "discovered_expr": "m*theta_0*v**2",
+    "nmse_residual": 0.00453947246368895,
+    "nmse_full": 0.00018257638586876136,
+    "discovered_class": "polynomial",
+    "class_match": true,
+    "ast_edit_distance": 9,
+    "parameter_error": {
+      "theta_0": 0.8667353027091146
+    },
+    "bic": -1073.690576854585,
+    "time_seconds": 1.6011457443237305,
+    "converged": false
+  }
+]

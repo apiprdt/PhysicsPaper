@@ -37,7 +37,7 @@ class AnomalyScenario:
         X = {}
         
         # 1. Generate domain-specific variables in the anomaly-sensitive regime
-        if self.name == "Relativistic KE":
+        if self.name == "Relativistic KE" or self.name.startswith("Subtle Misspecification"):
             c = self.classical_constants["c"]
             X["m"] = rng.uniform(0.5, 10.0, size=n_points)
             X["v"] = rng.uniform(0.1 * c, 0.85 * c, size=n_points)
@@ -90,6 +90,23 @@ class AnomalyScenario:
             X["T"] = rng.uniform(1000.0, 6000.0, size=n_points)
             X["f"] = rng.uniform(1e12, 1e14, size=n_points)
             
+        elif self.name == "Misspecification 1: Wrong Baseline Form":
+            X["m"] = rng.uniform(1.0, 10.0, size=n_points)
+            X["v"] = rng.uniform(0.1, 5.0, size=n_points)
+            
+        elif self.name == "Misspecification 2: Missing Variable":
+            X["m"] = rng.uniform(1.0, 10.0, size=n_points)
+            X["g"] = np.full(n_points, 9.81)
+            # We generate 'v' here internally to create the ground truth, 
+            # even though the user (classical_variables) didn't specify it.
+            # We must explicitly add it to local_corr_dict later.
+            self._hidden_v = rng.uniform(0.1, 5.0, size=n_points)
+            
+        elif self.name == "Misspecification 3: Spurious Variable":
+            X["k"] = rng.uniform(5.0, 50.0, size=n_points)
+            X["x"] = rng.uniform(0.1, 3.0, size=n_points)
+            X["T"] = rng.uniform(250.0, 400.0, size=n_points) # Irrelevant variable
+            
         else:
             # Fallback random generator for arbitrary names
             for var in self.classical_variables:
@@ -101,6 +118,11 @@ class AnomalyScenario:
         
         # 3. Evaluate ground-truth correction
         local_corr_dict = {**X, **self.classical_constants, **self.correction_constants}
+        
+        # Inject hidden variables for missing variable case
+        if self.name == "Misspecification 2: Missing Variable":
+            local_corr_dict["v"] = self._hidden_v
+            
         # Safely evaluate ground truth correction
         # Replace theta_X names with their actual values in the expression
         expr_str = self.correction_expr

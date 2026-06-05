@@ -99,6 +99,7 @@ def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_it
         "class_match": eval_res.class_match,
         "ast_edit_distance": eval_res.ast_edit_distance,
         "parameter_error": eval_res.parameter_error,
+        "bic": eval_res.bic,
         "time_seconds": elapsed,
         "converged": search_res.converged
     }

@@ -107,7 +107,14 @@ class DimensionalChecker:
                 return True
                 
             candidate_dim = self._get_dim_vector(expr)
-            target_dim = self.registry[target_dimension_key]
+            
+            if target_dimension_key in self.registry:
+                target_dim = self.registry[target_dimension_key]
+            else:
+                # Interpret target_dimension_key as a classical baseline expression
+                target_expr = sp.sympify(target_dimension_key, locals=self.locals)
+                target_dim = self._get_dim_vector(target_expr)
+                
             return candidate_dim == target_dim
         except (TypeError, ValueError, KeyError, NotImplementedError):
             return False
