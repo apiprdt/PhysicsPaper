@@ -12,7 +12,8 @@
     "parameter_error": {
       "theta_0": 0.9999999999999999
     },
-    "time_seconds": 7.83946418762207,
+    "bic": -2276.815846537033,
+    "time_seconds": 2.621138095855713,
     "converged": true
   },
   {
@@ -28,23 +29,25 @@
     "parameter_error": {
       "theta_0": 0.9890932904005872
     },
-    "time_seconds": 9.891584873199463,
+    "bic": -240.00807476966844,
+    "time_seconds": 8.248116493225098,
     "converged": true
   },
   {
     "scenario": "Real: Blackbody Radiation",
     "tier": "real_data",
     "noise": 0.0,
-    "discovered_expr": "theta_0*(3.33555703802535e-9*f)**theta_1",
-    "nmse_residual": 0.0746353112543275,
-    "nmse_full": 674.0918738116278,
+    "discovered_expr": "theta_0*(f/theta_1)**theta_2",
+    "nmse_residual": 0.08624730075895616,
+    "nmse_full": 1153.8509477750513,
     "discovered_class": "power_law",
     "class_match": false,
-    "ast_edit_distance": 6,
+    "ast_edit_distance": 7,
     "parameter_error": {
-      "theta_0": 32331023.14018923
+      "theta_0": 469.2853563902995
     },
-    "time_seconds": 7.6662633419036865,
+    "bic": -474.2123517220995,
+    "time_seconds": 6.128489017486572,
     "converged": false
   },
   {
@@ -60,7 +63,8 @@
     "parameter_error": {
       "theta_0": 0.03721125399962588
     },
-    "time_seconds": 10.227826356887817,
+    "bic": -1372.3407154244512,
+    "time_seconds": 9.911448240280151,
     "converged": true
   }
 ]

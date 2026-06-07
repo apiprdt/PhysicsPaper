@@ -527,7 +527,7 @@ class OpenAICompatibleProposer(BaseProposer):
 
 class CorrectionMockProposer(BaseProposer):
     """Proposes dimensionless correction terms Δ(x; θ) for physical anomalies."""
-    def __init__(self, seed: int = 42, extended: bool = True):
+    def __init__(self, seed: int = 42, extended: bool = False):
         self.seed = seed
         self.extended = extended
         self._templates = [

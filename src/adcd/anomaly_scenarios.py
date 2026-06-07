@@ -60,7 +60,7 @@ class AnomalyScenario:
             X["A"] = rng.uniform(0.1, 2.0, size=n_points)
             X["T"] = rng.uniform(250.0, 800.0, size=n_points)
             
-        elif self.name == "Nonlinear Drag":
+        elif "Nonlinear Drag" in self.name:
             X["b"] = rng.uniform(0.5, 5.0, size=n_points)
             X["v"] = rng.uniform(0.1, 5.0, size=n_points)
             
