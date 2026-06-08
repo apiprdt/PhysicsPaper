@@ -18,8 +18,16 @@ paper/*.toc
 paper/*.synctex.gz
 paper/*.fls
 paper/*.fdb_latexmk
-# Python packaging and build directories
 *.egg-info/
 dist/
 build/
 *.egg
+
+# Scratch files
+scratch/
+scratch_*
+baseline_pre_fix.json
+
+# Build and submission archives
+*.zip
+*.tar.gz

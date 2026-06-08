@@ -3,51 +3,51 @@
     "scenario": "Real: Mercury Perihelion",
     "tier": "real_data",
     "noise": 0.0,
-    "discovered_expr": "theta_0*v**2",
-    "nmse_residual": 1.1077762698880854e-05,
-    "nmse_full": 1.1077762698880854e-05,
+    "discovered_expr": "theta_0*(14983518130.0569*v)**theta_1",
+    "nmse_residual": 0.23290574938488331,
+    "nmse_full": 0.23290574938488331,
     "discovered_class": "polynomial",
     "class_match": true,
     "ast_edit_distance": 3,
     "parameter_error": {
-      "theta_0": 0.9999999999999999
+      "theta_0": 1.0
     },
-    "bic": -2276.815846537033,
-    "time_seconds": 2.621138095855713,
-    "converged": true
+    "bic": -280.82764853291536,
+    "time_seconds": 8.569678783416748,
+    "converged": false
   },
   {
     "scenario": "Real: Hydrogen Lamb Shift",
     "tier": "real_data",
     "noise": 0.0,
-    "discovered_expr": "theta_0 * (n / theta_9)**(-theta_1)",
-    "nmse_residual": 1.2019013478275405e-07,
-    "nmse_full": 1.6948162775182498e-18,
+    "discovered_expr": "theta_0 * (n / theta_1)**(-theta_2)",
+    "nmse_residual": 1.2895503655253413e-07,
+    "nmse_full": 1.8184112296951908e-18,
     "discovered_class": "power_law",
     "class_match": true,
     "ast_edit_distance": 6,
     "parameter_error": {
-      "theta_0": 0.9890932904005872
+      "theta_0": 0.9999774922602629
     },
     "bic": -240.00807476966844,
-    "time_seconds": 8.248116493225098,
+    "time_seconds": 16.216042041778564,
     "converged": true
   },
   {
     "scenario": "Real: Blackbody Radiation",
     "tier": "real_data",
     "noise": 0.0,
-    "discovered_expr": "theta_0*(f/theta_1)**theta_2",
-    "nmse_residual": 0.08624730075895616,
-    "nmse_full": 1153.8509477750513,
-    "discovered_class": "power_law",
-    "class_match": false,
-    "ast_edit_distance": 7,
+    "discovered_expr": "-1.0 + exp(-f/theta_1)",
+    "nmse_residual": 0.004821244008370017,
+    "nmse_full": 0.025923385293908224,
+    "discovered_class": "exponential",
+    "class_match": true,
+    "ast_edit_distance": 4,
     "parameter_error": {
-      "theta_0": 469.2853563902995
+      "theta_0": 3.839431260218448e+24
     },
-    "bic": -474.2123517220995,
-    "time_seconds": 6.128489017486572,
+    "bic": -1061.6463408728675,
+    "time_seconds": 17.51180934906006,
     "converged": false
   },
   {
@@ -55,16 +55,16 @@
     "tier": "real_data",
     "noise": 0.0,
     "discovered_expr": "theta_0*(0.318309886183791*alpha)**theta_1",
-    "nmse_residual": 7.936568727333642e-07,
-    "nmse_full": 7.936568727333642e-07,
-    "discovered_class": "power_law",
-    "class_match": false,
+    "nmse_residual": 7.936763119066094e-07,
+    "nmse_full": 7.936763119066094e-07,
+    "discovered_class": "polynomial",
+    "class_match": true,
     "ast_edit_distance": 4,
     "parameter_error": {
-      "theta_0": 0.03721125399962588
+      "theta_0": 0.03717632109639313
     },
     "bic": -1372.3407154244512,
-    "time_seconds": 9.911448240280151,
+    "time_seconds": 22.09175682067871,
     "converged": true
   }
 ]

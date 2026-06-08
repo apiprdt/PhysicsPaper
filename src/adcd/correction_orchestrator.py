@@ -254,7 +254,10 @@ class CorrectionOrchestrator:
                 subbed_top_k,
                 X,
                 residual,
-                scenario.classical_variables
+                scenario.classical_variables,
+                loss_mode='auto',
+                y_classical=y_classical,
+                correction_type=scenario.correction_type
             )
 
             # Step 5: Update global best using BIC reranking
@@ -266,8 +269,12 @@ class CorrectionOrchestrator:
                     b_score = bic_score(opt_nmse, n_params, n_points)
                     stage2_results_with_bic.append((expr_str, stage2_combined, opt_nmse, arc_score, opt_result, b_score))
                 
-                # Sort by BIC ascending
-                stage2_results_with_bic = sorted(stage2_results_with_bic, key=lambda x: x[5])
+                # Sort by BIC ascending, breaking ties with AST complexity (node count)
+                # to prefer simpler expressions when both fit below the noise floor.
+                stage2_results_with_bic = sorted(
+                    stage2_results_with_bic,
+                    key=lambda x: (x[5], len(list(sp.preorder_traversal(sp.sympify(x[0])))))
+                )
                 best_iter_cand = stage2_results_with_bic[0]
                 iter_best_expr, _, iter_best_nmse, _, iter_opt_res, iter_best_bic = best_iter_cand
 

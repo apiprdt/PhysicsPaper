@@ -14,7 +14,7 @@ class CorrectionEvaluation:
     parameter_error: Dict[str, float]  # Percentage error for recovered free parameters |θ_fit - θ_true|/|θ_true|
     bic: float                         # Bayesian Information Criterion score
 
-def classify_structure(expr: Union[str, sp.Expr]) -> str:
+def classify_structure(expr: Union[str, sp.Expr], theta_fit: Optional[Dict[str, float]] = None) -> str:
     """
     Classifies a SymPy expression or string into one of the structural classes:
     'exponential', 'trigonometric', 'logarithmic', 'power_law', 'rational', 'polynomial'
@@ -63,7 +63,17 @@ def classify_structure(expr: Union[str, sp.Expr]) -> str:
                 # 3. Exponent is a parameter symbol (e.g. x**theta_1)
                 is_neg = exponent.is_Number and float(exponent) < 0
                 is_param = exponent.is_Symbol and str(exponent).startswith("theta_")
-                if not exponent.is_Integer or is_neg or is_param:
+                
+                # Check for degenerate linear case (exponent ~ 1.0)
+                is_degenerate = False
+                if is_param and theta_fit is not None:
+                    param_name = str(exponent)
+                    if param_name in theta_fit:
+                        val = theta_fit[param_name]
+                        if abs(val - 1.0) < 0.05:
+                            is_degenerate = True
+                            
+                if (not exponent.is_Integer or is_neg or is_param) and not is_degenerate:
                     has_noninteger_pow = True
                     
             # Check for rational function: x / (x + a) style denominators
@@ -177,7 +187,7 @@ def evaluate_correction(
 
     # 2. Structural classification
     true_cls = scenario.correction_class
-    disc_cls = classify_structure(discovered_expr)
+    disc_cls = classify_structure(discovered_expr, theta_fit)
     class_match = (true_cls == disc_cls)
 
     # 3. AST Levenshtein Distance

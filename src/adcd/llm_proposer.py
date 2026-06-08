@@ -114,6 +114,7 @@ class MockProposer(BaseProposer):
                     injected.append(f"theta_0 * {const} * {v1}")
                     injected.append(f"theta_0 * {const} / {v1}**2")
                     injected.append(f"theta_0 * {const} / {v1}")
+                    injected.append(f"theta_0 * {v1} / {const}")
                     # const * v1 * v2 / v3**n
                     for v2 in phys_vars:
                         if v2 == v1:
@@ -542,6 +543,10 @@ class CorrectionMockProposer(BaseProposer):
             "theta_0 * ({v1} / {c1})**(-theta_1)",
             "theta_0 * ({v1} / theta_1)**(-4)",
             "theta_0 * ({v1} / {c1})**(-4)",
+            "-(theta_0 / {v1})**4",
+            "-(theta_0 / {v1})**theta_1",
+            "theta_0 * (theta_1 / {v1})**4 - 1.0",
+            "-(theta_0 / {v1})**theta_1 + theta_2",
             
             # Exponential family
             "theta_0 * exp(-{v1} / theta_1)",
@@ -581,7 +586,11 @@ class CorrectionMockProposer(BaseProposer):
                 "theta_0 * ({v1} / theta_1)**(-theta_2)",
                 "theta_0 * ({v1} / {c1})**(-theta_1)",
                 "theta_0 * ({v1} / theta_1)**(-4)",
-                "theta_0 * ({v1} / {c1})**(-4)"
+                "theta_0 * ({v1} / {c1})**(-4)",
+                "-(theta_0 / {v1})**4",
+                "-(theta_0 / {v1})**theta_1",
+                "theta_0 * (theta_1 / {v1})**4 - 1.0",
+                "-(theta_0 / {v1})**theta_1 + theta_2"
             ],
             "polynomial": [
                 "theta_0 * ({v1} / theta_1)**2",

@@ -35,24 +35,25 @@ logging.basicConfig(level=logging.WARNING,
 
 
 def main():
-    print("=" * 70)
-    print("     ADCD v2.0 — REAL EXPERIMENTAL DATA BENCHMARK")
-    print("=" * 70)
-    print()
-    print(f"{'Scenario':<30} {'Class':^12} {'Expected':^12} {'Match':^6} {'NMSE':>10}")
-    print("-" * 75)
-
     scenarios = get_real_scenarios()
     results = []
 
+    print("======================================================================")
+    print("     ADCD v2.0 — REAL EXPERIMENTAL DATA BENCHMARK")
+    print("======================================================================\n")
+    print(f"{'Scenario':<30}  {'Class':<12}  {'Expected':<10}  {'Match':<5}  {'NMSE':<10}")
+    print("-" * 75)
+
     for scenario in scenarios:
         t0 = time.time()
+        # Run pipeline with pre-loaded real data using extended=True to allow fitting complex relations
         result = run_scenario_benchmark(
             scenario,
-            noise_level=0.0,   # noise already embedded in the real data model
+            noise_level=0.0,
             max_iter=4,
             proposer_type="mock",
             seed=42,
+            extended=True
         )
         elapsed = time.time() - t0
 

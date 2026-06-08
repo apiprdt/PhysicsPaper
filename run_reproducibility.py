@@ -20,8 +20,8 @@ from adcd.anomaly_scenarios import get_all_scenarios
 
 logging.basicConfig(level=logging.WARNING)
 
-N_SEEDS = 3
-SEEDS = list(range(42, 42 + N_SEEDS))  # [42, 43, 44]
+N_SEEDS = 5
+SEEDS = [0, 7, 21, 42, 99]
 NOISE_LEVELS = [0.0, 0.01, 0.05, 0.10]
 
 

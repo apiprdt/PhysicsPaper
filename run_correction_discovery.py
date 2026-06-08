@@ -19,7 +19,7 @@ from adcd.jax_optimizer import JAXOptimizer
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("CorrectionDiscoveryBenchmark")
 
-def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_iter: int = 4, proposer_type: str = "mock", seed: int = 42) -> Dict[str, Any]:
+def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_iter: int = 4, proposer_type: str = "mock", seed: int = 42, extended: bool = False) -> Dict[str, Any]:
     """Runs a single scenario under the specified noise level and returns metrics."""
     logger.info(f"Starting discovery: Scenario='{scenario.name}', Noise={noise_level * 100:.1f}%, Proposer={proposer_type}, Seed={seed}")
     
@@ -44,7 +44,7 @@ def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_it
     optimizer = JAXOptimizer()
     
     if proposer_type == "mock":
-        proposer = CorrectionMockProposer(seed=seed)
+        proposer = CorrectionMockProposer(seed=seed, extended=extended)
     elif proposer_type == "gemini":
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
