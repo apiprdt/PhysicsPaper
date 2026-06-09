@@ -217,7 +217,7 @@ def fig4_ablation(ablation):
         "No_ARC": "w/o ARC Gate",
         "No_AST": "w/o AST Gate",
         "No_Dim": "w/o Dim Gate",
-        "No_DataGate": "w/o Data Gate",
+        "No_DataGate": "w/o Coarse Eval",
         "No_Gates": "No Gates"
     }
     x_labels = [labels_map.get(c, c) for c in conditions]

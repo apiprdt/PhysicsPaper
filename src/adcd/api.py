@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import sympy as sp
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, Tuple, Optional
 
 from adcd.anomaly_scenarios import AnomalyScenario
 from adcd.llm_proposer import (

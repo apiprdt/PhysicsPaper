@@ -1,6 +1,6 @@
 import sympy as sp
 import numpy as np
-from typing import Dict, Union, Tuple
+from typing import Dict, Tuple
 
 DEFAULT_CONSTANTS = {
     'c': 3.0e8,

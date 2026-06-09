@@ -3,11 +3,11 @@ import logging
 import numpy as np
 import sympy as sp
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Tuple, Optional
 
 from adcd.llm_proposer import BaseProposer, ProposalContext
 from adcd.pipeline import Stage1Pipeline
-from adcd.jax_optimizer import JAXOptimizer, OptimizationResult
+from adcd.jax_optimizer import JAXOptimizer
 from adcd.anomaly_scenarios import AnomalyScenario
 from adcd.metrics import evaluate_correction, CorrectionEvaluation, bic_score
 
