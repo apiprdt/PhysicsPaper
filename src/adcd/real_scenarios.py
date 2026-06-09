@@ -141,18 +141,19 @@ def get_real_scenarios():
         ),
 
         # R5: Binary pulsar orbital decay (GR gravitational-wave energy loss)
+        # v2.1: Only P varies; M, e folded into constant prefactor in loader.
         RealAnomalyScenario(
             name="Real: Binary Pulsar Decay",
             tier="real_data",
             domain="gravity",
             classical_expr="0",
-            classical_variables=["P", "M", "a", "e"],
+            classical_variables=["P"],
             classical_constants={"G": 6.674e-11, "c": 2.998e8},
             correction_type="additive",
             correction_expr="theta_0 * P**(-5.0/3.0)",
             correction_constants={"theta_0": 1.0},
-            anomaly_regime="compact binary inspiral, secular orbital period decay",
-            variables_with_units={"P": "s", "M": "kg", "a": "m", "e": "dimensionless"},
+            anomaly_regime="compact binary inspiral (Hulse-Taylor), secular period decay, P→∞ gives Δ→0",
+            variables_with_units={"P": "s"},
             classical_limit_variable="P",
             classical_limit_direction="oo",
             correction_class="power_law",

@@ -50,7 +50,8 @@ class TestRealDataLoaderShapes:
 
     def test_binary_pulsar_shape(self):
         result = load_binary_pulsar_decay()
-        self._check_tuple(result, expected_n=60, expected_x_keys=["P", "M", "a", "e"])
+        # v2.1: M, a, e are constants folded into prefactor; only P varies
+        self._check_tuple(result, expected_n=60, expected_x_keys=["P"])
 
     def test_hydrogen_lamb_shift_shape(self):
         result = load_hydrogen_lamb_shift()

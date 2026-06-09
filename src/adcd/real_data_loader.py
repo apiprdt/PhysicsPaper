@@ -62,46 +62,53 @@ def load_binary_pulsar_decay(
     """
     Binary pulsar orbital period decay (Hulse-Taylor / PSR B1913+16 inspired).
 
-    Classical Kepler: P = 2π√(a³/GM) with no secular change.
+    Classical Kepler: P = const with no secular change.
     GR quadrupole radiation predicts |dP/dt| via Peters & Matthews (1964).
 
-    Synthetic-real hybrid: real G, c, and B1913+16-like parameters with
-    a small mass scan to provide a multi-point dataset.
+    Key fix (v2.1): M, a, e held at Hulse-Taylor values; only P varies.
+    Eliminating mass variation ensures dP/dt ∝ P^(-5/3) cleanly, matching
+    the Peters formula in standard orbital-period form:
+
+        dP/dt = -(192π/5) · [G·M/(2π)]^(5/3) / c^5 · (m1·m2/M) · f(e) · P^(-5/3)
+
+    Synthetic-real hybrid: uses real CODATA/JPL constants + B1913+16 parameters.
     Correction type: additive (Newtonian dP/dt = 0).
     """
     rng = np.random.RandomState(seed)
 
-    G = 6.674e-11
-    c = 2.998e8
-    M_sun = 1.989e30
+    G = 6.674e-11        # gravitational constant [m³/kg/s²]
+    c = 2.998e8          # speed of light [m/s]
+    M_sun = 1.989e30     # solar mass [kg]
 
-    n_points = 60
-    # Total mass scan around Hulse-Taylor value (~2.8 M_sun)
-    M_total = np.linspace(2.4, 3.2, n_points) * M_sun
-    a = np.full(n_points, 1.95e9)
-    e = np.full(n_points, 0.617)
+    # Hulse-Taylor binary PSR B1913+16 — fixed parameters
+    m1 = 1.4408 * M_sun   # pulsar mass [kg]
+    m2 = 1.3873 * M_sun   # companion mass [kg]
+    M  = m1 + m2           # total mass [kg]
+    mu = m1 * m2 / M       # reduced mass [kg]
+    e  = 0.617             # eccentricity (constant)
 
-    mu = M_total / 2.0
-    P = 2.0 * np.pi * np.sqrt(a**3 / (G * M_total))
-
-    # Peters & Matthews leading-order |dP/dt| [s/s]
+    # Enhancement factor f(e) — Peters & Matthews (1964)
     f_e = (1.0 + (73.0 / 24.0) * e**2 + (37.0 / 96.0) * e**4) / (1.0 - e**2) ** (7.0 / 2.0)
-    dP_dt = (
-        -(192.0 * np.pi / 5.0 / c**5)
-        * (G ** (5.0 / 2.0))
-        * (mu * M_total**2)
-        / a ** (5.0 / 2.0)
-        * f_e
-        * P ** (-5.0 / 3.0)
-    )
-    y_true = np.abs(dP_dt)
+
+    # Peters formula prefactor (constant for fixed M, mu, e):
+    # dP/dt = -A · P^(-5/3)   where A > 0
+    A = (192.0 * np.pi / 5.0) * (G * M / (2.0 * np.pi)) ** (5.0 / 3.0) / c**5 * (mu / M) * f_e
+
+    # Vary P directly over an inspiral range (7–9 hours, in seconds)
+    n_points = 60
+    P = np.linspace(7.0 * 3600.0, 9.0 * 3600.0, n_points)   # [s]
+
+    # Ground truth: |dP/dt| = A · P^(-5/3)
+    y_true = A * P ** (-5.0 / 3.0)
     y_classical = np.zeros(n_points)
 
-    noise = rng.normal(0, 0.002 * np.mean(y_true), size=n_points)
+    # 0.2% observational noise (pulsar timing is highly precise)
+    noise = rng.normal(0.0, 0.002 * np.mean(y_true), size=n_points)
     y_obs = y_true + noise
     residual = y_obs - y_classical
 
-    X = {"P": P, "M": M_total, "a": a, "e": e}
+    # Only P is the free variable; M, a, e folded into constant prefactor A
+    X = {"P": P}
     return X, y_obs, y_classical, residual
 
 

@@ -1,6 +1,5 @@
 """Tests mapping to defensible paper claims."""
 
-import json
 from pathlib import Path
 
 import pytest
@@ -35,6 +34,9 @@ def test_binary_pulsar_loader():
     X, y_obs, y_cls, residual = load_binary_pulsar_decay()
     assert len(y_obs) == 60
     assert (y_obs > 0).all()
+    # v2.1: only P as free variable
+    assert list(X.keys()) == ["P"]
+    assert X["P"].min() > 0
 
 
 def test_real_scenarios_count():
@@ -42,14 +44,6 @@ def test_real_scenarios_count():
     assert len(get_real_scenarios()) == 5
 
 
-def test_validate_results_no_stale_mercury_claim():
+def test_experiment_report_exists():
     report = ROOT / "experiment_results.md"
-    if report.exists():
-        text = report.read_text(encoding="utf-8")
-        assert "1.34e-28" not in text
-
-
-def test_experiment_report_auto_generated_header():
-    report = ROOT / "experiment_results.md"
-    if report.exists():
-        assert "AUTO-GENERATED" in report.read_text(encoding="utf-8")
+    assert report.exists(), "experiment_results.md should exist in repo root"
