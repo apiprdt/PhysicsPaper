@@ -13,7 +13,7 @@
       "theta_0": 1.0
     },
     "bic": -2757.8037942263068,
-    "time_seconds": 3.854210138320923,
+    "time_seconds": 3.87263560295105,
     "converged": true,
     "total_candidates_proposed": 25,
     "total_candidates_survived_stage1": 11,
@@ -58,7 +58,7 @@
       "theta_0": 0.00277036510716
     },
     "bic": -1013.8748607549695,
-    "time_seconds": 6.06268572807312,
+    "time_seconds": 6.042849063873291,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 25,
@@ -103,7 +103,7 @@
       "theta_0": 0.013851825535813026
     },
     "bic": -392.7680925107026,
-    "time_seconds": 5.26366400718689,
+    "time_seconds": 5.411092519760132,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 25,
@@ -148,7 +148,7 @@
       "theta_0": 0.02770365107163582
     },
     "bic": -179.01030508234058,
-    "time_seconds": 5.263068914413452,
+    "time_seconds": 5.64585542678833,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 25,
@@ -194,7 +194,7 @@
       "theta_1": 6.460782012496225e-07
     },
     "bic": -2752.505476859759,
-    "time_seconds": 3.724614143371582,
+    "time_seconds": 4.680134057998657,
     "converged": true,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 11,
@@ -240,7 +240,7 @@
       "theta_1": 0.0026979943640300873
     },
     "bic": -419.75343598394943,
-    "time_seconds": 3.340433120727539,
+    "time_seconds": 3.338613748550415,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 11,
@@ -286,7 +286,7 @@
       "theta_1": 0.01641798664514251
     },
     "bic": -32.57607356203135,
-    "time_seconds": 4.278182744979858,
+    "time_seconds": 4.22907280921936,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 13,
@@ -332,7 +332,7 @@
       "theta_1": 0.04489558375838491
     },
     "bic": 2.2837498334302087,
-    "time_seconds": 4.265721797943115,
+    "time_seconds": 4.273114204406738,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 13,
@@ -377,7 +377,7 @@
       "theta_0": 0.0
     },
     "bic": -2757.8037942263068,
-    "time_seconds": 3.4652063846588135,
+    "time_seconds": 3.4923856258392334,
     "converged": true,
     "total_candidates_proposed": 50,
     "total_candidates_survived_stage1": 17,
@@ -422,7 +422,7 @@
       "theta_0": 0.002093728083519264
     },
     "bic": -682.4950208745753,
-    "time_seconds": 6.7713799476623535,
+    "time_seconds": 6.398442506790161,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 27,
@@ -467,7 +467,7 @@
       "theta_0": 0.010468640417597985
     },
     "bic": -153.22992991381997,
-    "time_seconds": 6.960783243179321,
+    "time_seconds": 6.753016948699951,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 29,
@@ -512,7 +512,7 @@
       "theta_0": 0.020937280835195048
     },
     "bic": -47.64266205810414,
-    "time_seconds": 6.930018663406372,
+    "time_seconds": 6.297219514846802,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 29,
@@ -557,7 +557,7 @@
       "theta_0": 3.620805137198128e-09
     },
     "bic": -2757.8037942263068,
-    "time_seconds": 3.2030394077301025,
+    "time_seconds": 2.9733762741088867,
     "converged": true,
     "total_candidates_proposed": 50,
     "total_candidates_survived_stage1": 9,
@@ -602,7 +602,7 @@
       "theta_0": 0.0014873075775427107
     },
     "bic": -1631.09414121026,
-    "time_seconds": 5.991446018218994,
+    "time_seconds": 5.414059162139893,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 21,
@@ -647,7 +647,7 @@
       "theta_0": 1.907548401145205
     },
     "bic": -922.9045980733986,
-    "time_seconds": 5.098092317581177,
+    "time_seconds": 4.445781469345093,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 16,
@@ -692,7 +692,7 @@
       "theta_0": 1.8986953435446603
     },
     "bic": -690.0581419534003,
-    "time_seconds": 4.8407933712005615,
+    "time_seconds": 4.29316520690918,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 16,
@@ -737,7 +737,7 @@
       "theta_0": 9.011986030586423e-08
     },
     "bic": -2752.505476859759,
-    "time_seconds": 5.90988826751709,
+    "time_seconds": 5.227599143981934,
     "converged": true,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 18,
@@ -782,7 +782,7 @@
       "theta_0": 4.327747219449648e-05
     },
     "bic": -1578.7928536581621,
-    "time_seconds": 5.382835865020752,
+    "time_seconds": 4.83907413482666,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 18,
@@ -827,7 +827,7 @@
       "theta_0": 0.00021670748549079731
     },
     "bic": -935.8462523036945,
-    "time_seconds": 5.250056743621826,
+    "time_seconds": 4.799347162246704,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 18,
@@ -872,7 +872,7 @@
       "theta_0": 0.0004339805317455593
     },
     "bic": -662.7492970182115,
-    "time_seconds": 5.281519174575806,
+    "time_seconds": 4.969652414321899,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 18,
@@ -917,7 +917,7 @@
       "theta_0": 0.0
     },
     "bic": -2757.8037942263068,
-    "time_seconds": 0.7370700836181641,
+    "time_seconds": 0.7260622978210449,
     "converged": true,
     "total_candidates_proposed": 25,
     "total_candidates_survived_stage1": 3,
@@ -962,7 +962,7 @@
       "theta_0": 1.0
     },
     "bic": -1131.8201372719789,
-    "time_seconds": 2.194366455078125,
+    "time_seconds": 2.0622830390930176,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 4,
@@ -1007,7 +1007,7 @@
       "theta_0": 1.0
     },
     "bic": -501.9628644773533,
-    "time_seconds": 1.9750645160675049,
+    "time_seconds": 1.91672682762146,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 4,
@@ -1052,7 +1052,7 @@
       "theta_0": 1.0
     },
     "bic": -264.935958091462,
-    "time_seconds": 1.9879603385925293,
+    "time_seconds": 1.8670356273651123,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 4,
@@ -1097,7 +1097,7 @@
       "theta_0": 0.16666657312620736
     },
     "bic": -2752.505476859759,
-    "time_seconds": 3.765528678894043,
+    "time_seconds": 3.6686625480651855,
     "converged": true,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 11,
@@ -1142,7 +1142,7 @@
       "theta_0": 0.1683284813767434
     },
     "bic": -1401.8074118730594,
-    "time_seconds": 3.6298367977142334,
+    "time_seconds": 3.148061990737915,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 11,
@@ -1187,7 +1187,7 @@
       "theta_0": 0.17475661063478448
     },
     "bic": -763.956540013574,
-    "time_seconds": 3.3558363914489746,
+    "time_seconds": 3.1049463748931885,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 11,
@@ -1232,7 +1232,7 @@
       "theta_0": 0.18230192281530694
     },
     "bic": -501.0234477702729,
-    "time_seconds": 3.616015672683716,
+    "time_seconds": 3.27832293510437,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 11,
@@ -1277,7 +1277,7 @@
       "theta_0": 2.391645038062822e-06
     },
     "bic": -2757.8037942263068,
-    "time_seconds": 1.8058242797851562,
+    "time_seconds": 1.6064810752868652,
     "converged": true,
     "total_candidates_proposed": 25,
     "total_candidates_survived_stage1": 9,
@@ -1322,7 +1322,7 @@
       "theta_0": 1.99963615050614
     },
     "bic": -1294.5933346359736,
-    "time_seconds": 6.559071063995361,
+    "time_seconds": 6.686521053314209,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 27,
@@ -1367,7 +1367,7 @@
       "theta_0": 0.001817007632788877
     },
     "bic": -660.5432056183698,
-    "time_seconds": 6.372173309326172,
+    "time_seconds": 6.0587544441223145,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 24,
@@ -1412,7 +1412,7 @@
       "theta_0": 1.9963715772710162
     },
     "bic": -406.63528593566485,
-    "time_seconds": 6.232189416885376,
+    "time_seconds": 5.952978134155273,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 24,
@@ -1457,7 +1457,7 @@
       "theta_0": 1.203396986726446e-06
     },
     "bic": -2757.8037942263068,
-    "time_seconds": 3.7261831760406494,
+    "time_seconds": 3.540646553039551,
     "converged": true,
     "total_candidates_proposed": 50,
     "total_candidates_survived_stage1": 17,
@@ -1502,7 +1502,7 @@
       "theta_0": 0.0005848423290389926
     },
     "bic": -1198.2840088439652,
-    "time_seconds": 6.160916090011597,
+    "time_seconds": 5.583294868469238,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 29,
@@ -1547,7 +1547,7 @@
       "theta_0": 0.002910577998812558
     },
     "bic": -571.7169435614117,
-    "time_seconds": 6.55846095085144,
+    "time_seconds": 6.058396816253662,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 24,
@@ -1592,7 +1592,7 @@
       "theta_0": 0.005797933630019236
     },
     "bic": -331.52208692817965,
-    "time_seconds": 6.304092168807983,
+    "time_seconds": 6.2718799114227295,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 24,

@@ -761,11 +761,8 @@ class CorrectionMockProposer(BaseProposer):
             if "vc2" in vars_available:
                 candidates.append("theta_0 * vc2")
             if "P" in vars_available:
-                # Peters formula for binary pulsar: P^(-5/3)
-                candidates.append("theta_0 * P**(-5.0/3.0)")
+                # Target generic power law only
                 candidates.append("theta_0 * P**(-theta_1)")
-                candidates.append("theta_0 * P**(-2.0/3.0)")
-                candidates.append("theta_0 * P**(-7.0/3.0)")
 
         # Phase 1: Determine prior weights for template families based on residual features
         weights = {
