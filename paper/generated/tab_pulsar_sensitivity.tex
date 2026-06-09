@@ -6,10 +6,10 @@
 \toprule
 \textbf{Variant} & \textbf{Free Variables} & \textbf{Discovered $\Delta$} & \textbf{Class Match} & \textbf{NMSE} \\
 \midrule
-\texttt{P_only} & $P$ & $\theta_0/P^\theta_1$ & Yes & $3.94e-03$ \\
-\texttt{P_e} & $P, e$ & $e^3 \cdot \theta_0/P$ & Yes & $2.52e-01$ \\
-\texttt{P_e_M} & $P, e, M$ & $\theta_0/P^\theta_1$ & Yes & $4.81e-01$ \\
-\texttt{full} & $P, M, a, e$ & $\theta_0 \cdot \log(\theta_1 + e/P)$ & No & $1.57e-02$ \\
+\texttt{P_only} & $P$ & $P^{- \theta_{1}} \cdot \theta_{0}$ & Yes & $3.94 \times 10^{-3}$ \\
+\texttt{P_e} & $P, e$ & $\frac{e^{3} \cdot \theta_{0}}{P}$ & Yes & $2.52 \times 10^{-1}$ \\
+\texttt{P_e_M} & $P, e, M$ & $P^{- \theta_{1}} \cdot \theta_{0}$ & Yes & $4.81 \times 10^{-1}$ \\
+\texttt{full} & $P, M, a, e$ & $\theta_{0} \cdot \log{\left(\theta_{1} + \frac{e}{P} \right)}$ & No & $1.57 \times 10^{-2}$ \\
 \bottomrule
 \end{tabularx}
 \end{table}

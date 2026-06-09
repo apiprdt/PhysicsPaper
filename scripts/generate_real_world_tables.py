@@ -6,8 +6,6 @@ Generate real-world validation tables for the paper:
   3. Binary pulsar sensitivity (requires binary_pulsar_sensitivity.json)
 
 Run: py -3.11 scripts/generate_real_world_tables.py
-Prereq: py -3.11 run_real_data_benchmark.py
-         py -3.11 run_binary_pulsar_sensitivity.py  (optional)
 """
 
 import json
@@ -15,66 +13,70 @@ import re
 import sys
 from pathlib import Path
 
+import numpy as np
+import sympy as sp
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from adcd.real_scenarios import get_real_scenarios
 
-# ── Table 3: static template leakage analysis ────────────────────────────────
-
 LEAKAGE_ROWS = [
     ("Real: Mercury Perihelion", r"\theta_0 \cdot (v/c)^2", "Yes", "Yes", "polynomial"),
-    ("Real: Hydrogen Lamb Shift", r"\theta_0 / n^3", "No", "Yes", "power\_law"),
+    ("Real: Hydrogen Lamb Shift", r"\theta_0 / n^3", "No", "Yes", r"power\_law"),
     ("Real: Blackbody Radiation", r"\exp(-hf/k_BT)", "No", "Yes", "exponential"),
     ("Real: Muon g-2", r"\theta_0 \cdot \alpha / \pi", "No", "Yes", "polynomial"),
-    (
-        "Real: Binary Pulsar Decay",
-        r"\theta_0 \cdot P^{-5/3}",
-        "No",
-        "Yes",
-        "power\_law",
-    ),
+    ("Real: Binary Pulsar Decay", r"\theta_0 \cdot P^{-5/3}", "No", "Yes", r"power\_law"),
 ]
 
 
+def _latex_sci(x: float) -> str:
+    if not np.isfinite(x):
+        return r"\infty"
+    if x == 0:
+        return "0"
+    exp = int(np.floor(np.log10(abs(x))))
+    mant = x / (10.0 ** exp)
+    if abs(mant - 1.0) < 0.01:
+        return f"10^{{{exp}}}"
+    return f"{mant:.2f} \\times 10^{{{exp}}}"
+
+
+def _latex_expr(expr_str: str) -> str:
+    """SymPy expression string → valid LaTeX (safe for pdflatex)."""
+    if not expr_str or expr_str == "—":
+        return r"\text{---}"
+    try:
+        expr = sp.sympify(expr_str)
+        return sp.latex(expr, mul_symbol="dot")
+    except Exception:
+        return expr_str.replace("_", r"\_")
+
+
 def _extract_exponent(expr: str, fitted: dict) -> str:
-    """Best-effort recovered exponent for power-law forms."""
     if not expr:
         return "—"
     m = re.search(r"P\*\*\(-([\d./]+)\)", expr.replace(" ", ""))
     if m:
         return m.group(1)
-    m = re.search(r"P\*\*\(-theta_1\)", expr.replace(" ", ""))
-    if m and "theta_1" in fitted:
-        return f"{fitted['theta_1']:.3f}"
-    m = re.search(r"/P\*\*theta_1", expr.replace(" ", ""))
-    if m and "theta_1" in fitted:
-        return f"{fitted['theta_1']:.3f}"
+    if "theta_1" in (fitted or {}):
+        if re.search(r"P\*\*\(-theta_1|/P\*\*theta_1", expr.replace(" ", "")):
+            return f"{fitted['theta_1']:.3f}"
     return "—"
 
 
-def _latex_expr(s: str) -> str:
-    """Minimal SymPy-like string → LaTeX for table cells."""
-    s = s.replace("**", "^")
-    s = s.replace("*", " \\cdot ")
-    s = s.replace("theta_0", r"\theta_0").replace("theta_1", r"\theta_1").replace("theta_2", r"\theta_2")
-    s = s.replace("vc2", r"(v/c)^2").replace("exp", r"\exp").replace("log", r"\log")
-    s = s.replace("alpha", r"\alpha").replace("pi", r"\pi")
-    return s
-
-
 def _recovery_notes(r: dict) -> str:
-  if "Pulsar" in r["scenario"]:
-      fitted = r.get("fitted_theta") or {}
-      exp = _extract_exponent(r.get("discovered_expr", ""), fitted)
-      if exp != "—":
-          return f"exponent $\\approx {exp}$ (true $5/3$)"
-  ast = r.get("ast_edit_distance", 999)
-  if ast == 0:
-      return "exact AST match"
-  if ast <= 4:
-      return f"AST dist $={ast}$"
-  return "structural class only"
+    if "Pulsar" in r["scenario"]:
+        fitted = r.get("fitted_theta") or {}
+        exp = _extract_exponent(r.get("discovered_expr", ""), fitted)
+        if exp != "—":
+            return f"exponent $\\approx {exp}$ (true $5/3$)"
+    ast = r.get("ast_edit_distance", 999)
+    if ast == 0:
+        return "exact AST match"
+    if ast <= 4:
+        return f"AST dist $={ast}$"
+    return "structural class only"
 
 
 def generate_parameter_recovery_table(real_results: list) -> str:
@@ -98,18 +100,16 @@ def generate_parameter_recovery_table(real_results: list) -> str:
         recovered = _latex_expr(r.get("discovered_expr", "—"))
         cls = "Yes" if r.get("class_match") else "No"
         nmse = r.get("nmse_full", float("nan"))
-        star = "" if nmse < 1e-4 else "^{*}"
-        nmse_s = f"${nmse:.2e}{star}$"
+        if nmse >= 1e-4:
+            nmse_s = f"$({_latex_sci(nmse)})^{{\\ast}}$"
+        else:
+            nmse_s = f"${_latex_sci(nmse)}$"
         notes = _recovery_notes(r)
         lines.append(
             f"{r['scenario'].replace('Real: ', '')} & ${true_expr}$ & ${recovered}$ & "
             f"{cls} & {nmse_s} & {notes} \\\\"
         )
-    lines += [
-        r"\bottomrule",
-        r"\end{tabularx}",
-        r"\end{table}",
-    ]
+    lines += [r"\bottomrule", r"\end{tabularx}", r"\end{table}"]
     return "\n".join(lines)
 
 
@@ -153,7 +153,8 @@ def generate_sensitivity_table(sensitivity: list) -> str:
         expr = _latex_expr(r.get("discovered_expr", "—"))
         nmse = r.get("nmse_full", float("nan"))
         lines.append(
-            f"\\texttt{{{r['variant']}}} & ${vars_s}$ & ${expr}$ & {match} & ${nmse:.2e}$ \\\\"
+            f"\\texttt{{{r['variant']}}} & ${vars_s}$ & ${expr}$ & {match} & "
+            f"${_latex_sci(nmse)}$ \\\\"
         )
     lines += [r"\bottomrule", r"\end{tabularx}", r"\end{table}"]
     return "\n".join(lines)
@@ -180,15 +181,12 @@ def main():
     if sens_path.exists():
         with open(sens_path) as f:
             tables["tab_pulsar_sensitivity.tex"] = generate_sensitivity_table(json.load(f))
-    else:
-        print("Note: binary_pulsar_sensitivity.json not found — skipping sensitivity table")
 
     for name, content in tables.items():
         path = out_dir / name
         path.write_text(content, encoding="utf-8")
         print(f"Wrote {path}")
 
-    # Summary stats for paper inline text
     n_struct = sum(1 for r in real_results if r.get("class_match"))
     n_quant = sum(1 for r in real_results if r.get("nmse_full", 1) < 1e-4)
     n_conv = sum(1 for r in real_results if r.get("converged"))

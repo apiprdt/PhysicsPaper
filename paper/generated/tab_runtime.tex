@@ -1,0 +1,13 @@
+\begin{table}[H]
+\centering
+\caption{Compute budget comparison (9 scenarios $\times$ 4 noise levels).}
+\label{tab:runtime}
+\begin{tabular}{l r r}
+\toprule
+\textbf{Method} & \textbf{Mean wall-clock / run} & \textbf{Expressions explored} \\
+\midrule
+ADCD (Mock) & 4.4\,s & 598 JAX optim. calls \\
+PySR (fair) & 8.8\,s & $\sim$14 hall-of-fame / run \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -7,11 +7,11 @@
 \toprule
 \textbf{Scenario} & \textbf{True $\Delta$} & \textbf{Recovered $\Delta$} & \textbf{Class} & \textbf{NMSE} & \textbf{Recovery Notes} \\
 \midrule
-Mercury Perihelion & $\theta_0  \cdot  (v/c)^2$ & $\theta_0 \cdot (v/c)^2$ & Yes & $1.11e-05$ & exact AST match \\
-Hydrogen Lamb Shift & $\theta_0 / n^3$ & $\theta_0  \cdot  (n / \theta_1)^(-\theta_2)$ & Yes & $1.69e-18$ & structural class only \\
-Blackbody Radiation & $\exp(-\theta_0  \cdot  f / T)$ & $-1.0 + \exp(-f/\theta_1)$ & Yes & $2.59e-02^{*}$ & AST dist $=4$ \\
-Muon g-2 & $\theta_0  \cdot  \alpha / \pi$ & $\theta_0 \cdot (0.318309886183791 \cdot \alpha)^\theta_1$ & Yes & $7.94e-07$ & AST dist $=4$ \\
-Binary Pulsar Decay & $\theta_0  \cdot  P^(-5.0/3.0)$ & $\theta_0/P^\theta_1$ & Yes & $3.94e-03^{*}$ & exponent $\approx 1.568$ (true $5/3$) \\
+Mercury Perihelion & $\theta_{0} \cdot vc_{2}$ & $\theta_{0} \cdot vc_{2}$ & Yes & $1.11 \times 10^{-5}$ & exact AST match \\
+Hydrogen Lamb Shift & $\frac{\theta_{0}}{n^{3}}$ & $\theta_{0} \cdot \left(\frac{n}{\theta_{1}}\right)^{- \theta_{2}}$ & Yes & $1.69 \times 10^{-18}$ & structural class only \\
+Blackbody Radiation & $e^{- \frac{f \cdot \theta_{0}}{T}}$ & $-1.0 + e^{- \frac{f}{\theta_{1}}}$ & Yes & $(2.59 \times 10^{-2})^{\ast}$ & AST dist $=4$ \\
+Muon g-2 & $\frac{\alpha \cdot \theta_{0}}{\pi}$ & $\theta_{0} \cdot \left(0.318309886183791 \cdot \alpha\right)^{\theta_{1}}$ & Yes & $7.94 \times 10^{-7}$ & AST dist $=4$ \\
+Binary Pulsar Decay & $\frac{\theta_{0}}{P^{1.66666666666667}}$ & $P^{- \theta_{1}} \cdot \theta_{0}$ & Yes & $(3.94 \times 10^{-3})^{\ast}$ & exponent $\approx 1.568$ (true $5/3$) \\
 \bottomrule
 \end{tabularx}
 \end{table}
