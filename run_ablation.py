@@ -62,7 +62,7 @@ class AblatedPipeline(Stage1Pipeline):
         self.use_data = use_data
 
     def execute(self, candidates, target_dimension_key, X=None, y_obs=None,
-                beta=1.0, constants=None):
+                beta=1.0, constants=None, stats=None):
         """Override execute dengan kontrol ablation per gate."""
         from adcd.coarse_evaluator import CoarseEvaluator
         import sympy as sp

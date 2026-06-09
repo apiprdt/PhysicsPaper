@@ -18,6 +18,7 @@ from adcd.real_data_loader import (
     load_hydrogen_lamb_shift,
     load_blackbody_radiation,
     load_muon_g2,
+    load_binary_pulsar_decay,
 )
 
 # Map scenario name → loader function
@@ -26,6 +27,7 @@ _LOADERS = {
     "Real: Hydrogen Lamb Shift": load_hydrogen_lamb_shift,
     "Real: Blackbody Radiation": load_blackbody_radiation,
     "Real: Muon g-2":            load_muon_g2,
+    "Real: Binary Pulsar Decay": load_binary_pulsar_decay,
 }
 
 
@@ -60,7 +62,7 @@ class RealAnomalyScenario(AnomalyScenario):
 # ─────────────────────────────────────────────────────────────────────────────
 
 def get_real_scenarios():
-    """Return 4 RealAnomalyScenario objects backed by real experimental data."""
+    """Return RealAnomalyScenario objects backed by synthetic-real hybrid data."""
     return [
 
         # R1: Mercury perihelion precession (GR correction to Newton)
@@ -68,16 +70,15 @@ def get_real_scenarios():
             name="Real: Mercury Perihelion",
             tier="real_data",
             domain="gravity",
-            classical_expr="0",                  # Newtonian 2-body: no precession
-            classical_variables=["r", "v"],
+            classical_expr="0",
+            classical_variables=["vc2", "r", "v"],
             classical_constants={"G": 6.674e-11, "M": 1.989e30, "c": 2.998e8},
             correction_type="additive",
-            # GR correction ∝ (v/c)² — polynomial in the relativistic parameter β
-            correction_expr="theta_0 * (v / c)**2",
+            correction_expr="theta_0 * vc2",
             correction_constants={"theta_0": 1.0},
-            anomaly_regime="strong gravitational field near perihelion, v/c > 0.04",
-            variables_with_units={"r": "m", "v": "m/s"},
-            classical_limit_variable="v",
+            anomaly_regime="strong gravitational field near perihelion, vc2=(v/c)^2",
+            variables_with_units={"vc2": "dimensionless", "r": "m", "v": "m/s"},
+            classical_limit_variable="vc2",
             classical_limit_direction="0",
             correction_class="polynomial",
         ),
@@ -137,5 +138,23 @@ def get_real_scenarios():
             classical_limit_variable="alpha",
             classical_limit_direction="0",        # Δ→0 as alpha→0 (free field)
             correction_class="polynomial",
+        ),
+
+        # R5: Binary pulsar orbital decay (GR gravitational-wave energy loss)
+        RealAnomalyScenario(
+            name="Real: Binary Pulsar Decay",
+            tier="real_data",
+            domain="gravity",
+            classical_expr="0",
+            classical_variables=["P", "M", "a", "e"],
+            classical_constants={"G": 6.674e-11, "c": 2.998e8},
+            correction_type="additive",
+            correction_expr="theta_0 * P**(-5.0/3.0)",
+            correction_constants={"theta_0": 1.0},
+            anomaly_regime="compact binary inspiral, secular orbital period decay",
+            variables_with_units={"P": "s", "M": "kg", "a": "m", "e": "dimensionless"},
+            classical_limit_variable="P",
+            classical_limit_direction="oo",
+            correction_class="power_law",
         ),
     ]

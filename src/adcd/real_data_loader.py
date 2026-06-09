@@ -18,47 +18,90 @@ def load_mercury_perihelion(
 ) -> Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
     """
     Mercury orbital precession data from JPL DE440 parameters.
-    
-    Classical Newtonian 2-body gives zero precession; GR predicts 
+
+    Classical Newtonian 2-body gives zero precession; GR predicts
     δφ_per_orbit = 6πGM/(c²·a(1-e²)) ≈ 5.02e-7 rad/orbit (42.98 arcsec/century).
-    
+
+    Leading-order Schwarzschild correction scales as (v/c)² along the orbit.
+    We expose the dimensionless parameter beta = (v/c)² for stable optimization.
+
     Returns 200 points parametrized by true anomaly θ ∈ [0, 2π).
     Correction type: additive (classical prediction is zero).
     """
     rng = np.random.RandomState(seed)
-    
-    # Physical constants (SI)
-    G = 6.674e-11       # gravitational constant [m³/(kg·s²)]
-    M_sun = 1.989e30    # solar mass [kg]
-    c = 2.998e8          # speed of light [m/s]
-    a = 5.791e10         # Mercury semi-major axis [m]
-    e = 0.2056           # Mercury eccentricity
-    
+
+    G = 6.674e-11
+    M_sun = 1.989e30
+    c = 2.998e8
+    a = 5.791e10
+    e = 0.2056
+
     n_points = 200
-    
-    # Parametrize by true anomaly θ
     theta = np.linspace(0, 2 * np.pi, n_points, endpoint=False)
-    
-    # Orbital mechanics
-    r = a * (1 - e**2) / (1 + e * np.cos(theta))           # orbital radius
-    v = np.sqrt(G * M_sun * (2.0 / r - 1.0 / a))          # vis-viva velocity
-    v_max = np.max(v)
-    
-    # Classical prediction: zero precession in Newtonian 2-body
+
+    r = a * (1 - e**2) / (1 + e * np.cos(theta))
+    v = np.sqrt(G * M_sun * (2.0 / r - 1.0 / a))
+    vc2 = (v / c) ** 2
+
     y_classical = np.zeros(n_points)
-    
-    # GR correction: precession rate scaled by (v/v_max)²
+
     delta_phi_per_orbit = 6.0 * np.pi * G * M_sun / (c**2 * a * (1 - e**2))
-    y_true = delta_phi_per_orbit * (v / v_max) ** 2
-    
-    # Add 0.1% Gaussian noise
+    y_true = delta_phi_per_orbit * vc2
+
     noise = rng.normal(0, 0.001 * np.mean(np.abs(y_true)), size=n_points)
     y_obs = y_true + noise
-    
-    # Additive residual
     residual = y_obs - y_classical
-    
-    X = {"r": r, "v": v, "theta": theta}
+
+    X = {"vc2": vc2, "r": r, "v": v, "theta": theta}
+    return X, y_obs, y_classical, residual
+
+
+def load_binary_pulsar_decay(
+    seed: int = 42,
+) -> Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Binary pulsar orbital period decay (Hulse-Taylor / PSR B1913+16 inspired).
+
+    Classical Kepler: P = 2π√(a³/GM) with no secular change.
+    GR quadrupole radiation predicts |dP/dt| via Peters & Matthews (1964).
+
+    Synthetic-real hybrid: real G, c, and B1913+16-like parameters with
+    a small mass scan to provide a multi-point dataset.
+    Correction type: additive (Newtonian dP/dt = 0).
+    """
+    rng = np.random.RandomState(seed)
+
+    G = 6.674e-11
+    c = 2.998e8
+    M_sun = 1.989e30
+
+    n_points = 60
+    # Total mass scan around Hulse-Taylor value (~2.8 M_sun)
+    M_total = np.linspace(2.4, 3.2, n_points) * M_sun
+    a = np.full(n_points, 1.95e9)
+    e = np.full(n_points, 0.617)
+
+    mu = M_total / 2.0
+    P = 2.0 * np.pi * np.sqrt(a**3 / (G * M_total))
+
+    # Peters & Matthews leading-order |dP/dt| [s/s]
+    f_e = (1.0 + (73.0 / 24.0) * e**2 + (37.0 / 96.0) * e**4) / (1.0 - e**2) ** (7.0 / 2.0)
+    dP_dt = (
+        -(192.0 * np.pi / 5.0 / c**5)
+        * (G ** (5.0 / 2.0))
+        * (mu * M_total**2)
+        / a ** (5.0 / 2.0)
+        * f_e
+        * P ** (-5.0 / 3.0)
+    )
+    y_true = np.abs(dP_dt)
+    y_classical = np.zeros(n_points)
+
+    noise = rng.normal(0, 0.002 * np.mean(y_true), size=n_points)
+    y_obs = y_true + noise
+    residual = y_obs - y_classical
+
+    X = {"P": P, "M": M_total, "a": a, "e": e}
     return X, y_obs, y_classical, residual
 
 
@@ -212,10 +255,11 @@ def load_muon_g2(
 # ── Convenience function ──────────────────────────────────────────────────────
 
 def load_all_real_data() -> Dict[str, Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]]:
-    """Load all 4 real experiment datasets, keyed by scenario name."""
+    """Load all real experiment datasets, keyed by scenario name."""
     return {
         "Real: Mercury Perihelion": load_mercury_perihelion(),
         "Real: Hydrogen Lamb Shift": load_hydrogen_lamb_shift(),
         "Real: Blackbody Radiation": load_blackbody_radiation(),
         "Real: Muon g-2": load_muon_g2(),
+        "Real: Binary Pulsar Decay": load_binary_pulsar_decay(),
     }

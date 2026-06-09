@@ -704,13 +704,50 @@ class CorrectionMockProposer(BaseProposer):
         self._templates = list(set(all_templates))
 
 
+    def _inject_physics_constants(self, phys_vars: List[str], non_theta_constants: List[str]) -> List[str]:
+        """Deterministic templates from physical constants (always prepended, never replaces sampling)."""
+        injected: List[str] = []
+        if not non_theta_constants or not phys_vars:
+            return injected
+        for const in non_theta_constants:
+            injected.append(f"theta_0 * {const}")
+            for v1 in phys_vars:
+                injected.append(f"theta_0 * {const} * {v1}")
+                injected.append(f"theta_0 * {const} / {v1}**2")
+                injected.append(f"theta_0 * {const} / {v1}")
+                injected.append(f"theta_0 * {v1} / {const}")
+                if v1 in ("vc2", "beta_rel"):
+                    injected.append(f"theta_0 * {v1}")
+                for v2 in phys_vars:
+                    if v2 == v1:
+                        continue
+                    injected.append(f"theta_0 * {const} * {v1} * {v2}")
+                    for v3 in phys_vars:
+                        if v3 == v1 or v3 == v2:
+                            continue
+                        injected.append(f"theta_0 * {const} * {v1} * {v2} / {v3}**2")
+                        injected.append(f"theta_0 * {const} * {v1} * {v2} / {v3}")
+                    injected.append(f"theta_0 * {const} * {v1} * {v2}**4")
+                    injected.append(f"theta_0 * {const} * {v2} * {v1}**4")
+                    injected.append(f"theta_0 * {v1} * (1 + theta_1 * {v2} / {const})")
+        if len(phys_vars) >= 2:
+            for i, v1 in enumerate(phys_vars):
+                for v2 in phys_vars[i + 1:]:
+                    injected.append(f"theta_0 * {v1} * {v2}")
+                    injected.append(f"theta_0 * {v1}**2 * sin(theta_1 * {v2})")
+            if len(phys_vars) >= 3:
+                for i, v1 in enumerate(phys_vars):
+                    for j, v2 in enumerate(phys_vars[i + 1:], i + 1):
+                        for v3 in phys_vars[j + 1:]:
+                            injected.append(f"theta_0 * {v1} * {v2} * {v3}")
+        return injected
+
     def propose(self, context: ProposalContext) -> List[str]:
         rng = np.random.RandomState(self.seed + context.iteration)
         candidates = []
         vars_available = list(context.variable_names)
         constants_available = [c for c in (context.constants or {}) if not c.startswith("theta_")]
-        
-        # Build symbol locals for parsing validation
+
         sym_locals = {}
         for var in vars_available:
             sym_locals[var] = sp.Symbol(var)
@@ -718,7 +755,15 @@ class CorrectionMockProposer(BaseProposer):
             sym_locals[c] = sp.Symbol(c)
         for i in range(100):
             sym_locals[f"theta_{i}"] = sp.Symbol(f"theta_{i}")
- 
+
+        # Extended mode: targeted templates for real-data parametrizations only (not standard benchmark)
+        if self.extended:
+            if "vc2" in vars_available:
+                candidates.append("theta_0 * vc2")
+            if "P" in vars_available and "M" in vars_available:
+                candidates.append("theta_0 * P**(-5.0/3.0)")
+                candidates.append("theta_0 * M * P**(-5.0/3.0)")
+
         # Phase 1: Determine prior weights for template families based on residual features
         weights = {
             "power_law": 1.0,
@@ -774,36 +819,35 @@ class CorrectionMockProposer(BaseProposer):
         mix_weights = 0.5 * uniform_weights + 0.5 * temp_weights
         mix_weights /= np.sum(mix_weights)
         
-        # Sample templates from the mixed distribution (with replacement)
-        n_templates_to_process = len(self._templates) * 2  # Propose more options stochastically
+        # Stochastic template bank — full 2× oversample (restored; B4 must not replace this)
+        n_templates_to_process = len(self._templates) * 2
         chosen_templates = rng.choice(temps, size=n_templates_to_process, p=mix_weights, replace=True)
 
-        # 2. Template Generation
         for template in chosen_templates:
             needed_vars = 1
-            if "{v2}" in template: needed_vars = 2
+            if "{v2}" in template:
+                needed_vars = 2
             needed_consts = 0
-            if "{c1}" in template: needed_consts = 1
-            
+            if "{c1}" in template:
+                needed_consts = 1
+
             if len(vars_available) >= needed_vars:
-                # Generate diverse permutations
                 v_chosen = rng.choice(vars_available, size=needed_vars, replace=False)
                 fmt_dict = {f"v{i+1}": v_chosen[i] for i in range(needed_vars)}
-                
+
                 if needed_consts > 0:
                     if len(constants_available) >= needed_consts:
                         c_chosen = rng.choice(constants_available, size=needed_consts, replace=False)
                         fmt_dict["c1"] = c_chosen[0]
                     else:
-                        fmt_dict["c1"] = "theta_9" # parameter replacement
-                        
+                        fmt_dict["c1"] = "theta_9"
+
                 try:
-                    expr_str = template.format(**fmt_dict)
-                    candidates.append(expr_str)
+                    candidates.append(template.format(**fmt_dict))
                 except Exception:
                     pass
 
-        # 3. Refinement of Previous Best Corrections
+        # Refinement of Previous Best Corrections
         if context.previous_best:
             sorted_prev = sorted(context.previous_best, key=lambda x: x[1])
             n_refine = int(context.n_candidates * 0.3)

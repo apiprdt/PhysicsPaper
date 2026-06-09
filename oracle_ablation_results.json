@@ -1,0 +1,83 @@
+[
+  {
+    "scenario": "Relativistic KE",
+    "oracle_expr": "theta_0 * (v / c)**2",
+    "class_match": true,
+    "discovered_expr": "theta_0*v**2",
+    "nmse_full": 0.004207128876929867,
+    "gate_survival_rate": null,
+    "time_seconds": 9.07099962234497
+  },
+  {
+    "scenario": "Yukawa Gravity",
+    "oracle_expr": "theta_0 * exp(-r / theta_1)",
+    "class_match": true,
+    "discovered_expr": "theta_0*exp(-r/theta_1)",
+    "nmse_full": 0.0018298900363505853,
+    "gate_survival_rate": null,
+    "time_seconds": 3.0567800998687744
+  },
+  {
+    "scenario": "Anharmonic Spring",
+    "oracle_expr": "theta_0 * x**4",
+    "class_match": true,
+    "discovered_expr": "theta_0 * x**4",
+    "nmse_full": 0.004458340458335446,
+    "gate_survival_rate": null,
+    "time_seconds": 3.0037033557891846
+  },
+  {
+    "scenario": "Screened Coulomb",
+    "oracle_expr": "exp(-r / theta_0) - 1.0",
+    "class_match": true,
+    "discovered_expr": "-1.0 + exp(-r/theta_0)",
+    "nmse_full": 0.0012910672376973164,
+    "gate_survival_rate": null,
+    "time_seconds": 2.194411277770996
+  },
+  {
+    "scenario": "Net Radiation",
+    "oracle_expr": "- (theta_0 / T)**4",
+    "class_match": false,
+    "discovered_expr": "theta_0/(T**2*theta_1 + 1.0)",
+    "nmse_full": 0.008696897199802543,
+    "gate_survival_rate": null,
+    "time_seconds": 2.9119575023651123
+  },
+  {
+    "scenario": "Nonlinear Drag",
+    "oracle_expr": "theta_0 * v**2",
+    "class_match": true,
+    "discovered_expr": "theta_0 * v**2",
+    "nmse_full": 0.006590546552619645,
+    "gate_survival_rate": null,
+    "time_seconds": 3.035163164138794
+  },
+  {
+    "scenario": "Mystery-A",
+    "oracle_expr": "-tanh(theta_0 / r)**2",
+    "class_match": true,
+    "discovered_expr": "-tanh(theta_0/r)**2",
+    "nmse_full": 0.004887776823605542,
+    "gate_survival_rate": null,
+    "time_seconds": 2.6459250450134277
+  },
+  {
+    "scenario": "Mystery-B",
+    "oracle_expr": "sin(v / theta_0) / (v / theta_0) - 1.0",
+    "class_match": true,
+    "discovered_expr": "sin(v / theta_0) / (v / theta_0) - 1.0",
+    "nmse_full": 0.005175714146968494,
+    "gate_survival_rate": null,
+    "time_seconds": 6.713613510131836
+  },
+  {
+    "scenario": "Mystery-C",
+    "oracle_expr": "log(1.0 + x / theta_0) / (x / theta_0) - 1.0",
+    "class_match": true,
+    "discovered_expr": "log(1.0 + x / theta_0) / (x / theta_0) - 1.0",
+    "nmse_full": 0.006987941277486109,
+    "gate_survival_rate": null,
+    "time_seconds": 6.491105318069458
+  }
+]

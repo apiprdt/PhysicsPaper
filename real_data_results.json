@@ -3,18 +3,46 @@
     "scenario": "Real: Mercury Perihelion",
     "tier": "real_data",
     "noise": 0.0,
-    "discovered_expr": "theta_0*(14983518130.0569*v)**theta_1",
-    "nmse_residual": 0.23290574938488331,
-    "nmse_full": 0.23290574938488331,
+    "discovered_expr": "theta_0*vc2",
+    "nmse_residual": 1.107794714627923e-05,
+    "nmse_full": 1.107794714627923e-05,
     "discovered_class": "polynomial",
     "class_match": true,
-    "ast_edit_distance": 3,
+    "ast_edit_distance": 0,
     "parameter_error": {
-      "theta_0": 1.0
+      "theta_0": 0.9999994980677454
     },
-    "bic": -280.82764853291536,
-    "time_seconds": 8.559641599655151,
-    "converged": false
+    "bic": -2276.8125165169217,
+    "time_seconds": 3.005009889602661,
+    "converged": true,
+    "total_candidates_proposed": 25,
+    "total_candidates_survived_stage1": 7,
+    "total_candidates_optimized": 7,
+    "gate_stats": {
+      "input_count": 25,
+      "parse_fail": 0,
+      "ast_reject": 0,
+      "dim_reject": 12,
+      "transcendental_reject": 0,
+      "arc_reject": 6,
+      "coarse_reject": 0,
+      "output_count": 7,
+      "after_parse": 25,
+      "after_ast": 25,
+      "after_dim": 13,
+      "after_transcendental": 13,
+      "after_arc": 7,
+      "after_coarse": 7,
+      "survival_rates": {
+        "parse": 1.0,
+        "ast": 1.0,
+        "dimensional": 0.52,
+        "transcendental": 1.0,
+        "arc": 0.5384615384615384,
+        "coarse": 1.0,
+        "overall": 0.28
+      }
+    }
   },
   {
     "scenario": "Real: Hydrogen Lamb Shift",
@@ -30,8 +58,36 @@
       "theta_0": 0.9999774922602629
     },
     "bic": -240.00807476966844,
-    "time_seconds": 7.833463191986084,
-    "converged": true
+    "time_seconds": 6.369156122207642,
+    "converged": true,
+    "total_candidates_proposed": 100,
+    "total_candidates_survived_stage1": 33,
+    "total_candidates_optimized": 31,
+    "gate_stats": {
+      "input_count": 100,
+      "parse_fail": 0,
+      "ast_reject": 0,
+      "dim_reject": 0,
+      "transcendental_reject": 0,
+      "arc_reject": 61,
+      "coarse_reject": 0,
+      "output_count": 39,
+      "after_parse": 100,
+      "after_ast": 100,
+      "after_dim": 100,
+      "after_transcendental": 100,
+      "after_arc": 39,
+      "after_coarse": 39,
+      "survival_rates": {
+        "parse": 1.0,
+        "ast": 1.0,
+        "dimensional": 1.0,
+        "transcendental": 1.0,
+        "arc": 0.39,
+        "coarse": 1.0,
+        "overall": 0.39
+      }
+    }
   },
   {
     "scenario": "Real: Blackbody Radiation",
@@ -47,8 +103,36 @@
       "theta_0": 3.839431260218448e+24
     },
     "bic": -1061.6463408728675,
-    "time_seconds": 7.829020023345947,
-    "converged": false
+    "time_seconds": 6.532321929931641,
+    "converged": false,
+    "total_candidates_proposed": 100,
+    "total_candidates_survived_stage1": 35,
+    "total_candidates_optimized": 32,
+    "gate_stats": {
+      "input_count": 100,
+      "parse_fail": 0,
+      "ast_reject": 0,
+      "dim_reject": 0,
+      "transcendental_reject": 0,
+      "arc_reject": 61,
+      "coarse_reject": 0,
+      "output_count": 39,
+      "after_parse": 100,
+      "after_ast": 100,
+      "after_dim": 100,
+      "after_transcendental": 100,
+      "after_arc": 39,
+      "after_coarse": 39,
+      "survival_rates": {
+        "parse": 1.0,
+        "ast": 1.0,
+        "dimensional": 1.0,
+        "transcendental": 1.0,
+        "arc": 0.39,
+        "coarse": 1.0,
+        "overall": 0.39
+      }
+    }
   },
   {
     "scenario": "Real: Muon g-2",
@@ -64,7 +148,80 @@
       "theta_0": 0.03717632109639313
     },
     "bic": -1372.3407154244512,
-    "time_seconds": 9.995136737823486,
-    "converged": true
+    "time_seconds": 7.962550640106201,
+    "converged": true,
+    "total_candidates_proposed": 100,
+    "total_candidates_survived_stage1": 51,
+    "total_candidates_optimized": 32,
+    "gate_stats": {
+      "input_count": 100,
+      "parse_fail": 0,
+      "ast_reject": 0,
+      "dim_reject": 0,
+      "transcendental_reject": 0,
+      "arc_reject": 47,
+      "coarse_reject": 0,
+      "output_count": 53,
+      "after_parse": 100,
+      "after_ast": 100,
+      "after_dim": 100,
+      "after_transcendental": 100,
+      "after_arc": 53,
+      "after_coarse": 53,
+      "survival_rates": {
+        "parse": 1.0,
+        "ast": 1.0,
+        "dimensional": 1.0,
+        "transcendental": 1.0,
+        "arc": 0.53,
+        "coarse": 1.0,
+        "overall": 0.53
+      }
+    }
+  },
+  {
+    "scenario": "Real: Binary Pulsar Decay",
+    "tier": "real_data",
+    "noise": 0.0,
+    "discovered_expr": "theta_0*log(theta_1 + e/P)",
+    "nmse_residual": 0.015705417071441775,
+    "nmse_full": 0.015705417071441775,
+    "discovered_class": "logarithmic",
+    "class_match": false,
+    "ast_edit_distance": 5,
+    "parameter_error": {
+      "theta_0": 148.58081953255282
+    },
+    "bic": -241.03628626005653,
+    "time_seconds": 5.091142177581787,
+    "converged": false,
+    "total_candidates_proposed": 100,
+    "total_candidates_survived_stage1": 13,
+    "total_candidates_optimized": 13,
+    "gate_stats": {
+      "input_count": 100,
+      "parse_fail": 0,
+      "ast_reject": 0,
+      "dim_reject": 37,
+      "transcendental_reject": 0,
+      "arc_reject": 50,
+      "coarse_reject": 0,
+      "output_count": 13,
+      "after_parse": 100,
+      "after_ast": 100,
+      "after_dim": 63,
+      "after_transcendental": 63,
+      "after_arc": 13,
+      "after_coarse": 13,
+      "survival_rates": {
+        "parse": 1.0,
+        "ast": 1.0,
+        "dimensional": 0.63,
+        "transcendental": 1.0,
+        "arc": 0.20634920634920634,
+        "coarse": 1.0,
+        "overall": 0.13
+      }
+    }
   }
 ]

@@ -45,7 +45,7 @@ from adcd.metrics import (
 )
 
 # Pipeline
-from adcd.pipeline import Stage1Pipeline
+from adcd.pipeline import Stage1Pipeline, GateStats
 
 # Optimiser
 from adcd.jax_optimizer import JAXOptimizer, OptimizationResult
@@ -73,6 +73,7 @@ __all__ = [
     "CorrectionEvaluation",
     # Pipeline / Gates
     "Stage1Pipeline",
+    "GateStats",
     "JAXOptimizer",
     "OptimizationResult",
     "ASTValidator",

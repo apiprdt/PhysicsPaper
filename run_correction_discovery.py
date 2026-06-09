@@ -101,7 +101,11 @@ def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_it
         "parameter_error": eval_res.parameter_error,
         "bic": eval_res.bic,
         "time_seconds": elapsed,
-        "converged": search_res.converged
+        "converged": search_res.converged,
+        "total_candidates_proposed": search_res.total_candidates_proposed,
+        "total_candidates_survived_stage1": search_res.total_candidates_survived_stage1,
+        "total_candidates_optimized": search_res.total_candidates_optimized,
+        "gate_stats": search_res.gate_stats.to_dict() if search_res.gate_stats else {},
     }
 
 def main():
@@ -114,7 +118,8 @@ def main():
     print(f"      STARTING ADCD BENCHMARK: {args.proposer.upper()} PROPOSER      ")
     print("======================================================================")
     
-    scenarios = get_all_scenarios()
+    # Main paper benchmark: 9 standard scenarios (exclude blind tier)
+    scenarios = [s for s in get_all_scenarios() if s.tier != "blind"]
     noise_levels = [0.0, 0.01, 0.05, 0.10]
     
     results = []
@@ -139,6 +144,36 @@ def main():
     with open(output_path, "w") as f:
         json.dump(results, f, indent=2)
     print(f"\nSaved raw benchmark results to {output_path}")
+
+    # Aggregate gate telemetry for paper / efficiency tables
+    agg = {
+        "input_count": 0,
+        "parse_fail": 0,
+        "ast_reject": 0,
+        "dim_reject": 0,
+        "transcendental_reject": 0,
+        "arc_reject": 0,
+        "coarse_reject": 0,
+        "output_count": 0,
+        "total_proposed": 0,
+        "total_survived_stage1": 0,
+        "total_optimized": 0,
+        "n_runs": len(results),
+    }
+    for r in results:
+        gs = r.get("gate_stats") or {}
+        for k in ("input_count", "parse_fail", "ast_reject", "dim_reject",
+                  "transcendental_reject", "arc_reject", "coarse_reject", "output_count"):
+            agg[k] += gs.get(k, 0)
+        agg["total_proposed"] += r.get("total_candidates_proposed", 0)
+        agg["total_survived_stage1"] += r.get("total_candidates_survived_stage1", 0)
+        agg["total_optimized"] += r.get("total_candidates_optimized", 0)
+    if agg["input_count"] > 0:
+        agg["overall_survival_rate"] = agg["output_count"] / agg["input_count"]
+    telemetry_path = "gate_telemetry.json"
+    with open(telemetry_path, "w") as f:
+        json.dump(agg, f, indent=2)
+    print(f"Saved gate telemetry aggregate to {telemetry_path}")
     
     # ── GENERATE PREMIUM MARKDOWN REPORT ──
     print("\n\n======================================================================")

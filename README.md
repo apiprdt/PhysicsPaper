@@ -190,16 +190,28 @@ All 58 tests pass on Python 3.10 and 3.11 (Ubuntu and Windows).
 
 ## Reproducing Paper Results
 
-```bash
-python run_correction_discovery.py --proposer mock   # Main 9-scenario benchmark
-python run_real_data_benchmark.py                    # Real-world physical constants
-python run_ablation.py                               # Gate ablation study
-python run_pysr_baseline.py                          # PySR comparison
-python run_mlp_baseline.py                           # MLP comparison
-python run_reproducibility.py                        # Multi-seed reproducibility
-python run_misspecification_benchmark.py             # Misspecification fail-safe test
-python generate_figures.py                           # Generate all paper figures
+One-command reproduction (Windows):
+
+```powershell
+.\reproduce_all.ps1
 ```
+
+Or step-by-step:
+
+```bash
+python run_correction_discovery.py --proposer mock   # Main benchmark + gate telemetry
+python run_real_data_benchmark.py                    # Real-world (5 scenarios)
+python run_pysr_baseline.py --profile fair           # Fair PySR comparison
+python run_ablation.py                               # Gate ablation study
+python run_oracle_ablation.py                        # Oracle ground-truth injection test
+python run_correction_scaling.py                     # Correction magnitude sweep
+python scripts/generate_experiment_report.py         # Sync experiment_results.md
+python scripts/generate_efficiency_table.py          # ADCD vs PySR efficiency table
+python scripts/validate_results.py                   # Consistency checks
+python generate_figures.py                           # All paper figures
+```
+
+> **Proposer regimes:** Mock Proposer = template-assisted recovery; Hybrid/Gemini = zero-shot discovery. Report both separately (see paper Section 4).
 
 ## Citing This Work
 

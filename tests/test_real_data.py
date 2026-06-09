@@ -16,6 +16,7 @@ from adcd.real_data_loader import (
     load_hydrogen_lamb_shift,
     load_blackbody_radiation,
     load_muon_g2,
+    load_binary_pulsar_decay,
     load_all_real_data,
 )
 from adcd.real_scenarios import get_real_scenarios, RealAnomalyScenario
@@ -45,7 +46,11 @@ class TestRealDataLoaderShapes:
 
     def test_mercury_perihelion_shape(self):
         result = load_mercury_perihelion()
-        self._check_tuple(result, expected_n=200, expected_x_keys=["r", "v", "theta"])
+        self._check_tuple(result, expected_n=200, expected_x_keys=["vc2", "r", "v", "theta"])
+
+    def test_binary_pulsar_shape(self):
+        result = load_binary_pulsar_decay()
+        self._check_tuple(result, expected_n=60, expected_x_keys=["P", "M", "a", "e"])
 
     def test_hydrogen_lamb_shift_shape(self):
         result = load_hydrogen_lamb_shift()
@@ -62,12 +67,13 @@ class TestRealDataLoaderShapes:
 
     def test_load_all_real_data_keys(self):
         all_data = load_all_real_data()
-        assert len(all_data) == 4
+        assert len(all_data) == 5
         expected_keys = {
             "Real: Mercury Perihelion",
             "Real: Hydrogen Lamb Shift",
             "Real: Blackbody Radiation",
             "Real: Muon g-2",
+            "Real: Binary Pulsar Decay",
         }
         assert set(all_data.keys()) == expected_keys
 
@@ -91,7 +97,10 @@ class TestRealDataPhysics:
         # Residual should equal y_obs (since y_cls = 0)
         np.testing.assert_allclose(residual, y_obs, rtol=1e-10)
 
-        # Velocity should be physically reasonable (Mercury: 38–59 km/s)
+        # Dimensionless vc2 = (v/c)^2 should be small and positive
+        assert np.all(X["vc2"] > 0) and np.all(X["vc2"] < 0.01), \
+            f"vc2 range unexpected: {X['vc2'].min():.6e}–{X['vc2'].max():.6e}"
+
         v_kms = X["v"] / 1000.0
         assert np.all(v_kms > 30) and np.all(v_kms < 70), \
             f"Mercury velocity range unexpected: {v_kms.min():.1f}–{v_kms.max():.1f} km/s"
@@ -176,8 +185,8 @@ class TestRealScenarios:
     def setup_method(self):
         self.scenarios = get_real_scenarios()
 
-    def test_returns_four_scenarios(self):
-        assert len(self.scenarios) == 4
+    def test_returns_five_scenarios(self):
+        assert len(self.scenarios) == 5
 
     def test_all_have_real_data_tier(self):
         for s in self.scenarios:
@@ -229,6 +238,7 @@ class TestRealScenarios:
             "Real: Hydrogen Lamb Shift": 18,
             "Real: Blackbody Radiation": 200,
             "Real: Muon g-2":            100,
+            "Real: Binary Pulsar Decay": 60,
         }
         for s in self.scenarios:
             X, y_obs, y_cls, residual = s.generate_data(seed=42)

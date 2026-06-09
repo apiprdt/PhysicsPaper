@@ -50,9 +50,11 @@ def load_all():
     with open("scratch_correction_results.json") as f:
         adcd = json.load(f)
     pysr = None
-    if os.path.exists("pysr_baseline_results.json"):
-        with open("pysr_baseline_results.json") as f:
-            pysr = json.load(f)
+    for p in ("pysr_baseline_fair.json", "pysr_baseline_results.json"):
+        if os.path.exists(p):
+            with open(p) as f:
+                pysr = json.load(f)
+            break
     mlp = None
     if os.path.exists("mlp_baseline_results.json"):
         with open("mlp_baseline_results.json") as f:
@@ -252,6 +254,66 @@ def fig4_ablation(ablation):
     plt.close()
 
 
+def fig5_gate_funnel():
+    """Figure 5: Gate survival funnel from gate_telemetry.json."""
+    if not os.path.exists("gate_telemetry.json"):
+        print("  gate_telemetry.json tidak ada — skip fig5")
+        return
+    with open("gate_telemetry.json") as f:
+        g = json.load(f)
+
+    labels = ["Input", "After\nParse", "After\nAST", "After\nDim", "After\nTrans", "After\nARC", "Output"]
+    parse_ok = g["input_count"] - g.get("parse_fail", 0)
+    ast_ok = parse_ok - g.get("ast_reject", 0)
+    dim_ok = ast_ok - g.get("dim_reject", 0)
+    trans_ok = dim_ok - g.get("transcendental_reject", 0)
+    arc_ok = trans_ok - g.get("arc_reject", 0)
+    out_ok = g.get("output_count", 0)
+    counts = [g["input_count"], parse_ok, ast_ok, dim_ok, trans_ok, arc_ok, out_ok]
+
+    fig, ax = plt.subplots(figsize=(7, 4))
+    colors = plt.cm.Blues(np.linspace(0.35, 0.9, len(counts)))
+    bars = ax.bar(labels, counts, color=colors, edgecolor="white")
+    for bar, c in zip(bars, counts):
+        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(), f"{c:,}",
+                ha="center", va="bottom", fontsize=8)
+    ax.set_ylabel("Candidate count (aggregate)")
+    ax.set_title("Stage 1 Gate Survival Funnel", fontweight="bold")
+    ax.grid(True, alpha=0.15, axis="y")
+    plt.tight_layout()
+    plt.savefig("paper/figures/fig5_gate_funnel.pdf", bbox_inches="tight")
+    plt.savefig("paper/figures/fig5_gate_funnel.png", bbox_inches="tight")
+    print("[OK] fig5_gate_funnel.pdf")
+    plt.close()
+
+
+def fig6_correction_scaling():
+    """Figure 6: Class match vs correction magnitude scale."""
+    if not os.path.exists("correction_scaling_results.json"):
+        print("  correction_scaling_results.json tidak ada — skip fig6")
+        return
+    with open("correction_scaling_results.json") as f:
+        data = json.load(f)
+    adcd = [r for r in data if r["method"] == "ADCD"]
+    if not adcd:
+        return
+    scales = [r["scale"] for r in adcd]
+    matches = [100 if r["class_match"] else 0 for r in adcd]
+
+    fig, ax = plt.subplots(figsize=(5.5, 4))
+    ax.plot(scales, matches, "o-", color="#1E3A8A", lw=2, ms=8)
+    ax.set_xlabel("Correction amplitude scale (Relativistic KE)")
+    ax.set_ylabel("ADCD class match @ 5% noise")
+    ax.set_ylim(-5, 105)
+    ax.set_title("Correction-First Regime Diagram", fontweight="bold")
+    ax.grid(True, alpha=0.15)
+    plt.tight_layout()
+    plt.savefig("paper/figures/fig6_correction_scaling.pdf", bbox_inches="tight")
+    plt.savefig("paper/figures/fig6_correction_scaling.png", bbox_inches="tight")
+    print("[OK] fig6_correction_scaling.pdf")
+    plt.close()
+
+
 def main():
     print("=" * 60)
     print("   GENERATING PUBLICATION FIGURES")
@@ -266,6 +328,8 @@ def main():
     fig2_nmse_heatmap(adcd)
     fig3_tier_bars(adcd)
     fig4_ablation(ablation)
+    fig5_gate_funnel()
+    fig6_correction_scaling()
     print("\n[OK] All figures in paper/figures/")
 
 

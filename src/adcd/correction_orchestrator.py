@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple, Optional
 
 from adcd.llm_proposer import BaseProposer, ProposalContext
-from adcd.pipeline import Stage1Pipeline
+from adcd.pipeline import Stage1Pipeline, GateStats
 from adcd.jax_optimizer import JAXOptimizer
 from adcd.anomaly_scenarios import AnomalyScenario
 from adcd.metrics import evaluate_correction, CorrectionEvaluation, bic_score
@@ -42,6 +42,8 @@ class CorrectionSearchResult:
     total_time_seconds: float
     converged: bool
     evaluation: Optional[CorrectionEvaluation] = None
+    gate_stats: Optional[GateStats] = None
+    total_candidates_optimized: int = 0
 
 class CorrectionOrchestrator:
     def __init__(
@@ -141,7 +143,9 @@ class CorrectionOrchestrator:
         
         total_candidates_proposed = 0
         total_candidates_survived_stage1 = 0
-        
+        total_candidates_optimized = 0
+        gate_stats = GateStats()
+
         history: List[CorrectionIterationResult] = []
         previous_best: List[Tuple[str, float]] = []
 
@@ -199,7 +203,8 @@ class CorrectionOrchestrator:
                 target_dim_key,
                 X,
                 residual,
-                constants=scenario.classical_constants
+                constants=scenario.classical_constants,
+                stats=gate_stats,
             )
             
             seen_sub_exprs = set()
@@ -259,6 +264,7 @@ class CorrectionOrchestrator:
                 y_classical=y_classical,
                 correction_type=scenario.correction_type
             )
+            total_candidates_optimized += len(stage2_results)
 
             # Step 5: Update global best using BIC reranking
             stage2_results_with_bic = []
@@ -347,7 +353,9 @@ class CorrectionOrchestrator:
             total_candidates_survived_stage1=total_candidates_survived_stage1,
             total_time_seconds=total_time,
             converged=converged,
-            evaluation=final_evaluation
+            evaluation=final_evaluation,
+            gate_stats=gate_stats,
+            total_candidates_optimized=total_candidates_optimized,
         )
 
 
