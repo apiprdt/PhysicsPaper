@@ -72,7 +72,6 @@ class MockProposer(BaseProposer):
 
     def propose(self, context: ProposalContext) -> List[str]:
         rng = np.random.RandomState(self.seed + context.iteration)
-        candidates = []
         vars_available = list(context.variable_names)
         if context.constants:
             for const_name in context.constants:
@@ -394,7 +393,7 @@ class GeminiProposer(BaseProposer):
             
         limits_str = ""
         if context.known_limits:
-            limits_str = "\n".join([f"- Limit of {l.get('variable', l.get('var'))} approaching {l.get('limit')} must yield {l.get('expected')}" for l in context.known_limits])
+            limits_str = "\n".join([f"- Limit of {lim.get('variable', lim.get('var'))} approaching {lim.get('limit')} must yield {lim.get('expected')}" for lim in context.known_limits])
         else:
             limits_str = "None"
             
@@ -891,19 +890,6 @@ class CorrectionGeminiProposer(BaseProposer):
     def get_prompt_template(self, context: ProposalContext) -> str:
         mode, mode_desc = self._select_mode(context.iteration, context.stuck_count)
         
-        hints_str = "\n".join([f"- {h}" for h in context.structural_hints]) if context.structural_hints else "None"
-        prev_best_str = ""
-        if context.previous_best:
-            prev_best_str = "\n".join([f"- {expr} (NMSE: {nmse:.4e})" for expr, nmse in context.previous_best[:5]])
-        else:
-            prev_best_str = "None"
-            
-        limits_str = ""
-        if context.known_limits:
-            limits_str = "\n".join([f"- Limit of {l.get('variable', l.get('var'))} approaching {l.get('limit')} must yield {l.get('expected')}" for l in context.known_limits])
-        else:
-            limits_str = "None"
-            
         units_str = ", ".join([f"'{k}' ({v})" for k, v in context.variables_with_units.items()]) if context.variables_with_units else "None"
 
         return f"""You are a theoretical physicist discovering mathematical corrections to classical laws.

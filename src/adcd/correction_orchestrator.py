@@ -422,7 +422,7 @@ def main_cli():
         proposer = HybridCorrectionProposer(api_key=api_key)
 
     import sympy as sp
-    from adcd.arc_scorer import ARCScorer, AsymptoticRegime
+    from adcd.arc_scorer import AsymptoticRegime
 
     # Set up pipeline & optimizer
     validator = ASTValidator()
@@ -458,7 +458,7 @@ def main_cli():
     print(f"Best Discovered Correction: {result.best_expr}")
     print(f"Residual NMSE: {result.best_nmse_residual:.6e}")
     print(f"Full Model NMSE: {result.best_nmse_full:.6e}")
-    print(f"Optimized Parameters (theta):")
+    print("Optimized Parameters (theta):")
     if result.best_theta:
         for k, v in result.best_theta.items():
             print(f"  {k}: {v:.6f}")

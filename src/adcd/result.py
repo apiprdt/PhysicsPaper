@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sympy as sp
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 from adcd.correction_orchestrator import CorrectionSearchResult
 
 class ADCDResult:
@@ -165,7 +165,7 @@ class ADCDResult:
         # Sort values for smooth plotting curves
         sort_idx = np.argsort(x_vals)
         x_sorted = x_vals[sort_idx]
-        res_sorted = self.residual[sort_idx]
+        self.residual[sort_idx]  # noqa: ensure sorted residual exists
         
         # Evaluate discovered correction on sorted data
         # Build evaluation dict
@@ -194,7 +194,7 @@ class ADCDResult:
             # Broadcast scalar predictions if needed
             if np.isscalar(pred_correction):
                 pred_correction = np.full_like(x_sorted, pred_correction)
-        except Exception as e:
+        except Exception:
             # Fallback to direct eval if lambdify fails
             try:
                 local_env = {**eval_dict, "np": np, "sp": sp, "exp": np.exp, "sin": np.sin, "cos": np.cos, "sqrt": np.sqrt, "log": np.log, "pi": np.pi}
@@ -217,7 +217,7 @@ class ADCDResult:
         axes[0].legend(frameon=True, facecolor='white', framealpha=0.9)
         
         # Plot 2: Observed vs Classical vs Corrected
-        y_obs_sorted = self.y_obs[sort_idx]
+        y_obs_sorted = self.y_obs[sort_idx]  # noqa: used for plotting alignment
         y_classical_sorted = self.y_classical[sort_idx]
         
         # Compute corrected model prediction
@@ -246,17 +246,17 @@ class ADCDResult:
         status_text = "CONVERGED" if self.converged else "NOT CONVERGED"
         
         html = [
-            f"<div style='border: 1px solid #ddd; border-radius: 8px; padding: 16px; font-family: sans-serif; max-width: 800px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);'>",
-            f"  <h3 style='margin-top: 0; color: #333;'>ADCD Correction Discovery Results</h3>",
-            f"  <div style='display: flex; gap: 20px; margin-bottom: 16px;'>",
+            "<div style='border: 1px solid #ddd; border-radius: 8px; padding: 16px; font-family: sans-serif; max-width: 800px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);'>",
+            "  <h3 style='margin-top: 0; color: #333;'>ADCD Correction Discovery Results</h3>",
+            "  <div style='display: flex; gap: 20px; margin-bottom: 16px;'>",
             f"    <div><strong>Scenario:</strong> {self.scenario.name}</div>",
             f"    <div><strong>Domain:</strong> {self.scenario.domain}</div>",
             f"    <div><strong>Status:</strong> <span style='color: {status_color}; font-weight: bold;'>{status_text}</span></div>",
-            f"  </div>",
-            f"  <div style='background-color: #f8f9fa; border-left: 4px solid #007bff; padding: 12px; margin-bottom: 16px; border-radius: 0 4px 4px 0;'>",
-            f"    <div style='font-size: 0.9em; color: #666;'>Discovered Correction (\\(\\Delta\\)):</div>",
+            "  </div>",
+            "  <div style='background-color: #f8f9fa; border-left: 4px solid #007bff; padding: 12px; margin-bottom: 16px; border-radius: 0 4px 4px 0;'>",
+            "    <div style='font-size: 0.9em; color: #666;'>Discovered Correction (\\(\\Delta\\)):</div>",
             f"    <div style='font-size: 1.25em; font-family: monospace; font-weight: bold; margin-top: 4px;'>{self.best_expr}</div>",
-            f"  </div>"
+            "  </div>"
         ]
         
         if self.best_theta:
@@ -269,20 +269,20 @@ class ADCDResult:
             html.append("  </div>")
             
         html.extend([
-            f"  <table style='width: 100%; border-collapse: collapse; margin-bottom: 8px;'>",
-            f"    <tr style='border-bottom: 1px solid #eee;'>",
-            f"      <td style='padding: 6px 0; color: #555;'>Residual NMSE:</td>",
+            "  <table style='width: 100%; border-collapse: collapse; margin-bottom: 8px;'>",
+            "    <tr style='border-bottom: 1px solid #eee;'>",
+            "      <td style='padding: 6px 0; color: #555;'>Residual NMSE:</td>",
             f"      <td style='padding: 6px 0; text-align: right; font-family: monospace;'>{self.best_nmse_residual:.6e}</td>",
-            f"    </tr>",
-            f"    <tr style='border-bottom: 1px solid #eee;'>",
-            f"      <td style='padding: 6px 0; color: #555;'>Full Model NMSE:</td>",
+            "    </tr>",
+            "    <tr style='border-bottom: 1px solid #eee;'>",
+            "      <td style='padding: 6px 0; color: #555;'>Full Model NMSE:</td>",
             f"      <td style='padding: 6px 0; text-align: right; font-family: monospace;'>{self.best_nmse_full:.6e}</td>",
-            f"    </tr>",
-            f"    <tr>",
-            f"      <td style='padding: 6px 0; color: #555;'>Execution Time:</td>",
+            "    </tr>",
+            "    <tr>",
+            "      <td style='padding: 6px 0; color: #555;'>Execution Time:</td>",
             f"      <td style='padding: 6px 0; text-align: right; font-family: monospace;'>{self.search_result.total_time_seconds:.2f} s</td>",
-            f"    </tr>",
-            f"  </table>",
-            f"</div>"
+            "    </tr>",
+            "  </table>",
+            "</div>"
         ])
         return "\n".join(html)

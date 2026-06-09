@@ -82,7 +82,7 @@ def load_hydrogen_lamb_shift(
     alpha = 7.297e-3     # fine structure constant
     m_e = 9.109e-31      # electron mass [kg]
     c = 2.998e8          # speed of light [m/s]
-    h = 6.626e-34        # Planck constant [J·s]
+    # h = 6.626e-34      # Planck constant [J·s] (unused, kept for reference)
     eV = 1.602e-19       # electron-volt [J]
     
     # Quantum numbers
