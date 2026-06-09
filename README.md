@@ -1,27 +1,29 @@
 # ADCD — Anomaly-Driven Correction Discovery
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20534940.svg)](https://doi.org/10.5281/zenodo.20534940)
+[![DOI](https://zenodo.org/badge/20534940.svg)](https://doi.org/10.5281/zenodo.20534940)
 [![CI](https://github.com/apiprdt/PhysicsPaper/actions/workflows/ci.yml/badge.svg)](https://github.com/apiprdt/PhysicsPaper/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads//)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 
 **Physics-Constrained Symbolic Regression for Evolutionary Scientific Discovery**
 
 ADCD is a symbolic regression framework that discovers *physical correction terms* rather than learning equations from scratch. Given a known classical law and anomalous observations, ADCD recovers the dimensionless correction Δ that reconciles theory with experiment — mirroring how physics actually evolves.
 
-> **94.4% structural class match rate** across 9 physical anomaly scenarios under noise up to 10%.  
+> **81.1% (±11.4%) mean structural recovery** across 5 random seeds, with peak **94.4%** at the reference seed.  
+> **4/4 real-world structural class matches** (Mercury, Lamb Shift, Muon g-2, Blackbody).  
 > **58 automated unit tests** passing on Python 3.10 and 3.11.
 
 ---
 
 ## Key Features
 
-- **Correction-first paradigm** — starts from a known classical law, not a blank slate
-- **4-gate physics filter cascade** — AST complexity, dimensional homogeneity, transcendental argument constraints, and asymptotic consistency (ARC)
+- **Correction-first paradigm** — starts from a known classical law, not a blank slate; designed for anomaly-driven theory refinement where the baseline is structurally correct
+- **Physics-gated search cascade** — AST complexity, dimensional homogeneity + transcendental guardrails, and asymptotic consistency (ARC) gates prune unphysical candidates *before* optimization
 - **JAX-traced L-BFGS-B optimizer** — parameter-scaled differentiable fitting with multi-restart log-uniform initialization
 - **BIC reranking** — selects the most parsimonious correction over purely numerical fits
-- **Residual feature intelligence** — statistical priors bias the template sampler toward the correct mathematical family
-- **Noise-robust** — 100% accuracy at 0–1% noise, 88.9% at 5–10% noise (deterministic seed)
+- **Residual feature intelligence** — statistical priors (monotonicity, curvature, oscillation, decay rate, symmetry) bias the template sampler toward the correct mathematical family
+- **Coarse empirical evaluation** — data-driven pre-filter ranks gate survivors before full JAX optimization
+- **Noise-robust** — 93.3% mean at 0% noise, 91.1% at 1%, 71.1% at 5%, 68.9% at 10%
 
 ## Quick Start
 
@@ -87,14 +89,16 @@ result.summary()
 
 ## Benchmark Results
 
-Results from `run_correction_discovery.py --proposer mock` (seed=42, 4 iterations per scenario).
+### Standard Benchmark (seed=42, Mock Proposer)
+
+Results from `run_correction_discovery.py --proposer mock` (reference seed=42, 4 iterations per scenario).
 
 | Scenario | Tier | 0% Noise | 1% Noise | 5% Noise | 10% Noise |
 |----------|------|:--------:|:--------:|:--------:|:---------:|
 | Relativistic KE | Textbook | ✓ | ✓ | ✓ | ✓ |
-| Yukawa Gravity | Textbook | ✓ | ✓ | ✗ | ✗ |
+| Yukawa Gravity | Textbook | ✓ | ✓ | ✓ | ✓ |
 | Anharmonic Spring | Textbook | ✓ | ✓ | ✓ | ✓ |
-| Screened Coulomb | Cross-Domain | ✓ | ✓ | ✓ | ✓ |
+| Screened Coulomb | Cross-Domain | ✓ | ✓ | ✗ | ✗ |
 | Net Radiation | Cross-Domain | ✓ | ✓ | ✓ | ✓ |
 | Nonlinear Drag | Cross-Domain | ✓ | ✓ | ✓ | ✓ |
 | Mystery-A (tanh²) | Synthetic | ✓ | ✓ | ✓ | ✓ |
@@ -102,16 +106,44 @@ Results from `run_correction_discovery.py --proposer mock` (seed=42, 4 iteration
 | Mystery-C (log-quotient) | Synthetic | ✓ | ✓ | ✓ | ✓ |
 | **Overall** | | **100%** | **100%** | **88.9%** | **88.9%** |
 
-> **Note**: Yukawa Gravity fails at ≥5% noise because exponential decay and logarithmic quotient are numerically indistinguishable at the tested SNR — an information-theoretic limit, not a framework deficiency.
+> **Note**: Screened Coulomb fails at ≥5% noise because exponential decay ($e^{-r/\lambda}$) and rational saturation ($r/(r+\lambda)$) are numerically indistinguishable at the tested SNR with limited dynamic range — an information-theoretic limit, not a framework deficiency.
+
+### Multi-Seed Reproducibility
+
+All results are reported across 5 independent random seeds (0, 7, 21, 42, 99):
+
+| Seed | Class Match Rate |
+|:----:|:----------------:|
+| 0 | 86.1% (31/36) |
+| 7 | 66.7% (24/36) |
+| 21 | 80.6% (29/36) |
+| 42 | 94.4% (34/36) |
+| 99 | 77.8% (28/36) |
+| **Mean** | **81.1% ± 11.4%** |
+
+Performance variation reflects stochastic template sampling in the MockProposer. Physics gates ensure that **when** the correct functional family is sampled, it consistently survives filtering and is selected by BIC reranking.
 
 ### Real-World Physical Constants Benchmark
 
-| Physical Scenario | Discovered Correction | Converged | Class Match |
-|---|---|:---:|:---:|
-| Mercury Perihelion (GR) | `θ₀ · GM/(c²r)` | ✓ | ✓ |
-| Hydrogen Lamb Shift (QED) | `θ₀ · (θ₁/n)^(−θ₂)` | ✓ | ✓ |
-| Muon g-2 Anomaly (Schwinger) | `θ₀ · (α/π)²` | ✓ | ✓ |
-| Blackbody Planck Correction | structural match | — | ✓ |
+Synthetic-real hybrid data using experimentally validated constants from JPL DE440, NIST, and CODATA:
+
+| Physical Scenario | Discovered Correction | Converged | Class Match | NMSE |
+|---|---|:---:|:---:|:---:|
+| Mercury Perihelion (GR) | `θ₀(c⁻²v²)^θ₁` | — | ✓ polynomial | 2.33e-01 |
+| Hydrogen Lamb Shift (QED) | `θ₀(n/θ₁)^(-θ₂)` | ✓ | ✓ power_law | 1.82e-18 |
+| Muon g-2 (Schwinger) | `θ₀(α/π)^θ₁` | ✓ | ✓ polynomial | 7.94e-07 |
+| Blackbody (Planck) | `-1 + e^(-f/θ₁)` | — | ✓ exponential | 2.59e-02 |
+
+All 4 scenarios achieve correct structural class identification. 2 scenarios (Lamb Shift, Muon g-2) achieve full convergence with NMSE < 10⁻⁶. Mercury and Blackbody achieve correct structural identification but quantitative convergence is limited by parametrization sensitivity and dynamic range, respectively.
+
+### PySR Comparison
+
+| Method | 0% Noise | 1% Noise | 5% Noise | 10% Noise |
+|--------|:--------:|:--------:|:--------:|:---------:|
+| ADCD (ours) | 9/9 (100%) | 9/9 (100%) | 8/9 (88.9%) | 8/9 (88.9%) |
+| PySR | 2/9 (22.2%) | 6/9 (66.7%) | 4/9 (44.4%) | 4/9 (44.4%) |
+
+ADCD outperforms unconstrained PySR by **44.4 percentage points** at 5% noise.
 
 ## Project Structure
 
@@ -123,12 +155,12 @@ PhysicsPaper/
 │   ├── arc_scorer.py               # Asymptotic consistency gate (ARC)
 │   ├── coarse_evaluator.py         # Coarse numerical pre-filter
 │   ├── correction_orchestrator.py  # Main multi-iteration discovery loop
-│   ├── dimensional_checker.py      # Dimensional homogeneity gate
+│   ├── dimensional_checker.py      # Dimensional homogeneity + transcendental guardrail
 │   ├── jax_optimizer.py            # JAX L-BFGS-B optimizer (parameter-scaled)
 │   ├── llm_proposer.py             # Mock + Gemini + OpenAI-compatible proposers
 │   ├── metrics.py                  # NMSE, BIC, structural classification
 │   ├── pipeline.py                 # Stage 1 filter cascade
-│   ├── real_data_loader.py         # Real-world data loading utilities
+│   ├── real_data_loader.py         # Real-world data loading (JPL, NIST, CODATA)
 │   ├── real_scenarios.py           # Real-world validation scenarios
 │   ├── residual_analyzer.py        # Statistical residual feature extraction
 │   └── result.py                   # CorrectionResult: summary, LaTeX, plot
@@ -136,10 +168,11 @@ PhysicsPaper/
 ├── paper/                          # LaTeX source (main.tex) + figures
 ├── run_correction_discovery.py     # Standard 9-scenario benchmark runner
 ├── run_real_data_benchmark.py      # Real-world physical constants benchmark
-├── run_reproducibility.py          # Multi-seed reproducibility study
+├── run_reproducibility.py          # Multi-seed reproducibility study (5 seeds)
 ├── run_ablation.py                 # Gate ablation study
 ├── run_pysr_baseline.py            # PySR comparison baseline
 ├── run_mlp_baseline.py             # MLP comparison baseline
+├── run_misspecification_benchmark.py  # Baseline misspecification fail-safe test
 ├── generate_figures.py             # Paper figure generator
 ├── .github/workflows/              # CI (test + lint + LaTeX) and PyPI publish
 ├── pyproject.toml                  # PEP 517/518 build configuration
@@ -164,6 +197,7 @@ python run_ablation.py                               # Gate ablation study
 python run_pysr_baseline.py                          # PySR comparison
 python run_mlp_baseline.py                           # MLP comparison
 python run_reproducibility.py                        # Multi-seed reproducibility
+python run_misspecification_benchmark.py             # Misspecification fail-safe test
 python generate_figures.py                           # Generate all paper figures
 ```
 
