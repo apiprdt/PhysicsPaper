@@ -14,9 +14,7 @@ def test_gate_stats_dataclass_exported():
 
 
 def test_pysr_profiles_defined():
-    import sys
-    sys.path.insert(0, str(ROOT))
-    from run_pysr_baseline import PYSR_PROFILES
+    from pysr_profiles import PYSR_PROFILES
     assert "fair" in PYSR_PROFILES
     assert PYSR_PROFILES["fair"]["niterations"] >= 100
 

@@ -54,7 +54,7 @@
 \maketitle
 
 \begin{abstract}
-Traditional symbolic regression algorithms attempt to discover mathematical laws from physical experimental data starting from a blank slate. While successful in reconstructing simple textbook equations, this tabula rasa approach becomes computationally intractable and highly susceptible to overfitting when applied to complex physical systems, particularly under observational noise. In this work, we present \textbf{Anomaly-Driven Correction Discovery (ADCD)}, a physics-informed symbolic regression framework designed to mimic the evolutionary nature of scientific discovery. Rather than learning entire equations from scratch, ADCD takes a known classical physical law and seeks to discover the mathematical structure of the dimensionless correction term ($\Delta$) that explains the discrepancy between classical predictions and anomalous experimental observations. By utilizing a cascaded pipeline of physical filters---including AST complexity limits, dimensional homogeneity with transcendental argument constraints, and asymptotic limits (ARC)---coupled with a JAX-traced L-BFGS-B parameter optimizer and Bayesian Information Criterion (BIC) reranking, ADCD strongly enforces physical plausibility on the candidate search space and demonstrates robustness to experimental error. We benchmark ADCD on 9 complex physical anomalies across textbook, cross-domain, and novel synthetic physical systems under noise levels up to 10\%. ADCD achieves a mean structural recovery rate of \textbf{81.1\% ($\pm$11.4\%) across five random seeds}, with peak performance of 94.4\% (34/36) at the reference seed. Performance variation across seeds reflects the stochastic nature of template sampling in the MockProposer; physics gates ensure that when a correct functional family is sampled, it consistently survives gate filtering and is selected by BIC reranking. At the reference seed (both figures reported at seed=42), the Mock Proposer achieves 94.4\% and the Hybrid Proposer achieves 91.7\%, both outperforming unconstrained PySR by 44.4 percentage points at 5\% observational noise. ADCD recovers highly non-linear, multi-scale transcendental corrections (such as relativistic kinetic energy, Yukawa gravity, and quantum mechanical sinc fluctuations) across three complexity tiers. Beyond synthetic benchmarks, ADCD achieves structural class recovery on 4 historically significant real-world physical anomalies---including Mercury perihelion precession (GR correction), Hydrogen Lamb Shift (QED correction), and Muon $g-2$ anomaly (Schwinger correction)---with 2 clean quantitative convergences (NMSE $< 10^{-6}$).
+Traditional symbolic regression algorithms attempt to discover mathematical laws from physical experimental data starting from a blank slate. While successful in reconstructing simple textbook equations, this tabula rasa approach becomes computationally intractable and highly susceptible to overfitting when applied to complex physical systems, particularly under observational noise. In this work, we present \textbf{Anomaly-Driven Correction Discovery (ADCD)}, a physics-informed symbolic regression framework designed to mimic the evolutionary nature of scientific discovery. Rather than learning entire equations from scratch, ADCD takes a known classical physical law and seeks to discover the mathematical structure of the dimensionless correction term ($\Delta$) that explains the discrepancy between classical predictions and anomalous experimental observations. By utilizing a cascaded pipeline of physical filters---including AST complexity limits, dimensional homogeneity with transcendental argument constraints, and asymptotic limits (ARC)---coupled with a JAX-traced L-BFGS-B parameter optimizer and Bayesian Information Criterion (BIC) reranking, ADCD strongly enforces physical plausibility on the candidate search space and demonstrates robustness to experimental error. We benchmark ADCD on 9 complex physical anomalies across textbook, cross-domain, and novel synthetic physical systems under noise levels up to 10\%. ADCD achieves a mean structural recovery rate of \textbf{81.1\% ($\pm$11.4\%) across five random seeds}, with peak performance of 94.4\% (34/36) at the reference seed. Performance variation across seeds reflects the stochastic nature of template sampling in the MockProposer; physics gates ensure that when a correct functional family is sampled, it consistently survives gate filtering and is selected by BIC reranking. At the reference seed (both figures reported at seed=42), the Mock Proposer achieves 94.4\% and the Hybrid Proposer achieves 91.7\%, both outperforming unconstrained PySR by 44.4 percentage points at 5\% observational noise. ADCD recovers highly non-linear, multi-scale transcendental corrections (such as relativistic kinetic energy, Yukawa gravity, and quantum mechanical sinc fluctuations) across three complexity tiers. Beyond synthetic benchmarks, ADCD achieves \textbf{structural class recovery on 5/5} canonical real-world physics scenarios (Mercury perihelion, Lamb shift, blackbody UV correction, muon $g-2$, and binary pulsar orbital decay under a reduced-variable Hulse-Taylor formulation), with \textbf{3/5 quantitative recovery} at NMSE $< 10^{-4}$. We disclose template overlap, report recovered functional forms (not only class labels), and include a binary pulsar sensitivity study showing that recovery degrades as additional orbital parameters are exposed.
 \end{abstract}
 
 \section{Introduction}
@@ -264,7 +264,7 @@ Each scenario is evaluated under four noise levels: $\eta \in \{0\%, 1\%, 5\%, 1
 All benchmark results are reported across five independent random seeds (0, 7, 21, 42, 99). The mean structural recovery rate is 81.1\% ($\pm$11.4\%), with per-seed rates ranging from 66.7\% to 94.4\%. The primary source of variation is stochastic template sampling in the MockProposer: different seeds generate different candidate pools, and physics gates ensure that when the correct functional family is sampled, it consistently survives filtering and is selected by BIC reranking. This variation reflects the proposer's exploration capacity, not optimizer instability.
 
 \paragraph{Template overlap disclosure.}
-The Mock Proposer template bank contains functional families covering Tier~3 corrections (tanh, sinc, logarithmic forms). Tier~3 results with the Mock Proposer therefore represent in-distribution evaluation. Tier~3 results with the Hybrid and Gemini Proposers represent out-of-distribution evaluation, as the LLM generates candidates zero-shot without access to the template bank.
+The Mock Proposer template bank contains functional families covering Tier~3 corrections (tanh, sinc, logarithmic forms). Tier~3 results with the Mock Proposer therefore represent in-distribution evaluation. Tier~3 results with the Hybrid and Gemini Proposers represent out-of-distribution evaluation, as the LLM generates candidates zero-shot without access to the template bank. For the real-world tier, extended-mode templates add scenario-specific hints (e.g.\ $\theta_0 \cdot (v/c)^2$ for Mercury); only Mercury has an \emph{exact} ground-truth template in this bank (\Cref{tab:template_leakage}). All other real-world scenarios are evaluated against generic functional families (power law, exponential, polynomial), not verbatim answer injection.
 
 \section{Experimental Results}
 
@@ -435,30 +435,34 @@ To assess generalization beyond benchmark scenarios designed by the authors, we 
 
 \subsection{Real-World Physical Constants Benchmark}
 
-To evaluate ADCD's performance on datasets governed by physical constants and realistic scales, we constructed a benchmark using four physical datasets with synthetically generated data based on experimentally validated physical constants from JPL DE440, NIST, and CODATA (a ``synthetic-real hybrid'' approach):
-\begin{itemize}
-    \item \textbf{Mercury Perihelion Precession (GR Correction)}: Using the dimensionless variable $v_c^2 = (v/c)^2$ (avoiding SymPy reserved symbols), ADCD recovers $\Delta = \theta_0 v_c^2$ with full quantitative convergence (NMSE $= 1.11 \times 10^{-5}$), matching the leading-order Schwarzschild scaling.
-    \item \textbf{Hydrogen Lamb Shift (QED Correction)}: The pipeline recovered the correct power-law scaling ($\Delta \propto n^{-3}$) representing the quantum electrodynamic (QED) Lamb shift correction as a function of the principal quantum number $n$, achieving full convergence (NMSE $= 1.82 \times 10^{-18}$, BIC $= -240.01$).
-    \item \textbf{Muon $g-2$ Anomaly (Schwinger QED Correction)}: The system discovered the correction $\Delta = \theta_0 (\alpha/\pi)^{\theta_1}$ with $\theta_1$ converging to $1.0$, mathematically equivalent to the linear Schwinger QED correction ($a_\mu = \frac{\alpha}{2\pi}$), achieving full convergence (NMSE $= 7.94 \times 10^{-7}$, BIC $= -1372.34$).
-    \item \textbf{Blackbody Radiation (Planck Correction)}: ADCD achieved correct structural class identification (exponential), recovering the form $\Delta = -1 + e^{-f/\theta_1}$ (NMSE $= 0.026$, BIC $= -1061.65$), but quantitative parameter fitting is limited by the extreme dynamic range of the Rayleigh-Jeans baseline under unweighted residual optimization.
-\end{itemize}
-Five physics-inspired scenarios (including binary pulsar orbital decay) achieve structural class identification. Three scenarios (Mercury, Lamb Shift, Muon $g-2$) achieve full convergence with NMSE $< 10^{-4}$. Blackbody achieves correct structural identification but quantitative convergence is limited by extreme dynamic range under unweighted residual optimization.
+To evaluate ADCD on datasets governed by physical constants and realistic scales, we constructed five \textbf{synthetic-real hybrid} scenarios using JPL DE440, NIST, and CODATA parameters. We report three distinct success criteria to avoid conflating structural identification with full discovery:
+\begin{enumerate}
+    \item \textbf{Structural class recovery}: discovered and expected correction belong to the same functional family (power law, exponential, etc.).
+    \item \textbf{Quantitative recovery}: full-reconstruction NMSE $< 10^{-4}$.
+    \item \textbf{Optimizer convergence}: residual NMSE $< 10^{-5}$ after validated post-hoc evaluation.
+\end{enumerate}
+At reference seed $=42$ with the Mock Proposer (extended mode), ADCD achieves \textbf{5/5 structural}, \textbf{3/5 quantitative}, and \textbf{2/5 optimizer-converged} results (\Cref{tab:real_param_recovery}).
 
-\begin{table}[H]
-\centering
-\caption{Real-World Hybrid Experimental Benchmark Results.}
-\label{tab:real_world}
-\begin{tabularx}{\textwidth}{L L c c c}
-\toprule
-\textbf{Scenario} & \textbf{Discovered Correction $\Delta(x; \theta)$} & \textbf{Expected Class} & \textbf{Discovered Class} & \textbf{NMSE} \\
-\midrule
-Real: Mercury Perihelion & $\theta_0 (c^{-2} v^2)^{\theta_1}$ & polynomial & polynomial & $2.33 \times 10^{-1}$ \\
-Real: Hydrogen Lamb Shift & $\theta_0 (n/\theta_1)^{-\theta_2}$ & power\_law & power\_law & $1.82 \times 10^{-18}$ \\
-Real: Muon $g-2$ & $\theta_0 (\alpha/\pi)^{\theta_1}$ & polynomial & polynomial & $7.94 \times 10^{-7}$ \\
-Real: Blackbody Radiation & $-1 + e^{-f/\theta_1}$ & exponential & exponential & $2.59 \times 10^{-2}$ \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\paragraph{Scenario highlights.}
+\begin{itemize}
+    \item \textbf{Mercury Perihelion (GR)}: Recovers $\Delta = \theta_0 (v/c)^2$ with NMSE $= 1.11 \times 10^{-5}$ (exact AST match), the leading Schwarzschild perihelion scaling.
+    \item \textbf{Hydrogen Lamb Shift (QED)}: Recovers $\Delta \propto n^{-3}$ in equivalent parameterized form (NMSE $= 1.69 \times 10^{-18}$).
+    \item \textbf{Muon $g-2$ (Schwinger)}: Discovers $\Delta = \theta_0 (\alpha/\pi)^{\theta_1}$ with $\theta_1 \approx 1$ (NMSE $= 7.94 \times 10^{-7}$).
+    \item \textbf{Blackbody (Planck)}: Identifies exponential UV suppression ($\Delta = -1 + e^{-f/\theta_1}$; NMSE $= 2.59 \times 10^{-2}$) via \texttt{loss\_mode='auto'} full-reconstruction loss; quantitative fit remains limited by Rayleigh-Jeans dynamic range.
+    \item \textbf{Binary Pulsar Decay (GR/GW)}: Under a \textbf{reduced-variable} Hulse-Taylor formulation (fixed $M$, $a$, $e$; only $P$ varies), ADCD recovers a power-law $\Delta = \theta_0 / P^{\theta_1}$ with $\theta_1 \approx 1.57$ (true $5/3$; NMSE $= 3.94 \times 10^{-3}$). This is a second GR benchmark alongside Mercury, but intentionally simpler than the full multi-parameter Peters formula.
+\end{itemize}
+
+\input{generated/tab_real_param_recovery}
+
+\paragraph{Template leakage analysis.}
+\Cref{tab:template_leakage} documents whether each ground-truth correction appears verbatim in the extended Mock Proposer bank. Only Mercury has exact template overlap; binary pulsar uses a generic $\theta_0 \cdot P^{-\theta_1}$ family, not the literal $P^{-5/3}$ exponent.
+
+\input{generated/tab_template_leakage}
+
+\paragraph{Binary pulsar sensitivity.}
+To address whether the v2.1 benchmark was simplified, we re-ran discovery as free variables increase (\Cref{tab:pulsar_sensitivity}). Structural recovery holds for \texttt{P\_only}, \texttt{P\_e}, and \texttt{P\_e\_M}, but NMSE degrades from $3.9 \times 10^{-3}$ to $\mathcal{O}(0.3$--$0.5)$. The legacy \texttt{full} four-parameter scan fails structurally (logarithmic false positive). This confirms the reduced formulation is genuinely easier---and that ADCD does not silently succeed on the hardest variant.
+
+\input{generated/tab_pulsar_sensitivity}
 
 \subsection{System Misspecification and Fail-Safe Behavior}
 
@@ -526,11 +530,14 @@ A key advantage of the correction-first paradigm is the dramatic reduction in ex
 ADCD is designed for anomaly-driven theory refinement, not theory replacement. The framework assumes the classical baseline is structurally correct and the anomaly is incremental. When the baseline theory is fundamentally wrong, the correction term may become arbitrarily complex, at which point the correction-first search offers no advantage over tabula rasa symbolic regression.
 
 \paragraph{Numerical scale sensitivity.}
-The Mercury perihelion scenario illustrates a fundamental challenge for symbolic regression on physical data with extreme dynamic range: the GR correction magnitude ($\sim 10^{-7}$ rad/orbit) combined with orbital velocities ($\sim 10^4$ m/s) and the speed of light ($c \sim 10^8$ m/s) requires fitted parameters spanning 14+ orders of magnitude. While ADCD correctly identifies the structural class (polynomial in $v^2$), the L-BFGS-B optimizer converges to a local minimum with NMSE $= 0.233$ rather than the global optimum. This is a known challenge for gradient-based optimization on poorly conditioned problems; adaptive variable normalization or logarithmic parameterization would directly address this limitation.
+Sub-nano-scale residuals (binary pulsar $|dP/dt| \sim 10^{-15}$\,s/s) exposed a scale-adaptive NMSE bug in early experiments: a fixed variance floor ($\varepsilon = 10^{-10}$) in the JAX optimizer caused degenerate $\theta \to 0$ solutions to appear optimal. We corrected this with scale-adaptive denominators in both the optimizer and the post-hoc evaluator (\texttt{metrics.py}), and re-rank Stage~2 candidates using validated NMSE rather than optimizer-internal scores. Remaining challenges include blackbody UV fitting (NMSE $\approx 0.026$) and binary pulsar exponent recovery ($\theta_1 = 1.57$ vs.\ true $5/3$); logarithmic parameterization of prefactors would further improve extreme-scale scenarios.
+
+\paragraph{Reduced-variable real-world benchmarks.}
+The binary pulsar v2.1 benchmark holds $M$, $a$, and $e$ fixed at Hulse-Taylor values and varies only $P$, yielding a clean $P^{-5/3}$ power law. Our sensitivity study (\Cref{tab:pulsar_sensitivity}) shows this is substantially easier than the legacy four-parameter formulation, where ADCD fails structurally. Future work must report multi-parameter orbital decay without reduced-variable simplification, or clearly label such benchmarks as controlled ablations rather than full discovery claims.
 
 \paragraph{Single-variable corrections.}
 The current ADCD framework discovers corrections $\Delta(x;\theta)$ as
-functions of a single primary limit variable. Real physical corrections often
+functions of a single primary limit variable in the default real-world tier. Real physical corrections often
 depend on multiple coupled variables (e.g., GR corrections depend on both
 velocity $v/c$ and gravitational potential $GM/rc^2$). Extension to
 multi-variable corrections $\Delta(x_1, x_2, \ldots; \theta)$ is a natural

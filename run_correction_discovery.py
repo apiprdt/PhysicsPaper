@@ -93,6 +93,7 @@ def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_it
         "tier": scenario.tier,
         "noise": noise_level,
         "discovered_expr": search_res.best_expr,
+        "fitted_theta": search_res.best_theta or {},
         "nmse_residual": eval_res.nmse_residual,
         "nmse_full": eval_res.nmse_full,
         "discovered_class": eval_res.discovered_class,

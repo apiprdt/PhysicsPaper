@@ -241,14 +241,26 @@ class JAXOptimizer:
 
         return jax_fn
 
+    @staticmethod
+    def _nmse_denominator(y: jnp.ndarray) -> jnp.ndarray:
+        """Scale-adaptive variance floor for NMSE normalization.
+
+        A fixed epsilon (e.g. 1e-10) collapses NMSE toward zero for sub-nano
+        residuals (binary pulsar |dP/dt| ~ 1e-15), letting degenerate
+        theta→0 solutions win BIC despite nonzero data.
+        """
+        var_y = jnp.var(y)
+        eps = jnp.maximum(var_y * 1e-6, 1e-30)
+        return var_y + eps
+
     def _make_loss_fn(self, jax_fn, X_jax, y_jax):
         """Residual loss: NMSE of expression vs residual y_obs (original behaviour)."""
-        var_y = jnp.var(y_jax) + 1e-10
+        denom = self._nmse_denominator(y_jax)
 
         def loss(theta: jnp.ndarray) -> jnp.ndarray:
             y_pred = jax_fn(theta, X_jax)
             mse    = jnp.mean((y_pred - y_jax) ** 2)
-            return mse / var_y
+            return mse / denom
 
         return loss
 
@@ -262,22 +274,20 @@ class JAXOptimizer:
         low-frequency (high-amplitude) Planck spectrum points from dominating and
         swamping the high-frequency correction signal.
         """
-        # Use a very small epsilon (1e-30) to prevent division by zero without
-        # distorting the variance of small-scale physics data (e.g. Blackbody is 1e-16).
-        var_y_full = jnp.var(y_full_jax) + 1e-30
+        denom_full = self._nmse_denominator(y_full_jax)
 
         if correction_type == 'multiplicative':
             def loss(theta: jnp.ndarray) -> jnp.ndarray:
                 delta   = jax_fn(theta, X_jax)
                 y_recon = y_classical_jax * (1.0 + delta)
                 mse     = jnp.mean((y_recon - y_full_jax) ** 2)
-                return mse / var_y_full
+                return mse / denom_full
         else:  # additive
             def loss(theta: jnp.ndarray) -> jnp.ndarray:
                 delta   = jax_fn(theta, X_jax)
                 y_recon = y_classical_jax + delta
                 mse     = jnp.mean((y_recon - y_full_jax) ** 2)
-                return mse / var_y_full
+                return mse / denom_full
 
         return loss
 
@@ -400,7 +410,8 @@ class JAXOptimizer:
             if not np.all(np.isfinite(y_pred)):
                 return self._fail_result(expr_str, 0, "Non-finite output")
 
-            nmse = float(np.mean((y_pred - y_obs) ** 2) / (np.var(y_obs) + 1e-10))
+            denom = float(JAXOptimizer._nmse_denominator(jnp.array(y_obs)))
+            nmse = float(np.mean((y_pred - y_obs) ** 2) / denom)
             likelihood = float(np.exp(-self.beta * nmse))
 
             return OptimizationResult(

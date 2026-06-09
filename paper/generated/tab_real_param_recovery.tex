@@ -1,0 +1,17 @@
+\begin{table}[H]
+\centering
+\caption{Real-World Structural and Quantitative Recovery (Mock Proposer, seed=42). Quantitative success: NMSE $< 10^{-4}$. Asterisk: structural match only.}
+\label{tab:real_param_recovery}
+\small
+\begin{tabularx}{\textwidth}{l l l c c c}
+\toprule
+\textbf{Scenario} & \textbf{True $\Delta$} & \textbf{Recovered $\Delta$} & \textbf{Class} & \textbf{NMSE} & \textbf{Recovery Notes} \\
+\midrule
+Mercury Perihelion & $\theta_0  \cdot  (v/c)^2$ & $\theta_0 \cdot (v/c)^2$ & Yes & $1.11e-05$ & exact AST match \\
+Hydrogen Lamb Shift & $\theta_0 / n^3$ & $\theta_0  \cdot  (n / \theta_1)^(-\theta_2)$ & Yes & $1.69e-18$ & structural class only \\
+Blackbody Radiation & $\exp(-\theta_0  \cdot  f / T)$ & $-1.0 + \exp(-f/\theta_1)$ & Yes & $2.59e-02^{*}$ & AST dist $=4$ \\
+Muon g-2 & $\theta_0  \cdot  \alpha / \pi$ & $\theta_0 \cdot (0.318309886183791 \cdot \alpha)^\theta_1$ & Yes & $7.94e-07$ & AST dist $=4$ \\
+Binary Pulsar Decay & $\theta_0  \cdot  P^(-5.0/3.0)$ & $\theta_0/P^\theta_1$ & Yes & $3.94e-03^{*}$ & exponent $\approx 1.568$ (true $5/3$) \\
+\bottomrule
+\end{tabularx}
+\end{table}

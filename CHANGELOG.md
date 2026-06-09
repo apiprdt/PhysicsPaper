@@ -6,6 +6,25 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [2.1.0] — 2026-06-09
+
+### Added
+- **Binary pulsar v2.1** reduced-variable benchmark (fixed M, a, e; varying P) with Peters prefactor helper
+- **`run_binary_pulsar_sensitivity.py`**: P_only / P_e / P_e_M / full variant study for reviewer-facing ablation
+- **`scripts/generate_real_world_tables.py`**: auto-generates parameter recovery, template leakage, and sensitivity LaTeX tables
+- **`tests/test_metrics_scale.py`**: guards against scale-adaptive NMSE regressions on sub-nano residuals
+
+### Changed
+- **Real-world reporting** now separates structural (5/5), quantitative NMSE $< 10^{-4}$ (3/5), and optimizer convergence (2/5)
+- **`evaluate_correction`**: SymPy `lambdify` evaluation replaces fragile `eval()` string substitution
+- **Stage-2 BIC reranking** uses post-hoc validated NMSE from `evaluate_correction`, not optimizer-internal scores
+
+### Fixed
+- **Scale-adaptive NMSE** in `jax_optimizer.py` and `metrics.py` (fixed $\varepsilon=10^{-10}$ floor caused false convergence on binary pulsar data $\sim 10^{-15}$)
+- **Binary pulsar false positive**: degenerate $\theta_0\to 0$ models no longer win BIC with NMSE $= 1.0$ while `class_match=true`
+
+---
+
 ## [2.0.0] — 2026-06-08
 
 ### Added

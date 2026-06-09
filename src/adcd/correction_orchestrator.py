@@ -266,23 +266,29 @@ class CorrectionOrchestrator:
             )
             total_candidates_optimized += len(stage2_results)
 
-            # Step 5: Update global best using BIC reranking
+            # Step 5: Update global best using BIC reranking on post-hoc validated NMSE
+            # (optimizer NMSE can disagree with evaluate_correction on extreme-scale data)
             stage2_results_with_bic = []
             if stage2_results:
                 for expr_str, stage2_combined, opt_nmse, arc_score, opt_result in stage2_results:
                     n_params = len([k for k in opt_result.theta.keys() if k.startswith("theta_")])
                     n_points = len(residual)
-                    b_score = bic_score(opt_nmse, n_params, n_points)
-                    stage2_results_with_bic.append((expr_str, stage2_combined, opt_nmse, arc_score, opt_result, b_score))
-                
+                    val_eval = evaluate_correction(
+                        expr_str, scenario, X, y_obs, y_classical, opt_result.theta
+                    )
+                    b_score = bic_score(val_eval.nmse_residual, n_params, n_points)
+                    stage2_results_with_bic.append(
+                        (expr_str, stage2_combined, val_eval.nmse_residual, arc_score,
+                         opt_result, b_score, val_eval)
+                    )
+
                 # Sort by BIC ascending, breaking ties with AST complexity (node count)
-                # to prefer simpler expressions when both fit below the noise floor.
                 stage2_results_with_bic = sorted(
                     stage2_results_with_bic,
                     key=lambda x: (x[5], len(list(sp.preorder_traversal(sp.sympify(x[0])))))
                 )
                 best_iter_cand = stage2_results_with_bic[0]
-                iter_best_expr, _, iter_best_nmse, _, iter_opt_res, iter_best_bic = best_iter_cand
+                iter_best_expr, _, iter_best_nmse, _, iter_opt_res, iter_best_bic, _ = best_iter_cand
 
                 if iter_best_bic < best_bic:
                     best_bic = iter_best_bic
@@ -338,10 +344,9 @@ class CorrectionOrchestrator:
                     break
 
         total_time = time.time() - start_time
-        converged = best_nmse_residual < self.convergence_nmse
-
         # Compute final validation metrics
         final_evaluation = evaluate_correction(best_expr, scenario, X, y_obs, y_classical, best_theta)
+        converged = final_evaluation.nmse_residual < self.convergence_nmse
 
         return CorrectionSearchResult(
             best_expr=best_expr,

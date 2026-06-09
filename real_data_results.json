@@ -4,43 +4,46 @@
     "tier": "real_data",
     "noise": 0.0,
     "discovered_expr": "theta_0*vc2",
-    "nmse_residual": 1.107794714627923e-05,
-    "nmse_full": 1.107794714627923e-05,
+    "fitted_theta": {
+      "theta_0": 5.019304230379819e-07
+    },
+    "nmse_residual": 1.1077751621129094e-05,
+    "nmse_full": 1.1077751621129094e-05,
     "discovered_class": "polynomial",
     "class_match": true,
     "ast_edit_distance": 0,
     "parameter_error": {
-      "theta_0": 0.9999994980677454
+      "theta_0": 0.999999498069577
     },
-    "bic": -2276.8125165169217,
-    "time_seconds": 3.253345251083374,
-    "converged": true,
-    "total_candidates_proposed": 25,
-    "total_candidates_survived_stage1": 7,
-    "total_candidates_optimized": 7,
+    "bic": -2276.816046536935,
+    "time_seconds": 9.294435977935791,
+    "converged": false,
+    "total_candidates_proposed": 100,
+    "total_candidates_survived_stage1": 20,
+    "total_candidates_optimized": 20,
     "gate_stats": {
-      "input_count": 25,
+      "input_count": 100,
       "parse_fail": 0,
       "ast_reject": 0,
-      "dim_reject": 12,
+      "dim_reject": 58,
       "transcendental_reject": 0,
-      "arc_reject": 6,
+      "arc_reject": 22,
       "coarse_reject": 0,
-      "output_count": 7,
-      "after_parse": 25,
-      "after_ast": 25,
-      "after_dim": 13,
-      "after_transcendental": 13,
-      "after_arc": 7,
-      "after_coarse": 7,
+      "output_count": 20,
+      "after_parse": 100,
+      "after_ast": 100,
+      "after_dim": 42,
+      "after_transcendental": 42,
+      "after_arc": 20,
+      "after_coarse": 20,
       "survival_rates": {
         "parse": 1.0,
         "ast": 1.0,
-        "dimensional": 0.52,
+        "dimensional": 0.42,
         "transcendental": 1.0,
-        "arc": 0.5384615384615384,
+        "arc": 0.47619047619047616,
         "coarse": 1.0,
-        "overall": 0.28
+        "overall": 0.2
       }
     }
   },
@@ -49,16 +52,21 @@
     "tier": "real_data",
     "noise": 0.0,
     "discovered_expr": "theta_0 * (n / theta_1)**(-theta_2)",
-    "nmse_residual": 1.2895503655253413e-07,
-    "nmse_full": 1.8184112296951908e-18,
+    "fitted_theta": {
+      "theta_0": 2.251108397967307e-05,
+      "theta_1": 1.6657185888386952,
+      "theta_2": 2.999651485829448
+    },
+    "nmse_residual": 1.195260903692022e-07,
+    "nmse_full": 1.6854524846046594e-18,
     "discovered_class": "power_law",
     "class_match": true,
     "ast_edit_distance": 6,
     "parameter_error": {
-      "theta_0": 0.9999774922602629
+      "theta_0": 0.9999774889160203
     },
     "bic": -240.00807476966844,
-    "time_seconds": 7.606626987457275,
+    "time_seconds": 7.752546548843384,
     "converged": true,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 33,
@@ -94,16 +102,19 @@
     "tier": "real_data",
     "noise": 0.0,
     "discovered_expr": "-1.0 + exp(-f/theta_1)",
-    "nmse_residual": 0.004821244008370017,
-    "nmse_full": 0.025923385293908224,
+    "fitted_theta": {
+      "theta_1": 184254305991057.88
+    },
+    "nmse_residual": 0.004821239242009917,
+    "nmse_full": 0.025923359370548325,
     "discovered_class": "exponential",
     "class_match": true,
     "ast_edit_distance": 4,
     "parameter_error": {
-      "theta_0": 3.839431260218448e+24
+      "theta_0": 3.83943125632544e+24
     },
-    "bic": -1061.6463408728675,
-    "time_seconds": 6.81810998916626,
+    "bic": -1061.6465385962122,
+    "time_seconds": 7.69512414932251,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 35,
@@ -139,16 +150,20 @@
     "tier": "real_data",
     "noise": 0.0,
     "discovered_expr": "theta_0*(0.318309886183791*alpha)**theta_1",
-    "nmse_residual": 7.936763119066094e-07,
-    "nmse_full": 7.936763119066094e-07,
+    "fitted_theta": {
+      "theta_0": 0.5185881605481591,
+      "theta_1": 1.0053635228300324
+    },
+    "nmse_residual": 7.936755182313295e-07,
+    "nmse_full": 7.936755182313295e-07,
     "discovered_class": "polynomial",
     "class_match": true,
     "ast_edit_distance": 4,
     "parameter_error": {
-      "theta_0": 0.03717632109639313
+      "theta_0": 0.0371763210963183
     },
     "bic": -1372.3407154244512,
-    "time_seconds": 8.298501253128052,
+    "time_seconds": 10.679454326629639,
     "converged": true,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 51,
@@ -183,44 +198,48 @@
     "scenario": "Real: Binary Pulsar Decay",
     "tier": "real_data",
     "noise": 0.0,
-    "discovered_expr": "-theta_0**4/P**4",
-    "nmse_residual": 1.0,
-    "nmse_full": 1.0,
+    "discovered_expr": "theta_0/P**theta_1",
+    "fitted_theta": {
+      "theta_0": 4.8926181437491795e-08,
+      "theta_1": 1.5680590649226196
+    },
+    "nmse_residual": 0.003938238600566683,
+    "nmse_full": 0.003938238600566683,
     "discovered_class": "power_law",
     "class_match": true,
-    "ast_edit_distance": 4,
+    "ast_edit_distance": 2,
     "parameter_error": {
-      "theta_0": 1.0
+      "theta_0": 0.6365712309489704
     },
-    "bic": 4.0943445622221,
-    "time_seconds": 1.7246568202972412,
-    "converged": true,
-    "total_candidates_proposed": 25,
-    "total_candidates_survived_stage1": 7,
-    "total_candidates_optimized": 7,
+    "bic": -324.03261355506896,
+    "time_seconds": 9.876260042190552,
+    "converged": false,
+    "total_candidates_proposed": 100,
+    "total_candidates_survived_stage1": 34,
+    "total_candidates_optimized": 30,
     "gate_stats": {
-      "input_count": 25,
+      "input_count": 100,
       "parse_fail": 0,
       "ast_reject": 0,
-      "dim_reject": 4,
+      "dim_reject": 11,
       "transcendental_reject": 0,
-      "arc_reject": 13,
+      "arc_reject": 53,
       "coarse_reject": 0,
-      "output_count": 8,
-      "after_parse": 25,
-      "after_ast": 25,
-      "after_dim": 21,
-      "after_transcendental": 21,
-      "after_arc": 8,
-      "after_coarse": 8,
+      "output_count": 36,
+      "after_parse": 100,
+      "after_ast": 100,
+      "after_dim": 89,
+      "after_transcendental": 89,
+      "after_arc": 36,
+      "after_coarse": 36,
       "survival_rates": {
         "parse": 1.0,
         "ast": 1.0,
-        "dimensional": 0.84,
+        "dimensional": 0.89,
         "transcendental": 1.0,
-        "arc": 0.38095238095238093,
+        "arc": 0.4044943820224719,
         "coarse": 1.0,
-        "overall": 0.32
+        "overall": 0.36
       }
     }
   }

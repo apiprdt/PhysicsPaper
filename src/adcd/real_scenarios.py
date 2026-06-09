@@ -19,6 +19,7 @@ from adcd.real_data_loader import (
     load_blackbody_radiation,
     load_muon_g2,
     load_binary_pulsar_decay,
+    binary_pulsar_prefactor,
 )
 
 # Map scenario name → loader function
@@ -151,7 +152,7 @@ def get_real_scenarios():
             classical_constants={"G": 6.674e-11, "c": 2.998e8},
             correction_type="additive",
             correction_expr="theta_0 * P**(-5.0/3.0)",
-            correction_constants={"theta_0": 1.0},
+            correction_constants={"theta_0": binary_pulsar_prefactor()},
             anomaly_regime="compact binary inspiral (Hulse-Taylor), secular period decay, P→∞ gives Δ→0",
             variables_with_units={"P": "s"},
             classical_limit_variable="P",

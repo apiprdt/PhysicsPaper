@@ -139,6 +139,14 @@ def compute_levenshtein_distance(seq1: List[str], seq2: List[str]) -> int:
                 )
     return int(matrix[size_x - 1, size_y - 1])
 
+def _nmse(mse: float, reference: np.ndarray) -> float:
+    """Scale-adaptive NMSE; matches JAX optimizer denominator logic."""
+    var_y = float(np.var(reference))
+    eps = max(var_y * 1e-6, 1e-36)
+    denom = var_y + eps
+    return float(mse / denom) if denom > 0 else 1.0
+
+
 def bic_score(nmse: float, n_params: int, n_points: int) -> float:
     """Lower is better. Penalizes parameter count.
     
@@ -154,6 +162,37 @@ def bic_score(nmse: float, n_params: int, n_points: int) -> float:
     rss = nmse_floored * n_points
     log_likelihood = -n_points / 2 * np.log(rss / n_points + 1e-30)
     return float(-2 * log_likelihood + n_params * np.log(n_points))
+
+
+def _evaluate_delta_array(
+    expr_str: str,
+    X: Dict[str, np.ndarray],
+    theta_fit: Dict[str, float],
+    classical_constants: Dict[str, float],
+    n_points: int,
+) -> np.ndarray:
+    """Numerically evaluate a correction expression on tabular data (robust vs. eval())."""
+    try:
+        expr = sp.sympify(expr_str)
+        subs = {
+            sp.Symbol(k): v
+            for k, v in {**(classical_constants or {}), **theta_fit}.items()
+        }
+        expr = expr.subs(subs)
+        free_syms = sorted(expr.free_symbols, key=lambda s: str(s))
+        if not free_syms:
+            return np.full(n_points, float(expr))
+
+        fn = sp.lambdify(free_syms, expr, modules=["numpy"])
+        args = []
+        for sym in free_syms:
+            name = str(sym)
+            if name not in X:
+                raise KeyError(name)
+            args.append(X[name])
+        return np.asarray(fn(*args), dtype=float)
+    except Exception:
+        return np.zeros(n_points)
 
 
 def evaluate_correction(
@@ -196,44 +235,30 @@ def evaluate_correction(
     ast_dist = compute_levenshtein_distance(seq_disc, seq_true)
 
     # 4. Numerical NMSE metrics
-    # Re-evaluate discovered expression with fitted thetas on data
-    local_eval_dict = {**X, **scenario.classical_constants, **theta_fit}
-    eval_env = {
-        "np": np, 
-        "sp": sp,
-        "exp": np.exp,
-        "sin": np.sin,
-        "cos": np.cos,
-        "tanh": np.tanh,
-        "log": np.log,
-        "sqrt": np.sqrt
-    }
-    
-    # We substitute fitted parameters into expression string for evaluation
-    subbed_str = discovered_expr_str
-    for k, v in theta_fit.items():
-        subbed_str = subbed_str.replace(k, f"({v})")
-        
-    try:
-        delta_discovered = eval(subbed_str, eval_env, local_eval_dict)
-    except Exception:
-        delta_discovered = np.zeros_like(y_obs)
+    n_points = len(y_obs)
+    delta_discovered = _evaluate_delta_array(
+        discovered_expr_str,
+        X,
+        theta_fit,
+        scenario.classical_constants,
+        n_points,
+    )
 
     # Reconstruct y
     if scenario.correction_type == "multiplicative":
         y_recon = y_classical * (1.0 + delta_discovered)
         # Compute residual NMSE
         residual_obs = y_obs / y_classical - 1.0
-        var_res = np.var(residual_obs)
-        nmse_res = np.mean((delta_discovered - residual_obs)**2) / var_res if var_res > 1e-30 else 1.0
-    else: # additive
+        mse_res = np.mean((delta_discovered - residual_obs) ** 2)
+        nmse_res = _nmse(mse_res, residual_obs)
+    else:  # additive
         y_recon = y_classical + delta_discovered
         residual_obs = y_obs - y_classical
-        var_res = np.var(residual_obs)
-        nmse_res = np.mean((delta_discovered - residual_obs)**2) / var_res if var_res > 1e-30 else 1.0
+        mse_res = np.mean((delta_discovered - residual_obs) ** 2)
+        nmse_res = _nmse(mse_res, residual_obs)
 
-    var_y = np.var(y_obs)
-    nmse_full = np.mean((y_recon - y_obs)**2) / var_y if var_y > 1e-30 else 1.0
+    mse_full = np.mean((y_recon - y_obs) ** 2)
+    nmse_full = _nmse(mse_full, y_obs)
 
     # 5. Parameter recovery error
     # Match fitted thetas to scenario correction_constants

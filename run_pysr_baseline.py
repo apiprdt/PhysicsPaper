@@ -17,36 +17,15 @@ import json
 import time
 import logging
 import numpy as np
-from pysr import PySRRegressor
 
 from adcd.anomaly_scenarios import get_all_scenarios
 from adcd.metrics import classify_structure
+from pysr_profiles import PYSR_PROFILES
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("PySRBaseline")
 
 NOISE_LEVELS = [0.0, 0.01, 0.05, 0.10]
-
-PYSR_PROFILES = {
-    "fast": {
-        "niterations": 15,
-        "maxsize": 15,
-        "timeout_in_seconds": 25,
-        "description": "Matched wall-clock budget (legacy comparison)",
-    },
-    "fair": {
-        "niterations": 100,
-        "maxsize": 30,
-        "timeout_in_seconds": 60,
-        "description": "PySR near-default budget (primary fair comparison)",
-    },
-    "generous": {
-        "niterations": 200,
-        "maxsize": 40,
-        "timeout_in_seconds": 120,
-        "description": "Upper-bound PySR search budget",
-    },
-}
 
 
 def _count_pysr_expressions(model) -> int:
@@ -68,6 +47,13 @@ def _count_pysr_expressions(model) -> int:
 
 def run_pysr_on_residual(scenario, noise_level: float, profile: str, seed: int = 42) -> dict:
     """Run PySR on the residual (no physics gates)."""
+    try:
+        from pysr import PySRRegressor
+    except ImportError as e:
+        raise ImportError(
+            "PySR is required to run the baseline. Install with: pip install pysr"
+        ) from e
+
     cfg = PYSR_PROFILES[profile]
 
     X_dict, y_obs, y_classical, residual = scenario.generate_data(

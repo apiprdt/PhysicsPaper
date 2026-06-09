@@ -1,7 +1,7 @@
 # Experiment Report: ADCD Correction Discovery
 
 > **AUTO-GENERATED** — do not edit manually.
-> Generated: 2026-06-09 14:51 UTC | git: `2127f86`
+> Generated: 2026-06-09 17:04 UTC | git: `7724dbe`
 
 Regenerate: `python scripts/generate_experiment_report.py`
 
@@ -34,16 +34,17 @@ Regenerate: `python scripts/generate_experiment_report.py`
 
 | Scenario | Class Match | Converged | Full NMSE |
 |:---|:---:|:---:|:---:|
-| Real: Mercury Perihelion | ✓ | ✓ | 1.11e-05 |
-| Real: Hydrogen Lamb Shift | ✓ | ✓ | 1.82e-18 |
+| Real: Mercury Perihelion | ✓ | — | 1.11e-05 |
+| Real: Hydrogen Lamb Shift | ✓ | ✓ | 1.69e-18 |
 | Real: Blackbody Radiation | ✓ | — | 2.59e-02 |
 | Real: Muon g-2 | ✓ | ✓ | 7.94e-07 |
-| Real: Binary Pulsar Decay | ✗ | — | 1.57e-02 |
+| Real: Binary Pulsar Decay | ✓ | — | 3.94e-03 |
 
-**Summary:** 4/5 structural class matches; 3/5 full convergence (NMSE threshold).
+**Summary:** 5/5 structural class matches; 3/5 quantitative (NMSE $< 10^{-4}$); 2/5 optimizer converged ($< 10^{-5}$).
 
 > Data are synthetic-real hybrid (JPL/NIST/CODATA constants), not raw instrument archives.
 > Template-assisted (mock) vs zero-shot (hybrid/gemini) results must be reported separately.
+> Binary pulsar v2.1 uses reduced-variable formulation (P only); see sensitivity study.
 
 ## PySR Baseline Comparison
 

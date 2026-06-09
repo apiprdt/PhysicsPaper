@@ -137,13 +137,17 @@ def generate():
                 f"| {r['scenario']} | {'✓' if r.get('class_match') else '✗'} | "
                 f"{'✓' if conv else '—'} | {nmse:.2e} |"
             )
+        n_struct = sum(1 for r in real if r.get("class_match"))
+        n_quant = sum(1 for r in real if r.get("nmse_full", 1) < 1e-4)
         lines += [
             "",
-            f"**Summary:** {sum(1 for r in real if r.get('class_match'))}/{len(real)} structural class matches; "
-            f"{converged_count}/{len(real)} full convergence (NMSE threshold).",
+            f"**Summary:** {n_struct}/{len(real)} structural class matches; "
+            f"{n_quant}/{len(real)} quantitative (NMSE $< 10^{{-4}}$); "
+            f"{converged_count}/{len(real)} optimizer converged ($< 10^{{-5}}$).",
             "",
             "> Data are synthetic-real hybrid (JPL/NIST/CODATA constants), not raw instrument archives.",
             "> Template-assisted (mock) vs zero-shot (hybrid/gemini) results must be reported separately.",
+            "> Binary pulsar v2.1 uses reduced-variable formulation (P only); see sensitivity study.",
             "",
         ]
 
