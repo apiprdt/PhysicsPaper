@@ -95,6 +95,9 @@ def generate_parameter_recovery_table(real_results: list) -> str:
         r"\midrule",
     ]
     for r in real_results:
+        # Exclude Binary Pulsar Decay from this table as it is a sensitivity study
+        if "Binary Pulsar" in r["scenario"]:
+            continue
         sc = scenarios.get(r["scenario"])
         true_expr = _latex_expr(sc.correction_expr if sc else "—")
         recovered = _latex_expr(r.get("discovered_expr", "—"))
@@ -187,13 +190,14 @@ def main():
         path.write_text(content, encoding="utf-8")
         print(f"Wrote {path}")
 
-    n_struct = sum(1 for r in real_results if r.get("class_match"))
-    n_quant = sum(1 for r in real_results if r.get("nmse_full", 1) < 1e-4)
-    n_conv = sum(1 for r in real_results if r.get("converged"))
+    real_established = [r for r in real_results if "Binary Pulsar" not in r["scenario"]]
+    n_struct = sum(1 for r in real_established if r.get("class_match"))
+    n_quant = sum(1 for r in real_established if r.get("nmse_full", 1) < 1e-4)
+    n_conv = sum(1 for r in real_established if r.get("converged"))
     summary = {
-        "structural_matches": f"{n_struct}/{len(real_results)}",
-        "quantitative_nmse_lt_1e4": f"{n_quant}/{len(real_results)}",
-        "optimizer_converged": f"{n_conv}/{len(real_results)}",
+        "structural_matches": f"{n_struct}/{len(real_established)}",
+        "quantitative_nmse_lt_1e4": f"{n_quant}/{len(real_established)}",
+        "optimizer_converged": f"{n_conv}/{len(real_established)}",
     }
     (out_dir / "real_world_summary.json").write_text(
         json.dumps(summary, indent=2), encoding="utf-8"

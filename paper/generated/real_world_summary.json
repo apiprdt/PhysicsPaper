@@ -1,5 +1,5 @@
 {
-  "structural_matches": "5/5",
-  "quantitative_nmse_lt_1e4": "3/5",
-  "optimizer_converged": "2/5"
+  "structural_matches": "4/4",
+  "quantitative_nmse_lt_1e4": "3/4",
+  "optimizer_converged": "2/4"
 }
