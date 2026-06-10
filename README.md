@@ -9,7 +9,7 @@
 
 ADCD is a symbolic regression framework that discovers *physical correction terms* rather than learning equations from scratch. Given a known classical law and anomalous observations, ADCD recovers the dimensionless correction Δ that reconciles theory with experiment — mirroring how physics actually evolves.
 
-> **81.1% (±10.3%) mean structural recovery** across 5 random seeds, with peak **94.4%** at the reference seed.  
+> **82.8% (±7.7%) mean structural recovery** across 5 random seeds, with peak **94.4%** at the reference seed.  
 > **4/4 real-world structural class matches** (Mercury, Lamb Shift, Muon g-2, Blackbody).  
 > **77 automated unit tests** passing on Python 3.10 and 3.11.
 
@@ -115,11 +115,11 @@ All results are reported across 5 independent random seeds (0, 7, 21, 42, 99):
 | Seed | Class Match Rate |
 |:----:|:----------------:|
 | 0 | 86.1% (31/36) |
-| 7 | 66.7% (24/36) |
-| 21 | 80.6% (29/36) |
+| 7 | 75.0% (27/36) |
+| 21 | 77.8% (28/36) |
 | 42 | 94.4% (34/36) |
-| 99 | 77.8% (28/36) |
-| **Mean** | **81.1% ± 10.3%** |
+| 99 | 80.6% (29/36) |
+| **Mean** | **82.8% ± 7.7%** |
 
 Performance variation reflects stochastic template sampling in the MockProposer. Physics gates ensure that **when** the correct functional family is sampled, it consistently survives filtering and is selected by BIC reranking.
 

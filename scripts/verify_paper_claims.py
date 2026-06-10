@@ -82,7 +82,7 @@ if repro_all:
     mean_rate = sum(rates) / len(rates)
     std_rate = statistics.stdev(rates)
     print(f"  Seeds tested: {sorted(seed_rates.keys())}")
-    expected_by_seed = {0: 86.1, 7: 66.7, 21: 80.6, 42: 94.4, 99: 77.8}
+    expected_by_seed = {0: 86.1, 7: 75.0, 21: 77.8, 42: 94.4, 99: 80.6}
     for seed in sorted(seed_rates.keys()):
         n_match = sum(seed_rates[seed])
         n_total = len(seed_rates[seed])
@@ -93,10 +93,10 @@ if repro_all:
             flag = OK if ok_seed else FAIL
             print(f"  {flag} seed={seed}: {n_match}/{n_total} = {pct:.1f}%  (paper claims {exp:.1f}%)")
             all_ok &= ok_seed
-    passed = (abs(mean_rate - 81.1) < 1.5 and abs(std_rate - 10.3) < 1.0)
+    passed = (abs(mean_rate - 82.8) < 1.5 and abs(std_rate - 7.7) < 1.0)
     flag = OK if passed else FAIL
     print(f"  {flag} Mean: {mean_rate:.1f}% +/- {std_rate:.1f}%"
-          f"  (paper claims 81.1% +/- 10.3%)")
+          f"  (paper claims 82.8% +/- 7.7%)")
     all_ok &= passed
 
 

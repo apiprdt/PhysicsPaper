@@ -16,7 +16,7 @@
       "theta_0": 0.999999498069577
     },
     "bic": -2276.816046536935,
-    "time_seconds": 9.294435977935791,
+    "time_seconds": 7.604856967926025,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 20,
@@ -66,7 +66,7 @@
       "theta_0": 0.9999774889160203
     },
     "bic": -240.00807476966844,
-    "time_seconds": 7.752546548843384,
+    "time_seconds": 6.692103862762451,
     "converged": true,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 33,
@@ -114,7 +114,7 @@
       "theta_0": 3.83943125632544e+24
     },
     "bic": -1061.6465385962122,
-    "time_seconds": 7.69512414932251,
+    "time_seconds": 7.216969966888428,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 35,
@@ -163,7 +163,7 @@
       "theta_0": 0.0371763210963183
     },
     "bic": -1372.3407154244512,
-    "time_seconds": 10.679454326629639,
+    "time_seconds": 11.288127422332764,
     "converged": true,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 51,
@@ -212,7 +212,7 @@
       "theta_0": 0.6365712309489704
     },
     "bic": -324.03261355506896,
-    "time_seconds": 9.876260042190552,
+    "time_seconds": 8.635824203491211,
     "converged": false,
     "total_candidates_proposed": 100,
     "total_candidates_survived_stage1": 34,

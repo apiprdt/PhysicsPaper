@@ -4,485 +4,485 @@
     "condition": "Full_ADCD",
     "noise": 0.05,
     "class_match": true,
-    "nmse_full": 0.004207128876929867,
+    "nmse_full": 0.0041926419354948825,
     "discovered_class": "polynomial",
-    "time_seconds": 7.261473894119263
+    "time_seconds": 9.418531894683838
   },
   {
     "scenario": "Yukawa Gravity",
     "condition": "Full_ADCD",
     "noise": 0.05,
-    "class_match": false,
-    "nmse_full": 0.002347239766318014,
-    "discovered_class": "logarithmic",
-    "time_seconds": 4.389585971832275
+    "class_match": true,
+    "nmse_full": 0.0018298882064623804,
+    "discovered_class": "exponential",
+    "time_seconds": 5.366110563278198
   },
   {
     "scenario": "Anharmonic Spring",
     "condition": "Full_ADCD",
     "noise": 0.05,
     "class_match": true,
-    "nmse_full": 0.004458340458335447,
+    "nmse_full": 0.004458335999999448,
     "discovered_class": "polynomial",
-    "time_seconds": 6.27726674079895
+    "time_seconds": 1.8653216361999512
   },
   {
     "scenario": "Screened Coulomb",
     "condition": "Full_ADCD",
     "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.0012458813539490872,
-    "discovered_class": "exponential",
-    "time_seconds": 4.725815057754517
-  },
-  {
-    "scenario": "Net Radiation",
-    "condition": "Full_ADCD",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.003735916844328882,
-    "discovered_class": "power_law",
-    "time_seconds": 3.7406246662139893
-  },
-  {
-    "scenario": "Nonlinear Drag",
-    "condition": "Full_ADCD",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.006590546552619645,
-    "discovered_class": "polynomial",
-    "time_seconds": 5.80781626701355
-  },
-  {
-    "scenario": "Mystery-A",
-    "condition": "Full_ADCD",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.00627648860315163,
-    "discovered_class": "trigonometric",
-    "time_seconds": 3.8175160884857178
-  },
-  {
-    "scenario": "Mystery-B",
-    "condition": "Full_ADCD",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.005175713527763919,
-    "discovered_class": "trigonometric",
-    "time_seconds": 5.559260368347168
-  },
-  {
-    "scenario": "Mystery-C",
-    "condition": "Full_ADCD",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.006987943882805033,
-    "discovered_class": "logarithmic",
-    "time_seconds": 5.25389838218689
-  },
-  {
-    "scenario": "Relativistic KE",
-    "condition": "No_ARC",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.004207128876929867,
-    "discovered_class": "polynomial",
-    "time_seconds": 3.767681121826172
-  },
-  {
-    "scenario": "Yukawa Gravity",
-    "condition": "No_ARC",
-    "noise": 0.05,
     "class_match": false,
-    "nmse_full": 0.002347239766318014,
-    "discovered_class": "logarithmic",
-    "time_seconds": 5.182162761688232
-  },
-  {
-    "scenario": "Anharmonic Spring",
-    "condition": "No_ARC",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.004458340458335447,
-    "discovered_class": "polynomial",
-    "time_seconds": 5.262610912322998
-  },
-  {
-    "scenario": "Screened Coulomb",
-    "condition": "No_ARC",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.0012458813539490872,
-    "discovered_class": "exponential",
-    "time_seconds": 4.671889543533325
-  },
-  {
-    "scenario": "Net Radiation",
-    "condition": "No_ARC",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.003735916844328882,
-    "discovered_class": "power_law",
-    "time_seconds": 5.065485239028931
-  },
-  {
-    "scenario": "Nonlinear Drag",
-    "condition": "No_ARC",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.006590546552619645,
-    "discovered_class": "polynomial",
-    "time_seconds": 4.846677780151367
-  },
-  {
-    "scenario": "Mystery-A",
-    "condition": "No_ARC",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.00627648860315163,
-    "discovered_class": "trigonometric",
-    "time_seconds": 5.157749652862549
-  },
-  {
-    "scenario": "Mystery-B",
-    "condition": "No_ARC",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.005175713527763919,
-    "discovered_class": "trigonometric",
-    "time_seconds": 4.820282220840454
-  },
-  {
-    "scenario": "Mystery-C",
-    "condition": "No_ARC",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.006987943882805033,
-    "discovered_class": "logarithmic",
-    "time_seconds": 5.053085088729858
-  },
-  {
-    "scenario": "Relativistic KE",
-    "condition": "No_AST",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.004207128876929867,
-    "discovered_class": "polynomial",
-    "time_seconds": 4.314265489578247
-  },
-  {
-    "scenario": "Yukawa Gravity",
-    "condition": "No_AST",
-    "noise": 0.05,
-    "class_match": false,
-    "nmse_full": 0.002347239766318014,
-    "discovered_class": "logarithmic",
-    "time_seconds": 3.649139642715454
-  },
-  {
-    "scenario": "Anharmonic Spring",
-    "condition": "No_AST",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.004458340458335447,
-    "discovered_class": "polynomial",
-    "time_seconds": 5.533036947250366
-  },
-  {
-    "scenario": "Screened Coulomb",
-    "condition": "No_AST",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.0012458813539490872,
-    "discovered_class": "exponential",
-    "time_seconds": 4.2722766399383545
-  },
-  {
-    "scenario": "Net Radiation",
-    "condition": "No_AST",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.003735916844328882,
-    "discovered_class": "power_law",
-    "time_seconds": 3.539782762527466
-  },
-  {
-    "scenario": "Nonlinear Drag",
-    "condition": "No_AST",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.006590546552619645,
-    "discovered_class": "polynomial",
-    "time_seconds": 5.466026067733765
-  },
-  {
-    "scenario": "Mystery-A",
-    "condition": "No_AST",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.00627648860315163,
-    "discovered_class": "trigonometric",
-    "time_seconds": 3.8265140056610107
-  },
-  {
-    "scenario": "Mystery-B",
-    "condition": "No_AST",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.005175713527763919,
-    "discovered_class": "trigonometric",
-    "time_seconds": 5.317811012268066
-  },
-  {
-    "scenario": "Mystery-C",
-    "condition": "No_AST",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.006987943882805033,
-    "discovered_class": "logarithmic",
-    "time_seconds": 5.116995334625244
-  },
-  {
-    "scenario": "Relativistic KE",
-    "condition": "No_Dim",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.004207128876929867,
-    "discovered_class": "polynomial",
-    "time_seconds": 4.513484477996826
-  },
-  {
-    "scenario": "Yukawa Gravity",
-    "condition": "No_Dim",
-    "noise": 0.05,
-    "class_match": false,
-    "nmse_full": 0.002347239766318014,
-    "discovered_class": "logarithmic",
-    "time_seconds": 4.071633815765381
-  },
-  {
-    "scenario": "Anharmonic Spring",
-    "condition": "No_Dim",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.004458340458335447,
-    "discovered_class": "polynomial",
-    "time_seconds": 5.556082487106323
-  },
-  {
-    "scenario": "Screened Coulomb",
-    "condition": "No_Dim",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.0012458813539490872,
-    "discovered_class": "exponential",
-    "time_seconds": 4.498763799667358
-  },
-  {
-    "scenario": "Net Radiation",
-    "condition": "No_Dim",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.003735916844328882,
-    "discovered_class": "power_law",
-    "time_seconds": 4.160261154174805
-  },
-  {
-    "scenario": "Nonlinear Drag",
-    "condition": "No_Dim",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.006590546552619645,
-    "discovered_class": "polynomial",
-    "time_seconds": 5.6715991497039795
-  },
-  {
-    "scenario": "Mystery-A",
-    "condition": "No_Dim",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.00627648860315163,
-    "discovered_class": "trigonometric",
-    "time_seconds": 4.065775156021118
-  },
-  {
-    "scenario": "Mystery-B",
-    "condition": "No_Dim",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.005175713527763919,
-    "discovered_class": "trigonometric",
-    "time_seconds": 5.311745643615723
-  },
-  {
-    "scenario": "Mystery-C",
-    "condition": "No_Dim",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.006987943882805033,
-    "discovered_class": "logarithmic",
-    "time_seconds": 5.805872678756714
-  },
-  {
-    "scenario": "Relativistic KE",
-    "condition": "No_DataGate",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.004207128876929867,
-    "discovered_class": "polynomial",
-    "time_seconds": 4.1669981479644775
-  },
-  {
-    "scenario": "Yukawa Gravity",
-    "condition": "No_DataGate",
-    "noise": 0.05,
-    "class_match": false,
-    "nmse_full": 0.002347239766318014,
-    "discovered_class": "logarithmic",
-    "time_seconds": 3.6087586879730225
-  },
-  {
-    "scenario": "Anharmonic Spring",
-    "condition": "No_DataGate",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.004458340458335447,
-    "discovered_class": "polynomial",
-    "time_seconds": 5.3885581493377686
-  },
-  {
-    "scenario": "Screened Coulomb",
-    "condition": "No_DataGate",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.0012458813539490872,
-    "discovered_class": "exponential",
-    "time_seconds": 4.386176109313965
-  },
-  {
-    "scenario": "Net Radiation",
-    "condition": "No_DataGate",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.003735916844328882,
-    "discovered_class": "power_law",
-    "time_seconds": 3.4710001945495605
-  },
-  {
-    "scenario": "Nonlinear Drag",
-    "condition": "No_DataGate",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.006590546552619645,
-    "discovered_class": "polynomial",
-    "time_seconds": 5.490631580352783
-  },
-  {
-    "scenario": "Mystery-A",
-    "condition": "No_DataGate",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.00627648860315163,
-    "discovered_class": "trigonometric",
-    "time_seconds": 4.157191514968872
-  },
-  {
-    "scenario": "Mystery-B",
-    "condition": "No_DataGate",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.005175713527763919,
-    "discovered_class": "trigonometric",
-    "time_seconds": 5.468391418457031
-  },
-  {
-    "scenario": "Mystery-C",
-    "condition": "No_DataGate",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.006987943882805033,
-    "discovered_class": "logarithmic",
-    "time_seconds": 5.259360313415527
-  },
-  {
-    "scenario": "Relativistic KE",
-    "condition": "No_Gates",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.0042071288769298665,
-    "discovered_class": "polynomial",
-    "time_seconds": 4.4145777225494385
-  },
-  {
-    "scenario": "Yukawa Gravity",
-    "condition": "No_Gates",
-    "noise": 0.05,
-    "class_match": false,
-    "nmse_full": 0.002347239766318014,
-    "discovered_class": "logarithmic",
-    "time_seconds": 4.844420433044434
-  },
-  {
-    "scenario": "Anharmonic Spring",
-    "condition": "No_Gates",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.004665346257078005,
-    "discovered_class": "polynomial",
-    "time_seconds": 4.714389085769653
-  },
-  {
-    "scenario": "Screened Coulomb",
-    "condition": "No_Gates",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.0012458813539490872,
-    "discovered_class": "exponential",
-    "time_seconds": 4.533869981765747
-  },
-  {
-    "scenario": "Net Radiation",
-    "condition": "No_Gates",
-    "noise": 0.05,
-    "class_match": false,
-    "nmse_full": 0.0063889509182028185,
-    "discovered_class": "exponential",
-    "time_seconds": 4.502469539642334
-  },
-  {
-    "scenario": "Nonlinear Drag",
-    "condition": "No_Gates",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.006590546552619659,
-    "discovered_class": "polynomial",
-    "time_seconds": 4.807399749755859
-  },
-  {
-    "scenario": "Mystery-A",
-    "condition": "No_Gates",
-    "noise": 0.05,
-    "class_match": true,
-    "nmse_full": 0.00627648860315163,
-    "discovered_class": "trigonometric",
-    "time_seconds": 4.460441589355469
-  },
-  {
-    "scenario": "Mystery-B",
-    "condition": "No_Gates",
-    "noise": 0.05,
-    "class_match": false,
-    "nmse_full": 0.005562716790982309,
-    "discovered_class": "power_law",
-    "time_seconds": 4.866450548171997
-  },
-  {
-    "scenario": "Mystery-C",
-    "condition": "No_Gates",
-    "noise": 0.05,
-    "class_match": false,
-    "nmse_full": 0.006971793147526356,
+    "nmse_full": 0.0010913459781662451,
     "discovered_class": "rational",
-    "time_seconds": 4.842583417892456
+    "time_seconds": 5.43113899230957
+  },
+  {
+    "scenario": "Net Radiation",
+    "condition": "Full_ADCD",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.0037355707154813457,
+    "discovered_class": "power_law",
+    "time_seconds": 5.152047872543335
+  },
+  {
+    "scenario": "Nonlinear Drag",
+    "condition": "Full_ADCD",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006590539962079682,
+    "discovered_class": "polynomial",
+    "time_seconds": 2.5019078254699707
+  },
+  {
+    "scenario": "Mystery-A",
+    "condition": "Full_ADCD",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006276499975636795,
+    "discovered_class": "trigonometric",
+    "time_seconds": 3.9764063358306885
+  },
+  {
+    "scenario": "Mystery-B",
+    "condition": "Full_ADCD",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.005175708263641099,
+    "discovered_class": "trigonometric",
+    "time_seconds": 11.620969772338867
+  },
+  {
+    "scenario": "Mystery-C",
+    "condition": "Full_ADCD",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006987934289551839,
+    "discovered_class": "logarithmic",
+    "time_seconds": 9.785430431365967
+  },
+  {
+    "scenario": "Relativistic KE",
+    "condition": "No_ARC",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.0041926419354948825,
+    "discovered_class": "polynomial",
+    "time_seconds": 8.535544157028198
+  },
+  {
+    "scenario": "Yukawa Gravity",
+    "condition": "No_ARC",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.0018298882064623804,
+    "discovered_class": "exponential",
+    "time_seconds": 12.324936151504517
+  },
+  {
+    "scenario": "Anharmonic Spring",
+    "condition": "No_ARC",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.004458335999999448,
+    "discovered_class": "polynomial",
+    "time_seconds": 12.098041534423828
+  },
+  {
+    "scenario": "Screened Coulomb",
+    "condition": "No_ARC",
+    "noise": 0.05,
+    "class_match": false,
+    "nmse_full": 0.0010913459781662451,
+    "discovered_class": "rational",
+    "time_seconds": 11.72448468208313
+  },
+  {
+    "scenario": "Net Radiation",
+    "condition": "No_ARC",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.0037355707154813457,
+    "discovered_class": "power_law",
+    "time_seconds": 9.963114261627197
+  },
+  {
+    "scenario": "Nonlinear Drag",
+    "condition": "No_ARC",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006590539962079682,
+    "discovered_class": "polynomial",
+    "time_seconds": 10.608242273330688
+  },
+  {
+    "scenario": "Mystery-A",
+    "condition": "No_ARC",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006276499975636795,
+    "discovered_class": "trigonometric",
+    "time_seconds": 8.774084091186523
+  },
+  {
+    "scenario": "Mystery-B",
+    "condition": "No_ARC",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.005175708263641099,
+    "discovered_class": "trigonometric",
+    "time_seconds": 9.411730766296387
+  },
+  {
+    "scenario": "Mystery-C",
+    "condition": "No_ARC",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006987934289551839,
+    "discovered_class": "logarithmic",
+    "time_seconds": 9.812569618225098
+  },
+  {
+    "scenario": "Relativistic KE",
+    "condition": "No_AST",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.0041926419354948825,
+    "discovered_class": "polynomial",
+    "time_seconds": 6.867666482925415
+  },
+  {
+    "scenario": "Yukawa Gravity",
+    "condition": "No_AST",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.0018298882064623804,
+    "discovered_class": "exponential",
+    "time_seconds": 5.2407543659210205
+  },
+  {
+    "scenario": "Anharmonic Spring",
+    "condition": "No_AST",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.004458335999999448,
+    "discovered_class": "polynomial",
+    "time_seconds": 2.1338279247283936
+  },
+  {
+    "scenario": "Screened Coulomb",
+    "condition": "No_AST",
+    "noise": 0.05,
+    "class_match": false,
+    "nmse_full": 0.0010913459781662451,
+    "discovered_class": "rational",
+    "time_seconds": 5.619962215423584
+  },
+  {
+    "scenario": "Net Radiation",
+    "condition": "No_AST",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.0037355707154813457,
+    "discovered_class": "power_law",
+    "time_seconds": 5.656602621078491
+  },
+  {
+    "scenario": "Nonlinear Drag",
+    "condition": "No_AST",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006590539962079682,
+    "discovered_class": "polynomial",
+    "time_seconds": 2.579953908920288
+  },
+  {
+    "scenario": "Mystery-A",
+    "condition": "No_AST",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006276499975636795,
+    "discovered_class": "trigonometric",
+    "time_seconds": 4.244051933288574
+  },
+  {
+    "scenario": "Mystery-B",
+    "condition": "No_AST",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.005175708263641099,
+    "discovered_class": "trigonometric",
+    "time_seconds": 7.7858195304870605
+  },
+  {
+    "scenario": "Mystery-C",
+    "condition": "No_AST",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006987934289551839,
+    "discovered_class": "logarithmic",
+    "time_seconds": 7.819003343582153
+  },
+  {
+    "scenario": "Relativistic KE",
+    "condition": "No_Dim",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.0041926419354948825,
+    "discovered_class": "polynomial",
+    "time_seconds": 6.932756185531616
+  },
+  {
+    "scenario": "Yukawa Gravity",
+    "condition": "No_Dim",
+    "noise": 0.05,
+    "class_match": false,
+    "nmse_full": 0.002455959905848261,
+    "discovered_class": "power_law",
+    "time_seconds": 6.087985515594482
+  },
+  {
+    "scenario": "Anharmonic Spring",
+    "condition": "No_Dim",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.004458335999999448,
+    "discovered_class": "polynomial",
+    "time_seconds": 8.555138111114502
+  },
+  {
+    "scenario": "Screened Coulomb",
+    "condition": "No_Dim",
+    "noise": 0.05,
+    "class_match": false,
+    "nmse_full": 0.0010913459781662451,
+    "discovered_class": "rational",
+    "time_seconds": 6.478959083557129
+  },
+  {
+    "scenario": "Net Radiation",
+    "condition": "No_Dim",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.0037355707154813457,
+    "discovered_class": "power_law",
+    "time_seconds": 6.474884748458862
+  },
+  {
+    "scenario": "Nonlinear Drag",
+    "condition": "No_Dim",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006590539962079682,
+    "discovered_class": "polynomial",
+    "time_seconds": 8.240508794784546
+  },
+  {
+    "scenario": "Mystery-A",
+    "condition": "No_Dim",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006276499975636795,
+    "discovered_class": "trigonometric",
+    "time_seconds": 5.425029516220093
+  },
+  {
+    "scenario": "Mystery-B",
+    "condition": "No_Dim",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.005175708263641099,
+    "discovered_class": "trigonometric",
+    "time_seconds": 8.14715576171875
+  },
+  {
+    "scenario": "Mystery-C",
+    "condition": "No_Dim",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006987934289551839,
+    "discovered_class": "logarithmic",
+    "time_seconds": 7.629534482955933
+  },
+  {
+    "scenario": "Relativistic KE",
+    "condition": "No_DataGate",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.0041926419354948825,
+    "discovered_class": "polynomial",
+    "time_seconds": 5.862700700759888
+  },
+  {
+    "scenario": "Yukawa Gravity",
+    "condition": "No_DataGate",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.0018298882064623804,
+    "discovered_class": "exponential",
+    "time_seconds": 4.9855804443359375
+  },
+  {
+    "scenario": "Anharmonic Spring",
+    "condition": "No_DataGate",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.004458335999999448,
+    "discovered_class": "polynomial",
+    "time_seconds": 2.1621949672698975
+  },
+  {
+    "scenario": "Screened Coulomb",
+    "condition": "No_DataGate",
+    "noise": 0.05,
+    "class_match": false,
+    "nmse_full": 0.0010913459781662451,
+    "discovered_class": "rational",
+    "time_seconds": 6.0243518352508545
+  },
+  {
+    "scenario": "Net Radiation",
+    "condition": "No_DataGate",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.0037355707154813457,
+    "discovered_class": "power_law",
+    "time_seconds": 5.878999948501587
+  },
+  {
+    "scenario": "Nonlinear Drag",
+    "condition": "No_DataGate",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006590539962079682,
+    "discovered_class": "polynomial",
+    "time_seconds": 2.7190022468566895
+  },
+  {
+    "scenario": "Mystery-A",
+    "condition": "No_DataGate",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006276499975636795,
+    "discovered_class": "trigonometric",
+    "time_seconds": 4.515959978103638
+  },
+  {
+    "scenario": "Mystery-B",
+    "condition": "No_DataGate",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.005175708263641099,
+    "discovered_class": "trigonometric",
+    "time_seconds": 8.298536777496338
+  },
+  {
+    "scenario": "Mystery-C",
+    "condition": "No_DataGate",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006987934289551839,
+    "discovered_class": "logarithmic",
+    "time_seconds": 10.123000144958496
+  },
+  {
+    "scenario": "Relativistic KE",
+    "condition": "No_Gates",
+    "noise": 0.05,
+    "class_match": false,
+    "nmse_full": 0.004195546754971656,
+    "discovered_class": "power_law",
+    "time_seconds": 9.421057939529419
+  },
+  {
+    "scenario": "Yukawa Gravity",
+    "condition": "No_Gates",
+    "noise": 0.05,
+    "class_match": false,
+    "nmse_full": 0.0018115224035957804,
+    "discovered_class": "trigonometric",
+    "time_seconds": 7.43500018119812
+  },
+  {
+    "scenario": "Anharmonic Spring",
+    "condition": "No_Gates",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.004458335999999448,
+    "discovered_class": "polynomial",
+    "time_seconds": 8.729000329971313
+  },
+  {
+    "scenario": "Screened Coulomb",
+    "condition": "No_Gates",
+    "noise": 0.05,
+    "class_match": false,
+    "nmse_full": 0.0010913459781662451,
+    "discovered_class": "rational",
+    "time_seconds": 8.071045398712158
+  },
+  {
+    "scenario": "Net Radiation",
+    "condition": "No_Gates",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.0037355707154813457,
+    "discovered_class": "power_law",
+    "time_seconds": 7.453387260437012
+  },
+  {
+    "scenario": "Nonlinear Drag",
+    "condition": "No_Gates",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006590539962079682,
+    "discovered_class": "polynomial",
+    "time_seconds": 10.161548614501953
+  },
+  {
+    "scenario": "Mystery-A",
+    "condition": "No_Gates",
+    "noise": 0.05,
+    "class_match": true,
+    "nmse_full": 0.006276499975636795,
+    "discovered_class": "trigonometric",
+    "time_seconds": 7.330407619476318
+  },
+  {
+    "scenario": "Mystery-B",
+    "condition": "No_Gates",
+    "noise": 0.05,
+    "class_match": false,
+    "nmse_full": 0.00512931421286905,
+    "discovered_class": "rational",
+    "time_seconds": 9.324541807174683
+  },
+  {
+    "scenario": "Mystery-C",
+    "condition": "No_Gates",
+    "noise": 0.05,
+    "class_match": false,
+    "nmse_full": 0.0068749196902552065,
+    "discovered_class": "exponential",
+    "time_seconds": 10.448001384735107
   }
 ]

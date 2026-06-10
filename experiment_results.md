@@ -1,7 +1,7 @@
 # Experiment Report: ADCD Correction Discovery
 
 > **AUTO-GENERATED** — do not edit manually.
-> Generated: 2026-06-10 12:57 UTC | git: `0d70d74`
+> Generated: 2026-06-10 15:19 UTC | git: `fb5a97c`
 
 Regenerate: `python scripts/generate_experiment_report.py`
 
