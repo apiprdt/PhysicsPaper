@@ -2,7 +2,7 @@
 
 | Method | Profile | Class Match | Mean Time | Expr. Proposed | Optim Calls |
 |--------|---------|-------------|-----------|----------------|-------------|
-| ADCD | mock | 34/36 (94.4%) | 4.6s | 3,225 | 598 |
+| ADCD | mock | 34/36 (94.4%) | 4.4s | 3,225 | 598 |
 
 ### Gate Funnel (aggregate)
 

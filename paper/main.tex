@@ -96,6 +96,8 @@ these methods and ADCD is that they all operate \textit{tabula rasa}: the
 entire equation must be discovered. ADCD instead focuses the search on the
 much smaller space of physically meaningful \textit{corrections} to known
 laws, exploiting the prior knowledge embedded in the classical theory.
+PhySO ($\Phi$-SO) \cite{tenachi2023physo} incorporates dimensional analysis as a hard constraint during tabula rasa symbolic regression, using deep reinforcement learning to generate only unit-consistent expression trees. This directly addresses the problem of dimensionally impossible candidates in the search space---a concern that also motivates ADCD's dimensional homogeneity gate. The two frameworks diverge in problem formulation and scope: PhySO discovers full governing equations from data, whereas ADCD restricts search to physically meaningful \textit{corrections} $\Delta$ relative to a known classical baseline, substantially reducing the hypothesis space. ADCD further complements unit checking with asymptotic regime consistency (ARC) and complexity filtering, applied specifically to the correction subspace. Unlike PhySO's strict unit enforcement, ADCD's dimensional gate employs adaptive parameter relaxation on free parameters, as documented in \Cref{sec:limitations}.
+LLM-assisted symbolic regression methods such as LaSR \cite{grayeli2024lasr} accelerate hypothesis generation by using language-model queries to construct and evolve an \emph{abstract concept library} that guides evolutionary search, rather than proposing expressions directly. These approaches improve search efficiency but do not enforce physical consistency on candidate expressions before numerical fitting. ADCD adopts a complementary design in its Hybrid Proposer: LLM-generated correction templates are subjected to the same physics-gated cascade---complexity, dimensional analysis with transcendental guard, and asymptotic limits---used for template-based proposals, filtering semantically plausible but physically inconsistent candidates \textit{before} Stage-2 optimization.
 
 \subsection{Physics-Informed Machine Learning}
 Physics-Informed Neural Networks (PINNs) \cite{raissi2019physics} embed
@@ -109,8 +111,8 @@ regression over a library of candidate functions. These approaches embed
 physics into the \textit{model architecture or training loss}. ADCD differs
 by embedding physics into the \textit{search space constraints}: the three
 cascaded gates (complexity, dimensional analysis with transcendental guard,
-asymptotic limit) prune candidates \textit{before} any numerical
-optimization occurs, making the filtering independent of the optimizer.
+asymptotic limit) filter candidates \textit{before} any numerical
+optimization occurs, with adaptive dimensional relaxation on free parameters as detailed in \Cref{sec:limitations}, making the pre-optimization screening independent of the Stage-2 optimizer.
 
 \subsection{Automated Scientific Discovery}
 The Nobel Turing Challenge \cite{kitano2021nobel} articulates a vision for
@@ -131,7 +133,7 @@ theoretic complement. Both are related to Solomonoff's algorithmic
 complexity. ADCD uses BIC as a \textit{post-hoc reranker} after the
 physics gates have already filtered the search space, rather than as a
 primary search objective. This separation of concerns allows the gates to
-guarantee physical plausibility while BIC selects the most parsimonious
+screen for physical plausibility while BIC selects the most parsimonious
 survivor.
 
 \section{The ADCD Framework}
@@ -646,6 +648,16 @@ J. Rissanen,
 P. Langley, H.~A. Simon, G.~L. Bradshaw, and J.~M. Zytkow,
 \textit{Scientific Discovery: Computational Explorations of the Creative Processes}.
 Cambridge, MA: MIT Press, 1987.
+
+\bibitem{tenachi2023physo}
+W.~Tenachi, R.~Ibata, and F.~I. Diakogiannis,
+``Deep symbolic regression for physics guided by units constraints: Toward the automated discovery of physical laws,''
+\textit{Astrophysical Journal}, vol.~959, no.~2, p.~99, 2023.
+
+\bibitem{grayeli2024lasr}
+A.~Grayeli, A.~Sehgal, O.~Costilla-Reyes, M.~Cranmer, and S.~Chaudhuri,
+``Symbolic Regression with a Learned Concept Library,''
+in \textit{Advances in Neural Information Processing Systems (NeurIPS)}, 2024.
 
 \end{thebibliography}
 

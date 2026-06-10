@@ -34,7 +34,7 @@ py -3.11 scripts/generate_efficiency_table.py
 py -3.11 scripts/validate_results.py
 py -3.11 generate_figures.py
 
-Write-Host "`n[8/8] Mercury diagnostic..." -ForegroundColor Yellow
-py -3.11 scratch/investigate_mercury.py
+Write-Host "`n[8/8] Mercury real-data smoke test..." -ForegroundColor Yellow
+py -3.11 -m pytest tests/test_real_data.py -k mercury -q --tb=short
 
 Write-Host "`n=== Reproduction complete ===" -ForegroundColor Green

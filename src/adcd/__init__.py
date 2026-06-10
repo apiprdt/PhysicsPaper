@@ -14,7 +14,7 @@ Quick Start
 >>> print(result.best_expr)
 """
 
-__version__ = "1.1.0"
+__version__ = "2.1.0"
 __author__ = "Muhammad Afif Erdita"
 __email__ = "maeapip10@gmail.com"
 __license__ = "MIT"
@@ -52,7 +52,7 @@ from adcd.jax_optimizer import JAXOptimizer, OptimizationResult
 
 # Gates
 from adcd.dimensional_checker import ASTValidator, DimensionalChecker
-from adcd.arc_scorer import ARCScorer, AsymptoticRegime
+from adcd.arc_scorer import ARCScorer, AsymptoticRegime, build_arc_regimes
 
 __all__ = [
     # High-level API
@@ -80,6 +80,7 @@ __all__ = [
     "DimensionalChecker",
     "ARCScorer",
     "AsymptoticRegime",
+    "build_arc_regimes",
     # Metadata
     "__version__",
 ]

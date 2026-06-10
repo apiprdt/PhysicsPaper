@@ -10,7 +10,7 @@ from adcd.llm_proposer import (
     HybridCorrectionProposer,
 )
 from adcd.dimensional_checker import ASTValidator, DimensionalChecker
-from adcd.arc_scorer import ARCScorer, AsymptoticRegime
+from adcd.arc_scorer import ARCScorer, AsymptoticRegime, build_arc_regimes
 from adcd.pipeline import Stage1Pipeline
 from adcd.jax_optimizer import JAXOptimizer
 from adcd.correction_orchestrator import CorrectionOrchestrator
@@ -179,18 +179,7 @@ def fit(
     validator = ASTValidator()
     checker = DimensionalChecker()
     
-    regimes = []
-    for var, direction in zip(limit_vars, limit_dirs):
-        limit_var_sym = sp.Symbol(var)
-        limit_target = sp.oo if direction == "oo" else 0
-        regimes.append(
-            AsymptoticRegime(
-                variable=limit_var_sym,
-                limit_target=limit_target,
-                ground_truth_expr="0",
-                weight=1.0
-            )
-        )
+    regimes = build_arc_regimes(limit_var_str, limit_dir_str)
     scorer = ARCScorer(regimes=regimes)
     pipeline = Stage1Pipeline(validator, checker, scorer)
     optimizer = JAXOptimizer()
@@ -219,6 +208,7 @@ def discover_correction(
     noise_level: float = 0.0,
     max_iterations: int = 5,
     proposer: str = "mock",
+    correction_mode: str = "auto",
     api_key: Optional[str] = None,
     verbose: bool = True,
     seed: int = 42,
@@ -231,6 +221,7 @@ def discover_correction(
         noise_level: Noise level to apply (0.0 to 1.0)
         max_iterations: Max iterations for discovery search
         proposer: Proposer type ("mock", "gemini", "hybrid")
+        correction_mode: "additive", "multiplicative", or "auto" (default: auto)
         api_key: LLM API key
         verbose: Print progress logs
         seed: Random seed
@@ -250,7 +241,7 @@ def discover_correction(
         limit_direction=scenario.classical_limit_direction,
         classical_expr=scenario.classical_expr,
         variables_with_units=scenario.variables_with_units,
-        correction_mode=scenario.correction_type,
+        correction_mode=correction_mode,
         max_iterations=max_iterations,
         proposer=proposer,
         api_key=api_key,

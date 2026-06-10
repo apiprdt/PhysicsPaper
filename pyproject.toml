@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adcd"
-version = "1.1.0"
+version = "2.1.0"
 description = "Anomaly-Driven Correction Discovery: Physics-Constrained Symbolic Regression for Evolutionary Scientific Discovery"
 readme = "README.md"
 license = { text = "MIT" }

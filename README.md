@@ -11,7 +11,7 @@ ADCD is a symbolic regression framework that discovers *physical correction term
 
 > **81.1% (±11.4%) mean structural recovery** across 5 random seeds, with peak **94.4%** at the reference seed.  
 > **4/4 real-world structural class matches** (Mercury, Lamb Shift, Muon g-2, Blackbody).  
-> **58 automated unit tests** passing on Python 3.10 and 3.11.
+> **77 automated unit tests** passing on Python 3.10 and 3.11.
 
 ---
 
@@ -186,7 +186,7 @@ pip install -e ".[dev]"
 pytest --cov=adcd
 ```
 
-All 58 tests pass on Python 3.10 and 3.11 (Ubuntu and Windows).
+All 77 tests pass on Python 3.10 and 3.11 (Ubuntu and Windows).
 
 ## Reproducing Paper Results
 
@@ -213,6 +213,11 @@ python generate_figures.py                           # All paper figures
 
 > **Proposer regimes:** Mock Proposer = template-assisted recovery; Hybrid/Gemini = zero-shot discovery. Report both separately (see paper Section 4).
 
+```bash
+# LLM benchmark (requires GEMINI_API_KEY) — writes results/llm_benchmark.json
+python run_llm_benchmark.py --proposer hybrid
+```
+
 ## Citing This Work
 
 If you use ADCD in your research, please cite:
@@ -224,7 +229,7 @@ If you use ADCD in your research, please cite:
                 Symbolic Regression for Evolutionary Scientific Discovery}},
   year      = {2026},
   publisher = {Zenodo},
-  version   = {2.0.0},
+  version   = {2.1.0},
   doi       = {10.5281/zenodo.20534940},
   url       = {https://doi.org/10.5281/zenodo.20534940}
 }

@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import List, Union, Any, Dict
+from typing import List, Union, Any, Dict, Sequence
 import numpy as np
 import sympy as sp
 
@@ -95,6 +95,61 @@ def calculate_similarity(expr1: sp.Expr, expr2: sp.Expr) -> float:
 
     mean_relative_error = np.mean(errors)
     return float(np.exp(-mean_relative_error))
+
+
+def _parse_limit_tokens(
+    limit_variables: Union[str, Sequence[str]],
+    limit_directions: Union[str, Sequence[str]],
+) -> tuple[List[str], List[str]]:
+    """Parse comma-separated or sequence limit specs into aligned variable/direction lists."""
+    if isinstance(limit_variables, str):
+        vars_list = [v.strip() for v in limit_variables.split(",") if v.strip()]
+    else:
+        vars_list = [str(v).strip() for v in limit_variables]
+
+    if isinstance(limit_directions, str):
+        dirs_list = [d.strip() for d in limit_directions.split(",") if d.strip()]
+    else:
+        dirs_list = [str(d).strip() for d in limit_directions]
+
+    if not vars_list:
+        raise ValueError("At least one limit variable is required.")
+
+    if not dirs_list:
+        dirs_list = ["0"]
+    if len(dirs_list) < len(vars_list):
+        dirs_list.extend([dirs_list[-1]] * (len(vars_list) - len(dirs_list)))
+    elif len(dirs_list) > len(vars_list):
+        dirs_list = dirs_list[: len(vars_list)]
+
+    return vars_list, dirs_list
+
+
+def build_arc_regimes(
+    limit_variables: Union[str, Sequence[str]],
+    limit_directions: Union[str, Sequence[str]] = "0",
+    ground_truth_expr: Union[str, sp.Expr] = "0",
+    weight: float = 1.0,
+) -> List[AsymptoticRegime]:
+    """
+    Build ARC asymptotic regimes for one or more limit variables.
+
+    Supports multi-variable corrections Δ(x₁, x₂, …) by specifying comma-separated
+    limits, e.g. limit_variables="x,y" and limit_directions="0,oo".
+    """
+    vars_list, dirs_list = _parse_limit_tokens(limit_variables, limit_directions)
+    regimes: List[AsymptoticRegime] = []
+    for var, direction in zip(vars_list, dirs_list):
+        limit_target = sp.oo if direction == "oo" else 0
+        regimes.append(
+            AsymptoticRegime(
+                variable=sp.Symbol(var),
+                limit_target=limit_target,
+                ground_truth_expr=ground_truth_expr,
+                weight=weight,
+            )
+        )
+    return regimes
 
 
 class ARCScorer:

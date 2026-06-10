@@ -435,22 +435,16 @@ def main_cli():
         proposer = HybridCorrectionProposer(api_key=api_key)
 
     import sympy as sp
-    from adcd.arc_scorer import AsymptoticRegime
+    from adcd.arc_scorer import build_arc_regimes
 
     # Set up pipeline & optimizer
     validator = ASTValidator()
     checker = DimensionalChecker()
 
-    limit_var = sp.Symbol(selected_scenario.classical_limit_variable)
-    limit_target = sp.oo if selected_scenario.classical_limit_direction == "oo" else 0
-    regimes = [
-        AsymptoticRegime(
-            variable=limit_var,
-            limit_target=limit_target,
-            ground_truth_expr="0",
-            weight=1.0
-        )
-    ]
+    regimes = build_arc_regimes(
+        selected_scenario.classical_limit_variable,
+        selected_scenario.classical_limit_direction,
+    )
     scorer = ARCScorer(regimes=regimes)
     pipeline = Stage1Pipeline(validator, checker, scorer)
     optimizer = JAXOptimizer()
