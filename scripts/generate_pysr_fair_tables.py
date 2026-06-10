@@ -44,11 +44,11 @@ def generate_pysr_config_table() -> str:
         r"\textbf{Populations} & \textbf{Pop.\ Size} & \textbf{Seed} \\",
         r"\midrule",
         r"\texttt{fast} (legacy) & "
-        f"{fast['niterations']} & {fast['maxsize']} & {fast['timeout_in_seconds']} & 8 & 20 & 42 \\",
+        f"{fast['niterations']} & {fast['maxsize']} & {fast['timeout_in_seconds']} & 8 & 20 & 42 \\\\",
         r"\texttt{fair} (primary) & "
-        f"{fair['niterations']} & {fair['maxsize']} & {fair['timeout_in_seconds']} & 8 & 20 & 42 \\",
+        f"{fair['niterations']} & {fair['maxsize']} & {fair['timeout_in_seconds']} & 8 & 20 & 42 \\\\",
         r"\texttt{generous} & "
-        f"{generous['niterations']} & {generous['maxsize']} & {generous['timeout_in_seconds']} & 8 & 20 & 42 \\",
+        f"{generous['niterations']} & {generous['maxsize']} & {generous['timeout_in_seconds']} & 8 & 20 & 42 \\\\",
         r"\midrule",
         r"\multicolumn{7}{l}{\textit{Shared: binary ops }$\{+,-,\times,\div\}$; "
         r"unary ops $\{\exp,\sin,\cos,\log,\tanh,\sqrt\}$; parsimony $=0.0032$; "

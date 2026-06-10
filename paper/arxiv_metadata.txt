@@ -66,5 +66,8 @@ Submission checklist:
           for each single-gate ablation; only No_Gates drops to 5/9)
         - Discussion: removed fabricated "4.5x timing" figure;
           replaced with honest qualitative description
-  [ ] Submit at https://zenodo.org (upload ZIP)
-  [ ] Cross-list: physics.comp-ph, cs.LG
+  [ ] Submit at https://zenodo.org (upload ZIP) — see docs/SUBMISSION_CHECKLIST_v2.1.2.md
+  [ ] arXiv submit (cs.AI + cross-list physics.comp-ph, cs.LG) — see docs/SUBMISSION_CHECKLIST_v2.1.2.md
+  [x] Paper polish 8/10 path: evaluation regimes, quantitative reframe, ARC collective framing
+  [x] PySR fair gap 77.8 pp consistent in abstract and body
+  [x] Multi-seed mean 82.8% +/- 7.7% verified vs reproducibility_results.json

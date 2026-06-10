@@ -151,12 +151,14 @@ def generate_sensitivity_table(sensitivity: list) -> str:
         r"\midrule",
     ]
     for r in sensitivity:
-        vars_s = ", ".join(r.get("variables", []))
+        vars_s = ", ".join(f"${v}$" for v in r.get("variables", []))
+        variant_tex = r["variant"].replace("_", r"\_")
         match = "Yes" if r.get("class_match") else "No"
         expr = _latex_expr(r.get("discovered_expr", "—"))
+        expr = expr.replace(r"\log{\left(", r"\log\left(").replace(r"\right)}", r"\right)")
         nmse = r.get("nmse_full", float("nan"))
         lines.append(
-            f"\\texttt{{{r['variant']}}} & ${vars_s}$ & ${expr}$ & {match} & "
+            f"\\texttt{{{variant_tex}}} & {vars_s} & ${expr}$ & {match} & "
             f"${_latex_sci(nmse)}$ \\\\"
         )
     lines += [r"\bottomrule", r"\end{tabularx}", r"\end{table}"]
