@@ -27,17 +27,19 @@ def test_numerical_protection_and_nans():
     # Domain error or infinity limits
     X = {"x": np.array([0.0, 1.0, 2.0])}
     y_obs = np.array([1.0, 2.0, 3.0])
-    
+
     evaluator = CoarseEvaluator(X, y_obs)
-    
-    # 1/x triggers division by zero for x=0.0
+
+    # 1/x triggers division by zero for x=0.0 — expected, suppressed intentionally
     expr_div_zero = sp.sympify("1 / x")
-    mse, nmse = evaluator.evaluate(expr_div_zero)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        mse, nmse = evaluator.evaluate(expr_div_zero)
     assert mse == float('inf')
     assert nmse == float('inf')
-    
-    # sqrt(-x) triggers invalid values for x=1.0, 2.0
+
+    # sqrt(-x) triggers invalid values for x=1.0, 2.0 — expected, suppressed intentionally
     expr_invalid_domain = sp.sympify("sqrt(-x)")
-    mse_domain, nmse_domain = evaluator.evaluate(expr_invalid_domain)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        mse_domain, nmse_domain = evaluator.evaluate(expr_invalid_domain)
     assert mse_domain == float('inf')
     assert nmse_domain == float('inf')

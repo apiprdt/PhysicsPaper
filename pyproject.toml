@@ -65,6 +65,12 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "--tb=short -q"
+filterwarnings = [
+    # matplotlib emits DeprecationWarning when plt.show() is called on a
+    # non-interactive (Agg) backend. This is a third-party warning not under
+    # our control; we already guard plt.show() with plt.isinteractive().
+    "ignore:FigureCanvasAgg is non-interactive:DeprecationWarning",
+]
 
 [tool.coverage.run]
 source = ["adcd"]

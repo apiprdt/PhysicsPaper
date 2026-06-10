@@ -238,7 +238,10 @@ class ADCDResult:
         plt.tight_layout()
         if save_path:
             plt.savefig(save_path, bbox_inches='tight')
-        plt.show()
+        # Only call plt.show() in interactive sessions; non-interactive backends
+        # (e.g. Agg in CI) raise a UserWarning otherwise.
+        if plt.isinteractive():
+            plt.show()
 
     def _repr_html_(self) -> str:
         """IPython/Jupyter notebook rich representation."""
