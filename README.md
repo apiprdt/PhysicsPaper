@@ -9,7 +9,7 @@
 
 ADCD is a symbolic regression framework that discovers *physical correction terms* rather than learning equations from scratch. Given a known classical law and anomalous observations, ADCD recovers the dimensionless correction Δ that reconciles theory with experiment — mirroring how physics actually evolves.
 
-> **81.1% (±11.4%) mean structural recovery** across 5 random seeds, with peak **94.4%** at the reference seed.  
+> **81.1% (±10.3%) mean structural recovery** across 5 random seeds, with peak **94.4%** at the reference seed.  
 > **4/4 real-world structural class matches** (Mercury, Lamb Shift, Muon g-2, Blackbody).  
 > **77 automated unit tests** passing on Python 3.10 and 3.11.
 
@@ -18,7 +18,7 @@ ADCD is a symbolic regression framework that discovers *physical correction term
 ## Key Features
 
 - **Correction-first paradigm** — starts from a known classical law, not a blank slate; designed for anomaly-driven theory refinement where the baseline is structurally correct
-- **Physics-gated search cascade** — AST complexity, dimensional homogeneity + transcendental guardrails, and asymptotic consistency (ARC) gates prune unphysical candidates *before* optimization
+- **Physics-gated search cascade** — AST complexity, dimensional homogeneity + transcendental guardrails, and asymptotic consistency (ARC) gates screen unphysical candidates *before* optimization
 - **JAX-traced L-BFGS-B optimizer** — parameter-scaled differentiable fitting with multi-restart log-uniform initialization
 - **BIC reranking** — selects the most parsimonious correction over purely numerical fits
 - **Residual feature intelligence** — statistical priors (monotonicity, curvature, oscillation, decay rate, symmetry) bias the template sampler toward the correct mathematical family
@@ -119,7 +119,7 @@ All results are reported across 5 independent random seeds (0, 7, 21, 42, 99):
 | 21 | 80.6% (29/36) |
 | 42 | 94.4% (34/36) |
 | 99 | 77.8% (28/36) |
-| **Mean** | **81.1% ± 11.4%** |
+| **Mean** | **81.1% ± 10.3%** |
 
 Performance variation reflects stochastic template sampling in the MockProposer. Physics gates ensure that **when** the correct functional family is sampled, it consistently survives filtering and is selected by BIC reranking.
 

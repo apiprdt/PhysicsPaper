@@ -146,6 +146,12 @@ def main():
         json.dump(results, f, indent=2)
     print(f"\nSaved raw benchmark results to {output_path}")
 
+    if args.proposer == "hybrid":
+        hybrid_path = "hybrid_seed42_results.json"
+        with open(hybrid_path, "w") as f:
+            json.dump(results, f, indent=2)
+        print(f"Saved hybrid paper benchmark to {hybrid_path} (for verify_paper_claims.py)")
+
     # Aggregate gate telemetry for paper / efficiency tables
     agg = {
         "input_count": 0,

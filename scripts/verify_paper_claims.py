@@ -82,12 +82,39 @@ if repro_all:
     mean_rate = sum(rates) / len(rates)
     std_rate = statistics.stdev(rates)
     print(f"  Seeds tested: {sorted(seed_rates.keys())}")
-    print(f"  Per-seed rates: {[f'{r:.1f}%' for r in sorted(rates)]}")
+    expected_by_seed = {0: 86.1, 7: 66.7, 21: 80.6, 42: 94.4, 99: 77.8}
+    for seed in sorted(seed_rates.keys()):
+        n_match = sum(seed_rates[seed])
+        n_total = len(seed_rates[seed])
+        pct = 100 * n_match / n_total
+        exp = expected_by_seed.get(seed)
+        if exp is not None:
+            ok_seed = abs(pct - exp) < 0.15
+            flag = OK if ok_seed else FAIL
+            print(f"  {flag} seed={seed}: {n_match}/{n_total} = {pct:.1f}%  (paper claims {exp:.1f}%)")
+            all_ok &= ok_seed
     passed = (abs(mean_rate - 81.1) < 1.5 and abs(std_rate - 10.3) < 1.0)
     flag = OK if passed else FAIL
     print(f"  {flag} Mean: {mean_rate:.1f}% +/- {std_rate:.1f}%"
           f"  (paper claims 81.1% +/- 10.3%)")
     all_ok &= passed
+
+
+# --- 2b. Hybrid Proposer (seed=42, optional frozen results) ------------------
+section("Hybrid Proposer -- seed=42 (supplementary)")
+hybrid = load("hybrid_seed42_results.json")
+if hybrid:
+    n_match = sum(r["class_match"] for r in hybrid)
+    n_total = len(hybrid)
+    pct = 100 * n_match / n_total
+    passed = (n_match == 33 and n_total == 36)
+    flag = OK if passed else FAIL
+    print(f"  {flag} Hybrid seed=42: {n_match}/{n_total} = {pct:.1f}%"
+          f"  (paper claims 91.7% = 33/36)")
+    all_ok &= passed
+else:
+    print(f"  [SKIP] hybrid_seed42_results.json not found."
+          f"  Run: python run_correction_discovery.py --proposer hybrid")
 
 
 # --- 3. Real-World Established Scenarios -------------------------------------
