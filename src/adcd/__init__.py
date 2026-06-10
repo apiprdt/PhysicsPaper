@@ -14,7 +14,7 @@ Quick Start
 >>> print(result.best_expr)
 """
 
-__version__ = "2.1.0"
+__version__ = "2.1.2"
 __author__ = "Muhammad Afif Erdita"
 __email__ = "maeapip10@gmail.com"
 __license__ = "MIT"

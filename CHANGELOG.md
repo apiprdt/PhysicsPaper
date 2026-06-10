@@ -6,6 +6,42 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [2.1.2] — 2026-06-10
+
+### Added
+- **`docs/SUBMISSION_CHECKLIST_v2.1.2.md`**: step-by-step GitHub Release, Zenodo, and arXiv submission guide
+- **`scripts/verify_paper_claims.py`**: PySR fair 77.8 pp gap guard at 5% noise
+
+### Changed
+- **Paper narrative polish (8/10 path)**: evaluation regimes paragraph (Primary / Supplementary / Real-world); quantitative claims reframed (structural lead, Blackbody NMSE qualifier); ARC collective-filter framing aligned with ablation
+- **Multi-seed benchmark refreshed (Tier B+)**: mean structural recovery **82.8% ± 7.7%** (was 81.1% ± 10.3% on pre-fix pipeline)
+- **Abstract PySR comparison** corrected to **77.8 percentage-point gap** vs PySR fair at 5% noise (was incorrectly 44.4 pp from legacy fast profile)
+- **README** PySR table updated to fair profile; Mercury NMSE corrected to $1.11 \times 10^{-5}$
+
+### Fixed
+- **LaTeX table generators**: `tab_pysr_config.tex` row endings (`\\\\`); `tab_pulsar_sensitivity.tex` underscore escaping and math mode
+- **`gate_telemetry.json`** refreshed via `run_correction_discovery.py --proposer mock`
+
+---
+
+## [2.1.1] — 2026-06-10
+
+### Added
+- **Related Work**: PhySO (Tenachi et al. 2023) and LaSR (Grayeli et al. 2024) positioning paragraphs
+- **`hybrid_seed42_results.json`**: frozen Hybrid Proposer benchmark (33/36 = 91.7% at seed=42)
+- **`docs/ZENODO_RELEASE_v2.1.0.md`**, **`docs/GITHUB_RELEASE_v2.1.0.md`**
+
+### Changed
+- **Paper tone**: `prune` → `filter`, `guarantee` → `screen` with dimensional-relaxation qualifier (\Cref{sec:limitations})
+- **Package version** synced to 2.1.0 in `pyproject.toml` and `__init__.py`
+- **`reproduce_all.ps1`**: step 8 replaced with `pytest tests/test_real_data.py -k mercury`
+
+### Fixed
+- **Paper statistics** aligned with frozen `reproducibility_results.json` (seed disclosure, per-seed rates)
+- **Binary pulsar** framing: sensitivity study separated from main 4/4 real-world headline
+
+---
+
 ## [2.1.0] — 2026-06-09
 
 ### Added
