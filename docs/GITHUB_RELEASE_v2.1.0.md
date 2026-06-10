@@ -1,6 +1,6 @@
-# GitHub Release v2.1.0
+# GitHub Release v2.1.0 / v2.1.1
 
-Tag `v2.1.0` has been pushed to `origin`.
+Tag `v2.1.0` has been pushed to `origin`. Subsequent paper fixes and `hybrid_seed42_results.json` are on `main` after `bf0063a` — use tag **`v2.1.1`** for the submission-ready release.
 
 ## Publish release (triggers PyPI)
 

@@ -113,8 +113,9 @@ if hybrid:
           f"  (paper claims 91.7% = 33/36)")
     all_ok &= passed
 else:
-    print(f"  [SKIP] hybrid_seed42_results.json not found."
+    print(f"  {FAIL} hybrid_seed42_results.json not found."
           f"  Run: python run_correction_discovery.py --proposer hybrid")
+    all_ok = False
 
 
 # --- 3. Real-World Established Scenarios -------------------------------------
