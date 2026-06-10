@@ -83,10 +83,10 @@ if repro_all:
     std_rate = statistics.stdev(rates)
     print(f"  Seeds tested: {sorted(seed_rates.keys())}")
     print(f"  Per-seed rates: {[f'{r:.1f}%' for r in sorted(rates)]}")
-    passed = (abs(mean_rate - 81.1) < 1.5 and abs(std_rate - 11.4) < 2.0)
+    passed = (abs(mean_rate - 81.1) < 1.5 and abs(std_rate - 10.3) < 1.0)
     flag = OK if passed else FAIL
     print(f"  {flag} Mean: {mean_rate:.1f}% +/- {std_rate:.1f}%"
-          f"  (paper claims 81.1% +/- 11.4%)")
+          f"  (paper claims 81.1% +/- 10.3%)")
     all_ok &= passed
 
 
