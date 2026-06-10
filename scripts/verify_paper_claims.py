@@ -198,6 +198,19 @@ if pysr:
           f"(paper claims all 5 are trigonometric)")
     all_ok &= passed
 
+    # Headline gap at 5% noise (abstract + body must cite vs PySR fair, not legacy fast)
+    if repro_all:
+        adcd5 = [r for r in repro_all if r.get("seed") == 42 and abs(r["noise"] - 0.05) < 1e-9]
+        adcd5_match = sum(r["class_match"] for r in adcd5)
+        adcd5_pct = 100 * adcd5_match / len(adcd5) if adcd5 else 0
+        pysr5_pct = 100 * noise5_matches / noise5_total if noise5_total else 0
+        gap_pp = adcd5_pct - pysr5_pct
+        passed = (adcd5_match == 8 and abs(gap_pp - 77.8) < 0.5)
+        flag = OK if passed else FAIL
+        print(f"  {flag} ADCD vs PySR fair gap at 5%: {adcd5_pct:.1f}% - {pysr5_pct:.1f}%"
+              f" = {gap_pp:.1f} pp  (paper claims 77.8 pp)")
+        all_ok &= passed
+
 
 # --- Summary -----------------------------------------------------------------
 section("Verification Summary")

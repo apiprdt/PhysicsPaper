@@ -129,21 +129,21 @@ Synthetic-real hybrid data using experimentally validated constants from JPL DE4
 
 | Physical Scenario | Discovered Correction | Converged | Class Match | NMSE |
 |---|---|:---:|:---:|:---:|
-| Mercury Perihelion (GR) | `θ₀(c⁻²v²)^θ₁` | — | ✓ polynomial | 2.33e-01 |
+| Mercury Perihelion (GR) | `θ₀·vc²` | — | ✓ polynomial | 1.11e-05 |
 | Hydrogen Lamb Shift (QED) | `θ₀(n/θ₁)^(-θ₂)` | ✓ | ✓ power_law | 1.82e-18 |
 | Muon g-2 (Schwinger) | `θ₀(α/π)^θ₁` | ✓ | ✓ polynomial | 7.94e-07 |
 | Blackbody (Planck) | `-1 + e^(-f/θ₁)` | — | ✓ exponential | 2.59e-02 |
 
 All 4 scenarios achieve correct structural class identification. 2 scenarios (Lamb Shift, Muon g-2) achieve full convergence with NMSE < 10⁻⁶. Mercury and Blackbody achieve correct structural identification but quantitative convergence is limited by parametrization sensitivity and dynamic range, respectively.
 
-### PySR Comparison
+### PySR Comparison (fair profile: 100 iterations, maxsize 30, 60s timeout)
 
 | Method | 0% Noise | 1% Noise | 5% Noise | 10% Noise |
 |--------|:--------:|:--------:|:--------:|:---------:|
-| ADCD (ours) | 9/9 (100%) | 9/9 (100%) | 8/9 (88.9%) | 8/9 (88.9%) |
-| PySR | 2/9 (22.2%) | 6/9 (66.7%) | 4/9 (44.4%) | 4/9 (44.4%) |
+| ADCD (ours, seed=42) | 9/9 (100%) | 9/9 (100%) | 8/9 (88.9%) | 8/9 (88.9%) |
+| PySR fair | 4/9 (44.4%) | 5/9 (55.6%) | 1/9 (11.1%) | 5/9 (55.6%) |
 
-ADCD outperforms unconstrained PySR by **44.4 percentage points** at 5% noise.
+ADCD outperforms PySR fair by **77.8 percentage points** at 5% noise (88.9% vs 11.1%). A legacy fast profile (wall-clock matched) is retained in `pysr_baseline_results.json` for historical comparison only.
 
 ## Project Structure
 

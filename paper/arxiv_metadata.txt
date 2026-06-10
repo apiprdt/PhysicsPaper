@@ -54,7 +54,8 @@ Submission checklist:
   [x] Zenodo DOI obtained and linked in Comments field
   [x] CLAIM AUDIT PASSED:
         - 94.4% (34/36) accuracy: verified vs reproducibility_results.json
-        - PySR comparison: 22.2/66.7/44.4/44.4% verified vs pysr_baseline_results.json
+        - PySR fair comparison: 44.4/55.6/11.1/55.6% verified vs pysr_baseline_fair.json
+        - Multi-seed mean: 82.8% +/- 7.7% verified vs reproducibility_results.json
         - MLP NMSE: 8.56e-5 / 8.01e-3 verified vs mlp_baseline_results.json
         - ADCD NMSE: 5.51e-12 / 4.56e-3 verified vs reproducibility_results.json
         - Ablation delta=33.3 pp (No_Gates: 5/9) verified vs ablation_results.json
