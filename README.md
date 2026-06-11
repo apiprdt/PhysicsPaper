@@ -190,9 +190,9 @@ All 77 tests pass on Python 3.10 and 3.11 (Ubuntu and Windows).
 
 ## Submission & Release
 
-Paper submission guide (GitHub Release → Zenodo → arXiv): [docs/SUBMISSION_CHECKLIST_v2.1.2.md](docs/SUBMISSION_CHECKLIST_v2.1.2.md)
+Paper submission guide (GitHub Release → Zenodo → arXiv): [docs/SUBMISSION_CHECKLIST_v2.1.3.md](docs/SUBMISSION_CHECKLIST_v2.1.3.md)
 
-Current release tag: **v2.1.2** | Package version: **2.1.2**
+Current release tag: **v2.1.3** | Package version: **2.1.3**
 
 ## Reproducing Paper Results
 
@@ -241,7 +241,7 @@ If you use ADCD in your research, please cite:
                 Symbolic Regression for Evolutionary Scientific Discovery}},
   year      = {2026},
   publisher = {Zenodo},
-  version   = {2.1.2},
+  version   = {2.1.3},
   doi       = {10.5281/zenodo.20534940},
   url       = {https://doi.org/10.5281/zenodo.20534940}
 }

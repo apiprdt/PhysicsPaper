@@ -6,6 +6,12 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [2.1.3] — 2026-06-11
+
+### Changed
+- **Paper Polish (15 Audit Fixes)**: Corrected single-gate claim in Introduction; updated Figure 4 caption and Table 11 notes to match data exactly; disclosed `correction_mode="auto"` in Methodology; cleaned up Muon g-2 literal constant to $\alpha/\pi$ in Table 8 recovery parameters; clarified PySR hall-of-fame definition and Table 5 footnote wrapping.
+- **LaTeX Compilation**: Resolved all undefined references and labels.
+
 ## [2.1.2] — 2026-06-10
 
 ### Added

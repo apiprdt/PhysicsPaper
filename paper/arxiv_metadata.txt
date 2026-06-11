@@ -58,7 +58,7 @@ Submission checklist:
         - Multi-seed mean: 82.8% +/- 7.7% verified vs reproducibility_results.json
         - MLP NMSE: 8.56e-5 / 8.01e-3 verified vs mlp_baseline_results.json
         - ADCD NMSE: 5.51e-12 / 4.56e-3 verified vs reproducibility_results.json
-        - Ablation delta=33.3 pp (No_Gates: 5/9) verified vs ablation_results.json
+        - Ablation delta=44.5 pp (No_Gates: 4/9) verified vs ablation_results.json
   [x] OVERCLAIMS FIXED:
         - "guarantees" -> "strongly enforces" (abstract + metadata)
         - Ablation figure caption: removed false claim that individual
@@ -66,8 +66,8 @@ Submission checklist:
           for each single-gate ablation; only No_Gates drops to 5/9)
         - Discussion: removed fabricated "4.5x timing" figure;
           replaced with honest qualitative description
-  [ ] Submit at https://zenodo.org (upload ZIP) — see docs/SUBMISSION_CHECKLIST_v2.1.2.md
-  [ ] arXiv submit (cs.AI + cross-list physics.comp-ph, cs.LG) — see docs/SUBMISSION_CHECKLIST_v2.1.2.md
+  [ ] Submit at https://zenodo.org (upload ZIP) — see docs/SUBMISSION_CHECKLIST_v2.1.3.md
+  [ ] arXiv submit (cs.AI + cross-list physics.comp-ph, cs.LG) — see docs/SUBMISSION_CHECKLIST_v2.1.3.md
   [x] Paper polish 8/10 path: evaluation regimes, quantitative reframe, ARC collective framing
   [x] PySR fair gap 77.8 pp consistent in abstract and body
   [x] Multi-seed mean 82.8% +/- 7.7% verified vs reproducibility_results.json

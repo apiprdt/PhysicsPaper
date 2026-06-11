@@ -1,6 +1,6 @@
-# ADCD v2.1.2 — Panduan Submit Lengkap (Step-by-Step)
+# ADCD v2.1.3 — Panduan Submit Lengkap (Step-by-Step)
 
-Tag **`v2.1.2`** sudah ada di GitHub. Ikuti urutan ini **setelah** commit terbaru (CHANGELOG + version bump) di-push.
+Tag **`v2.1.3`** sudah ada di GitHub. Ikuti urutan ini **setelah** commit terbaru (CHANGELOG + version bump) di-push.
 
 ---
 
@@ -19,16 +19,16 @@ PDF final: `paper\main.pdf` (21 halaman).
 
 ---
 
-## Persiapan: update tag jika ada commit baru setelah v2.1.2
+## Persiapan: update tag jika ada commit baru setelah v2.1.3
 
-Jika Anda baru commit CHANGELOG / version bump **setelah** tag `v2.1.2` dibuat:
+Jika Anda baru commit CHANGELOG / version bump **setelah** tag `v2.1.3` dibuat:
 
 ```powershell
 cd "e:\Physics Project"
 git push origin main
-git tag -d v2.1.2
-git tag -a v2.1.2 -m "ADCD v2.1.2 submission-ready"
-git push origin v2.1.2 --force
+git tag -d v2.1.3
+git tag -a v2.1.3 -m "ADCD v2.1.3 submission-ready"
+git push origin v2.1.3 --force
 ```
 
 > Aman karena GitHub Release **belum** dipublish. Jangan force-push tag jika Release sudah live.
@@ -36,7 +36,7 @@ git push origin v2.1.2 --force
 Buat arsip Zenodo:
 
 ```powershell
-git archive --format=zip --prefix=adcd-2.1.2/ v2.1.2 -o adcd-2.1.2.zip
+git archive --format=zip --prefix=adcd-2.1.3/ v2.1.3 -o adcd-2.1.3.zip
 ```
 
 ---
@@ -56,14 +56,14 @@ git archive --format=zip --prefix=adcd-2.1.2/ v2.1.2 -o adcd-2.1.2.zip
 
 | Field | Nilai |
 |-------|-------|
-| **Choose a tag** | `v2.1.2` (pilih existing tag) |
-| **Release title** | `ADCD v2.1.2` |
-| **Description** | Paste dari [CHANGELOG.md](../CHANGELOG.md) section `[2.1.2]` + `[2.1.1]` highlights |
+| **Choose a tag** | `v2.1.3` (pilih existing tag) |
+| **Release title** | `ADCD v2.1.3` |
+| **Description** | Paste dari [CHANGELOG.md](../CHANGELOG.md) section `[2.1.3]` + `[2.1.1]` highlights |
 
 **Cuplikan release notes (copy-paste):**
 
 ```markdown
-## ADCD v2.1.2 — Submission-ready paper polish
+## ADCD v2.1.3 — Submission-ready paper polish
 
 - Evaluation regimes disclosure (Primary Mock 5-seed / Supplementary Hybrid / Real-world)
 - Fresh Tier B+ benchmarks: **82.8% ± 7.7%** mean structural recovery
@@ -87,11 +87,11 @@ See CHANGELOG.md for full details.
 3. Lokal:
 
 ```powershell
-pip install --upgrade adcd==2.1.2
+pip install --upgrade adcd==2.1.3
 python -c "import adcd; print(adcd.__version__)"
 ```
 
-Harapan: `2.1.2`
+Harapan: `2.1.3`
 
 > **Prasyarat sekali:** PyPI Trusted Publishing sudah dikonfigurasi (repo → workflow `publish.yml` → environment `pypi`). Jika belum, lihat https://docs.pypi.org/trusted-publishers/
 
@@ -110,7 +110,7 @@ Harapan: `2.1.2`
 
 ### 2.2 Upload file
 
-1. Klik **Files** → upload `adcd-2.1.2.zip` (dari perintah `git archive` di atas)
+1. Klik **Files** → upload `adcd-2.1.3.zip` (dari perintah `git archive` di atas)
 2. Opsional: upload `paper/main.pdf` sebagai supplementary
 
 ### 2.3 Metadata
@@ -118,13 +118,13 @@ Harapan: `2.1.2`
 | Field | Nilai |
 |-------|-------|
 | **Publication date** | Hari publish |
-| **Version** | `2.1.2` |
-| **Title** | Anomaly-Driven Correction Discovery (ADCD) v2.1.2 |
-| **Description** | Paste highlights CHANGELOG [2.1.2] + link paper |
+| **Version** | `2.1.3` |
+| **Title** | Anomaly-Driven Correction Discovery (ADCD) v2.1.3 |
+| **Description** | Paste highlights CHANGELOG [2.1.3] + link paper |
 
 **Related identifier:**
 
-- Identifier: `https://github.com/apiprdt/PhysicsPaper/tree/v2.1.2`
+- Identifier: `https://github.com/apiprdt/PhysicsPaper/tree/v2.1.3`
 - Relation: **is supplement to** / **is published in** (pilih yang sesuai template Zenodo-GitHub)
 
 ### 2.4 Publish
@@ -149,7 +149,7 @@ Harapan: `2.1.2`
 
 ```powershell
 cd "e:\Physics Project\paper"
-tar -czf ..\adcd-paper-source-v2.1.2.tar.gz main.tex figures\ generated\
+tar -czf ..\adcd-paper-source-v2.1.3.tar.gz main.tex figures\ generated\
 ```
 
 Atau zip manual: `main.tex`, folder `figures/`, folder `generated/`.
@@ -199,10 +199,10 @@ Atau zip manual: `main.tex`, folder `figures/`, folder `generated/`.
 | # | Langkah | Status |
 |---|---------|--------|
 | 0 | `verify_paper_claims` ALL OK | ☐ |
-| 1 | Push main + tag `v2.1.2` | ☐ |
+| 1 | Push main + tag `v2.1.3` | ☐ |
 | 2 | GitHub Release published | ☐ |
-| 3 | PyPI `adcd==2.1.2` installable | ☐ |
-| 4 | Zenodo v2.1.2 uploaded | ☐ |
+| 3 | PyPI `adcd==2.1.3` installable | ☐ |
+| 4 | Zenodo v2.1.3 uploaded | ☐ |
 | 5 | arXiv submitted | ☐ |
 | 6 | arXiv ID added to README | ☐ |
 
@@ -212,7 +212,7 @@ Atau zip manual: `main.tex`, folder `figures/`, folder `generated/`.
 
 | Masalah | Solusi |
 |---------|--------|
-| PyPI workflow gagal | Cek Trusted Publishing di pypi.org; pastikan tag exact `v2.1.2` |
+| PyPI workflow gagal | Cek Trusted Publishing di pypi.org; pastikan tag exact `v2.1.3` |
 | LaTeX arXiv compile error | Upload `generated/` + semua `figures/`; jangan upload `main.log` |
-| Zenodo "version exists" | Gunakan 2.1.2 bukan 2.1.0 |
+| Zenodo "version exists" | Gunakan 2.1.3 bukan 2.1.0 |
 | Abstract arXiv > 1920 char | Potong kalimat Hybrid di abstract jika perlu |
