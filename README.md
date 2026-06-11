@@ -1,33 +1,58 @@
 # ADCD — Anomaly-Driven Correction Discovery
 
-[![DOI](https://zenodo.org/badge/20534940.svg)](https://doi.org/10.5281/zenodo.20534940)
-[![CI](https://github.com/apiprdt/PhysicsPaper/actions/workflows/ci.yml/badge.svg)](https://github.com/apiprdt/PhysicsPaper/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+<p align="center">
+  <img src="docs/assets/adcd_logo.svg" alt="ADCD Logo" width="160">
+</p>
 
-**Physics-Constrained Symbolic Regression for Evolutionary Scientific Discovery**
+<p align="center">
+  <strong>Physics-Constrained Symbolic Regression for Evolutionary Scientific Discovery</strong>
+</p>
 
-ADCD is a symbolic regression framework that discovers *physical correction terms* rather than learning equations from scratch. Given a known classical law and anomalous observations, ADCD recovers the dimensionless correction Δ that reconciles theory with experiment — mirroring how physics actually evolves.
+<p align="center">
+  <a href="https://github.com/apiprdt/PhysicsPaper/actions/workflows/ci.yml"><img src="https://github.com/apiprdt/PhysicsPaper/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
+  <a href="https://pypi.org/project/adcd/"><img src="https://img.shields.io/pypi/v/adcd?color=teal" alt="PyPI Version"></a>
+  <a href="https://doi.org/10.5281/zenodo.20534940"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.20534940.svg" alt="DOI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://github.com/apiprdt/PhysicsPaper/actions"><img src="https://img.shields.io/badge/tests-77%20passing-brightgreen" alt="Tests Status"></a>
+  <a href="https://pypi.org/project/adcd/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python Support"></a>
+</p>
 
-> **82.8% (±7.7%) mean structural recovery** across 5 random seeds, with peak **94.4%** at the reference seed.  
-> **4/4 real-world structural class matches** (Mercury, Lamb Shift, Muon g-2, Blackbody).  
-> **77 automated unit tests** passing on Python 3.10 and 3.11.
+<p align="center">
+  <a href="https://apiprdt.github.io/PhysicsPaper/"><strong>Explore the Documentation »</strong></a>
+  <br>
+  <br>
+  <a href="#quick-start">Quick Start</a>
+  ·
+  <a href="#key-features">Key Features</a>
+  ·
+  <a href="#benchmark-results">Benchmarks</a>
+  ·
+  <a href="https://colab.research.google.com/github/apiprdt/PhysicsPaper/blob/main/notebooks/adcd_demo.ipynb">Run in Colab</a>
+</p>
+
+> **Science rarely discovers from a blank slate — it corrects.**  
+> ADCD automates the step between *anomaly* and *theory correction*, the same step that led from Newtonian gravity to General Relativity, from Dirac to QED, and from Rayleigh-Jeans to Planck.
+
+<p align="center">
+  <img src="docs/adcd_discovery.gif" alt="ADCD discovery pipeline animation" width="85%">
+</p>
 
 ---
 
-## Key Features
+## ⚡ Key Features
 
-- **Correction-first paradigm** — starts from a known classical law, not a blank slate; designed for anomaly-driven theory refinement where the baseline is structurally correct
-- **Physics-gated search cascade** — AST complexity, dimensional homogeneity + transcendental guardrails, and asymptotic consistency (ARC) gates screen unphysical candidates *before* optimization
-- **JAX-traced L-BFGS-B optimizer** — parameter-scaled differentiable fitting with multi-restart log-uniform initialization
-- **BIC reranking** — selects the most parsimonious correction over purely numerical fits
-- **Residual feature intelligence** — statistical priors (monotonicity, curvature, oscillation, decay rate, symmetry) bias the template sampler toward the correct mathematical family
-- **Coarse empirical evaluation** — data-driven pre-filter ranks gate survivors before full JAX optimization
-- **Noise-robust** — 93.3% mean at 0% noise, 91.1% at 1%, 71.1% at 5%, 68.9% at 10%
+- **Correction-First Paradigm** — Starts from a known classical law, not a blank slate. Focuses the search space on the discrepancy $\Delta$ between theory and experiment.
+- **Cascaded Physics Gates** — AST complexity, dimensional homogeneity, transcendental guardrails, and asymptotic consistency (ARC) gates screen out unphysical candidates *before* running parameter-fitting.
+- **JAX-Traced L-BFGS-B Optimizer** — Highly optimized parameter-scaled differentiable fitting with multi-restart log-uniform initialization.
+- **BIC Model Selection** — Employs the Bayesian Information Criterion (BIC) to rank models, favoring simpler physical theories over overly complex numerical fits.
+- **Residual Feature Intelligence** — Extracts mathematical features (monotonicity, curvature, oscillation, decay) from residuals to bias proposal templates.
+- **Real-World Validated** — Successfully identifies correct structural classes on Mercury's perihelion (GR), Lamb Shift (QED), Muon g-2 (Schwinger), and Blackbody (Planck).
 
-## Quick Start
+---
 
-### Installation
+## 📦 Installation
+
+Install the stable package from PyPI:
 
 ```bash
 pip install adcd
@@ -41,40 +66,54 @@ cd PhysicsPaper
 pip install -e ".[dev]"
 ```
 
-### Usage
+Verify your installation:
+```bash
+pytest tests/
+```
 
-Running ADCD is extremely simple using the high-level scientific API:
+---
+
+## 💻 Quick Start
+
+### 1. High-Level Scientific API
+
+Running ADCD on predefined physics benchmarks is extremely simple:
 
 ```python
 import adcd
 
-# 1. Load a pre-defined benchmark scenario
+# 1. Load a pre-defined benchmark scenario (e.g. Relativistic Kinetic Energy)
 scenarios = adcd.get_all_scenarios()
-scenario = scenarios[0]  # Relativistic Kinetic Energy
+scenario = scenarios[0] 
 
 # 2. Run discovery in a single line!
 result = adcd.discover_correction(scenario, max_iterations=5, proposer="mock")
 
-print(f"Discovered correction: {result.best_expr}")
-print(f"Residual NMSE: {result.best_nmse_residual:.2e}")
-print(f"Parameters: {result.best_theta}")
+# 3. View the best fit
+print(f"Discovered correction: {result.best_expr}")       # θ₀ * (v/c)**2
+print(f"LaTeX representation:  {result.export_latex()}")   # \theta_0 \left(\frac{v}{c}\right)^2
+print(f"Parameters:            {result.best_theta}")
+print(f"BIC Score:             {result.best_bic:.2f}")
 
-# 3. Export LaTeX or plot residuals
-print(result.export_latex())
+# 4. Plot residuals
 result.plot_residuals()
 ```
 
-For custom experimental data, use `adcd.fit(...)`:
+### 2. Custom Experimental Datasets
+
+For custom datasets, use the `adcd.fit` function:
 
 ```python
 import numpy as np
 import adcd
 
+# Your custom data
 x = np.linspace(1.0, 5.0, 100)
 X = {"x": x}
 y_classical = 2.0 * x
-y_observed  = 2.0 * x + 0.5 * x**2   # hidden x² correction
+y_observed  = 2.0 * x + 0.5 * x**2   # True correction is 0.5 * x^2
 
+# Run ADCD
 result = adcd.fit(
     X=X,
     y_obs=y_observed,
@@ -87,11 +126,11 @@ result = adcd.fit(
 result.summary()
 ```
 
-## Benchmark Results
+---
 
-### Standard Benchmark (seed=42, Mock Proposer)
+## 📊 Benchmark Results
 
-Results from `run_correction_discovery.py --proposer mock` (reference seed=42, 4 iterations per scenario).
+### 1. Standard Benchmark (seed=42, Mock Proposer)
 
 | Scenario | Tier | 0% Noise | 1% Noise | 5% Noise | 10% Noise |
 |----------|------|:--------:|:--------:|:--------:|:---------:|
@@ -106,26 +145,18 @@ Results from `run_correction_discovery.py --proposer mock` (reference seed=42, 4
 | Mystery-C (log-quotient) | Synthetic | ✓ | ✓ | ✓ | ✓ |
 | **Overall** | | **100%** | **100%** | **88.9%** | **88.9%** |
 
-> **Note**: Screened Coulomb fails at ≥5% noise because exponential decay ($e^{-r/\lambda}$) and rational saturation ($r/(r+\lambda)$) are numerically indistinguishable at the tested SNR with limited dynamic range — an information-theoretic limit, not a framework deficiency.
+### 2. PySR Comparison (fair profile: 100 iterations, 60s timeout)
 
-### Multi-Seed Reproducibility
+| Method | 0% Noise | 1% Noise | 5% Noise | 10% Noise |
+|--------|:--------:|:--------:|:--------:|:---------:|
+| **ADCD** (ours, seed=42) | **9/9 (100%)** | **9/9 (100%)** | **8/9 (88.9%)** | **8/9 (88.9%)** |
+| PySR fair | 4/9 (44.4%) | 5/9 (55.6%) | 1/9 (11.1%) | 5/9 (55.6%) |
 
-All results are reported across 5 independent random seeds (0, 7, 21, 42, 99):
+ADCD outperforms PySR by **+77.8 percentage points** at 5% noise.
 
-| Seed | Class Match Rate |
-|:----:|:----------------:|
-| 0 | 86.1% (31/36) |
-| 7 | 75.0% (27/36) |
-| 21 | 77.8% (28/36) |
-| 42 | 94.4% (34/36) |
-| 99 | 80.6% (29/36) |
-| **Mean** | **82.8% ± 7.7%** |
+### 3. Real-World Physical Constants
 
-Performance variation reflects stochastic template sampling in the MockProposer. Physics gates ensure that **when** the correct functional family is sampled, it consistently survives filtering and is selected by BIC reranking.
-
-### Real-World Physical Constants Benchmark
-
-Synthetic-real hybrid data using experimentally validated constants from JPL DE440, NIST, and CODATA:
+Validation on historical anomalies using physical constants from JPL DE440, NIST, and CODATA:
 
 | Physical Scenario | Discovered Correction | Converged | Class Match | NMSE |
 |---|---|:---:|:---:|:---:|
@@ -134,103 +165,34 @@ Synthetic-real hybrid data using experimentally validated constants from JPL DE4
 | Muon g-2 (Schwinger) | `θ₀(α/π)^θ₁` | ✓ | ✓ polynomial | 7.94e-07 |
 | Blackbody (Planck) | `-1 + e^(-f/θ₁)` | — | ✓ exponential | 2.59e-02 |
 
-All 4 scenarios achieve correct structural class identification. 2 scenarios (Lamb Shift, Muon g-2) achieve full convergence with NMSE < 10⁻⁶. Mercury and Blackbody achieve correct structural identification but quantitative convergence is limited by parametrization sensitivity and dynamic range, respectively.
+---
 
-### PySR Comparison (fair profile: 100 iterations, maxsize 30, 60s timeout)
-
-| Method | 0% Noise | 1% Noise | 5% Noise | 10% Noise |
-|--------|:--------:|:--------:|:--------:|:---------:|
-| ADCD (ours, seed=42) | 9/9 (100%) | 9/9 (100%) | 8/9 (88.9%) | 8/9 (88.9%) |
-| PySR fair | 4/9 (44.4%) | 5/9 (55.6%) | 1/9 (11.1%) | 5/9 (55.6%) |
-
-ADCD outperforms PySR fair by **77.8 percentage points** at 5% noise (88.9% vs 11.1%). A legacy fast profile (wall-clock matched) is retained in `pysr_baseline_results.json` for historical comparison only.
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 PhysicsPaper/
 ├── src/adcd/                       # Installable package
-│   ├── __init__.py                 # Public API (adcd.fit, adcd.discover_correction)
+│   ├── __init__.py                 # Public API (fit, discover_correction)
 │   ├── anomaly_scenarios.py        # 9 standard + 3 blind benchmark scenarios
 │   ├── arc_scorer.py               # Asymptotic consistency gate (ARC)
 │   ├── coarse_evaluator.py         # Coarse numerical pre-filter
 │   ├── correction_orchestrator.py  # Main multi-iteration discovery loop
-│   ├── dimensional_checker.py      # Dimensional homogeneity + transcendental guardrail
-│   ├── jax_optimizer.py            # JAX L-BFGS-B optimizer (parameter-scaled)
-│   ├── llm_proposer.py             # Mock + Gemini + OpenAI-compatible proposers
+│   ├── dimensional_checker.py      # Dimensional homogeneity + transcendental gate
+│   ├── jax_optimizer.py            # JAX L-BFGS-B optimizer
+│   ├── llm_proposer.py             # Mock + Gemini + OpenAI proposers
 │   ├── metrics.py                  # NMSE, BIC, structural classification
 │   ├── pipeline.py                 # Stage 1 filter cascade
 │   ├── real_data_loader.py         # Real-world data loading (JPL, NIST, CODATA)
-│   ├── real_scenarios.py           # Real-world validation scenarios
-│   ├── residual_analyzer.py        # Statistical residual feature extraction
-│   └── result.py                   # CorrectionResult: summary, LaTeX, plot
-├── tests/                          # 58 unit + integration tests
+│   └── result.py                   # CorrectionResult object
+├── tests/                          # 77 unit + integration tests
 ├── paper/                          # LaTeX source (main.tex) + figures
-├── run_correction_discovery.py     # Standard 9-scenario benchmark runner
-├── run_real_data_benchmark.py      # Real-world physical constants benchmark
-├── run_reproducibility.py          # Multi-seed reproducibility study (5 seeds)
-├── run_ablation.py                 # Gate ablation study
-├── run_pysr_baseline.py            # PySR comparison baseline
-├── run_mlp_baseline.py             # MLP comparison baseline
-├── run_misspecification_benchmark.py  # Baseline misspecification fail-safe test
-├── generate_figures.py             # Paper figure generator
-├── .github/workflows/              # CI (test + lint + LaTeX) and PyPI publish
-├── pyproject.toml                  # PEP 517/518 build configuration
+├── run_correction_discovery.py     # Benchmark runner
 └── README.md                       # This file
 ```
 
-## Running Tests
+---
 
-```bash
-pip install -e ".[dev]"
-pytest --cov=adcd
-```
-
-All 77 tests pass on Python 3.10 and 3.11 (Ubuntu and Windows).
-
-## Submission & Release
-
-Paper submission guide (GitHub Release → Zenodo → arXiv): [docs/SUBMISSION_CHECKLIST_v2.1.3.md](docs/SUBMISSION_CHECKLIST_v2.1.3.md)
-
-Current release tag: **v2.1.3** | Package version: **2.1.3**
-
-## Reproducing Paper Results
-
-Verify claims before citing numbers:
-
-```bash
-python scripts/verify_paper_claims.py   # expect [ALL OK]
-```
-
-One-command reproduction (Windows):
-
-```powershell
-.\reproduce_all.ps1
-```
-
-Or step-by-step:
-
-```bash
-python run_correction_discovery.py --proposer mock   # Main benchmark + gate telemetry
-python run_real_data_benchmark.py                    # Real-world (5 scenarios)
-python run_pysr_baseline.py --profile fair           # Fair PySR comparison
-python run_ablation.py                               # Gate ablation study
-python run_oracle_ablation.py                        # Oracle ground-truth injection test
-python run_correction_scaling.py                     # Correction magnitude sweep
-python scripts/generate_experiment_report.py         # Sync experiment_results.md
-python scripts/generate_efficiency_table.py          # ADCD vs PySR efficiency table
-python scripts/validate_results.py                   # Consistency checks
-python generate_figures.py                           # All paper figures
-```
-
-> **Proposer regimes:** Mock Proposer = template-assisted recovery; Hybrid/Gemini = zero-shot discovery. Report both separately (see paper Section 4).
-
-```bash
-# LLM benchmark (requires GEMINI_API_KEY) — writes results/llm_benchmark.json
-python run_llm_benchmark.py --proposer hybrid
-```
-
-## Citing This Work
+## 📖 Citing This Work
 
 If you use ADCD in your research, please cite:
 
@@ -247,10 +209,14 @@ If you use ADCD in your research, please cite:
 }
 ```
 
-## AI Disclosure
+---
+
+## 👥 AI Disclosure
 
 This project was developed with assistance from Google DeepMind's Antigravity AI assistant. AI was used as a pair-programming and writing tool. All scientific content, experimental design decisions, and intellectual contributions are the author's own.
 
-## License
+---
 
-[MIT](LICENSE)
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).

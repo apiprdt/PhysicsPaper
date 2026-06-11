@@ -31,3 +31,10 @@ baseline_pre_fix.json
 # Build and submission archives
 *.zip
 *.tar.gz
+
+# Generated documentation site
+site/
+
+# Local virtual environments
+.verify-pypi-venv/
+
