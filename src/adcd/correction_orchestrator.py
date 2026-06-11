@@ -434,7 +434,6 @@ def main_cli():
             sys.exit(1)
         proposer = HybridCorrectionProposer(api_key=api_key)
 
-    import sympy as sp
     from adcd.arc_scorer import build_arc_regimes
 
     # Set up pipeline & optimizer

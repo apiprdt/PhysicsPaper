@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import sympy as sp
 from typing import Dict, Tuple, Optional
 
 from adcd.anomaly_scenarios import AnomalyScenario
@@ -10,7 +9,7 @@ from adcd.llm_proposer import (
     HybridCorrectionProposer,
 )
 from adcd.dimensional_checker import ASTValidator, DimensionalChecker
-from adcd.arc_scorer import ARCScorer, AsymptoticRegime, build_arc_regimes
+from adcd.arc_scorer import ARCScorer, build_arc_regimes
 from adcd.pipeline import Stage1Pipeline
 from adcd.jax_optimizer import JAXOptimizer
 from adcd.correction_orchestrator import CorrectionOrchestrator
