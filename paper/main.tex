@@ -75,7 +75,7 @@ Consider three prominent historical examples of this evolutionary paradigm:
     \[F_{\text{drag}} = bv + \alpha v^2\]
 \end{enumerate}
 
-Motivated by these historical precedents, we propose the \textbf{Anomaly-Driven Correction Discovery (ADCD)} framework. ADCD contributes at three levels. At the \textbf{conceptual level}, it introduces the correction-first paradigm: searching for $\Delta$ in a restricted subspace $\mathcal{D} \subset \mathcal{F}$ rather than the full function space $\mathcal{F}$. This correction-first paradigm is designed for anomaly-driven theory refinement---where the classical baseline is structurally correct and the anomaly is incremental---rather than wholesale theory replacement. At the \textbf{algorithmic level}, ADCD implements physics-gated search: AST complexity, dimensional homogeneity with transcendental guardrail, and asymptotic limit (ARC) gates operate as a collective physical consistency filter that screens candidates \textit{before} any numerical optimization occurs, with adaptive dimensional relaxation on free parameters as detailed in \Cref{sec:limitations}. Empirically, ablation on the primary benchmark (\Cref{fig:ablation}) shows that removing any single gate does not change structural accuracy at 5\% noise; only removing \emph{all} gates simultaneously degrades recovery (8/9 to 4/9), indicating that ARC contributes as part of a collective filter rather than as an independently necessary classifier on this suite. At the \textbf{engineering level}, ADCD provides a JAX-traced L-BFGS-B optimizer, a Python package with a public API, CLI interface, and CI/CD pipeline for reproducible benchmarking.
+Motivated by these historical precedents, we propose the \textbf{Anomaly-Driven Correction Discovery (ADCD)} framework. ADCD contributes at three levels. At the \textbf{conceptual level}, it introduces the correction-first paradigm: searching for $\Delta$ in a restricted subspace $\mathcal{D} \subset \mathcal{F}$ rather than the full function space $\mathcal{F}$. This correction-first paradigm is designed for anomaly-driven theory refinement---where the classical baseline is structurally correct and the anomaly is incremental---rather than wholesale theory replacement. At the \textbf{algorithmic level}, ADCD implements physics-gated search: AST complexity, dimensional homogeneity with transcendental guardrail, and asymptotic limit (ARC) gates operate as a collective physical consistency filter that screens candidates \textit{before} any numerical optimization occurs, with adaptive dimensional relaxation on free parameters as detailed in \Cref{sec:limitations}. Empirically, ablation on the primary benchmark (\Cref{fig:ablation}) shows that removing the ARC, AST, or Coarse-Eval gate individually does not change structural accuracy at 5\% noise; removing the dimensional gate alone reduces accuracy by 11.1 percentage points (8/9 to 7/9), confirming its role as the primary structural filter. Only removing \emph{all} gates simultaneously causes a larger collapse (8/9 to 4/9), indicating that the gates reinforce each other as a collective physical consistency filter. At the \textbf{engineering level}, ADCD provides a JAX-traced L-BFGS-B optimizer, a Python package with a public API, CLI interface, and CI/CD pipeline for reproducible benchmarking.
 
 
 \section{Related Work}
@@ -214,6 +214,8 @@ Let $y_{\text{classical}} = g(X; \phi)$ be a known classical physical law with v
     \item \textbf{Additive Mode}: The true physical law is assumed to append a correction, $y_{\text{true}} = y_{\text{classical}} + \Delta(X; \theta)$. The target residual is:
     \[\delta_{\text{add}} = y_{\text{obs}} - y_{\text{classical}}\]
 \end{itemize}
+
+By default, the framework utilizes an automated mode selection mechanism (\texttt{correction\_mode="auto"}). In this configuration, ADCD evaluates the relative variance and scale of both candidate formulations against the observed baselines, automatically selecting between the additive and multiplicative residual definitions to best isolate the anomalous deviation before initiating search.
 
 \subsection{Residual Feature Intelligence}
 To bias the proposer towards the correct mathematical families, ADCD detrends and extracts 5 high-level statistical features from the residual $\delta$ as a function of the primary limit variable $x$:
@@ -372,9 +374,11 @@ Mystery-C & 0\% & $\frac{\ln(1 + x / \theta_1)}{x / \theta_1} - 1$ & $7.52 \time
 \centering
 \includegraphics[width=0.85\textwidth]{figures/fig1_noise_robustness.pdf}
 \caption{Structural class match rate as a function of observational noise level.
-         ADCD maintains 88.9\% structural accuracy at 5\% noise due to physics-constrained
-         gate filtering. PySR (unconstrained SR on the same residual) degrades more
-         rapidly in the absence of physical priors.}
+         ADCD (Mock Proposer, seed=42) maintains 88.9\% structural accuracy at 5\% noise
+         due to physics-constrained gate filtering. PySR (\texttt{fair} profile,
+         unconstrained SR on the same residual) exhibits a non-monotonic noise--accuracy
+         profile (44.4\%$\to$55.6\%$\to$11.1\%$\to$55.6\%), reflecting overfitting
+         instabilities absent from physics-gated search.}
 \label{fig:noise_robustness}
 \end{figure}
 
@@ -402,13 +406,15 @@ Mystery-C & 0\% & $\frac{\ln(1 + x / \theta_1)}{x / \theta_1} - 1$ & $7.52 \time
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/fig4_ablation.pdf}
-\caption{Ablation study at 5\% observational noise. Each bar disables one component.
-         Removing individual gates does not change structural accuracy on this benchmark,
-         as the correct expression class still survives under each single-gate ablation.
-         Only removing \emph{all} gates simultaneously allows physically non-plausible
-         expressions to dominate, dropping performance by $\Delta = 33.3$ percentage points
-         (from 8/9 to 5/9). This confirms that the gates act as a \emph{collective} physical
-         consistency filter rather than as independently separable classifiers.}
+\caption{Ablation study at 5\% observational noise. Each bar disables one gate.
+         Removing the ARC, AST, or Coarse-Eval gate individually leaves structural accuracy
+         unchanged (8/9). Removing the dimensional gate alone reduces accuracy by
+         11.1~pp (8/9 to 7/9). Only removing \emph{all} gates simultaneously causes
+         a larger collapse, dropping performance by $\Delta = 44.5$ percentage points
+         (from 8/9 to 4/9), confirming that the gates reinforce each other as a
+         \emph{collective} physical consistency filter. Note: the ``Without BIC Reranking''
+         condition is described in \Cref{sec:ablation-text} but excluded from this figure
+         as it requires the full gate pipeline to isolate BIC's contribution.}
 \label{fig:ablation}
 \end{figure}
 
@@ -436,9 +442,10 @@ domain theory. This interpretability gap is the core contribution of our framewo
 
 \subsection{Blind Generalization Test}
 
-To assess generalization beyond benchmark scenarios designed by the authors, we introduced three ``blind'' anomaly scenarios (Van der Waals gas, Stokes-Einstein diffusion, Wien displacement) whose structural class was concealed from the pipeline at runtime. Under the default proposer configuration, ADCD successfully recovered the correct structural class for Wien displacement (up to 5\% noise) and Stokes-Einstein diffusion (up to 1\% noise). For the remaining noise levels and the Van der Waals scenario, the pipeline converged to power-law approximations (such as $V^{-\theta}$), which fit the residual data with high numerical precision (NMSE below 0.05). This reflects a common physics phenomenon where multi-scale transcendental or rational structures are represented by simplified scaling laws when the dynamic range is limited, demonstrating that physics-constrained gates generalize to physical regimes outside the training distribution.
+To assess generalization beyond benchmark scenarios designed by the authors, we introduced three ``blind'' anomaly scenarios (Van der Waals gas, Stokes-Einstein diffusion, Wien displacement) whose structural class was concealed from the pipeline at runtime. We count structural recovery as a success only if the correct functional class is recovered across \emph{all} tested noise levels for that scenario; partial recovery (correct class at some noise levels only) is reported as a failure. Under this criterion, ADCD recovered the correct structural class for 1/3 blind scenarios (Wien displacement, up to 5\% noise). Stokes-Einstein diffusion succeeded at 1\% noise but failed at higher noise, and Van der Waals converged to power-law approximations at all levels. For the latter two, the pipeline converged to power-law approximations (such as $V^{-\theta}$), which fit the residual data with high numerical precision (NMSE below 0.05), reflecting a physics phenomenon where multi-scale transcendental or rational structures reduce to simplified scaling laws at limited dynamic range.
 
 \subsection{Real-World Physical Constants Benchmark}
+\label{sec:real-world}
 
 To evaluate ADCD on datasets governed by physical constants and realistic scales, we constructed five \textbf{synthetic-real hybrid} scenarios using JPL DE440, NIST, and CODATA parameters. We report three distinct success criteria to avoid conflating structural identification with full discovery:
 \begin{enumerate}
@@ -495,7 +502,7 @@ These results (summarized in \Cref{tab:misspecification}) confirm that ADCD disp
 \label{tab:misspecification}
 \begin{tabularx}{\textwidth}{L c c c c c}
 \toprule
-\textbf{Scenario} & \textbf{Converged} & \textbf{Full NMSE} & \textbf{BIC} & \textbf{Class Match} & \textbf{Status} \\
+\textbf{Scenario} & \textbf{Converged}$^\dagger$ & \textbf{Full NMSE} & \textbf{BIC} & \textbf{Class Match} & \textbf{Status} \\
 \midrule
 \multicolumn{6}{l}{\textit{Tier 1: Extreme Misspecifications (Noise = 1.0\%)} } \\
 Relativistic KE (Correct Baseline) & False & $1.70 \times 10^{-4}$ & $-1019.16$ & \textbf{YES} & Positive Control \\
@@ -509,15 +516,19 @@ Case D: Constant 5\% Off & False & $7.46 \times 10^{-3}$ & $-440.41$ & NO & Fail
 Case E: Constant Offset (0.1) & False & $6.70 \times 10^{-3}$ & $-504.04$ & \textbf{YES} & Robust \\
 Case F: Wrong Structural Coeff. (20\% off) & False & $1.96 \times 10^{-2}$ & $-412.95$ & NO & Fail-safe \\
 \bottomrule
+\multicolumn{6}{l}{\small $^\dagger$\textit{``Converged'' = residual NMSE $< 10^{-5}$ (\Cref{sec:real-world}). Positive controls achieve Class Match$=$YES}} \\
+\multicolumn{6}{l}{\small \textit{despite Converged$=$False because the polynomial class is structurally identified before the convergence}} \\
+\multicolumn{6}{l}{\small \textit{threshold is met; the correction magnitude at 1\% noise does not require sub-$10^{-5}$ residual.}} \\
 \end{tabularx}
 \end{table}
 
 \section{Discussion and Ablation Studies}
-To quantify the benefit of the physics gates and BIC reranking, we performed ablation studies by running the discovery loop with specific filters deactivated:
+\label{sec:ablation-text}
+To quantify the benefit of the physics gates and BIC reranking, we performed ablation studies by running the discovery loop with specific filters deactivated. Quantitative results for gate-removal conditions are shown in \Cref{fig:ablation}; the BIC ablation below is a targeted case study reported in text because it requires the full gate pipeline intact to isolate BIC's contribution.
 \begin{itemize}
-    \item \textbf{Without Dimensional Checker/Transcendental Guardrails}: The JAX optimizer was forced to evaluate non-physical candidate expressions (e.g., $e^{-r}$ where $r$ has units of meters). These expressions routinely produce numerical overflow and underflow during parameter search, resulting in qualitatively increased optimization overhead compared to the dimensionally consistent candidate set. On this benchmark, the structural class match rate at 5\% noise was unchanged ($\Delta = 0$), indicating that the gates primarily improve reliability and computational safety rather than altering the best-found expression on well-conditioned scenarios.
+    \item \textbf{Without Dimensional Checker/Transcendental Guardrails}: The JAX optimizer was forced to evaluate non-physical candidate expressions (e.g., $e^{-r}$ where $r$ has units of meters). These expressions routinely produce numerical overflow and underflow during parameter search, resulting in qualitatively increased optimization overhead. On this benchmark, structural accuracy at 5\% noise was unchanged ($\Delta = 0$), indicating these gates primarily improve reliability and computational safety on well-conditioned scenarios. Note: the transcendental guardrail produced zero additional rejections beyond the dimensional gate on this benchmark (all transcendental-argument violations were already caught by dimensional homogeneity); this is expected because a dimensioned argument $\sin(v)$ with $v$ in m/s fails the dimensional check before reaching the transcendental stage.
     \item \textbf{Without ARC Asymptotic Limit Gate}: The gate prevents diverging candidates such as $e^{r/\lambda}$ from reaching the optimizer. Without this gate, such expressions can fit training data locally yet diverge as $r \to \infty$, producing unphysical extrapolation behavior. On this benchmark, the in-distribution structural accuracy was unchanged ($\Delta = 0$ at 5\% noise), but the ARC gate screens for classical-limit consistency in the surviving candidate set---a property that cannot be assessed by in-distribution accuracy alone.
-    \item \textbf{Without BIC Reranking (pure NMSE)}: Under 5\% noise, the Anharmonic Spring was fitted as $(x/\theta_2)^{\theta_1}$ (where $\theta_1 \approx 4.02$ and $\theta_2 \approx 1.01$). While numerically equivalent, this was classified as a \texttt{power\_law} structural class instead of \texttt{polynomial} due to the inclusion of the unnecessary scaling exponent $\theta_1$. BIC successfully penalizes this excess parameter, identifying the parsimonious $x^4$ form.
+    \item \textbf{Without BIC Reranking (pure NMSE)}: Under 5\% noise, the Anharmonic Spring was fitted as $(x/\theta_2)^{\theta_1}$ (where $\theta_1 \approx 4.02$ and $\theta_2 \approx 1.01$). While numerically equivalent, this was classified as a \texttt{power\_law} structural class instead of \texttt{polynomial} due to the inclusion of the unnecessary scaling exponent $\theta_1$. BIC successfully penalizes this excess parameter, identifying the parsimonious $x^4$ form. This ablation is not shown in \Cref{fig:ablation} because disabling BIC requires the full gate pipeline; it is a targeted case study rather than a parallel gate-removal condition.
 \end{itemize}
 
 \subsection{Search Space Efficiency}
@@ -594,7 +605,7 @@ The author thanks AI coding assistants---Cursor IDE, Google DeepMind's Antigravi
 
 \section{Conclusion}
 
-We have presented Anomaly-Driven Correction Discovery (ADCD), a physics-informed symbolic regression framework that discovers physical corrections rather than equations from scratch. By using statistical residual feature priors, physics-gated pre-optimization filters, traced L-BFGS-B parameter fitting, and Bayesian Information Criterion reranking, ADCD achieves a mean structural recovery rate of 82.8\% ($\pm$7.7\%) across five random seeds on a 9-anomaly benchmark suite, with peak performance of 94.4\% at the reference seed. On four physics-inspired real-world validation scenarios using synthetic-real hybrid data (JPL DE440, NIST, CODATA constants), ADCD achieves structural class recovery on all four; quantitative recovery (NMSE $< 10^{-4}$) holds for three scenarios, with full optimizer convergence on Hydrogen Lamb Shift and Muon $g$-2 (NMSE $< 10^{-6}$), while Blackbody remains structurally correct but numerically limited (NMSE $\approx 2.6 \times 10^{-2}$). Future work will investigate extending ADCD to partial differential equations (PDEs) representing anomalies in spatio-temporal datasets, such as general relativistic corrections to classical fluid flows.
+We have presented Anomaly-Driven Correction Discovery (ADCD), a physics-informed symbolic regression framework that discovers physical corrections rather than equations from scratch. By using statistical residual feature priors, physics-gated pre-optimization filters, traced L-BFGS-B parameter fitting, and Bayesian Information Criterion reranking, ADCD achieves a mean structural recovery rate of 82.8\% ($\pm$7.7\%) across five random seeds on a 9-anomaly benchmark suite, with peak performance of 94.4\% at the reference seed. On four physics-inspired real-world validation scenarios using synthetic-real hybrid data (JPL DE440, NIST, CODATA constants), ADCD achieves structural class recovery on all four; quantitative recovery (NMSE $< 10^{-4}$) holds for three scenarios, with full optimizer convergence on Hydrogen Lamb Shift and Muon $g$-2 (residual NMSE $< 10^{-5}$; see \Cref{sec:real-world} for threshold definition), while Blackbody remains structurally correct but numerically limited (NMSE $\approx 2.6 \times 10^{-2}$). Future work will investigate extending ADCD to partial differential equations (PDEs) representing anomalies in spatio-temporal datasets, such as general relativistic corrections to classical fluid flows.
 
 \bibliographystyle{plain}
 \begin{thebibliography}{9}
