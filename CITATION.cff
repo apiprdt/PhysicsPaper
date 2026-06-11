@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software or the associated paper in your research, please cite it as below."
+authors:
+- family-names: "Erdita"
+  given-names: "Muhammad Afif"
+  email: "maeapip10@gmail.com"
+  affiliation: "SMA Negeri 23 Kabupaten Tangerang"
+title: "Anomaly-Driven Correction Discovery (ADCD): Physics-Constrained Symbolic Regression for Evolutionary Scientific Discovery"
+version: 2.1.3
+doi: 10.5281/zenodo.20534940
+date-released: 2026-06-11
+url: "https://apiprdt.github.io/PhysicsPaper/"
+repository-code: "https://github.com/apiprdt/PhysicsPaper"
+keywords:
+  - "symbolic-regression"
+  - "physics-constrained"
+  - "equation-discovery"
+  - "jax"
+  - "scientific-machine-learning"
+  - "sciml"
+  - "physics-informed-ml"
+  - "anomaly-detection"
+license: MIT
