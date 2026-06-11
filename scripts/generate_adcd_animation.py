@@ -1,11 +1,20 @@
 #!/usr/bin/env python3
-"""Generate a premium animated GIF showing the ADCD discovery pipeline.
+"""Generate a clean, professional animated GIF for ADCD.
 
-Creates docs/adcd_discovery.gif — a high-quality animation demonstrating:
-  1. Anomalous data vs classical baseline (the problem)
-  2. Physics gate cascade filtering unphysical candidates
-  3. L-BFGS-B parameter optimization converging in real-time
-  4. Final discovery result with formula reveal
+Produces docs/adcd_discovery.gif — a minimalist dark-mode animation:
+  Phase 1: Title card
+  Phase 2: Data plot — anomaly vs classical baseline  
+  Phase 3: Gate filtering (white text, green pass, red fail)
+  Phase 4: Optimization convergence
+  Phase 5: Result card with discovered formula
+
+Color rules:
+  - Labels/headers: grey (#8b949e)
+  - Important text & numbers: white (#e6edf3)
+  - Success/pass/match: green (#3fb950)
+  - Failure/reject: red (#f85149)
+  - Accent/brand: teal (#2dd4bf) — only for ADCD brand name + final formula
+  - In-progress/pending: yellow (#d29922)
 
 Usage:
     python scripts/generate_adcd_animation.py
@@ -16,355 +25,332 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from matplotlib.patches import FancyBboxPatch
 from pathlib import Path
 import warnings
-warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore")
 
-# ─── Output path ───────────────────────────────────────────────────────
-OUT_DIR = Path(__file__).resolve().parent.parent / "docs"
-OUT_DIR.mkdir(exist_ok=True)
-GIF_PATH = OUT_DIR / "adcd_discovery.gif"
+# ── Paths ──────────────────────────────────────────────────────────────
+OUT = Path(__file__).resolve().parent.parent / "docs" / "adcd_discovery.gif"
+OUT.parent.mkdir(exist_ok=True)
 
-# ─── Color palette (dark-mode teal accent) ─────────────────────────────
-BG       = "#0f1117"
-PANEL    = "#1a1d27"
-TEAL     = "#0d9488"
-TEAL_LT  = "#2dd4bf"
-ORANGE   = "#f97316"
-BLUE     = "#3b82f6"
-RED      = "#ef4444"
-GREEN    = "#22c55e"
-GREY     = "#64748b"
-WHITE    = "#e2e8f0"
-YELLOW   = "#eab308"
+# ── Palette (intuitive: white=info, green=pass, red=fail) ──────────────
+BG      = "#0d1117"
+SURFACE = "#161b22"
+TEAL    = "#2dd4bf"       # brand accent only
+BLUE    = "#58a6ff"       # classical baseline curve
+ORANGE  = "#f0883e"       # observed data points
+RED     = "#f85149"       # failure / reject
+GREEN   = "#3fb950"       # success / pass
+YELLOW  = "#d29922"       # in-progress / pending
+GREY    = "#8b949e"       # labels, headers, secondary
+WHITE   = "#e6edf3"       # primary text & numbers
+FAINT   = "#30363d"       # borders
 
-# ─── Physics data (Relativistic Kinetic Energy) ───────────────────────
+# ── Physics data ───────────────────────────────────────────────────────
 np.random.seed(42)
-N = 80
-p = np.linspace(0.05, 4.0, N)
+N = 60
+p = np.linspace(0.1, 3.8, N)
 m, c = 1.0, 1.0
-E_classical = p**2 / (2 * m)
-E_true = np.sqrt(p**2 * c**2 + m**2 * c**4) - m * c**2
-noise = np.random.normal(0, 0.15, N)
-E_obs = E_true + noise
+E_cls = p**2 / (2*m)
+E_true = np.sqrt(p**2*c**2 + m**2*c**4) - m*c**2
+E_obs = E_true + np.random.normal(0, 0.12, N)
 
-# ─── Gate candidate table ─────────────────────────────────────────────
-CANDIDATES = [
-    {"expr": "θ₀·log(x)",      "ast": "✓", "dim": "✗", "arc": "—", "status": "rejected", "reason": "dim"},
-    {"expr": "θ₀·x³ + θ₁·x",   "ast": "✗", "dim": "—", "arc": "—", "status": "rejected", "reason": "ast"},
-    {"expr": "θ₀·sin(x)/x",    "ast": "✓", "dim": "✓", "arc": "✗", "status": "rejected", "reason": "arc"},
-    {"expr": "θ₀·exp(x²)",     "ast": "✓", "dim": "✗", "arc": "—", "status": "rejected", "reason": "dim"},
-    {"expr": "θ₀·(v/c)²",      "ast": "✓", "dim": "✓", "arc": "✓", "status": "passed",  "reason": ""},
-    {"expr": "θ₀·x⁴",          "ast": "✓", "dim": "✓", "arc": "✗", "status": "rejected", "reason": "arc"},
+# ── Frame plan ─────────────────────────────────────────────────────────
+TOTAL = 210
+FPS = 12
+
+def ease(t):
+    t = max(0.0, min(1.0, t))
+    return t * t * (3 - 2*t)
+
+# ── Figure ─────────────────────────────────────────────────────────────
+fig = plt.figure(figsize=(10, 5.2), facecolor=BG, dpi=110)
+
+# Left: data plot
+ax = fig.add_axes([0.07, 0.13, 0.52, 0.78])
+ax.set_facecolor(SURFACE)
+for sp in ax.spines.values():
+    sp.set_color(FAINT)
+    sp.set_linewidth(0.8)
+ax.tick_params(colors=GREY, labelsize=7)
+ax.set_xlim(-0.1, 4.2)
+ax.set_ylim(-0.8, max(E_obs) + 1.2)
+ax.set_xlabel("Momentum  p", color=GREY, fontsize=8, labelpad=6)
+ax.set_ylabel("Energy  E", color=GREY, fontsize=8, labelpad=6)
+
+scat = ax.scatter([], [], s=14, color=ORANGE, alpha=0, zorder=3, linewidths=0)
+line_cls, = ax.plot([], [], color=BLUE, ls="--", lw=1.5, alpha=0, zorder=2)
+line_fit, = ax.plot([], [], color=TEAL, lw=2.2, alpha=0, zorder=4)
+
+# ── Right panel text (fixed positions, no axes, no collision) ──────────
+RX = 0.80   # center x for right panel
+title_main = fig.text(RX, 0.93, "", ha="center", va="top",
+                       fontsize=16, fontweight="bold", color=TEAL,
+                       fontfamily="monospace")
+title_sub  = fig.text(RX, 0.87, "", ha="center", va="top",
+                       fontsize=8.5, color=GREY, fontfamily="sans-serif")
+
+# Divider line
+fig.text(RX, 0.835, "________________________", ha="center", va="top",
+         fontsize=6, color=FAINT, fontfamily="monospace")
+
+# 10 status lines, left-aligned at fixed columns to avoid overlaps
+SX_lbl = 0.64   # left edge for labels / candidates
+SX_val = 0.82   # left edge for values / status
+SY0 = 0.79
+SDY = 0.058
+status_lbl = []
+status_val = []
+for i in range(10):
+    lbl = fig.text(SX_lbl, SY0 - i*SDY, "", ha="left", va="top",
+                  fontsize=8.5, color=WHITE, fontfamily="monospace")
+    val = fig.text(SX_val, SY0 - i*SDY, "", ha="left", va="top",
+                  fontsize=8.5, color=WHITE, fontfamily="monospace")
+    status_lbl.append(lbl)
+    status_val.append(val)
+
+# Formula (centered, larger)
+formula = fig.text(RX, 0.15, "", ha="center", va="center",
+                    fontsize=14, fontweight="bold", color=TEAL,
+                    fontfamily="monospace")
+
+# Bottom bar
+prog = fig.text(0.50, 0.03, "", ha="center", va="center",
+                 fontsize=7, color=GREY, fontfamily="monospace")
+
+# ── Gate data ──────────────────────────────────────────────────────────
+GATES = [
+    ("log(x)",       "FAIL", "dim mismatch"),
+    ("x^3 + x",      "FAIL", "AST complex"),
+    ("sin(x)/x",     "FAIL", "ARC diverges"),
+    ("exp(x^2)",     "FAIL", "dim mismatch"),
+    ("(v/c)^2",      "PASS", "all gates OK"),
+    ("x^4",          "FAIL", "ARC nonzero"),
 ]
 
-# ─── Total frames plan ─────────────────────────────────────────────────
-# Phase 1: Title reveal          frames 0-29   (30 frames)
-# Phase 2: Data appears           frames 30-59  (30 frames)
-# Phase 3: Gate cascade           frames 60-119 (60 frames, ~10 per candidate)
-# Phase 4: Optimization           frames 120-179 (60 frames)
-# Phase 5: Formula reveal + hold  frames 180-219 (40 frames)
-TOTAL_FRAMES = 220
-FPS = 15
-
-# ─── Figure setup ──────────────────────────────────────────────────────
-fig = plt.figure(figsize=(11, 6), facecolor=BG, dpi=100)
-
-# Left panel: data plot
-ax_data = fig.add_axes([0.06, 0.12, 0.45, 0.78])
-ax_data.set_facecolor(PANEL)
-
-# Right panel: gate telemetry / status
-ax_info = fig.add_axes([0.56, 0.12, 0.40, 0.78])
-ax_info.set_facecolor(PANEL)
-ax_info.set_xlim(0, 1)
-ax_info.set_ylim(0, 1)
-ax_info.axis("off")
-
-# Title
-title_text = fig.text(0.5, 0.96, "", ha="center", va="top",
-                       fontsize=17, fontweight="bold", color=TEAL,
-                       fontfamily="monospace")
-
-# Subtitle
-subtitle_text = fig.text(0.5, 0.92, "", ha="center", va="top",
-                          fontsize=10, color=GREY, fontfamily="sans-serif")
-
-# ─── Data‐plot artists ────────────────────────────────────────────────
-scatter_obs = ax_data.scatter([], [], color=ORANGE, alpha=0, s=12,
-                               label="Observed (noisy)", zorder=3)
-line_classical, = ax_data.plot([], [], color=BLUE, ls="--", lw=1.8,
-                                label="Classical: p²/2m", zorder=2)
-line_fit, = ax_data.plot([], [], color=TEAL_LT, lw=2.5,
-                          label="ADCD fit", zorder=4)
-line_true, = ax_data.plot([], [], color=GREEN, lw=1.2, ls=":",
-                           alpha=0, label="Ground truth", zorder=2)
-
-ax_data.set_xlabel("Momentum  p", color=WHITE, fontsize=10)
-ax_data.set_ylabel("Energy  E", color=WHITE, fontsize=10)
-ax_data.tick_params(colors=GREY, labelsize=8)
-for spine in ax_data.spines.values():
-    spine.set_color(GREY)
-    spine.set_linewidth(0.5)
-ax_data.set_xlim(-0.1, 4.3)
-ax_data.set_ylim(-0.5, max(E_obs) + 1.0)
-
-# Legend (will be shown later)
-legend = ax_data.legend(loc="upper left", fontsize=7, framealpha=0.3,
-                         facecolor=PANEL, edgecolor=GREY, labelcolor=WHITE)
-legend.set_visible(False)
-
-# ─── Info‐panel text artists ──────────────────────────────────────────
-info_lines = []
-for i in range(12):
-    t = ax_info.text(0.05, 0.92 - i * 0.075, "", fontsize=9,
-                      color=WHITE, fontfamily="monospace",
-                      transform=ax_info.transAxes, va="top")
-    info_lines.append(t)
-
-# Big formula text at bottom of info panel
-formula_text = ax_info.text(0.5, 0.12, "", fontsize=13, color=TEAL_LT,
-                             fontweight="bold", fontfamily="monospace",
-                             ha="center", va="center",
-                             transform=ax_info.transAxes)
-
-# ─── Progress bar ─────────────────────────────────────────────────────
-ax_prog = fig.add_axes([0.06, 0.03, 0.90, 0.03])
-ax_prog.set_facecolor(PANEL)
-ax_prog.set_xlim(0, 1)
-ax_prog.set_ylim(0, 1)
-ax_prog.axis("off")
-prog_bar = FancyBboxPatch((0, 0.1), 0.001, 0.8, boxstyle="round,pad=0.01",
-                            facecolor=TEAL, edgecolor="none", alpha=0.8)
-ax_prog.add_patch(prog_bar)
-prog_label = ax_prog.text(0.5, 0.5, "", ha="center", va="center",
-                           fontsize=7, color=WHITE, fontfamily="monospace")
-
-
-def _clear_info():
-    for t in info_lines:
-        t.set_text("")
-    formula_text.set_text("")
-
-
-def _ease_in_out(t):
-    """Smooth ease-in-out [0,1] → [0,1]."""
-    return t * t * (3 - 2 * t)
-
+def _clear():
+    for s in status_lbl:
+        s.set_text("")
+        s.set_color(WHITE)
+        s.set_alpha(1.0)
+    for s in status_val:
+        s.set_text("")
+        s.set_color(WHITE)
+        s.set_alpha(1.0)
+    formula.set_text("")
+    formula.set_alpha(1.0)
 
 def update(frame):
-    progress = frame / (TOTAL_FRAMES - 1)
-    prog_bar.set_width(progress)
-
-    # ── Phase 1: Title ──────────────────────────────────────────────
-    if frame < 30:
-        t = frame / 29
-        alpha = _ease_in_out(t)
-        title_text.set_text("ADCD ▸ Anomaly-Driven Correction Discovery")
-        title_text.set_alpha(alpha)
-        subtitle_text.set_text("Physics-constrained symbolic regression for theory refinement")
-        subtitle_text.set_alpha(alpha * 0.7)
-
-        _clear_info()
-        if frame > 15:
-            info_lines[0].set_text("▶ Loading scenario...")
-            info_lines[1].set_text("  Relativistic Kinetic Energy")
-            info_lines[2].set_text(f"  Data points: {N}")
-            info_lines[3].set_text("  Classical law: E = p²/2m")
-            info_lines[4].set_text("  True correction: √(p²c²+m²c⁴)−mc²")
-
-        prog_label.set_text("initializing...")
+    # ── Phase 1: Title (0-24) ───────────────────────────────────
+    if frame < 25:
+        a = ease(frame / 20)
+        title_main.set_text("ADCD")
+        title_main.set_alpha(a)
+        title_sub.set_text("Anomaly-Driven Correction Discovery")
+        title_sub.set_alpha(a * 0.8)
+        _clear()
+        status_lbl[1].set_text("Physics-constrained")
+        status_lbl[1].set_color(GREY)
+        status_lbl[1].set_alpha(a * 0.7)
+        status_lbl[2].set_text("symbolic regression")
+        status_lbl[2].set_color(GREY)
+        status_lbl[2].set_alpha(a * 0.7)
+        status_lbl[3].set_text("for theory refinement")
+        status_lbl[3].set_color(GREY)
+        status_lbl[3].set_alpha(a * 0.7)
+        prog.set_text("")
         return []
 
-    # ── Phase 2: Data appears ───────────────────────────────────────
-    elif frame < 60:
-        t = (frame - 30) / 29
-        alpha = _ease_in_out(t)
+    # ── Phase 2: Data appears (25-54) ──────────────────────────
+    elif frame < 55:
+        f = frame - 25
+        a = ease(f / 25)
+        n = max(1, int(a * N))
 
-        # Scatter in progressively
-        n_show = int(alpha * N)
-        if n_show > 0:
-            scatter_obs.set_offsets(np.column_stack([p[:n_show], E_obs[:n_show]]))
-            scatter_obs.set_alpha(0.7)
+        scat.set_offsets(np.column_stack([p[:n], E_obs[:n]]))
+        scat.set_alpha(0.75)
+        line_cls.set_data(p[:n], E_cls[:n])
+        line_cls.set_alpha(0.8)
 
-        # Classical line draws in
-        n_line = int(alpha * N)
-        if n_line > 1:
-            line_classical.set_data(p[:n_line], E_classical[:n_line])
+        _clear()
+        title_main.set_text("ADCD")
+        title_sub.set_text("Loading Scenario")
+        title_sub.set_color(GREY)
 
-        legend.set_visible(True)
+        status_lbl[0].set_text("Scenario:")
+        status_lbl[0].set_color(GREY)
+        status_lbl[1].set_text("  Relativistic KE")
+        status_lbl[1].set_color(WHITE)
 
-        _clear_info()
-        info_lines[0].set_text("▶ Problem Setup")
-        info_lines[1].set_text("")
-        info_lines[2].set_text(f"  {n_show}/{N} data points loaded")
-        info_lines[3].set_text("  Residual Δ = y_obs − y_classical")
-        residual_rms = np.sqrt(np.mean((E_obs[:max(n_show,1)] - E_classical[:max(n_show,1)])**2))
-        info_lines[4].set_text(f"  Residual RMS: {residual_rms:.3f}")
-        info_lines[6].set_text("  Anomaly detected: large systematic")
-        info_lines[7].set_text("  deviation at high momentum ▸▸")
+        status_lbl[3].set_text("Baseline:")
+        status_lbl[3].set_color(GREY)
+        status_lbl[4].set_text("  E = p^2 / 2m")
+        status_lbl[4].set_color(WHITE)
 
-        prog_label.set_text(f"loading data  {int(alpha*100)}%")
+        status_lbl[6].set_text("Points:")
+        status_lbl[6].set_color(GREY)
+        status_val[6].set_text(f"{n}/{N}")
+        status_val[6].set_color(WHITE)
+
+        prog.set_text(f"loading data  {int(a*100)}%")
         return []
 
-    # ── Phase 3: Gate cascade ───────────────────────────────────────
-    elif frame < 120:
-        gate_frame = frame - 60  # 0..59
-        cand_idx = min(gate_frame // 10, len(CANDIDATES) - 1)
-        sub = gate_frame % 10
+    # ── Phase 3: Gate cascade (55-94) ──────────────────────────
+    elif frame < 95:
+        f = frame - 55
+        _clear()
 
-        _clear_info()
-        info_lines[0].set_text("▶ Stage 1: Physics Gate Cascade")
-        info_lines[1].set_text("  ─────────────────────────────")
+        title_main.set_text("ADCD")
+        title_sub.set_text("Stage 1: Physics Gates")
+        title_sub.set_color(WHITE)
 
-        # Show header
-        info_lines[2].set_text("  Expr           AST  DIM  ARC")
+        # Header
+        status_lbl[0].set_text("Candidate")
+        status_lbl[0].set_color(GREY)
+        status_val[0].set_text("Status")
+        status_val[0].set_color(GREY)
 
-        # Show candidates up to current
-        for i in range(min(cand_idx + 1, len(CANDIDATES))):
-            cand = CANDIDATES[i]
-            if i < cand_idx:
-                # Already processed
-                if cand["status"] == "rejected":
-                    mark = "✗"
-                    color = RED
+        idx = min(f // 6, len(GATES) - 1)
+        sub = f % 6
+
+        for i in range(min(idx + 1, len(GATES))):
+            expr, result, reason = GATES[i]
+            line_i = i + 1  # offset by 1 for header
+
+            status_lbl[line_i].set_text(f"  {expr}")
+            status_lbl[line_i].set_color(WHITE)
+
+            if i < idx or sub >= 3:
+                # Decided
+                if result == "PASS":
+                    status_val[line_i].set_text("PASS")
+                    status_val[line_i].set_color(GREEN)
                 else:
-                    mark = "✓"
-                    color = GREEN
-                info_lines[3 + i].set_text(
-                    f"  {mark} {cand['expr']:<16s} {cand['ast']}    {cand['dim']}    {cand['arc']}"
-                )
-                info_lines[3 + i].set_color(color)
+                    status_val[line_i].set_text("FAIL")
+                    status_val[line_i].set_color(RED)
             else:
-                # Currently processing
-                checks = ["AST", "DIM", "ARC"]
-                gate_progress = min(sub, 3)
-                status_str = ""
-                for g in range(3):
-                    if g < gate_progress:
-                        val = [cand["ast"], cand["dim"], cand["arc"]][g]
-                        status_str += f"{val}    "
-                    elif g == gate_progress:
-                        status_str += "⏳   "
-                    else:
-                        status_str += "·    "
+                # Currently checking
+                status_val[line_i].set_text("...")
+                status_val[line_i].set_color(YELLOW)
 
-                info_lines[3 + i].set_text(
-                    f"  ▸ {cand['expr']:<16s} {status_str}"
-                )
-                info_lines[3 + i].set_color(YELLOW)
+        # Tally
+        done = [g for j, g in enumerate(GATES[:idx+1]) if j < idx or sub >= 3]
+        n_pass = sum(1 for g in done if g[1] == "PASS")
+        n_fail = sum(1 for g in done if g[1] == "FAIL")
 
-        # Summary counts
-        passed = sum(1 for c in CANDIDATES[:cand_idx+1] if c["status"] == "passed" and sub >= 8)
-        rejected = sum(1 for c in CANDIDATES[:cand_idx+1] if c["status"] == "rejected" and (CANDIDATES.index(c) < cand_idx or sub >= 8))
-        info_lines[10].set_text(f"  Passed: {passed}  |  Rejected: {rejected}")
-        info_lines[10].set_color(TEAL_LT)
+        status_lbl[8].set_text("Pass:")
+        status_lbl[8].set_color(GREY)
+        status_val[8].set_text(f"{n_pass}")
+        status_val[8].set_color(GREEN)
 
-        prog_label.set_text(f"gate cascade  candidate {cand_idx+1}/{len(CANDIDATES)}")
+        status_lbl[9].set_text("Reject:")
+        status_lbl[9].set_color(GREY)
+        status_val[9].set_text(f"{n_fail}")
+        status_val[9].set_color(RED)
+
+        prog.set_text(f"filtering  {idx+1}/{len(GATES)}")
         return []
 
-    # ── Phase 4: Optimization ───────────────────────────────────────
-    elif frame < 180:
-        opt_frame = frame - 120  # 0..59
-        t = opt_frame / 59.0
+    # ── Phase 4: Optimization (95-154) ─────────────────────────
+    elif frame < 155:
+        f = frame - 95
+        t = f / 59.0
+        decay = 1.0 - np.exp(-5.0 * t)
 
-        # Simulate L-BFGS-B convergence with exponential decay
-        decay = 1.0 - np.exp(-4.0 * t)
-
-        # Fit curve interpolates from classical to true
-        E_fit = E_classical + decay * (E_true - E_classical)
+        E_fit = E_cls + decay * (E_true - E_cls)
         line_fit.set_data(p, E_fit)
+        line_fit.set_alpha(min(1.0, t * 3))
 
-        # Show ground truth faintly
-        line_true.set_data(p, E_true)
-        line_true.set_alpha(0.3)
-
-        # Compute current NMSE
         residual = E_obs - E_fit
-        nmse = np.mean(residual**2) / np.var(E_obs)
+        nmse = np.mean(residual**2) / max(np.var(E_obs), 1e-10)
 
-        # Parameter values converging
-        theta0_true = 0.5  # ~coefficient
-        theta0_current = 0.01 + decay * (theta0_true - 0.01)
+        _clear()
+        title_main.set_text("ADCD")
+        title_sub.set_text("Stage 2: JAX Optimizer")
+        title_sub.set_color(WHITE)
 
-        _clear_info()
-        info_lines[0].set_text("▶ Stage 2: JAX L-BFGS-B Optimization")
-        info_lines[1].set_text("  ─────────────────────────────────")
-        info_lines[2].set_text(f"  Candidate: θ₀·(p/mc)²")
-        info_lines[3].set_text(f"  Iteration: {int(t * 50):>3d}/50")
-        info_lines[4].set_text("")
+        status_lbl[0].set_text("Candidate:")
+        status_lbl[0].set_color(GREY)
+        status_lbl[1].set_text("  theta_0 * (v/c)^2")
+        status_lbl[1].set_color(WHITE)
 
-        # Animated parameter convergence
-        info_lines[5].set_text(f"  θ₀ = {theta0_current:.6f}")
-        info_lines[5].set_color(TEAL_LT)
+        iter_n = int(t * 50)
+        status_lbl[3].set_text("Iteration:")
+        status_lbl[3].set_color(GREY)
+        status_val[3].set_text(f"{iter_n}/50")
+        status_val[3].set_color(WHITE)
 
-        info_lines[6].set_text(f"  NMSE = {nmse:.2e}")
-        if nmse < 0.01:
-            info_lines[6].set_color(GREEN)
-        elif nmse < 0.1:
-            info_lines[6].set_color(YELLOW)
+        theta = 0.01 + decay * 0.49
+        status_lbl[5].set_text("theta_0:")
+        status_lbl[5].set_color(GREY)
+        status_val[5].set_text(f"{theta:.5f}")
+        status_val[5].set_color(WHITE)
+
+        status_lbl[7].set_text("NMSE:")
+        status_lbl[7].set_color(GREY)
+        status_val[7].set_text(f"{nmse:.2e}")
+        if nmse < 0.005:
+            status_val[7].set_color(GREEN)
         else:
-            info_lines[6].set_color(ORANGE)
+            status_val[7].set_color(WHITE)
 
-        info_lines[7].set_text("")
-        info_lines[8].set_text(f"  BIC  = {-2*N*np.log(max(nmse,1e-10)) + 2*np.log(N):.1f}")
-        info_lines[8].set_color(GREY)
+        if t > 0.75:
+            status_lbl[9].set_text("Status:")
+            status_lbl[9].set_color(GREY)
+            status_val[9].set_text("Converged")
+            status_val[9].set_color(GREEN)
 
-        # Convergence indicator
-        if t > 0.7:
-            info_lines[10].set_text("  ✓ Converged — tolerance < 1e-5")
-            info_lines[10].set_color(GREEN)
-
-        prog_label.set_text(f"optimizing  iter {int(t*50)}/50  NMSE={nmse:.1e}")
+        prog.set_text(f"optimizing  iter {iter_n}/50")
         return []
 
-    # ── Phase 5: Formula reveal ─────────────────────────────────────
+    # ── Phase 5+6: Result (155-209) ────────────────────────────
     else:
-        reveal_t = (frame - 180) / 39.0
-        alpha = _ease_in_out(min(reveal_t * 2, 1.0))
+        f = frame - 155
+        a = ease(min(f / 12, 1.0))
 
-        # Keep fit line
         line_fit.set_data(p, E_true)
         line_fit.set_alpha(1.0)
-        line_true.set_data(p, E_true)
-        line_true.set_alpha(0.4)
 
-        _clear_info()
-        info_lines[0].set_text("▶ Discovery Complete!")
-        info_lines[0].set_color(GREEN)
-        info_lines[1].set_text("  ─────────────────────────────────")
-        info_lines[2].set_text("  Scenario: Relativistic KE")
-        info_lines[3].set_text("  Classical: E = p²/2m")
-        info_lines[4].set_text("")
-        info_lines[5].set_text("  Discovered Correction:")
-        info_lines[5].set_color(TEAL_LT)
+        _clear()
+        title_main.set_text("ADCD")
+        title_sub.set_text("Discovery Complete")
+        title_sub.set_color(GREEN)
 
-        formula_text.set_text("Δ = θ₀ · (v/c)²")
-        formula_text.set_alpha(alpha)
-        formula_text.set_fontsize(16)
-        formula_text.set_color(TEAL_LT)
+        status_lbl[0].set_text("Scenario:")
+        status_lbl[0].set_color(GREY)
+        status_lbl[1].set_text("  Relativistic KE")
+        status_lbl[1].set_color(WHITE)
 
-        info_lines[8].set_text("  Class: polynomial  ✓  Match!")
-        info_lines[8].set_color(GREEN)
-        info_lines[9].set_text("  NMSE: 1.11e-05")
-        info_lines[9].set_color(GREEN)
-        info_lines[10].set_text("")
-        info_lines[11].set_text("  pip install adcd")
-        info_lines[11].set_color(GREY)
+        status_lbl[3].set_text("Class:")
+        status_lbl[3].set_color(GREY)
+        status_val[3].set_text("polynomial")
+        status_val[3].set_color(WHITE)
 
-        if reveal_t > 0.5:
-            prog_label.set_text("discovery complete ✓")
-            prog_label.set_color(GREEN)
+        status_lbl[4].set_text("Match:")
+        status_lbl[4].set_color(GREY)
+        status_val[4].set_text("SUCCESS")
+        status_val[4].set_color(GREEN)
+
+        status_lbl[6].set_text("NMSE:")
+        status_lbl[6].set_color(GREY)
+        status_val[6].set_text("1.11e-05")
+        status_val[6].set_color(GREEN)
+
+        formula.set_text("D = theta_0 * (v/c)^2")
+        formula.set_alpha(a)
+
+        prog.set_text("pip install adcd")
+        prog.set_color(GREY)
         return []
 
 
-# ─── Build animation ──────────────────────────────────────────────────
-print(f"Generating {TOTAL_FRAMES}-frame animation at {FPS} fps...")
-ani = animation.FuncAnimation(fig, update, frames=TOTAL_FRAMES, interval=1000//FPS, blit=False)
-
-print(f"Saving to {GIF_PATH} ...")
-ani.save(str(GIF_PATH), writer="pillow", fps=FPS, dpi=100,
+# ── Build & save ───────────────────────────────────────────────────────
+print(f"Generating {TOTAL} frames at {FPS} fps ...")
+ani = animation.FuncAnimation(fig, update, frames=TOTAL,
+                               interval=1000//FPS, blit=False)
+print(f"Saving to {OUT} ...")
+ani.save(str(OUT), writer="pillow", fps=FPS, dpi=110,
          savefig_kwargs={"facecolor": BG, "edgecolor": "none"})
-print(f"OK Saved: {GIF_PATH} ({GIF_PATH.stat().st_size / 1024:.0f} KB)")
+sz = OUT.stat().st_size / 1024
+print(f"Done: {OUT} ({sz:.0f} KB)")
 plt.close()
