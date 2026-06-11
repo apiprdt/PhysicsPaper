@@ -120,12 +120,10 @@ prog = fig.text(0.50, 0.03, "", ha="center", va="center",
 
 # ── Gate data ──────────────────────────────────────────────────────────
 GATES = [
-    ("log(x)",       "FAIL", "dim mismatch"),
-    ("x^3 + x",      "FAIL", "AST complex"),
-    ("sin(x)/x",     "FAIL", "ARC diverges"),
-    ("exp(x^2)",     "FAIL", "dim mismatch"),
-    ("(v/c)^2",      "PASS", "all gates OK"),
-    ("x^4",          "FAIL", "ARC nonzero"),
+    ("Dimensionality", "PASS"),
+    ("Asymptotics",    "PASS"),
+    ("Symmetries",     "PASS"),
+    ("Complexity",     "PASS"),
 ]
 
 def _clear():
@@ -204,51 +202,49 @@ def update(frame):
         title_sub.set_text("Stage 1: Physics Gates")
         title_sub.set_color(WHITE)
 
-        # Header
-        status_lbl[0].set_text("Candidate")
+        status_lbl[0].set_text("Candidate:")
         status_lbl[0].set_color(GREY)
-        status_val[0].set_text("Status")
-        status_val[0].set_color(GREY)
+        status_lbl[1].set_text("  theta_0 * (v/c)^2")
+        status_lbl[1].set_color(WHITE)
 
-        idx = min(f // 6, len(GATES) - 1)
-        sub = f % 6
+        status_lbl[3].set_text("Physics Gate")
+        status_lbl[3].set_color(GREY)
+        status_val[3].set_text("Status")
+        status_val[3].set_color(GREY)
+
+        idx = min(f // 8, len(GATES) - 1)
+        sub = f % 8
 
         for i in range(min(idx + 1, len(GATES))):
-            expr, result, reason = GATES[i]
-            line_i = i + 1  # offset by 1 for header
+            gate_name, result = GATES[i]
+            line_i = i + 4  # offset by 4 for Candidate and headers
 
-            status_lbl[line_i].set_text(f"  {expr}")
+            status_lbl[line_i].set_text(f"  {gate_name}")
             status_lbl[line_i].set_color(WHITE)
 
-            if i < idx or sub >= 3:
+            if i < idx or sub >= 4:
                 # Decided
-                if result == "PASS":
-                    status_val[line_i].set_text("PASS")
-                    status_val[line_i].set_color(GREEN)
-                else:
-                    status_val[line_i].set_text("FAIL")
-                    status_val[line_i].set_color(RED)
+                status_val[line_i].set_text("PASS")
+                status_val[line_i].set_color(GREEN)
             else:
-                # Currently checking
+                # Checking
                 status_val[line_i].set_text("...")
                 status_val[line_i].set_color(YELLOW)
 
         # Tally
-        done = [g for j, g in enumerate(GATES[:idx+1]) if j < idx or sub >= 3]
+        done = [g for j, g in enumerate(GATES[:idx+1]) if j < idx or sub >= 4]
         n_pass = sum(1 for g in done if g[1] == "PASS")
-        n_fail = sum(1 for g in done if g[1] == "FAIL")
 
-        status_lbl[8].set_text("Pass:")
-        status_lbl[8].set_color(GREY)
-        status_val[8].set_text(f"{n_pass}")
-        status_val[8].set_color(GREEN)
-
-        status_lbl[9].set_text("Reject:")
+        status_lbl[9].set_text("Verification:")
         status_lbl[9].set_color(GREY)
-        status_val[9].set_text(f"{n_fail}")
-        status_val[9].set_color(RED)
+        if n_pass == len(GATES):
+            status_val[9].set_text("SUCCESS")
+            status_val[9].set_color(GREEN)
+        else:
+            status_val[9].set_text("PENDING")
+            status_val[9].set_color(YELLOW)
 
-        prog.set_text(f"filtering  {idx+1}/{len(GATES)}")
+        prog.set_text(f"checking gates  {idx+1}/{len(GATES)}")
         return []
 
     # ── Phase 4: Optimization (95-154) ─────────────────────────
