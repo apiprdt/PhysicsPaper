@@ -38,3 +38,6 @@ site/
 # Local virtual environments
 .verify-pypi-venv/
 
+# Release builds
+release/
+

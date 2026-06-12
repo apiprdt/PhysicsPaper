@@ -67,46 +67,93 @@ def load_all():
 
 
 def fig1_noise_robustness(adcd, pysr, mlp):
-    """Figure 1: Noise robustness curve — Class Match Rate vs Noise Level."""
-    fig, ax = plt.subplots(figsize=(6, 4))
+    """Figure 1: Noise robustness curve — Class Match Rate vs Noise Level.
+    Professional white-background version with all data-point labels annotated
+    for both ADCD and PySR, plus a gap arrow at the 5% noise regime.
+    """
+    fig, ax = plt.subplots(figsize=(7, 4.8))
+    fig.patch.set_facecolor('white')
+    ax.set_facecolor('white')
 
     def get_rates(data):
         rates = []
         for noise in NOISE_LEVELS:
             subset = [r for r in data if abs(r["noise"] - noise) < 1e-9]
-            rate = sum(1 for r in subset if r["class_match"]) / len(subset) * 100
-            rates.append(rate)
+            if not subset:
+                rates.append(None)
+            else:
+                rate = sum(1 for r in subset if r["class_match"]) / len(subset) * 100
+                rates.append(rate)
         return rates
 
-    # Colors: Navy blue for ADCD, Crimson for PySR
-    adcd_color = '#1E3A8A'
-    pysr_color = '#B91C1C'
+    adcd_color = '#1a3a6b'   # Deep navy – confidence, ADCD
+    pysr_color = '#b91c1c'   # Deep crimson – PySR
 
     adcd_rates = get_rates(adcd)
-    ax.plot(NOISE_LABELS, adcd_rates, 'o-', color=adcd_color, lw=2.5,
-            ms=8, mfc='white', mew=2.5, label='ADCD (ours)', zorder=5)
 
     if pysr:
         pysr_rates = get_rates(pysr)
-        ax.plot(NOISE_LABELS, pysr_rates, 's--', color=pysr_color, lw=1.8,
-                ms=7, mfc='white', mew=1.8, label='PySR (unconstrained)', zorder=4)
+    else:
+        pysr_rates = [None] * len(NOISE_LEVELS)
 
+    xs = list(range(len(NOISE_LABELS)))
+
+    # ── Main lines ──────────────────────────────────────────────────────
+    ax.plot(xs, adcd_rates, 'o-', color=adcd_color, lw=2.8,
+            ms=9, mfc='white', mew=2.5, label='ADCD (ours)', zorder=5,
+            solid_capstyle='round')
+    ax.plot(xs, pysr_rates, 's--', color=pysr_color, lw=2.0,
+            ms=8, mfc='white', mew=2.0, label='PySR (fair, same residual)', zorder=4)
+
+    # ── Label every ADCD point ──────────────────────────────────────────
     for i, rate in enumerate(adcd_rates):
-        ax.annotate(f'{rate:.1f}%', (NOISE_LABELS[i], rate),
-                    xytext=(0, 10), textcoords='offset points',
-                    ha='center', fontsize=9.5, fontweight='bold', color=adcd_color)
+        if rate is None:
+            continue
+        ax.annotate(
+            f'{rate:.1f}%',
+            xy=(xs[i], rate),
+            xytext=(0, 7),
+            textcoords='offset points',
+            ha='center', va='bottom',
+            fontsize=10, fontweight='bold', color=adcd_color,
+        )
 
-    ax.set_xlabel("Observational Noise Level", fontsize=11, labelpad=8)
-    ax.set_ylabel("Structural Class Match Rate (%)", fontsize=11, labelpad=8)
-    ax.set_title("Noise Robustness: ADCD vs PySR", fontsize=12, pad=12, fontweight='bold')
-    ax.set_ylim(0, 115)
-    ax.legend(fontsize=9.5, loc='lower left', framealpha=0.9, frameon=True)
-    ax.grid(True, alpha=0.15, ls='--', color='gray')
-    ax.axhline(100, color='green', alpha=0.1, lw=1)
+    # ── Label every PySR point ──────────────────────────────────────────
+    for i, rate in enumerate(pysr_rates):
+        if rate is None:
+            continue
+        ax.annotate(
+            f'{rate:.1f}%',
+            xy=(xs[i], rate),
+            xytext=(0, 7),
+            textcoords='offset points',
+            ha='center', va='bottom',
+            fontsize=10, fontweight='bold', color=pysr_color,
+        )
+
+    # ── Axes formatting ─────────────────────────────────────────────────
+    ax.set_xticks(xs)
+    ax.set_xticklabels(NOISE_LABELS, fontsize=11)
+    ax.set_xlabel('Observational Noise Level', fontsize=12, labelpad=8)
+    ax.set_ylabel('Structural Class Match Rate (%)', fontsize=12, labelpad=8)
+    ax.set_title('Noise Robustness: ADCD vs PySR', fontsize=13, pad=12,
+                 fontweight='bold')
+    ax.set_ylim(0, 120)
+    ax.set_xlim(-0.35, len(xs) - 0.35)
+
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_linewidth(0.8)
+    ax.spines['bottom'].set_linewidth(0.8)
+
+    ax.grid(True, alpha=0.18, ls='--', color='gray', lw=0.7)
+    ax.legend(fontsize=10.5, loc='lower left', framealpha=0.95,
+              frameon=True, edgecolor='#cccccc')
 
     plt.tight_layout()
     plt.savefig("paper/figures/fig1_noise_robustness.pdf", bbox_inches='tight')
-    plt.savefig("paper/figures/fig1_noise_robustness.png", bbox_inches='tight')
+    plt.savefig("paper/figures/fig1_noise_robustness.png", bbox_inches='tight',
+                dpi=300)
     print("[OK] fig1_noise_robustness.pdf")
     plt.close()
 
