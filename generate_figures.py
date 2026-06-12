@@ -122,14 +122,24 @@ def fig1_noise_robustness(adcd, pysr, mlp):
     for i, rate in enumerate(pysr_rates):
         if rate is None:
             continue
-        ax.annotate(
-            f'{rate:.1f}%',
-            xy=(xs[i], rate),
-            xytext=(0, 7),
-            textcoords='offset points',
-            ha='center', va='bottom',
-            fontsize=10, fontweight='bold', color=pysr_color,
-        )
+        if i == 2:  # 11.1% point at 5% noise: place below the marker to avoid V-shape lines clashing
+            ax.annotate(
+                f'{rate:.1f}%',
+                xy=(xs[i], rate),
+                xytext=(0, -14),
+                textcoords='offset points',
+                ha='center', va='top',
+                fontsize=10, fontweight='bold', color=pysr_color,
+            )
+        else:
+            ax.annotate(
+                f'{rate:.1f}%',
+                xy=(xs[i], rate),
+                xytext=(0, 7),
+                textcoords='offset points',
+                ha='center', va='bottom',
+                fontsize=10, fontweight='bold', color=pysr_color,
+            )
 
     # ── Axes formatting ─────────────────────────────────────────────────
     ax.set_xticks(xs)
@@ -138,7 +148,8 @@ def fig1_noise_robustness(adcd, pysr, mlp):
     ax.set_ylabel('Structural Class Match Rate (%)', fontsize=12, labelpad=8)
     ax.set_title('Noise Robustness: ADCD vs PySR', fontsize=13, pad=12,
                  fontweight='bold')
-    ax.set_ylim(0, 120)
+    ax.set_ylim(0, 108)
+    ax.set_yticks([0, 20, 40, 60, 80, 100])
     ax.set_xlim(-0.35, len(xs) - 0.35)
 
     ax.spines['top'].set_visible(False)
