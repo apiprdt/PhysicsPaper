@@ -292,17 +292,17 @@ The full benchmark results for the Mock Proposer are summarized in \Cref{tab:tex
 \toprule
 \textbf{Scenario} & \textbf{Noise} & \textbf{Discovered Correction $\Delta(x; \theta)$} & \textbf{Full NMSE} & \textbf{Class Match} & \textbf{AST Dist} \\
 \midrule
-Relativistic KE & 0\% & $\theta_0 v^2 / c^2$ & $1.68 \times 10^{-32}$ & \textbf{YES} & 4 \\
-& 1\% & $\theta_0 v^2 / c^2$ & $1.70 \times 10^{-04}$ & \textbf{YES} & 3 \\
-& 5\% & $\theta_0 v^2 / c^2$ & $4.21 \times 10^{-03}$ & \textbf{YES} & 3 \\
-& 10\% & $\theta_0 v^2 / c^2$ & $1.65 \times 10^{-02}$ & \textbf{YES} & 3 \\
+Relativistic KE & 0\% & $\theta_0 v^2$ & $3.14 \times 10^{-32}$ & \textbf{YES} & 3 \\
+& 1\% & $\theta_0 (v/c)^2 + \theta_1 (v/c)^4$ & $1.69 \times 10^{-04}$ & \textbf{YES} & 6 \\
+& 5\% & $\theta_0 (v/c)^2 + \theta_1 (v/c)^4$ & $4.19 \times 10^{-03}$ & \textbf{YES} & 6 \\
+& 10\% & $\theta_0 (v/c)^2 + \theta_1 (v/c)^4$ & $1.65 \times 10^{-02}$ & \textbf{YES} & 6 \\
 \midrule
-Yukawa Gravity & 0\% & $\theta_0 e^{-r / \theta_1}$ & $4.68 \times 10^{-14}$ & \textbf{YES} & 0 \\
+Yukawa Gravity & 0\% & $\theta_0 e^{-r / \theta_1}$ & $4.00 \times 10^{-16}$ & \textbf{YES} & 0 \\
 & 1\% & $\theta_0 e^{-r / \theta_1}$ & $7.12 \times 10^{-05}$ & \textbf{YES} & 0 \\
 & 5\% & $\theta_0 e^{-r / \theta_1}$ & $1.83 \times 10^{-03}$ & \textbf{YES} & 0 \\
 & 10\% & $\theta_0 e^{-r / \theta_1}$ & $7.55 \times 10^{-03}$ & \textbf{YES} & 0 \\
 \midrule
-Anharmonic Spring & 0\% & $\theta_0 x^4$ & $0.00 \times 10^{0}$ & \textbf{YES} & 0 \\
+Anharmonic Spring & 0\% & $\theta_0 x^4$ & $0.00$ & \textbf{YES} & 0 \\
 & 1\% & $\theta_0 x^4$ & $1.79 \times 10^{-04}$ & \textbf{YES} & 0 \\
 & 5\% & $\theta_0 x^4$ & $4.46 \times 10^{-03}$ & \textbf{YES} & 0 \\
 & 10\% & $\theta_0 x^4$ & $1.76 \times 10^{-02}$ & \textbf{YES} & 0 \\
@@ -318,20 +318,20 @@ Anharmonic Spring & 0\% & $\theta_0 x^4$ & $0.00 \times 10^{0}$ & \textbf{YES} &
 \toprule
 \textbf{Scenario} & \textbf{Noise} & \textbf{Discovered Correction $\Delta(x; \theta)$} & \textbf{Full NMSE} & \textbf{Class Match} & \textbf{AST Dist} \\
 \midrule
-Screened Coulomb & 0\% & $e^{-r / \theta_1} - 1$ & $1.09 \times 10^{-15}$ & \textbf{YES} & 0 \\
+Screened Coulomb & 0\% & $e^{-r / \theta_1} - 1$ & $5.41 \times 10^{-19}$ & \textbf{YES} & 0 \\
 & 1\% & $e^{-r / \theta_1} - 1$ & $5.04 \times 10^{-05}$ & \textbf{YES} & 0 \\
 & 5\% & $r \theta_0 / (r + \theta_1)$ & $1.09 \times 10^{-03}$ & NO & 6 \\
 & 10\% & $r \theta_0 / (r + \theta_1)$ & $4.43 \times 10^{-03}$ & NO & 6 \\
 \midrule
-Net Radiation & 0\% & $\theta_0 \theta_1^4 / T^4$ & $7.94 \times 10^{-34}$ & \textbf{YES} & 1 \\
-& 1\% & $\theta_0 \theta_1^4 / T^4$ & $1.51 \times 10^{-04}$ & \textbf{YES} & 1 \\
-& 5\% & $\theta_0 \theta_1^4 / T^4$ & $3.74 \times 10^{-03}$ & \textbf{YES} & 1 \\
-& 10\% & $\theta_0 \theta_1^4 / T^4$ & $1.47 \times 10^{-02}$ & \textbf{YES} & 1 \\
+Net Radiation & 0\% & $-(\theta_0 / T)^{\theta_1}$ & $1.52 \times 10^{-13}$ & \textbf{YES} & 4 \\
+& 1\% & $-(\theta_0 / T)^{\theta_1}$ & $1.51 \times 10^{-04}$ & \textbf{YES} & 4 \\
+& 5\% & $-(\theta_0 / T)^{\theta_1}$ & $3.74 \times 10^{-03}$ & \textbf{YES} & 4 \\
+& 10\% & $-(\theta_0 / T)^{\theta_1}$ & $1.47 \times 10^{-02}$ & \textbf{YES} & 4 \\
 \midrule
-Nonlinear Drag & 0\% & $\theta_0 (v / \theta_1)^2$ & $0.00$ & \textbf{YES} & 3 \\
-& 1\% & $\theta_0 v^2$ & $2.64 \times 10^{-04}$ & \textbf{YES} & 0 \\
-& 5\% & $\theta_0 v^2$ & $6.59 \times 10^{-03}$ & \textbf{YES} & 0 \\
-& 10\% & $\theta_0 v^2$ & $2.60 \times 10^{-02}$ & \textbf{YES} & 0 \\
+Nonlinear Drag & 0\% & $\theta_0 v^2$ & $0.00$ & \textbf{YES} & 0 \\
+& 1\% & $\theta_0 (v / \theta_1)^2$ & $2.64 \times 10^{-04}$ & \textbf{YES} & 3 \\
+& 5\% & $\theta_0 (v / \theta_1)^2$ & $6.59 \times 10^{-03}$ & \textbf{YES} & 3 \\
+& 10\% & $\theta_0 (v / \theta_1)^2$ & $2.60 \times 10^{-02}$ & \textbf{YES} & 3 \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -344,17 +344,17 @@ Nonlinear Drag & 0\% & $\theta_0 (v / \theta_1)^2$ & $0.00$ & \textbf{YES} & 3 \
 \toprule
 \textbf{Scenario} & \textbf{Noise} & \textbf{Discovered Correction $\Delta(x; \theta)$} & \textbf{Full NMSE} & \textbf{Class Match} & \textbf{AST Dist} \\
 \midrule
-Mystery-A & 0\% & $\theta_0 \tanh^2(\theta_1 / r)$ & $3.61 \times 10^{-11}$ & \textbf{YES} & 1 \\
+Mystery-A & 0\% & $-\theta_0 \tanh^2(\theta_1 / r)$ & $2.99 \times 10^{-13}$ & \textbf{YES} & 1 \\
 & 1\% & $-\theta_0 \tanh^2(\theta_1 / r)$ & $2.43 \times 10^{-04}$ & \textbf{YES} & 1 \\
-& 5\% & $\theta_0 \tanh^2(\theta_1 / r)$ & $6.28 \times 10^{-03}$ & \textbf{YES} & 1 \\
+& 5\% & $-\theta_0 \tanh^2(\theta_1 / r)$ & $6.28 \times 10^{-03}$ & \textbf{YES} & 1 \\
 & 10\% & $-\theta_0 \tanh^2(\theta_1 / r)$ & $2.59 \times 10^{-02}$ & \textbf{YES} & 1 \\
 \midrule
-Mystery-B & 0\% & $\frac{\sin(v / \theta_1)}{v / \theta_1} - 1$ & $1.28 \times 10^{-11}$ & \textbf{YES} & 0 \\
+Mystery-B & 0\% & $\frac{\sin(v / \theta_1)}{v / \theta_1} - 1$ & $2.49 \times 10^{-11}$ & \textbf{YES} & 0 \\
 & 1\% & $\frac{\sin(v / \theta_1)}{v / \theta_1} - 1$ & $2.07 \times 10^{-04}$ & \textbf{YES} & 0 \\
 & 5\% & $\frac{\sin(v / \theta_1)}{v / \theta_1} - 1$ & $5.18 \times 10^{-03}$ & \textbf{YES} & 0 \\
 & 10\% & $\frac{\sin(v / \theta_1)}{v / \theta_1} - 1$ & $2.05 \times 10^{-02}$ & \textbf{YES} & 0 \\
 \midrule
-Mystery-C & 0\% & $\frac{\ln(1 + x / \theta_1)}{x / \theta_1} - 1$ & $7.52 \times 10^{-13}$ & \textbf{YES} & 0 \\
+Mystery-C & 0\% & $\frac{\ln(1 + x / \theta_1)}{x / \theta_1} - 1$ & $6.08 \times 10^{-13}$ & \textbf{YES} & 0 \\
 & 1\% & $\frac{\ln(1 + x / \theta_1)}{x / \theta_1} - 1$ & $2.79 \times 10^{-04}$ & \textbf{YES} & 0 \\
 & 5\% & $\frac{\ln(1 + x / \theta_1)}{x / \theta_1} - 1$ & $6.99 \times 10^{-03}$ & \textbf{YES} & 0 \\
 & 10\% & $\frac{\ln(1 + x / \theta_1)}{x / \theta_1} - 1$ & $2.76 \times 10^{-02}$ & \textbf{YES} & 0 \\
