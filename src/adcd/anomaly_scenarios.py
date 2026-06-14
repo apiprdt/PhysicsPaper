@@ -86,9 +86,23 @@ class AnomalyScenario:
             X["T"] = rng.uniform(270.0, 350.0, size=n_points)
             X["r"] = rng.uniform(1.0, 5.0, size=n_points)
             
-        elif self.name == "Blind-3: Wien Displacement":
+        elif self.name == "Blind-3: Wien Displacement" or self.name == "Blind-8: Composite Blackbody":
             X["T"] = rng.uniform(1000.0, 6000.0, size=n_points)
             X["f"] = rng.uniform(1e12, 1e14, size=n_points)
+
+        elif self.name == "Blind-4: Relativistic Pendulum":
+            c = self.classical_constants["c"]
+            X["m"] = rng.uniform(0.5, 10.0, size=n_points)
+            X["v"] = rng.uniform(0.1 * c, 0.85 * c, size=n_points)
+
+        elif self.name == "Blind-5: Clausius-Mossotti Field" or self.name == "Blind-7: Casimir Vacuum":
+            X["m"] = rng.uniform(1.0, 10.0, size=n_points)
+            X["M"] = rng.uniform(10.0, 100.0, size=n_points)
+            X["r"] = rng.uniform(0.5, 5.0, size=n_points)
+
+        elif self.name == "Blind-6: Magnus Wind-Tunnel" or self.name == "Blind-9: Composite Relativistic Drag":
+            X["b"] = rng.uniform(0.5, 5.0, size=n_points)
+            X["v"] = rng.uniform(0.1, 5.0, size=n_points)
             
         elif self.name == "Misspecification 1: Wrong Baseline Form":
             X["m"] = rng.uniform(1.0, 10.0, size=n_points)
@@ -387,6 +401,104 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             anomaly_regime="high frequency UV/visible regime, f > 1e13 Hz",
             variables_with_units={"T": "K", "f": "Hz"},
             classical_limit_variable="f",
+            classical_limit_direction="0",
+            correction_class="exponential"
+        ),
+        AnomalyScenario(
+            name="Blind-4: Relativistic Pendulum",
+            tier="blind",
+            domain="relativistic mechanics",
+            classical_expr="0.5 * m * v**2",
+            classical_variables=["m", "v"],
+            classical_constants={"c": 3.0e8},
+            correction_type="multiplicative",
+            correction_expr="theta_0 * (v / c)**2 / (1.0 - (v / c)**2)",
+            correction_constants={"theta_0": 0.5},
+            anomaly_regime="high speeds approaching c",
+            variables_with_units={"m": "kg", "v": "m/s", "c": "m/s"},
+            classical_limit_variable="v",
+            classical_limit_direction="0",
+            correction_class="rational"
+        ),
+        AnomalyScenario(
+            name="Blind-5: Clausius-Mossotti Field",
+            tier="blind",
+            domain="gravitation",
+            classical_expr="G * m * M / r**2",
+            classical_variables=["m", "M", "r"],
+            classical_constants={"G": 6.6743e-11},
+            correction_type="multiplicative",
+            correction_expr="theta_0 * (r / theta_1) / (1.0 + r / theta_1)",
+            correction_constants={"theta_0": 0.25, "theta_1": 2.0},
+            anomaly_regime="short distance gravitational field scaling",
+            variables_with_units={"m": "kg", "M": "kg", "r": "m", "G": "N*m^2/kg^2"},
+            classical_limit_variable="r",
+            classical_limit_direction="0",
+            correction_class="rational"
+        ),
+        AnomalyScenario(
+            name="Blind-6: Magnus Wind-Tunnel",
+            tier="blind",
+            domain="fluid dynamics",
+            classical_expr="b * v",
+            classical_variables=["b", "v"],
+            classical_constants={},
+            correction_type="multiplicative",
+            correction_expr="theta_0 * (v / theta_1)**1.5",
+            correction_constants={"theta_0": 0.4, "theta_1": 1.0},
+            anomaly_regime="turbulent high speed airflow scaling",
+            variables_with_units={"b": "kg/s", "v": "m/s"},
+            classical_limit_variable="v",
+            classical_limit_direction="0",
+            correction_class="power_law"
+        ),
+        AnomalyScenario(
+            name="Blind-7: Casimir Vacuum",
+            tier="blind",
+            domain="gravitation",
+            classical_expr="G * m * M / r**2",
+            classical_variables=["m", "M", "r"],
+            classical_constants={"G": 6.6743e-11},
+            correction_type="additive",
+            correction_expr="-theta_0 / r**4",
+            correction_constants={"theta_0": 0.05},
+            anomaly_regime="sub-micron distance vacuum force correction",
+            variables_with_units={"m": "kg", "M": "kg", "r": "m", "G": "N*m^2/kg^2"},
+            classical_limit_variable="r",
+            classical_limit_direction="oo",
+            correction_class="power_law"
+        ),
+        AnomalyScenario(
+            name="Blind-8: Composite Blackbody",
+            tier="blind",
+            domain="quantum_optics",
+            classical_expr="2 * k_B * T * f**2 / c**2",
+            classical_variables=["T", "f"],
+            classical_constants={"k_B": 1.380649e-23, "c": 3e8},
+            correction_type="multiplicative",
+            # Composite product of polynomial and exponential
+            correction_expr="(theta_0 * f / T) * exp(-theta_0 * f / T)",
+            correction_constants={"theta_0": 4.799e-11},
+            anomaly_regime="high frequency radiation limit",
+            variables_with_units={"T": "K", "f": "Hz"},
+            classical_limit_variable="f",
+            classical_limit_direction="0",
+            correction_class="exponential"
+        ),
+        AnomalyScenario(
+            name="Blind-9: Composite Relativistic Drag",
+            tier="blind",
+            domain="fluid dynamics",
+            classical_expr="b * v",
+            classical_variables=["b", "v"],
+            classical_constants={"c": 3e8},
+            correction_type="multiplicative",
+            # Composite product of polynomial and exponential
+            correction_expr="(v / c)**2 * exp(-v / c)",
+            correction_constants={},
+            anomaly_regime="relativistic drag limits",
+            variables_with_units={"b": "kg/s", "v": "m/s", "c": "m/s"},
+            classical_limit_variable="v",
             classical_limit_direction="0",
             correction_class="exponential"
         )

@@ -101,3 +101,24 @@ def test_validate_transcendental_args():
     
     expr_theta_vc = sp.sympify("sin(theta_1 * v/c)", locals=checker.locals)
     assert validate_transcendental_args(expr_theta_vc, checker) is True
+
+def test_enumerate_dimensionless_ratios():
+    checker = DimensionalChecker()
+    
+    # Test 1: ['r', 'v', 't'] -> r / (v * t)
+    ratios_rvt = checker.enumerate_dimensionless_ratios(['r', 'v', 't'], max_degree=1)
+    # The output might be in terms of sympy, so we sympify to compare
+    assert len(ratios_rvt) == 1
+    import sympy as sp
+    assert sp.simplify(ratios_rvt[0] - sp.sympify("r / (v * t)", locals=checker.locals)) == 0
+    
+    # Test 2: ['m', 'M'] -> m / M or M / m (normalized to one form)
+    ratios_mM = checker.enumerate_dimensionless_ratios(['m', 'M'], max_degree=1)
+    assert len(ratios_mM) == 1
+    assert sp.simplify(ratios_mM[0] - sp.sympify("M / m", locals=checker.locals)) == 0 or \
+           sp.simplify(ratios_mM[0] - sp.sympify("m / M", locals=checker.locals)) == 0
+
+    # Test 3: ['m', 'v'] -> no combination
+    ratios_mv = checker.enumerate_dimensionless_ratios(['m', 'v'], max_degree=2)
+    assert len(ratios_mv) == 0
+

@@ -958,33 +958,68 @@ HARD CONSTRAINTS (violation = immediate rejection):
 
 
 class HybridCorrectionProposer(BaseProposer):
-    """Combines Mock templates with LLM-generated candidates."""
+    """Combines Mock templates, Grammar-based candidates, and LLM-generated candidates."""
     def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash", seed: int = 42):
+        from adcd.grammar_proposer import GrammarProposer
         self.mock = CorrectionMockProposer(seed=seed)
+        self.grammar = GrammarProposer(seed=seed)
         self.gemini = CorrectionGeminiProposer(api_key=api_key, model_name=model_name)
+        self.sources = {}
 
     def propose(self, context: ProposalContext) -> List[str]:
-        # Divide candidates between mock and Gemini
-        n_mock = max(1, context.n_candidates // 2)
-        n_gemini = max(1, context.n_candidates - n_mock)
+        # Reset sources mapping for this iteration
+        self.sources = {}
+        
+        # Divide candidates between Gemini, Grammar, and Mock
+        n_gemini = int(context.n_candidates * 0.4)
+        n_grammar = int(context.n_candidates * 0.4)
+        n_mock = max(1, context.n_candidates - n_gemini - n_grammar)
+        
+        # Ensure we have at least 1 for each if candidates is large enough
+        if context.n_candidates >= 3:
+            n_gemini = max(1, n_gemini)
+            n_grammar = max(1, n_grammar)
         
         # Propose mock candidates
         mock_context = replace(context, n_candidates=n_mock)
         mock_candidates = self.mock.propose(mock_context)
         
+        # Propose grammar candidates
+        grammar_context = replace(context, n_candidates=n_grammar)
+        grammar_candidates = self.grammar.propose(grammar_context)
+        
         # Propose gemini candidates
-        gemini_context = replace(context, n_candidates=n_gemini)
+        gemini_candidates = []
         try:
+            gemini_context = replace(context, n_candidates=n_gemini)
             gemini_candidates = self.gemini.propose(gemini_context)
         except Exception as e:
-            logger.warning(f"Gemini proposer failed: {e}. Falling back to more mock candidates.")
-            fallback_context = replace(context, n_candidates=context.n_candidates)
-            return self.mock.propose(fallback_context)
+            logger.warning(f"Gemini proposer failed: {e}. Falling back to more grammar and mock candidates.")
+            # If Gemini fails, we shift its allocation to grammar and mock
+            n_extra = n_gemini
+            n_extra_grammar = n_extra // 2
+            n_extra_mock = n_extra - n_extra_grammar
+            
+            grammar_context = replace(context, n_candidates=n_grammar + n_extra_grammar)
+            grammar_candidates = self.grammar.propose(grammar_context)
+            
+            mock_context = replace(context, n_candidates=n_mock + n_extra_mock)
+            mock_candidates = self.mock.propose(mock_context)
 
-        # Merge and deduplicate, keeping order
+        # Track sources
+        for c in gemini_candidates:
+            self.sources[c] = "gemini"
+        for c in grammar_candidates:
+            if c not in self.sources:
+                self.sources[c] = "grammar"
+        for c in mock_candidates:
+            if c not in self.sources:
+                self.sources[c] = "mock"
+
+        # Merge and deduplicate, keeping order: Gemini first, then Grammar, then Mock
         seen = set()
         unique = []
-        for c in mock_candidates + gemini_candidates:
+        for c in gemini_candidates + grammar_candidates + mock_candidates:
             if c not in seen:
                 seen.add(c)
                 unique.append(c)

@@ -189,6 +189,7 @@ class CorrectionOrchestrator:
             # Step 3: Stage 1 Screening
             subbed_candidates = []
             orig_by_subbed = {}
+            candidate_sources = {}
             for cand in proposed_candidates:
                 sub_expr = self._substitute_thetas(cand, 1.0)
                 has_params = (sub_expr != cand)
@@ -196,6 +197,10 @@ class CorrectionOrchestrator:
                 if sub_expr not in orig_by_subbed:
                     orig_by_subbed[sub_expr] = []
                 orig_by_subbed[sub_expr].append(cand)
+                
+                # Track the source of the subbed candidate
+                if hasattr(self.proposer, "sources") and cand in self.proposer.sources:
+                    candidate_sources[sub_expr] = self.proposer.sources[cand]
 
             # Execute screening against residual data!
             stage1_results = self.pipeline.execute(
@@ -205,6 +210,7 @@ class CorrectionOrchestrator:
                 residual,
                 constants=scenario.classical_constants,
                 stats=gate_stats,
+                candidate_sources=candidate_sources,
             )
             
             seen_sub_exprs = set()

@@ -20,6 +20,14 @@ class GateStats:
     coarse_reject: int = 0
     output_count: int = 0
 
+    # Source-aware tracking (optional)
+    llm_input: int = 0
+    llm_output: int = 0
+    grammar_input: int = 0
+    grammar_output: int = 0
+    mock_input: int = 0
+    mock_output: int = 0
+
     @property
     def after_parse(self) -> int:
         return self.input_count - self.parse_fail
@@ -107,6 +115,7 @@ class Stage1Pipeline:
         beta: float = 1.0,
         constants: Dict[str, float] = None,
         stats: Optional[GateStats] = None,
+        candidate_sources: Optional[Dict[str, str]] = None,
     ) -> List[Tuple[str, float, float, float]]:
         """
         Runs candidate strings through the filter cascade.
@@ -133,14 +142,22 @@ class Stage1Pipeline:
             evaluator = CoarseEvaluator(X, y_obs, constants=constants)
 
         for item in candidates:
-            if stats is not None:
-                stats.input_count += 1
-
             if isinstance(item, tuple):
                 raw_cand, has_params = item
             else:
                 raw_cand = item
                 has_params = False
+
+            if stats is not None:
+                stats.input_count += 1
+                if candidate_sources and raw_cand in candidate_sources:
+                    src = candidate_sources[raw_cand]
+                    if src in ("gemini", "llm"):
+                        stats.llm_input += 1
+                    elif src == "grammar":
+                        stats.grammar_input += 1
+                    elif src == "mock":
+                        stats.mock_input += 1
 
             try:
                 expr = sp.sympify(raw_cand, locals=self.locals)
@@ -201,5 +218,13 @@ class Stage1Pipeline:
             screened_candidates.append((raw_cand, combined_score, mse, arc_score))
             if stats is not None:
                 stats.output_count += 1
+                if candidate_sources and raw_cand in candidate_sources:
+                    src = candidate_sources[raw_cand]
+                    if src in ("gemini", "llm"):
+                        stats.llm_output += 1
+                    elif src == "grammar":
+                        stats.grammar_output += 1
+                    elif src == "mock":
+                        stats.mock_output += 1
 
         return sorted(screened_candidates, key=lambda x: x[1], reverse=True)

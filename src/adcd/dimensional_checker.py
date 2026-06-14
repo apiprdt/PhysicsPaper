@@ -108,7 +108,9 @@ class DimensionalChecker:
                 
             candidate_dim = self._get_dim_vector(expr)
             
-            if target_dimension_key in self.registry:
+            if target_dimension_key == "dimensionless":
+                target_dim = [0, 0, 0]
+            elif target_dimension_key in self.registry:
                 target_dim = self.registry[target_dimension_key]
             else:
                 # Interpret target_dimension_key as a classical baseline expression
@@ -118,6 +120,96 @@ class DimensionalChecker:
             return candidate_dim == target_dim
         except (TypeError, ValueError, KeyError, NotImplementedError):
             return False
+
+    def enumerate_dimensionless_ratios(
+        self,
+        symbols: List[str],
+        max_degree: int = 2
+    ) -> List[sp.Expr]:
+        """
+        Enumerate all base dimensionless monomials from the given symbols
+        using Buckingham-pi style nullspace computation.
+        
+        Args:
+            symbols: List of symbol names to combine.
+            max_degree: Max absolute exponent value in the returned monomials.
+            
+        Returns:
+            List of SymPy expressions that are guaranteed dimensionless.
+        """
+        import math
+        from functools import reduce
+        import itertools
+
+        # Filter symbols to only those in the registry
+        valid_symbols = [s for s in symbols if s in self.registry]
+        if not valid_symbols:
+            return []
+
+        # Build the dimension matrix A where columns are the dimension vectors of valid_symbols
+        # Dimensions are 3-vectors: [M, L, T]
+        col_vectors = [self.registry[s] for s in valid_symbols]
+        
+        # We use SymPy Matrix to find the null space
+        A = sp.Matrix(col_vectors).T  # Transpose so columns correspond to symbols
+        null_space = A.nullspace()
+        
+        if not null_space:
+            return []
+
+        # Clear denominators for each basis vector to get integer exponent vectors
+        int_basis = []
+        for v in null_space:
+            # v is a column vector (Matrix of shape (len(valid_symbols), 1))
+            denoms = [sp.Rational(x).q for x in v]
+            lcm_val = sp.lcm(denoms)
+            v_int = [int(x * lcm_val) for x in v]
+            int_basis.append(v_int)
+
+        # Generate integer combinations of the basis vectors
+        k = len(int_basis)
+        n_syms = len(valid_symbols)
+        
+        coef_range = range(-max_degree, max_degree + 1)
+        
+        unique_exponent_sets = set()
+        for coefs in itertools.product(coef_range, repeat=k):
+            if all(c == 0 for c in coefs):
+                continue
+            
+            # Compute linear combination of basis vectors
+            e = [0] * n_syms
+            for j in range(n_syms):
+                e[j] = sum(coefs[i] * int_basis[i][j] for i in range(k))
+            
+            # Check if any exponent is non-zero and all exponents are within max_degree
+            if not any(x != 0 for x in e) or any(abs(x) > max_degree for x in e):
+                continue
+                
+            # Normalize exponents to avoid duplicates like [1, -1] vs [-1, 1]
+            g = math.gcd(*e)
+            if g != 0:
+                e = [x // g for x in e]
+            # Ensure the first non-zero exponent is positive to standardize the ratio
+            for x in e:
+                if x != 0:
+                    if x < 0:
+                        e = [-val for val in e]
+                    break
+            
+            unique_exponent_sets.add(tuple(e))
+
+        # Convert the unique exponent tuples back to SymPy expressions
+        ratios = []
+        for e in sorted(unique_exponent_sets):
+            # Construct monomial: product of s**e_s
+            expr = sp.Integer(1)
+            for s, exp in zip(valid_symbols, e):
+                if exp != 0:
+                    expr *= sp.Symbol(s)**exp
+            ratios.append(expr)
+
+        return ratios
 
 
 def validate_transcendental_args(expr: sp.Expr, checker: DimensionalChecker) -> bool:
@@ -163,7 +255,7 @@ class ASTValidator:
         >>> validator = ASTValidator(max_depth=5, max_tokens=15)
         >>> validator.verify("x**2 + y**2")
     """
-    def __init__(self, max_depth: int = 7, max_tokens: int = 20):
+    def __init__(self, max_depth: int = 7, max_tokens: int = 25):
         self.max_depth = max_depth
         self.max_tokens = max_tokens
         self.locals = {s: sp.Symbol(s) for s in DIMENSIONS}
