@@ -2,7 +2,7 @@ import sympy as sp
 import numpy as np
 import logging
 import itertools
-from typing import List, Dict, Tuple, Optional
+from typing import List, Optional
 from adcd.llm_proposer import BaseProposer, ProposalContext
 from adcd.dimensional_checker import DimensionalChecker, ASTValidator
 
@@ -76,7 +76,6 @@ class GrammarProposer(BaseProposer):
             # Generate unaries for this ratio
             t0 = sp.Symbol(f"theta_temp_{temp_id}_0")
             t1 = sp.Symbol(f"theta_temp_{temp_id}_1")
-            t2 = sp.Symbol(f"theta_temp_{temp_id}_2")
             
             unary_templates = [
                 t0 * R,

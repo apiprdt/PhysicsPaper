@@ -138,7 +138,6 @@ class DimensionalChecker:
             List of SymPy expressions that are guaranteed dimensionless.
         """
         import math
-        from functools import reduce
         import itertools
 
         # Filter symbols to only those in the registry
