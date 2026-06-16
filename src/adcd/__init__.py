@@ -54,6 +54,10 @@ from adcd.jax_optimizer import JAXOptimizer, OptimizationResult
 from adcd.dimensional_checker import ASTValidator, DimensionalChecker
 from adcd.arc_scorer import ARCScorer, AsymptoticRegime, build_arc_regimes
 
+# Bayesian output (Phase 3)
+from adcd.bayesian_ranker import BayesianReranker, BayesianCorrectionOutput
+from adcd.identifiability import IdentifiabilityAnalyzer, IdentifiabilityReport
+
 __all__ = [
     # High-level API
     "fit",
@@ -81,6 +85,11 @@ __all__ = [
     "ARCScorer",
     "AsymptoticRegime",
     "build_arc_regimes",
+    # Bayesian output (Phase 3)
+    "BayesianReranker",
+    "BayesianCorrectionOutput",
+    "IdentifiabilityAnalyzer",
+    "IdentifiabilityReport",
     # Metadata
     "__version__",
 ]
