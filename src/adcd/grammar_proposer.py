@@ -184,15 +184,18 @@ class GrammarProposer(BaseProposer):
                 continue
 
         # Distribute the budget context.n_candidates across the families
+        # We target n_oversample = n_budget * 4 because ~75% of candidates will be rejected
+        # by the numerical ARC pre-filter.
         selected_candidates = []
         n_budget = context.n_candidates
+        n_oversample = n_budget * 4
         
-        # Keep taking candidates round-robin from each family until budget is reached
+        # Keep taking candidates round-robin from each family until oversample target is reached
         families = list(family_candidates.keys())
         family_indices = {fam: 0 for fam in families}
         
         added_in_round = True
-        while len(selected_candidates) < n_budget and added_in_round:
+        while len(selected_candidates) < n_oversample and added_in_round:
             added_in_round = False
             for fam in families:
                 idx = family_indices[fam]
@@ -202,8 +205,117 @@ class GrammarProposer(BaseProposer):
                         selected_candidates.append(cand)
                         added_in_round = True
                     family_indices[fam] += 1
-                if len(selected_candidates) >= n_budget:
+                if len(selected_candidates) >= n_oversample:
                     break
 
-        logger.info(f"[GrammarProposer] Selected {len(selected_candidates)} diverse candidates. Limit: {context.n_candidates}")
-        return selected_candidates
+        logger.info(f"[GrammarProposer] Selected {len(selected_candidates)} diverse candidates for ARC pre-filtering. Target: {n_oversample}")
+        
+        # Apply numerical ARC pre-filter
+        selected_candidates = self._numerical_arc_prefilter(selected_candidates, context)
+        logger.info(f"[GrammarProposer] After ARC pre-filter: {len(selected_candidates)} candidates")
+        return selected_candidates[:n_budget]
+
+    def _numerical_arc_prefilter(
+        self,
+        candidates: List[str],
+        context: ProposalContext,
+        tol: float = 0.05,
+        n_samples: int = 10,
+    ) -> List[str]:
+        """
+        Numerical ARC pre-filter: reject candidates that don't vanish at classical limit.
+        
+        SymPy's symbolic limit fails on parameterized expressions like exp(-r/theta_0)
+        because it can't determine the sign of theta_0. This numerical pre-filter
+        evaluates the expression near the classical limit and rejects those that
+        don't vanish, using random theta samples to handle parameterization.
+        
+        Replaces the need for 4x oversampling budget.
+        """
+        import numpy as np
+        
+        # Safely extract limit variable and direction from context metadata
+        limit_var = None
+        limit_dir = None
+        
+        # 1. Try known_limits list
+        if hasattr(context, "known_limits") and context.known_limits:
+            limit_var = context.known_limits[0].get("variable")
+            limit_dir = context.known_limits[0].get("limit")
+        # 2. Fallback to direct attributes if they exist
+        elif hasattr(context, "classical_limit_variable") and context.classical_limit_variable:
+            limit_var = context.classical_limit_variable
+            limit_dir = getattr(context, "classical_limit_direction", None)
+            
+        if not limit_var or not limit_dir:
+            return candidates
+        
+        # Handle both string and list formats
+        if isinstance(limit_var, str):
+            limit_vars = [limit_var]
+            limit_dirs = [limit_dir]
+        else:
+            limit_vars = limit_var
+            limit_dirs = limit_dir
+        
+        rng = np.random.default_rng(self.seed)
+        passed = []
+        
+        for cand_str in candidates:
+            try:
+                expr = sp.sympify(cand_str)
+                phys_syms = [s for s in expr.free_symbols 
+                             if str(s) in context.variable_names]
+                theta_syms = [s for s in expr.free_symbols 
+                              if str(s).startswith("theta")]
+                
+                vanishes = True
+                for limit_v, limit_d in zip(limit_vars, limit_dirs):
+                    limit_sym = sp.Symbol(limit_v)
+                    # Set limit value
+                    if limit_d == "0":
+                        limit_val = 1e-6
+                    elif limit_d in ("oo", "inf", "+oo"):
+                        limit_val = 1e8
+                    else:
+                        try:
+                            limit_val = float(limit_d) * 0.01
+                        except:
+                            continue
+                    
+                    # Test with n_samples random theta values
+                    any_vanish = False
+                    for _ in range(n_samples):
+                        subs = {}
+                        for s in phys_syms:
+                            if str(s) == limit_v:
+                                subs[s] = limit_val
+                            else:
+                                # Use midpoint of variable range
+                                subs[s] = 1.0
+                        for s in theta_syms:
+                            subs[s] = rng.uniform(0.1, 10.0)
+                        
+                        try:
+                            val = float(complex(expr.subs(subs)).real)
+                            if np.isfinite(val) and abs(val) < tol:
+                                any_vanish = True
+                                break
+                        except Exception:
+                            continue
+                    
+                    if not any_vanish:
+                        vanishes = False
+                        break
+                
+                if vanishes:
+                    passed.append(cand_str)
+                    
+            except Exception:
+                continue
+        
+        logger.info(
+            f"[GrammarProposer] ARC pre-filter: "
+            f"rejected {len(candidates)-len(passed)}/{len(candidates)} candidates"
+        )
+        return passed
