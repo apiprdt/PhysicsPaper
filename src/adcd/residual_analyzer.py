@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.stats as stats
 from dataclasses import dataclass
+from typing import Optional
 
 @dataclass
 class ResidualFeatures:
@@ -19,14 +20,18 @@ class ResidualFeatures:
     oscillation_score: float # Number of zero-crossings of smoothed/detrended residual / n_points
     decay_rate: float        # Exponential fit R² on |residual| vs primary variable if decaying
     symmetry: float          # Even R² - Odd R² (positive for even, negative for odd)
+    leading_exponent: Optional[float] = None
+    ras_suggested_class: Optional[str] = None
+    ras_fit_quality: Optional[float] = None
 
-def analyze_residual(x: np.ndarray, residual: np.ndarray) -> ResidualFeatures:
+def analyze_residual(x: np.ndarray, residual: np.ndarray, classical_limit_val: Optional[float] = None) -> ResidualFeatures:
     """
     Extracts statistical features from the physical residual to identify the structural class.
     
     Args:
         x: Independent variable array.
         residual: Observed residual values (observed - classical).
+        classical_limit_val: Optional limit value to compute Residual Asymptotic Signature.
         
     Returns:
         ResidualFeatures containing the analyzed properties.
@@ -115,10 +120,82 @@ def analyze_residual(x: np.ndarray, residual: np.ndarray) -> ResidualFeatures:
     except Exception:
         symmetry = 0.0
 
+    # Task P1-6: Compute RAS features if classical_limit_val is provided
+    leading_exponent = None
+    ras_suggested_class = None
+    ras_fit_quality = None
+    if classical_limit_val is not None:
+        ras = compute_ras(x, residual, classical_limit_val)
+        leading_exponent = ras.get("leading_exponent")
+        ras_suggested_class = ras.get("suggested_class")
+        ras_fit_quality = ras.get("fit_quality")
+
     return ResidualFeatures(
         monotonicity=monotonicity,
         curvature_sign=curvature_sign,
         oscillation_score=oscillation_score,
         decay_rate=decay_rate,
-        symmetry=symmetry
+        symmetry=symmetry,
+        leading_exponent=leading_exponent,
+        ras_suggested_class=ras_suggested_class,
+        ras_fit_quality=ras_fit_quality
     )
+
+def compute_ras(x_vals: np.ndarray, delta_vals: np.ndarray, 
+                limit_val: float) -> dict:
+    """
+    Residual Asymptotic Signature: estimates leading-order behavior
+    of residual as x -> classical limit.
+    
+    Returns:
+        {
+          "leading_exponent": float,  # n in delta ~ (x-x0)^n
+          "leading_coeff": float,     # C
+          "fit_quality": float,       # R^2 of log-log fit
+          "suggested_class": str,     # "polynomial", "power_law", "exponential"
+        }
+    """
+    # Take points nearest to classical limit (bottom 20%)
+    dist_to_limit = np.abs(x_vals - limit_val)
+    thresh = np.percentile(dist_to_limit, 20)
+    mask = dist_to_limit <= thresh
+    
+    x_near = x_vals[mask]
+    d_near = np.abs(delta_vals[mask])
+    
+    # Filter zeros and invalid
+    valid = (d_near > 1e-15) & (dist_to_limit[mask] > 1e-10)
+    if valid.sum() < 5:
+        return {"leading_exponent": None, "leading_coeff": None, "fit_quality": 0.0, 
+                "suggested_class": "unknown"}
+    
+    log_dist = np.log(dist_to_limit[mask][valid])
+    log_delta = np.log(d_near[valid])
+    
+    try:
+        # Linear regression in log-log space
+        coeffs = np.polyfit(log_dist, log_delta, 1)
+        n_estimate = coeffs[0]
+        residuals = log_delta - np.polyval(coeffs, log_dist)
+        ss_res = np.sum(residuals**2)
+        ss_tot = np.sum((log_delta - log_delta.mean())**2)
+        r2 = 1 - ss_res/ss_tot if ss_tot > 0 else 0.0
+        
+        # Classify
+        if r2 < 0.5:
+            suggested = "exponential"  # poor power-law fit -> likely exp
+        elif abs(n_estimate - round(n_estimate)) < 0.15:
+            suggested = "polynomial"   # integer exponent
+        else:
+            suggested = "power_law"    # non-integer exponent
+            
+        return {
+            "leading_exponent": float(n_estimate),
+            "leading_coeff": float(np.exp(coeffs[1])),
+            "fit_quality": float(r2),
+            "suggested_class": suggested,
+        }
+    except Exception:
+        return {"leading_exponent": None, "leading_coeff": None, "fit_quality": 0.0, 
+                "suggested_class": "unknown"}
+

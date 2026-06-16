@@ -112,7 +112,19 @@ class CorrectionOrchestrator:
         from adcd.residual_analyzer import analyze_residual
         primary_var_name = scenario.classical_limit_variable
         if primary_var_name in X:
-            res_feat = analyze_residual(X[primary_var_name], residual)
+            # Safely parse classical limit direction to float for RAS
+            limit_val = None
+            limit_dir = scenario.classical_limit_direction
+            if limit_dir == "0":
+                limit_val = 0.0
+            elif limit_dir in ("oo", "inf", "+oo"):
+                limit_val = 1e8  # represented as a large number
+            else:
+                try:
+                    limit_val = float(limit_dir)
+                except ValueError:
+                    pass
+            res_feat = analyze_residual(X[primary_var_name], residual, classical_limit_val=limit_val)
         else:
             res_feat = None
         

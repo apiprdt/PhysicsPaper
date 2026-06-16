@@ -226,8 +226,16 @@ class GrammarProposer(BaseProposer):
         n_budget = context.n_candidates
         n_oversample = n_budget * 4
         
-        # Keep taking candidates round-robin from each family until oversample target is reached
+        # Boost RAS suggested class by placing it first in round-robin families list
         families = list(family_candidates.keys())
+        rf = context.residual_features
+        if rf is not None and getattr(rf, "ras_suggested_class", None) is not None:
+            suggested = rf.ras_suggested_class
+            if suggested in families:
+                families.remove(suggested)
+                families.insert(0, suggested)
+                logger.info(f"[GrammarProposer] RAS boosted suggested class: {suggested}")
+        
         family_indices = {fam: 0 for fam in families}
         
         added_in_round = True
