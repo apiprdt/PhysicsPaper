@@ -51,8 +51,9 @@ class MockProposer(BaseProposer):
     Generates candidates from a curated template bank, stochastic mutations,
     and refinements of previous best equations.
     """
-    def __init__(self, seed: int = 42):
+    def __init__(self, seed: int = 42, extended: bool = False):
         self.seed = seed
+        self.extended = extended
         self._templates = [
             "theta_0 * {v1} * {v2}**theta_1",
             "theta_0 * {v1} / {v2}**theta_1",
@@ -148,6 +149,29 @@ class MockProposer(BaseProposer):
                     for j, v2 in enumerate(phys_vars[i+1:], i+1):
                         for v3 in phys_vars[j+1:]:
                             injected.append(f"theta_0 * {v1} * {v2} * {v3}")
+                            
+        # Task P1-4: Extended Bivariate Templates
+        if self.extended and len(phys_vars) >= 2:
+            v1, v2 = phys_vars[0], phys_vars[1]
+            bivariate_templates = [
+                # Bivariate polynomial (ARC-safe: vanish at v1→0 AND v2→0)
+                f"theta_0 * ({v1} / theta_1) * ({v2} / theta_2)",
+                f"theta_0 * ({v1} / theta_1)**2 * ({v2} / theta_2)",
+                f"theta_0 * ({v1} / theta_1)**theta_3 * ({v2} / theta_2)**theta_4",
+                
+                # Bivariate exponential-linear (ARC-safe)
+                f"theta_0 * ({v1} / theta_1) * exp(-{v2} / theta_2)",
+                f"theta_0 * ({v2} / theta_1) * exp(-{v1} / theta_2)",
+                
+                # Bivariate with (1+R) factor (ARC-safe: factor → 1 at limit, multiplied by 0)
+                f"theta_0 * ({v1} / theta_1) * (1.0 + {v2} / theta_2)",
+                f"exp(-{v1} / theta_0) * ({v1} / theta_1) * (1.0 + {v2} / theta_2)",
+                
+                # Bivariate rational (ARC-safe with proper limit)
+                f"theta_0 * ({v1} / theta_1) / (1.0 + {v1} / theta_1) * ({v2} / theta_2)",
+            ]
+            for bt in bivariate_templates:
+                injected.append(bt)
 
         # 1. Generate from Template Bank (~30%)
         n_templates = int(context.n_candidates * 0.3)
