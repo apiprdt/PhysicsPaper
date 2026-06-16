@@ -1,12 +1,20 @@
+"""
+ADCD Blind Generalization Benchmark — 3-Column Comparison
+Tests: Mock (base) | Mock (extended) | Grammar (standalone)
+on all blind scenarios across 4 noise levels.
+"""
+
 import os
 import sys
+import json
 import time
 import numpy as np
 import sympy as sp
 from typing import List
 
 from adcd.anomaly_scenarios import get_all_scenarios
-from adcd.llm_proposer import CorrectionMockProposer, HybridCorrectionProposer
+from adcd.llm_proposer import CorrectionMockProposer
+from adcd.grammar_proposer import GrammarProposer
 from adcd.dimensional_checker import ASTValidator, DimensionalChecker
 from adcd.arc_scorer import ARCScorer, build_arc_regimes
 from adcd.pipeline import Stage1Pipeline
@@ -14,119 +22,117 @@ from adcd.jax_optimizer import JAXOptimizer
 from adcd.correction_orchestrator import CorrectionOrchestrator
 from adcd.metrics import evaluate_correction
 
-def run_benchmark():
-    print("="*60)
-    print("ADCD PHASE 1 BENCHMARK: BLIND SCENARIOS EVALUATION")
-    print("="*60)
+NOISE_LEVELS = [0.0, 0.01, 0.05, 0.10]
+SEED = 42
+
+def run_single(scenario, proposer, noise, proposer_name):
+    """Run discovery for one scenario+proposer+noise combination."""
+    # Generate data
+    X, y_obs, y_classical, residual = scenario.generate_data(n_points=200, noise_level=noise, seed=SEED)
     
-    # 1. Retrieve all blind scenarios
+    # Setup components
+    validator = ASTValidator()
+    checker = DimensionalChecker()
+    regimes = build_arc_regimes(scenario.classical_limit_variable, scenario.classical_limit_direction)
+    scorer = ARCScorer(regimes=regimes)
+    pipeline = Stage1Pipeline(validator, checker, scorer)
+    optimizer = JAXOptimizer()
+    
+    orchestrator = CorrectionOrchestrator(
+        proposer=proposer,
+        pipeline=pipeline,
+        optimizer=optimizer,
+        max_iterations=5,
+        verbose=False
+    )
+    
+    t0 = time.time()
+    result = orchestrator.search_correction(scenario, noise_level=noise, seed=SEED)
+    elapsed = time.time() - t0
+    
+    eval_res = evaluate_correction(
+        result.best_expr,
+        scenario,
+        X,
+        y_obs,
+        y_classical,
+        result.best_theta
+    )
+    
+    success = eval_res.class_match and eval_res.nmse_residual < 0.1
+    
+    return {
+        "scenario": scenario.name,
+        "proposer": proposer_name,
+        "noise": noise,
+        "discovered_expr": result.best_expr,
+        "nmse_residual": eval_res.nmse_residual,
+        "class_match": eval_res.class_match,
+        "success": success,
+        "n_proposed": sum(h.n_proposed for h in result.history),
+        "n_survived_gates": sum(h.n_survived_stage1 for h in result.history),
+        "wall_seconds": elapsed,
+    }
+
+def main():
     all_scenarios = get_all_scenarios()
-    blind_scenarios = [s for s in all_scenarios if s.tier == "blind"]
-    print(f"Loaded {len(blind_scenarios)} blind scenarios.")
-    for idx, sc in enumerate(blind_scenarios, 1):
-        print(f"  {idx}. {sc.name} (domain: {sc.domain}, target class: {sc.correction_class})")
+    # Blind scenarios 1 to 9 (single variable)
+    blind_scenarios = [s for s in all_scenarios if s.tier == "blind" and not isinstance(s.classical_limit_variable, list)]
     
-    print("\nStarting runs...")
+    print("=" * 90)
+    print("     ADCD BLIND GENERALIZATION BENCHMARK: 3-COLUMN COMPARISON")
+    print("=" * 90)
+    print(f"Testing {len(blind_scenarios)} single-variable blind scenarios across 4 noise levels.")
+    for idx, sc in enumerate(blind_scenarios, 1):
+        print(f"  {idx}. {sc.name} (domain: {sc.domain}, limit: {sc.classical_limit_variable} -> {sc.classical_limit_direction})")
+    print("\nStarting execution...")
+
+    proposers_factory = {
+        "Mock (base)":     lambda: CorrectionMockProposer(seed=SEED),
+        "Mock (extended)": lambda: CorrectionMockProposer(seed=SEED, extended=True),
+        "Grammar":         lambda: GrammarProposer(checker=DimensionalChecker(), seed=SEED),
+    }
     
     results = []
+    total_runs = len(blind_scenarios) * len(proposers_factory) * len(NOISE_LEVELS)
+    run_idx = 0
     
-    # 2. Iterate and evaluate each scenario under baseline (mock) and grammar (hybrid)
-    for idx, scenario in enumerate(blind_scenarios, 1):
-        print("\n" + "-"*50)
-        print(f"Scenario {idx}/{len(blind_scenarios)}: {scenario.name}")
-        print("-"*50)
-        
-        # Generate data (5% noise as in ablation study)
-        X, y_obs, y_classical, residual = scenario.generate_data(n_points=200, noise_level=0.05, seed=42)
-        
-        # We run both proposers
-        proposers = {
-            "Baseline (Mock)": CorrectionMockProposer(seed=42),
-            "New (Grammar)": HybridCorrectionProposer(api_key="", seed=42)  # api_key="" forces pure grammar/mock fallback
-        }
-        
-        scenario_results = {"name": scenario.name, "target_class": scenario.correction_class}
-        
-        for name, proposer in proposers.items():
-            print(f"Running {name}...")
-            
-            # Setup fresh pipeline components for each run
-            validator = ASTValidator()
-            checker = DimensionalChecker()
-            regimes = build_arc_regimes(scenario.classical_limit_variable, scenario.classical_limit_direction)
-            scorer = ARCScorer(regimes=regimes)
-            pipeline = Stage1Pipeline(validator, checker, scorer)
-            optimizer = JAXOptimizer()
-            
-            orchestrator = CorrectionOrchestrator(
-                proposer=proposer,
-                pipeline=pipeline,
-                optimizer=optimizer,
-                max_iterations=5,
-                verbose=False
-            )
-            
-            start_time = time.time()
-            res = orchestrator.search_correction(scenario, noise_level=0.05)
-            elapsed = time.time() - start_time
-            
-            # Evaluate discovered correction
-            eval_res = evaluate_correction(
-                res.best_expr,
-                scenario,
-                X,
-                y_obs,
-                y_classical,
-                res.best_theta
-            )
-            
-            # Determine success: class match and low residual NMSE
-            success = eval_res.class_match and eval_res.nmse_residual < 0.1
-            
-            print(f"  Result: {res.best_expr}")
-            print(f"  Class Match: {eval_res.class_match} (got: {eval_res.discovered_class})")
-            print(f"  NMSE Residual: {eval_res.nmse_residual:.6e}")
-            print(f"  Success: {success} | Time: {elapsed:.2f}s")
-            
-            scenario_results[name] = {
-                "expr": res.best_expr,
-                "nmse": eval_res.nmse_residual,
-                "class_match": eval_res.class_match,
-                "success": success,
-                "time": elapsed
-            }
-            
-        results.append(scenario_results)
-
-    # 3. Print final summary table
-    print("\n" + "="*80)
-    print("BENCHMARK SUMMARY TABLE")
-    print("="*80)
-    print(f"{'Scenario Name':<30} | {'Baseline Success':<18} | {'Grammar Success':<18}")
-    print("-"*80)
+    for scenario in blind_scenarios:
+        for p_name, p_factory in proposers_factory.items():
+            for noise in NOISE_LEVELS:
+                run_idx += 1
+                proposer = p_factory()
+                
+                res = run_single(scenario, proposer, noise, p_name)
+                results.append(res)
+                
+                status = "SUCCESS" if res["success"] else "FAILED"
+                print(f"[{run_idx}/{total_runs}] {status:7} | {p_name:15} | {scenario.name:32} | "
+                      f"noise={noise:.0%} | NMSE={res['nmse_residual']:.3e} | "
+                      f"expr={res['discovered_expr'][:40]}")
     
-    baseline_successes = 0
-    grammar_successes = 0
+    # Save results to JSON
+    with open("blind_benchmark_results.json", "w") as f:
+        json.dump(results, f, indent=2)
+    print("\nResults saved to blind_benchmark_results.json")
     
-    for r in results:
-        b_succ = r["Baseline (Mock)"]["success"]
-        g_succ = r["New (Grammar)"]["success"]
-        
-        if b_succ: baseline_successes += 1
-        if g_succ: grammar_successes += 1
-        
-        b_status = "SUCCESS" if b_succ else "FAILED"
-        g_status = "SUCCESS" if g_succ else "FAILED"
-        
-        print(f"{r['name']:<30} | {b_status:<18} | {g_status:<18}")
-        
-    print("="*80)
-    baseline_rate = (baseline_successes / len(blind_scenarios)) * 100
-    grammar_rate = (grammar_successes / len(blind_scenarios)) * 100
-    print(f"Baseline (Mock) Success Rate: {baseline_successes}/{len(blind_scenarios)} ({baseline_rate:.1f}%)")
-    print(f"Grammar-Guided Success Rate:  {grammar_successes}/{len(blind_scenarios)} ({grammar_rate:.1f}%)")
-    print(f"Absolute Improvement:         +{grammar_rate - baseline_rate:.1f}%")
-    print("="*80)
+    # Output the multi-column report
+    print("\n" + "=" * 90)
+    print("SUMMARY: Success Rate per Proposer across Noise Levels")
+    print("=" * 90)
+    print(f"{'Proposer':<18} | {'0% noise':<10} | {'1% noise':<10} | {'5% noise':<10} | {'10% noise':<10}")
+    print("-" * 90)
+    
+    for p_name in proposers_factory:
+        row_str = f"{p_name:<18}"
+        for noise in NOISE_LEVELS:
+            subset = [r for r in results if r["proposer"] == p_name and r["noise"] == noise]
+            successes = sum(1 for r in subset if r["success"])
+            total = len(subset)
+            rate = (successes / total * 100) if total > 0 else 0.0
+            row_str += f" | {successes}/{total} ({rate:.0f}%)"
+        print(row_str)
+    print("=" * 90)
 
 if __name__ == "__main__":
-    run_benchmark()
+    main()
