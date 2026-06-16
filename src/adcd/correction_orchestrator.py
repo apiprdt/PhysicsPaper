@@ -10,6 +10,8 @@ from adcd.pipeline import Stage1Pipeline, GateStats
 from adcd.jax_optimizer import JAXOptimizer
 from adcd.anomaly_scenarios import AnomalyScenario
 from adcd.metrics import evaluate_correction, CorrectionEvaluation, bic_score
+from adcd.bayesian_ranker import BayesianCorrectionOutput
+from adcd.identifiability import IdentifiabilityReport
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +46,8 @@ class CorrectionSearchResult:
     evaluation: Optional[CorrectionEvaluation] = None
     gate_stats: Optional[GateStats] = None
     total_candidates_optimized: int = 0
+    bayesian_output: Optional[BayesianCorrectionOutput] = None
+    identifiability_report: Optional[IdentifiabilityReport] = None
 
 class CorrectionOrchestrator:
     def __init__(
@@ -160,6 +164,7 @@ class CorrectionOrchestrator:
 
         history: List[CorrectionIterationResult] = []
         previous_best: List[Tuple[str, float]] = []
+        all_candidates_bic: List[Tuple[str, float]] = []
 
         # Enforce that classical limits are checked
         classical_limit_cond = f"{scenario.classical_limit_variable} -> {scenario.classical_limit_direction}"
@@ -301,6 +306,8 @@ class CorrectionOrchestrator:
                         (expr_str, stage2_combined, val_eval.nmse_residual, arc_score,
                          opt_result, b_score, val_eval)
                     )
+                    if np.isfinite(b_score):
+                        all_candidates_bic.append((expr_str, b_score))
 
                 # Sort by BIC ascending, breaking ties with AST complexity (node count)
                 stage2_results_with_bic = sorted(
@@ -368,6 +375,37 @@ class CorrectionOrchestrator:
         final_evaluation = evaluate_correction(best_expr, scenario, X, y_obs, y_classical, best_theta)
         converged = final_evaluation.nmse_residual < self.convergence_nmse
 
+        # Phase 3: Bayesian posterior & Identifiability analysis
+        bayesian_out = None
+        ident_report = None
+
+        if all_candidates_bic:
+            try:
+                # Deduplicate: keep the lowest BIC for each unique candidate expression
+                unique_cands = {}
+                for expr, bic in all_candidates_bic:
+                    if expr not in unique_cands or bic < unique_cands[expr]:
+                        unique_cands[expr] = bic
+                deduped_candidates_bic = list(unique_cands.items())
+
+                if len(deduped_candidates_bic) >= 1:
+                    from adcd.bayesian_ranker import BayesianReranker
+                    from adcd.identifiability import IdentifiabilityAnalyzer
+                    
+                    reranker = BayesianReranker(threshold_ratio=0.05)
+                    bayesian_out = reranker.rank(deduped_candidates_bic)
+                    
+                    analyzer = IdentifiabilityAnalyzer()
+                    ident_report = analyzer.analyze(
+                        bayesian_output=bayesian_out,
+                        residual=residual,
+                        y_classical=y_classical,
+                        noise_level=noise_level,
+                    )
+                    logger.info(f"[Phase3] {ident_report.summary}")
+            except Exception as e:
+                logger.warning(f"[Phase3] Bayesian analysis failed: {e}")
+
         return CorrectionSearchResult(
             best_expr=best_expr,
             best_nmse_residual=best_nmse_residual,
@@ -381,6 +419,8 @@ class CorrectionOrchestrator:
             evaluation=final_evaluation,
             gate_stats=gate_stats,
             total_candidates_optimized=total_candidates_optimized,
+            bayesian_output=bayesian_out,
+            identifiability_report=ident_report,
         )
 
 

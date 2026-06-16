@@ -125,6 +125,14 @@ def test_correction_orchestrator_integration():
     assert result.evaluation is not None
     # We should have successfully matched structural class (polynomial)
     assert result.evaluation.class_match
+    
+    # Verify Phase 3 Bayesian & Identifiability outputs are populated
+    assert result.bayesian_output is not None
+    assert result.identifiability_report is not None
+    assert isinstance(result.bayesian_output.posterior_weights, list)
+    # Under noise_level=0.0, the magnitude is undetectable, which is expected
+    assert result.identifiability_report.is_identifiable is False
+    assert result.identifiability_report.failure_mode == "undetectable_magnitude"
 
 
 def test_hybrid_correction_proposer():
