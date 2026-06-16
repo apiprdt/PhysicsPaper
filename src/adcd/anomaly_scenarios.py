@@ -363,7 +363,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             variables_with_units={"n": "mol", "T": "K", "V": "m^3"},
             classical_limit_variable="V",
             classical_limit_direction="oo",  # correction -> 0 as V -> infinity (ideal gas limit)
-            correction_class="rational"
+            correction_class="power_law"
         ),
         AnomalyScenario(
             name="Blind-2: Stokes-Einstein",
