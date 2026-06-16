@@ -69,6 +69,42 @@ class GrammarProposer(BaseProposer):
                 seen_ratios.add(r_str)
                 unique_ratios.append(r)
 
+        # Correlation-based ratio ranking (Task P1-3)
+        # Rank ratios by absolute Pearson correlation with residual
+        if getattr(context, "X_data", None) is not None and getattr(context, "residual_data", None) is not None:
+            scored_ratios = []
+            for r_expr in unique_ratios:
+                try:
+                    phys_syms = [s for s in r_expr.free_symbols 
+                                 if str(s) in context.variable_names]
+                    if not phys_syms:
+                        scored_ratios.append((r_expr, 0.0))
+                        continue
+                    # Substitute theta with 1.0 for evaluation
+                    subs = {s: 1.0 for s in r_expr.free_symbols 
+                            if str(s).startswith("theta") or "temp" in str(s)}
+                    r_sub = r_expr.subs(subs)
+                    fn = sp.lambdify(phys_syms, r_sub, modules=["numpy"])
+                    args = [context.X_data[str(s)] for s in phys_syms]
+                    r_vals = np.asarray(fn(*args), dtype=float)
+                    if not np.all(np.isfinite(r_vals)):
+                        scored_ratios.append((r_expr, 0.0))
+                        continue
+                    from scipy.stats import pearsonr
+                    # Calculate correlation
+                    corr, _ = pearsonr(r_vals, context.residual_data)
+                    scored_ratios.append((r_expr, abs(corr) if np.isfinite(corr) else 0.0))
+                except Exception:
+                    scored_ratios.append((r_expr, 0.0))
+            
+            scored_ratios.sort(key=lambda x: x[1], reverse=True)
+            unique_ratios = [r for r, _ in scored_ratios[:10]]  # top-10 only
+            logger.info(
+                f"[GrammarProposer] Correlation-ranked {len(scored_ratios)} ratios, "
+                f"top-10 selected. Best |r|="
+                f"{scored_ratios[0][1]:.3f}" if scored_ratios else "[GrammarProposer] No ratios ranked"
+            )
+
         # Step 2: Generate Unary Forms
         unaries = []
         temp_id = 0

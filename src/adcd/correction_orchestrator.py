@@ -177,7 +177,9 @@ class CorrectionOrchestrator:
                 structural_hints=[],
                 previous_best=previous_best if previous_best else None,
                 constants=scenario.classical_constants,
-                residual_features=res_feat
+                residual_features=res_feat,
+                X_data=X,
+                residual_data=residual
             )
 
             

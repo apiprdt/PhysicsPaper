@@ -35,6 +35,8 @@ class ProposalContext:
     physical_hints: Optional[List[str]] = None  # Kept for compatibility
     constants: Dict[str, float] = field(default_factory=dict)
     residual_features: Optional[Any] = None
+    X_data: Optional[Dict[str, np.ndarray]] = None
+    residual_data: Optional[np.ndarray] = None
 
 
 class BaseProposer(ABC):
