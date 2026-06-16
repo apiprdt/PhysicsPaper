@@ -315,7 +315,6 @@ class GrammarProposer(BaseProposer):
                 
                 vanishes = True
                 for limit_v, limit_d in zip(limit_vars, limit_dirs):
-                    limit_sym = sp.Symbol(limit_v)
                     # Set limit value
                     if limit_d == "0":
                         limit_val = 1e-6
@@ -324,7 +323,7 @@ class GrammarProposer(BaseProposer):
                     else:
                         try:
                             limit_val = float(limit_d) * 0.01
-                        except:
+                        except (ValueError, TypeError):
                             continue
                     
                     # Test with n_samples random theta values

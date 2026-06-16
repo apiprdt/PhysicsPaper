@@ -10,7 +10,7 @@ already computed by the pipeline.
 """
 
 from dataclasses import dataclass
-from typing import List, Tuple, Optional, Dict
+from typing import List, Tuple, Dict
 import numpy as np
 
 

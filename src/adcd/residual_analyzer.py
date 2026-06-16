@@ -160,7 +160,6 @@ def compute_ras(x_vals: np.ndarray, delta_vals: np.ndarray,
     thresh = np.percentile(dist_to_limit, 20)
     mask = dist_to_limit <= thresh
     
-    x_near = x_vals[mask]
     d_near = np.abs(delta_vals[mask])
     
     # Filter zeros and invalid
