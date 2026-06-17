@@ -78,12 +78,20 @@ class CorrectionOrchestrator:
         so that sympify and dimensional analysis don't crash on unknown symbols."""
         for var in scenario.classical_variables:
             if var not in self.pipeline.checker.registry:
-                self.pipeline.checker.registry[var] = [0, 0, 0]  # treat as dimensionless
+                base = var.replace("_ref", "").replace("_0", "")
+                if base in self.pipeline.checker.registry:
+                    self.pipeline.checker.registry[var] = self.pipeline.checker.registry[base]
+                else:
+                    self.pipeline.checker.registry[var] = [0, 0, 0]
             if var not in self.pipeline.locals:
                 self.pipeline.locals[var] = sp.Symbol(var)
         for const in scenario.classical_constants:
             if const not in self.pipeline.checker.registry:
-                self.pipeline.checker.registry[const] = [0, 0, 0]
+                base = const.replace("_ref", "").replace("_0", "")
+                if base in self.pipeline.checker.registry:
+                    self.pipeline.checker.registry[const] = self.pipeline.checker.registry[base]
+                else:
+                    self.pipeline.checker.registry[const] = [0, 0, 0]
             if const not in self.pipeline.locals:
                 self.pipeline.locals[const] = sp.Symbol(const)
 

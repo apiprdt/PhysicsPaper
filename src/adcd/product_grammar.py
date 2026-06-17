@@ -70,7 +70,21 @@ class ProductGrammar:
         for pi in pi_groups:
             primary_var = self._get_primary_var(pi, limit_specs)
             limit_dir = self._get_limit_dir(primary_var, limit_specs)
-            templates = self.ARC_SAFE_UNARIES if limit_dir == "0" else self.ARC_SAFE_UNARIES_INF
+            try:
+                limit_val = sp.oo if limit_dir == "oo" else 0
+                subs = {s: 1.0 for s in pi.free_symbols if str(s) != primary_var}
+                if constants:
+                    for c_name, c_val in constants.items():
+                        if sp.Symbol(c_name) in pi.free_symbols:
+                            subs[sp.Symbol(c_name)] = c_val
+                pi_subs = pi.subs(subs)
+                pi_limit = sp.limit(pi_subs, sp.Symbol(primary_var), limit_val)
+                if pi_limit == 0:
+                    templates = self.ARC_SAFE_UNARIES
+                else:
+                    templates = self.ARC_SAFE_UNARIES_INF
+            except Exception:
+                templates = self.ARC_SAFE_UNARIES if limit_dir == "0" else self.ARC_SAFE_UNARIES_INF
             per_group.append((pi, templates))
 
         products: List[str] = []
@@ -101,10 +115,38 @@ class ProductGrammar:
 
 
 def pi_groups_for_scenario(scenario) -> List[sp.Expr]:
-    """Build Buckingham-Pi groups for a multivariable scenario."""
+    """Build Buckingham-Pi groups for a multivariable scenario and orient them."""
     engine = BuckinghamPiEngine()
     engine.register_from_scenario(scenario)
-    return engine.compute_pi_groups()
+    groups = engine.compute_pi_groups()
+    
+    limit_specs = limit_specs_from_scenario(scenario)
+    oriented_groups = []
+    
+    for g in groups:
+        primary_var = None
+        for var, _ in limit_specs:
+            if sp.Symbol(var) in g.free_symbols:
+                primary_var = var
+                break
+        if primary_var is None:
+            primary_var = limit_specs[0][0]
+            
+        try:
+            subs1 = {s: 1.0 for s in g.free_symbols}
+            subs2 = dict(subs1)
+            subs2[sp.Symbol(primary_var)] = 2.0
+            val1 = float(g.subs(subs1))
+            val2 = float(g.subs(subs2))
+            if val2 < val1:
+                g = sp.simplify(1 / g)
+        except Exception:
+            pass
+            
+        if g not in oriented_groups:
+            oriented_groups.append(g)
+            
+    return oriented_groups
 
 
 def limit_specs_from_scenario(scenario) -> List[Tuple[str, str]]:

@@ -113,7 +113,7 @@ class ProductGrammarProposer(BaseProposer):
 
         seen: set[str] = set()
         merged: List[str] = []
-        for cand in extra + candidates:
+        for cand in candidates + extra:
             if cand not in seen:
                 seen.add(cand)
                 merged.append(cand)
@@ -200,10 +200,18 @@ def _build_mv_pipeline(scenario: AnomalyScenario, seed: int = 42) -> tuple:
     checker = DimensionalChecker()
     for var in scenario.classical_variables:
         if var not in checker.registry:
-            checker.registry[var] = [0, 0, 0]
+            base = var.replace("_ref", "").replace("_0", "")
+            if base in checker.registry:
+                checker.registry[var] = checker.registry[base]
+            else:
+                checker.registry[var] = [0, 0, 0]
     for const in scenario.classical_constants:
         if const not in checker.registry:
-            checker.registry[const] = [0, 0, 0]
+            base = const.replace("_ref", "").replace("_0", "")
+            if base in checker.registry:
+                checker.registry[const] = checker.registry[base]
+            else:
+                checker.registry[const] = [0, 0, 0]
 
     scorer = SequentialARCScorer(limit_vars, limit_dirs, SequentialARCChecker(seed=seed))
     pipeline = Stage1Pipeline(validator, checker, scorer)
@@ -232,7 +240,11 @@ def run_adcd_mv(
     orchestrator._register_scenario_symbols(scenario)
     for const in scenario.classical_constants:
         if const not in pipeline.checker.registry:
-            pipeline.checker.registry[const] = [0, 0, 0]
+            base = const.replace("_ref", "").replace("_0", "")
+            if base in pipeline.checker.registry:
+                pipeline.checker.registry[const] = pipeline.checker.registry[base]
+            else:
+                pipeline.checker.registry[const] = [0, 0, 0]
             pipeline.locals[const] = sp.Symbol(const)
 
     original_execute = pipeline.execute

@@ -543,6 +543,48 @@ Case F: Wrong Structural Coeff. (20\% off) & False & $1.96 \times 10^{-2}$ & $-4
 \end{tabularx}
 \end{table}
 
+\subsection{Multi-Variable Correction Discovery (Phase 2)}
+\label{sec:multivariable}
+
+Physical corrections frequently depend on \emph{multiple} coupled variables simultaneously. For instance, the Yukawa suppression correction $\theta_0 \exp(-m_2/m_1)$ depends on both masses; the plasma conductivity correction depends jointly on electron density $n$ and temperature $T$. The single-variable ADCD framework from Sections~\ref{sec:method}--\ref{sec:ablation-text} cannot directly represent such corrections without manual variable preselection.
+
+We therefore implemented \textbf{Phase 2: Multivariable Correction Discovery}, which extends ADCD with three new subsystems:
+\begin{enumerate}
+    \item \textbf{BuckinghamPiEngine}: Computes a basis of dimensionless $\Pi$-groups from the registered variable set via nullspace computation on the dimensional exponent matrix, following Buckingham's $\Pi$-theorem~\cite{buckingham1914}.
+    \item \textbf{SequentialARCChecker}: Tests each limit variable \emph{independently} to verify that the correction vanishes (or saturates) as each variable approaches its classical limit, providing structured multi-dimensional asymptotic validation.
+    \item \textbf{ProductGrammar}: Generates symbolic correction candidates as products of dimensionless $\Pi$-group functions (power law, exponential, rational), oriented so the primary limit variable carries a positive Pi-group exponent.
+\end{enumerate}
+
+We designed four multi-variable benchmark scenarios (Table~\ref{tab:mv_benchmark}): (MV-1) Yukawa mass-ratio suppression with two coupled masses; (MV-2) plasma conductivity with joint $n$--$T$ dependence; (MV-3) turbulent drag with coupled density $\rho$ and velocity $v$; (MV-4) Van der Waals compression with coupled $n$--$V$ power-law interaction.
+
+\begin{table}[H]
+\centering
+\caption{Phase 2 Multivariable Benchmark. ``\checkmark'' = NMSE $<0.05$ \emph{and} correct structural class. Mock refers to Mock (extended) proposer. PG = ProductGrammar proposer.}
+\label{tab:mv_benchmark}
+\begin{tabularx}{\textwidth}{L c c c c c c c c}
+\toprule
+\textbf{Scenario} & \textbf{Variables} & \textbf{True correction} &
+\multicolumn{2}{c}{\textbf{0\% noise}} & \multicolumn{2}{c}{\textbf{1\% noise}} & \multicolumn{2}{c}{\textbf{5\% noise}} \\
+\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+ & & & Mock & PG & Mock & PG & Mock & PG \\
+\midrule
+MV-1: Yukawa Mass-Ratio & $m_1, m_2$ & $\theta_0 e^{-m_2/m_1}$ & $\times$ & $\checkmark$ & $\times$ & $\times$ & $\times$ & $\times$ \\
+MV-2: Plasma Correction & $n, T$ & $\theta_0 (n/n_0)(T_0/T)^{1/2}$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ \\
+MV-3: Turbulent Drag 2D & $\rho, v$ & $\theta_0 \rho v^2$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\times$ & $\times$ \\
+MV-4: Van der Waals 2D & $n, V$ & $\theta_0 (n/n_0)^2/(V/V_0)^2$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ \\
+\midrule
+\textbf{Total} & & & $3/4$ & $2/4$ & $3/4$ & $1/4$ & $2/4$ & $0/4$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Results and analysis.}
+At 0\% noise, Mock (extended) achieves \textbf{3/4 (75\%)} and ProductGrammar achieves \textbf{2/4 (50\%)}. The proposers are \emph{complementary}: ProductGrammar uniquely succeeds on MV-1 (exponential mass-ratio suppression) where Mock fails entirely, while Mock uniquely succeeds on MV-2 (power-law product $n \cdot T^{-1/2}$) and MV-4 (Van der Waals power-law ratio). Both degrade sharply at 5\% noise, with only Mock maintaining 2/4 via its broader multi-variable template bank.
+
+The ProductGrammar failure modes are traceable. On MV-2, the electron density $n \sim 10^{20}$\,m$^{-3}$ creates a numerical scaling problem: the dimensionless ratio $n/n_0$ is constructed from an extreme reference constant, making Pi-group coefficient optimization numerically ill-conditioned at 64-bit precision. On MV-4, the optimizer discovers an exponential-times-power-law expression (NMSE $\approx 0.07$) that locally fits the quadratic power-law data but fails the structural class check. These failure modes are \emph{correctness-preserving}: the pipeline does not emit a false confident physical correction; it simply fails to converge to the right functional form.
+
+These results constitute the first demonstration of Buckingham-$\Pi$-guided dimensionless candidate generation combined with sequential asymptotic limit checking for automated multi-variable correction discovery.
+
 \section{Discussion and Ablation Studies}
 \label{sec:ablation-text}
 To quantify the benefit of the physics gates and BIC reranking, we performed ablation studies by running the discovery loop with specific filters deactivated. Quantitative results for gate-removal conditions are shown in \Cref{fig:ablation}; the BIC ablation below is a targeted case study reported in text because it requires the full gate pipeline intact to isolate BIC's contribution.
@@ -575,12 +617,8 @@ Sub-nano-scale residuals (binary pulsar $|dP/dt| \sim 10^{-15}$\,s/s) exposed a 
 \paragraph{Reduced-variable real-world benchmarks.}
 The binary pulsar v2.1 benchmark holds $M$, $a$, and $e$ fixed at Hulse-Taylor values and varies only $P$, yielding a clean $P^{-5/3}$ power law. Our sensitivity study (\Cref{tab:pulsar_sensitivity}) shows this is substantially easier than the legacy four-parameter formulation, where ADCD fails structurally. Future work must report multi-parameter orbital decay without reduced-variable simplification, or clearly label such benchmarks as controlled ablations rather than full discovery claims.
 
-\paragraph{Multi-variable corrections (Phase 2 Future Work).}
-The current ADCD framework primarily discovers corrections $\Delta(x;\theta)$ as
-functions of a single primary limit variable. However, real physical corrections often
-depend on multiple coupled variables (e.g., GR corrections depend on both
-velocity $v/c$ and gravitational potential $GM/rc^2$). Extension to
-multi-variable corrections $\Delta(x_1, x_2, \ldots; \theta)$ is designated as Phase 2 of our roadmap and remains an important future direction.
+\paragraph{Multi-variable corrections (Phase 2: implemented for 4 scenarios).}
+Phase 2 of ADCD (\Cref{sec:multivariable}) extends the framework to corrections $\Delta(x_1,x_2,\ldots;\theta)$ depending on multiple coupled variables, using Buckingham-$\Pi$ dimensionless group generation and sequential asymptotic limit checking. The current implementation achieves 2--3/4 scenario recovery at 0\% noise (Table~\ref{tab:mv_benchmark}). Key open challenges include numerical ill-conditioning when reference constants span extreme scales ($n_0 \sim 10^{20}$\,m$^{-3}$) and recovey of corrections whose functional form simultaneously mixes rational and power-law structure across multiple variables. Logarithmic parameterization of Pi-group coefficients and a richer unary operator set for the ProductGrammar are planned improvements.
 
 \paragraph{Dimensional gate relaxation.}
 The dimensional checker uses an adaptive relaxation where free constants (parameters $\theta_i$) are treated as dimensionless exponents or scaling coefficients that can adjust their units to match the target dimension, provided the expression is internally homogeneous (preventing unit clashes like $m + v$). While this allows physically consistent parameterized corrections to pass Stage 1, it places the burden of rejecting structurally incorrect but dimensionally relaxed candidates onto the Stage 2 optimizer and the BIC reranking. Future work will investigate tighter physical constraint gates that restrict parameter dimensions based on specific scaling symmetries.
@@ -718,6 +756,11 @@ in \textit{Advances in Neural Information Processing Systems (NeurIPS)}, 2024.
 R.~E. Kass and A.~E. Raftery,
 ``Bayes Factors,''
 \textit{Journal of the American Statistical Association}, vol. 90, no. 430, pp. 773--795, 1995.
+
+\bibitem{buckingham1914}
+E.~Buckingham,
+``On Physically Similar Systems; Illustrations of the Use of Dimensional Equations,''
+\textit{Physical Review}, vol. 4, no. 4, pp. 345--376, 1914.
 
 \end{thebibliography}
 
