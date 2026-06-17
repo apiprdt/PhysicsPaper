@@ -9,7 +9,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 18,
-    "wall_seconds": 8.68589186668396
+    "wall_seconds": 11.306089401245117
   },
   {
     "scenario": "Blind-1: Van der Waals",
@@ -21,7 +21,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 18,
-    "wall_seconds": 5.806562423706055
+    "wall_seconds": 7.072558879852295
   },
   {
     "scenario": "Blind-1: Van der Waals",
@@ -33,7 +33,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 18,
-    "wall_seconds": 5.500373601913452
+    "wall_seconds": 7.630162239074707
   },
   {
     "scenario": "Blind-1: Van der Waals",
@@ -45,7 +45,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 17,
-    "wall_seconds": 6.23760461807251
+    "wall_seconds": 7.9927191734313965
   },
   {
     "scenario": "Blind-1: Van der Waals",
@@ -57,7 +57,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 20,
-    "wall_seconds": 8.023032426834106
+    "wall_seconds": 14.29430890083313
   },
   {
     "scenario": "Blind-1: Van der Waals",
@@ -69,7 +69,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 20,
-    "wall_seconds": 7.083689451217651
+    "wall_seconds": 14.873906135559082
   },
   {
     "scenario": "Blind-1: Van der Waals",
@@ -81,7 +81,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 20,
-    "wall_seconds": 7.130542278289795
+    "wall_seconds": 9.740466833114624
   },
   {
     "scenario": "Blind-1: Van der Waals",
@@ -93,7 +93,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 19,
-    "wall_seconds": 6.966560363769531
+    "wall_seconds": 8.970952987670898
   },
   {
     "scenario": "Blind-1: Van der Waals",
@@ -104,8 +104,8 @@
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 46,
-    "wall_seconds": 134.33644485473633
+    "n_survived_gates": 48,
+    "wall_seconds": 232.50241422653198
   },
   {
     "scenario": "Blind-1: Van der Waals",
@@ -116,8 +116,8 @@
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 46,
-    "wall_seconds": 139.9027099609375
+    "n_survived_gates": 48,
+    "wall_seconds": 173.3717498779297
   },
   {
     "scenario": "Blind-1: Van der Waals",
@@ -128,8 +128,8 @@
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 46,
-    "wall_seconds": 135.3321192264557
+    "n_survived_gates": 48,
+    "wall_seconds": 164.13095617294312
   },
   {
     "scenario": "Blind-1: Van der Waals",
@@ -140,8 +140,8 @@
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 46,
-    "wall_seconds": 138.0027139186859
+    "n_survived_gates": 48,
+    "wall_seconds": 359.53243827819824
   },
   {
     "scenario": "Blind-2: Stokes-Einstein",
@@ -153,7 +153,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 30,
-    "wall_seconds": 7.7433435916900635
+    "wall_seconds": 20.141494750976562
   },
   {
     "scenario": "Blind-2: Stokes-Einstein",
@@ -165,7 +165,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 23,
-    "wall_seconds": 6.201108455657959
+    "wall_seconds": 16.310765266418457
   },
   {
     "scenario": "Blind-2: Stokes-Einstein",
@@ -177,7 +177,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 24,
-    "wall_seconds": 6.000377178192139
+    "wall_seconds": 15.595222473144531
   },
   {
     "scenario": "Blind-2: Stokes-Einstein",
@@ -189,7 +189,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 24,
-    "wall_seconds": 6.014614582061768
+    "wall_seconds": 15.676037073135376
   },
   {
     "scenario": "Blind-2: Stokes-Einstein",
@@ -201,7 +201,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 12,
-    "wall_seconds": 3.2433767318725586
+    "wall_seconds": 8.97697639465332
   },
   {
     "scenario": "Blind-2: Stokes-Einstein",
@@ -213,7 +213,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 11,
-    "wall_seconds": 3.5255675315856934
+    "wall_seconds": 8.994566679000854
   },
   {
     "scenario": "Blind-2: Stokes-Einstein",
@@ -225,7 +225,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 12,
-    "wall_seconds": 3.2626752853393555
+    "wall_seconds": 8.527320623397827
   },
   {
     "scenario": "Blind-2: Stokes-Einstein",
@@ -237,7 +237,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 12,
-    "wall_seconds": 3.1618103981018066
+    "wall_seconds": 8.457467079162598
   },
   {
     "scenario": "Blind-2: Stokes-Einstein",
@@ -248,8 +248,8 @@
     "class_match": true,
     "success": true,
     "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 114.34690594673157
+    "n_survived_gates": 60,
+    "wall_seconds": 314.71797156333923
   },
   {
     "scenario": "Blind-2: Stokes-Einstein",
@@ -260,8 +260,8 @@
     "class_match": true,
     "success": true,
     "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 114.80496883392334
+    "n_survived_gates": 60,
+    "wall_seconds": 306.19994378089905
   },
   {
     "scenario": "Blind-2: Stokes-Einstein",
@@ -272,8 +272,8 @@
     "class_match": true,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 108.78781938552856
+    "n_survived_gates": 60,
+    "wall_seconds": 217.70084524154663
   },
   {
     "scenario": "Blind-2: Stokes-Einstein",
@@ -284,8 +284,8 @@
     "class_match": true,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 102.90725994110107
+    "n_survived_gates": 60,
+    "wall_seconds": 129.3373510837555
   },
   {
     "scenario": "Blind-3: Wien Displacement",
@@ -297,7 +297,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 28,
-    "wall_seconds": 6.233161687850952
+    "wall_seconds": 8.09997844696045
   },
   {
     "scenario": "Blind-3: Wien Displacement",
@@ -309,7 +309,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 28,
-    "wall_seconds": 5.306189775466919
+    "wall_seconds": 6.928751707077026
   },
   {
     "scenario": "Blind-3: Wien Displacement",
@@ -321,7 +321,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 28,
-    "wall_seconds": 5.367511510848999
+    "wall_seconds": 6.94712495803833
   },
   {
     "scenario": "Blind-3: Wien Displacement",
@@ -333,7 +333,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 26,
-    "wall_seconds": 4.619364976882935
+    "wall_seconds": 5.980212926864624
   },
   {
     "scenario": "Blind-3: Wien Displacement",
@@ -345,7 +345,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 50,
-    "wall_seconds": 9.415236711502075
+    "wall_seconds": 12.021084547042847
   },
   {
     "scenario": "Blind-3: Wien Displacement",
@@ -357,7 +357,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 50,
-    "wall_seconds": 8.934039115905762
+    "wall_seconds": 11.590089559555054
   },
   {
     "scenario": "Blind-3: Wien Displacement",
@@ -369,7 +369,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 50,
-    "wall_seconds": 8.82889437675476
+    "wall_seconds": 11.186808824539185
   },
   {
     "scenario": "Blind-3: Wien Displacement",
@@ -381,7 +381,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 55,
-    "wall_seconds": 9.242546558380127
+    "wall_seconds": 12.09561538696289
   },
   {
     "scenario": "Blind-3: Wien Displacement",
@@ -392,8 +392,8 @@
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 79,
-    "wall_seconds": 108.2552342414856
+    "n_survived_gates": 72,
+    "wall_seconds": 280.4200804233551
   },
   {
     "scenario": "Blind-3: Wien Displacement",
@@ -404,8 +404,8 @@
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 79,
-    "wall_seconds": 113.90059757232666
+    "n_survived_gates": 72,
+    "wall_seconds": 302.9689881801605
   },
   {
     "scenario": "Blind-3: Wien Displacement",
@@ -416,8 +416,8 @@
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 79,
-    "wall_seconds": 115.35994935035706
+    "n_survived_gates": 72,
+    "wall_seconds": 142.38212490081787
   },
   {
     "scenario": "Blind-3: Wien Displacement",
@@ -428,8 +428,8 @@
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 79,
-    "wall_seconds": 115.95637893676758
+    "n_survived_gates": 72,
+    "wall_seconds": 111.96596026420593
   },
   {
     "scenario": "Blind-4: Relativistic Pendulum",
@@ -441,7 +441,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 41,
-    "wall_seconds": 7.953410863876343
+    "wall_seconds": 7.5263566970825195
   },
   {
     "scenario": "Blind-4: Relativistic Pendulum",
@@ -453,7 +453,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 41,
-    "wall_seconds": 7.322153568267822
+    "wall_seconds": 6.9496448040008545
   },
   {
     "scenario": "Blind-4: Relativistic Pendulum",
@@ -465,7 +465,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 38,
-    "wall_seconds": 7.5504310131073
+    "wall_seconds": 7.106513261795044
   },
   {
     "scenario": "Blind-4: Relativistic Pendulum",
@@ -477,7 +477,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 32,
-    "wall_seconds": 6.649176597595215
+    "wall_seconds": 6.330171346664429
   },
   {
     "scenario": "Blind-4: Relativistic Pendulum",
@@ -489,7 +489,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 14,
-    "wall_seconds": 2.8685619831085205
+    "wall_seconds": 2.781266927719116
   },
   {
     "scenario": "Blind-4: Relativistic Pendulum",
@@ -501,7 +501,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 14,
-    "wall_seconds": 2.7814691066741943
+    "wall_seconds": 2.6613311767578125
   },
   {
     "scenario": "Blind-4: Relativistic Pendulum",
@@ -513,7 +513,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 13,
-    "wall_seconds": 2.9318768978118896
+    "wall_seconds": 2.525272846221924
   },
   {
     "scenario": "Blind-4: Relativistic Pendulum",
@@ -525,7 +525,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 12,
-    "wall_seconds": 3.017435312271118
+    "wall_seconds": 2.7970709800720215
   },
   {
     "scenario": "Blind-4: Relativistic Pendulum",
@@ -537,7 +537,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 67,
-    "wall_seconds": 165.0535011291504
+    "wall_seconds": 160.0523805618286
   },
   {
     "scenario": "Blind-4: Relativistic Pendulum",
@@ -547,9 +547,9 @@
     "nmse_residual": 0.10002038873891336,
     "class_match": false,
     "success": false,
-    "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 165.64389729499817
+    "n_proposed": 124,
+    "n_survived_gates": 65,
+    "wall_seconds": 160.15874433517456
   },
   {
     "scenario": "Blind-4: Relativistic Pendulum",
@@ -559,9 +559,9 @@
     "nmse_residual": 0.14475136230970545,
     "class_match": false,
     "success": false,
-    "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 165.67039799690247
+    "n_proposed": 124,
+    "n_survived_gates": 65,
+    "wall_seconds": 161.74744200706482
   },
   {
     "scenario": "Blind-4: Relativistic Pendulum",
@@ -571,9 +571,9 @@
     "nmse_residual": 0.2709516290375577,
     "class_match": false,
     "success": false,
-    "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 167.22753953933716
+    "n_proposed": 124,
+    "n_survived_gates": 65,
+    "wall_seconds": 161.58506846427917
   },
   {
     "scenario": "Blind-5: Clausius-Mossotti Field",
@@ -585,7 +585,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 25,
-    "wall_seconds": 6.918030023574829
+    "wall_seconds": 6.336444616317749
   },
   {
     "scenario": "Blind-5: Clausius-Mossotti Field",
@@ -597,7 +597,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 17,
-    "wall_seconds": 5.012247800827026
+    "wall_seconds": 5.037591457366943
   },
   {
     "scenario": "Blind-5: Clausius-Mossotti Field",
@@ -609,7 +609,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 14,
-    "wall_seconds": 4.686868667602539
+    "wall_seconds": 4.523910999298096
   },
   {
     "scenario": "Blind-5: Clausius-Mossotti Field",
@@ -621,7 +621,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 14,
-    "wall_seconds": 4.792511463165283
+    "wall_seconds": 4.401486396789551
   },
   {
     "scenario": "Blind-5: Clausius-Mossotti Field",
@@ -633,7 +633,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 10,
-    "wall_seconds": 3.3880677223205566
+    "wall_seconds": 3.2865490913391113
   },
   {
     "scenario": "Blind-5: Clausius-Mossotti Field",
@@ -645,7 +645,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 5,
-    "wall_seconds": 2.791404962539673
+    "wall_seconds": 2.756437063217163
   },
   {
     "scenario": "Blind-5: Clausius-Mossotti Field",
@@ -657,7 +657,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 7,
-    "wall_seconds": 2.9978857040405273
+    "wall_seconds": 2.897500514984131
   },
   {
     "scenario": "Blind-5: Clausius-Mossotti Field",
@@ -669,7 +669,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 7,
-    "wall_seconds": 3.0281763076782227
+    "wall_seconds": 2.8039464950561523
   },
   {
     "scenario": "Blind-5: Clausius-Mossotti Field",
@@ -680,8 +680,8 @@
     "class_match": true,
     "success": true,
     "n_proposed": 125,
-    "n_survived_gates": 45,
-    "wall_seconds": 134.06498765945435
+    "n_survived_gates": 46,
+    "wall_seconds": 131.8955955505371
   },
   {
     "scenario": "Blind-5: Clausius-Mossotti Field",
@@ -692,8 +692,8 @@
     "class_match": true,
     "success": true,
     "n_proposed": 125,
-    "n_survived_gates": 45,
-    "wall_seconds": 134.62659072875977
+    "n_survived_gates": 46,
+    "wall_seconds": 128.53468012809753
   },
   {
     "scenario": "Blind-5: Clausius-Mossotti Field",
@@ -704,8 +704,8 @@
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 47,
-    "wall_seconds": 134.26106786727905
+    "n_survived_gates": 44,
+    "wall_seconds": 128.22502040863037
   },
   {
     "scenario": "Blind-5: Clausius-Mossotti Field",
@@ -716,8 +716,8 @@
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 47,
-    "wall_seconds": 134.1919069290161
+    "n_survived_gates": 44,
+    "wall_seconds": 128.15016293525696
   },
   {
     "scenario": "Blind-6: Magnus Wind-Tunnel",
@@ -729,7 +729,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 34,
-    "wall_seconds": 7.648514986038208
+    "wall_seconds": 7.251000642776489
   },
   {
     "scenario": "Blind-6: Magnus Wind-Tunnel",
@@ -741,7 +741,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 34,
-    "wall_seconds": 7.887698173522949
+    "wall_seconds": 7.541234970092773
   },
   {
     "scenario": "Blind-6: Magnus Wind-Tunnel",
@@ -753,7 +753,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 31,
-    "wall_seconds": 7.784970998764038
+    "wall_seconds": 7.45094108581543
   },
   {
     "scenario": "Blind-6: Magnus Wind-Tunnel",
@@ -765,7 +765,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 31,
-    "wall_seconds": 7.773967027664185
+    "wall_seconds": 7.450103044509888
   },
   {
     "scenario": "Blind-6: Magnus Wind-Tunnel",
@@ -777,7 +777,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 14,
-    "wall_seconds": 3.8518173694610596
+    "wall_seconds": 3.711926221847534
   },
   {
     "scenario": "Blind-6: Magnus Wind-Tunnel",
@@ -789,7 +789,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 13,
-    "wall_seconds": 3.802140235900879
+    "wall_seconds": 3.6082592010498047
   },
   {
     "scenario": "Blind-6: Magnus Wind-Tunnel",
@@ -801,7 +801,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 12,
-    "wall_seconds": 3.583123207092285
+    "wall_seconds": 3.4367775917053223
   },
   {
     "scenario": "Blind-6: Magnus Wind-Tunnel",
@@ -813,7 +813,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 12,
-    "wall_seconds": 3.606592893600464
+    "wall_seconds": 3.4217965602874756
   },
   {
     "scenario": "Blind-6: Magnus Wind-Tunnel",
@@ -824,8 +824,8 @@
     "class_match": true,
     "success": true,
     "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 119.11869692802429
+    "n_survived_gates": 60,
+    "wall_seconds": 112.7131233215332
   },
   {
     "scenario": "Blind-6: Magnus Wind-Tunnel",
@@ -836,8 +836,8 @@
     "class_match": true,
     "success": true,
     "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 117.55019068717957
+    "n_survived_gates": 60,
+    "wall_seconds": 111.97894859313965
   },
   {
     "scenario": "Blind-6: Magnus Wind-Tunnel",
@@ -848,8 +848,8 @@
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 117.8060154914856
+    "n_survived_gates": 60,
+    "wall_seconds": 111.81378889083862
   },
   {
     "scenario": "Blind-6: Magnus Wind-Tunnel",
@@ -860,8 +860,8 @@
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 118.26821851730347
+    "n_survived_gates": 60,
+    "wall_seconds": 111.99988532066345
   },
   {
     "scenario": "Blind-7: Casimir Vacuum",
@@ -873,7 +873,7 @@
     "success": true,
     "n_proposed": 50,
     "n_survived_gates": 3,
-    "wall_seconds": 0.8402597904205322
+    "wall_seconds": 0.7558615207672119
   },
   {
     "scenario": "Blind-7: Casimir Vacuum",
@@ -885,7 +885,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 4,
-    "wall_seconds": 1.1836299896240234
+    "wall_seconds": 1.2973694801330566
   },
   {
     "scenario": "Blind-7: Casimir Vacuum",
@@ -897,7 +897,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 4,
-    "wall_seconds": 1.1864192485809326
+    "wall_seconds": 1.1107048988342285
   },
   {
     "scenario": "Blind-7: Casimir Vacuum",
@@ -909,7 +909,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 4,
-    "wall_seconds": 1.1959869861602783
+    "wall_seconds": 1.1786749362945557
   },
   {
     "scenario": "Blind-7: Casimir Vacuum",
@@ -921,7 +921,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 5,
-    "wall_seconds": 2.408154010772705
+    "wall_seconds": 2.3187222480773926
   },
   {
     "scenario": "Blind-7: Casimir Vacuum",
@@ -933,7 +933,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 5,
-    "wall_seconds": 2.2318572998046875
+    "wall_seconds": 2.1206510066986084
   },
   {
     "scenario": "Blind-7: Casimir Vacuum",
@@ -945,7 +945,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 5,
-    "wall_seconds": 2.210510730743408
+    "wall_seconds": 2.257086753845215
   },
   {
     "scenario": "Blind-7: Casimir Vacuum",
@@ -957,7 +957,7 @@
     "success": true,
     "n_proposed": 125,
     "n_survived_gates": 5,
-    "wall_seconds": 2.3219003677368164
+    "wall_seconds": 2.148709535598755
   },
   {
     "scenario": "Blind-7: Casimir Vacuum",
@@ -969,7 +969,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 5,
-    "wall_seconds": 125.08814430236816
+    "wall_seconds": 122.28043460845947
   },
   {
     "scenario": "Blind-7: Casimir Vacuum",
@@ -981,7 +981,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 5,
-    "wall_seconds": 123.95813512802124
+    "wall_seconds": 133.2444202899933
   },
   {
     "scenario": "Blind-7: Casimir Vacuum",
@@ -993,7 +993,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 5,
-    "wall_seconds": 123.74861931800842
+    "wall_seconds": 121.63939261436462
   },
   {
     "scenario": "Blind-7: Casimir Vacuum",
@@ -1005,7 +1005,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 5,
-    "wall_seconds": 123.53667449951172
+    "wall_seconds": 119.38369560241699
   },
   {
     "scenario": "Blind-8: Composite Blackbody",
@@ -1017,7 +1017,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 26,
-    "wall_seconds": 5.544838905334473
+    "wall_seconds": 5.278968095779419
   },
   {
     "scenario": "Blind-8: Composite Blackbody",
@@ -1029,7 +1029,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 26,
-    "wall_seconds": 4.97523307800293
+    "wall_seconds": 4.744513511657715
   },
   {
     "scenario": "Blind-8: Composite Blackbody",
@@ -1041,7 +1041,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 26,
-    "wall_seconds": 5.021750211715698
+    "wall_seconds": 4.740100145339966
   },
   {
     "scenario": "Blind-8: Composite Blackbody",
@@ -1053,7 +1053,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 26,
-    "wall_seconds": 4.91528844833374
+    "wall_seconds": 4.65828013420105
   },
   {
     "scenario": "Blind-8: Composite Blackbody",
@@ -1065,7 +1065,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 55,
-    "wall_seconds": 10.370001316070557
+    "wall_seconds": 10.156674146652222
   },
   {
     "scenario": "Blind-8: Composite Blackbody",
@@ -1077,7 +1077,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 55,
-    "wall_seconds": 10.19047236442566
+    "wall_seconds": 9.796978950500488
   },
   {
     "scenario": "Blind-8: Composite Blackbody",
@@ -1089,7 +1089,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 55,
-    "wall_seconds": 10.281235694885254
+    "wall_seconds": 9.897937297821045
   },
   {
     "scenario": "Blind-8: Composite Blackbody",
@@ -1101,55 +1101,55 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 55,
-    "wall_seconds": 10.040802240371704
+    "wall_seconds": 10.03214168548584
   },
   {
     "scenario": "Blind-8: Composite Blackbody",
     "proposer": "Grammar",
     "noise": 0.0,
-    "discovered_expr": "theta_0*log(f/(theta_1*theta_2) + 1.0)",
-    "nmse_residual": 0.44921078508848383,
+    "discovered_expr": "f*tanh(theta_0*theta_1/f)**2/theta_0",
+    "nmse_residual": 0.38871442826226715,
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 79,
-    "wall_seconds": 113.60777688026428
+    "n_survived_gates": 71,
+    "wall_seconds": 110.09563755989075
   },
   {
     "scenario": "Blind-8: Composite Blackbody",
     "proposer": "Grammar",
     "noise": 0.01,
-    "discovered_expr": "theta_0*log(f/(theta_1*theta_2) + 1.0)",
-    "nmse_residual": 0.4606699205826175,
+    "discovered_expr": "f*tanh(theta_0*theta_1/f)**2/theta_0",
+    "nmse_residual": 0.4095679736336612,
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 79,
-    "wall_seconds": 113.63394331932068
+    "n_survived_gates": 71,
+    "wall_seconds": 109.99708557128906
   },
   {
     "scenario": "Blind-8: Composite Blackbody",
     "proposer": "Grammar",
     "noise": 0.05,
-    "discovered_expr": "theta_0*log(f/(theta_1*theta_2) + 1.0)",
-    "nmse_residual": 0.6259875873838817,
+    "discovered_expr": "f*tanh(theta_0*theta_1/f)**2/theta_0",
+    "nmse_residual": 0.6161162526598141,
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 79,
-    "wall_seconds": 113.57595634460449
+    "n_survived_gates": 72,
+    "wall_seconds": 110.03188490867615
   },
   {
     "scenario": "Blind-8: Composite Blackbody",
     "proposer": "Grammar",
     "noise": 0.1,
-    "discovered_expr": "theta_0*log(f/(theta_1*theta_2) + 1.0)",
-    "nmse_residual": 0.8188995782922257,
+    "discovered_expr": "f*tanh(theta_0*theta_1/f)**2/theta_0",
+    "nmse_residual": 0.8334141813151146,
     "class_match": false,
     "success": false,
     "n_proposed": 125,
-    "n_survived_gates": 79,
-    "wall_seconds": 113.07820749282837
+    "n_survived_gates": 72,
+    "wall_seconds": 108.4252815246582
   },
   {
     "scenario": "Blind-9: Composite Relativistic Drag",
@@ -1161,7 +1161,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 41,
-    "wall_seconds": 10.0448739528656
+    "wall_seconds": 9.758882999420166
   },
   {
     "scenario": "Blind-9: Composite Relativistic Drag",
@@ -1173,7 +1173,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 29,
-    "wall_seconds": 5.748001337051392
+    "wall_seconds": 5.514855146408081
   },
   {
     "scenario": "Blind-9: Composite Relativistic Drag",
@@ -1185,7 +1185,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 29,
-    "wall_seconds": 5.758188009262085
+    "wall_seconds": 5.458053350448608
   },
   {
     "scenario": "Blind-9: Composite Relativistic Drag",
@@ -1197,7 +1197,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 29,
-    "wall_seconds": 5.87320613861084
+    "wall_seconds": 5.603995323181152
   },
   {
     "scenario": "Blind-9: Composite Relativistic Drag",
@@ -1209,7 +1209,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 14,
-    "wall_seconds": 4.501856803894043
+    "wall_seconds": 4.242669582366943
   },
   {
     "scenario": "Blind-9: Composite Relativistic Drag",
@@ -1221,7 +1221,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 14,
-    "wall_seconds": 3.2833893299102783
+    "wall_seconds": 3.2227718830108643
   },
   {
     "scenario": "Blind-9: Composite Relativistic Drag",
@@ -1233,7 +1233,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 14,
-    "wall_seconds": 3.2737648487091064
+    "wall_seconds": 3.1307437419891357
   },
   {
     "scenario": "Blind-9: Composite Relativistic Drag",
@@ -1245,7 +1245,7 @@
     "success": false,
     "n_proposed": 125,
     "n_survived_gates": 14,
-    "wall_seconds": 3.3497376441955566
+    "wall_seconds": 3.3411152362823486
   },
   {
     "scenario": "Blind-9: Composite Relativistic Drag",
@@ -1255,44 +1255,44 @@
     "nmse_residual": 0.2680460932322398,
     "class_match": false,
     "success": false,
-    "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 162.8173644542694
+    "n_proposed": 124,
+    "n_survived_gates": 65,
+    "wall_seconds": 155.53550791740417
   },
   {
     "scenario": "Blind-9: Composite Relativistic Drag",
     "proposer": "Grammar",
     "noise": 0.01,
-    "discovered_expr": "v*cos(v/(theta_0*theta_1))/theta_0",
-    "nmse_residual": 0.9930509270567445,
+    "discovered_expr": "v**3/theta_0**3",
+    "nmse_residual": 0.9994642545205649,
     "class_match": false,
     "success": false,
-    "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 163.86831426620483
+    "n_proposed": 124,
+    "n_survived_gates": 65,
+    "wall_seconds": 157.63460063934326
   },
   {
     "scenario": "Blind-9: Composite Relativistic Drag",
     "proposer": "Grammar",
     "noise": 0.05,
-    "discovered_expr": "v*cos(v/(theta_0*theta_1))/theta_0",
-    "nmse_residual": 0.979028928119817,
+    "discovered_expr": "v**3/theta_0**3",
+    "nmse_residual": 0.9994642475784794,
     "class_match": false,
     "success": false,
-    "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 163.56077647209167
+    "n_proposed": 124,
+    "n_survived_gates": 65,
+    "wall_seconds": 157.04721975326538
   },
   {
     "scenario": "Blind-9: Composite Relativistic Drag",
     "proposer": "Grammar",
     "noise": 0.1,
-    "discovered_expr": "v*cos(v/(theta_0*theta_1))/theta_0",
-    "nmse_residual": 0.9798600588840517,
+    "discovered_expr": "v**3/theta_0**3",
+    "nmse_residual": 0.9994642459243666,
     "class_match": false,
     "success": false,
-    "n_proposed": 125,
-    "n_survived_gates": 67,
-    "wall_seconds": 163.294086933136
+    "n_proposed": 124,
+    "n_survived_gates": 65,
+    "wall_seconds": 155.66159415245056
   }
 ]
