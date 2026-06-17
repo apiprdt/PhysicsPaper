@@ -3,14 +3,19 @@
 \caption{PySR baseline configuration profiles. Primary comparison uses \texttt{fair} (near-default search budget). \texttt{fast} is legacy wall-clock-matched.}
 \label{tab:pysr_config}
 \small
-\begin{tabularx}{\textwidth}{l c c c c c c}
+\begin{tabular}{l c c c c c c}
 \toprule
 \textbf{Profile} & \textbf{Iterations} & \textbf{Max Size} & \textbf{Timeout (s)} & \textbf{Populations} & \textbf{Pop.\ Size} & \textbf{Seed} \\
 \midrule
 \texttt{fast} (legacy) & 15 & 15 & 25 & 8 & 20 & 42 \\
 \texttt{fair} (primary) & 100 & 30 & 60 & 8 & 20 & 42 \\
-\midrule
-\multicolumn{7}{p{\linewidth}}{\small\textit{Shared: binary ops }$\{+,-,\times,\div\}$; unary ops $\{\exp,\sin,\cos,\log,\tanh,\sqrt\}$; parsimony $=0.0032$; deterministic $=$ True; same residual $y - y_{\mathrm{classical}}$ as ADCD.} \\
 \bottomrule
-\end{tabularx}
+\end{tabular}
+\par\smallskip\noindent
+\begin{minipage}{\linewidth}
+\footnotesize\textit{Shared settings: binary ops $\{+,-,\times,\div\}$;
+unary ops $\{\exp,\sin,\cos,\log,\tanh,\sqrt{\phantom{x}}\}$;
+parsimony $=0.0032$; deterministic $=$ True;
+same residual $y - y_{\mathrm{classical}}$ as ADCD input.}
+\end{minipage}
 \end{table}

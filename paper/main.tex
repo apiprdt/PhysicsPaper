@@ -223,7 +223,10 @@ Let $y_{\text{classical}} = g(X; \phi)$ be a known classical physical law with v
     \[\delta_{\text{add}} = y_{\text{obs}} - y_{\text{classical}}\]
 \end{itemize}
 
-By default, the framework utilizes an automated mode selection mechanism (\texttt{correction\_mode="auto"}). In this configuration, ADCD evaluates the relative variance and scale of both candidate formulations against the observed baselines, automatically selecting between the additive and multiplicative residual definitions to best isolate the anomalous deviation before initiating search.
+By default, ADCD automatically selects between additive and multiplicative
+correction modes by evaluating the relative variance and scale of both
+candidate formulations, choosing whichever best isolates the anomalous
+deviation from the observed residual (\texttt{correction\_mode=\allowbreak"auto"}).
 
 \subsection{Residual Feature Intelligence}
 To bias the proposer towards the correct mathematical families, ADCD detrends and extracts 5 high-level statistical features from the residual $\delta$ as a function of the primary limit variable $x$:
@@ -518,6 +521,7 @@ A crucial design requirement for automated scientific discovery is that the disc
 These results (summarized in \Cref{tab:misspecification}) confirm that ADCD displays reliable \textbf{fail-safe behavior}: rather than producing confident spurious corrections, ADCD fails to converge when the baseline theory is structurally wrong---preventing false physical discovery. Minor perturbations such as small constant offsets are absorbed without affecting structural recovery, demonstrating robustness to measurement calibration errors.
 
 \begin{table}[H]
+\small
 \centering
 \caption{System Misspecification Benchmark Results.}
 \label{tab:misspecification}
@@ -558,22 +562,26 @@ We therefore implemented \textbf{Phase 2: Multivariable Correction Discovery}, w
 We designed four multi-variable benchmark scenarios (Table~\ref{tab:mv_benchmark}): (MV-1) Yukawa mass-ratio suppression with two coupled masses; (MV-2) plasma conductivity with joint $n$--$T$ dependence; (MV-3) turbulent drag with coupled density $\rho$ and velocity $v$; (MV-4) Van der Waals compression with coupled $n$--$V$ power-law interaction.
 
 \begin{table}[H]
-\centering
-\caption{Phase 2 Multivariable Benchmark. ``\checkmark'' = NMSE $<0.05$ \emph{and} correct structural class. Mock refers to Mock (extended) proposer. PG = ProductGrammar proposer.}
+\centering\footnotesize
+\caption{Phase 2 Multivariable Benchmark.
+$\checkmark$~= NMSE~$<\!0.05$ \emph{and} correct structural class;
+$\times$~= fail.
+Mock~= Mock (extended) proposer; PG~= ProductGrammar.
+Variables: MV-1~$(m_1,m_2)$, MV-2~$(n,T)$, MV-3~$(\rho,v)$, MV-4~$(n,V)$.}
 \label{tab:mv_benchmark}
-\begin{tabularx}{\textwidth}{L c c c c c c c c}
+\begin{tabularx}{\textwidth}{L l c c c c c c}
 \toprule
-\textbf{Scenario} & \textbf{Variables} & \textbf{True correction} &
-\multicolumn{2}{c}{\textbf{0\% noise}} & \multicolumn{2}{c}{\textbf{1\% noise}} & \multicolumn{2}{c}{\textbf{5\% noise}} \\
-\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
- & & & Mock & PG & Mock & PG & Mock & PG \\
+\textbf{Scenario} & \textbf{Correction $\Delta$} &
+\multicolumn{2}{c}{\textbf{0\%}} & \multicolumn{2}{c}{\textbf{1\%}} & \multicolumn{2}{c}{\textbf{5\%}} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
+& & Mock & PG & Mock & PG & Mock & PG \\
 \midrule
-MV-1: Yukawa Mass-Ratio & $m_1, m_2$ & $\theta_0 e^{-m_2/m_1}$ & $\times$ & $\checkmark$ & $\times$ & $\times$ & $\times$ & $\times$ \\
-MV-2: Plasma Correction & $n, T$ & $\theta_0 (n/n_0)(T_0/T)^{1/2}$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ \\
-MV-3: Turbulent Drag 2D & $\rho, v$ & $\theta_0 \rho v^2$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\times$ & $\times$ \\
-MV-4: Van der Waals 2D & $n, V$ & $\theta_0 (n/n_0)^2/(V/V_0)^2$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ \\
+MV-1: Yukawa & $\theta_0\, e^{-m_2/m_1}$ & $\times$ & $\checkmark$ & $\times$ & $\times$ & $\times$ & $\times$ \\
+MV-2: Plasma & $\theta_0\,(n/n_0)(T_0/T)^{1/2}$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ \\
+MV-3: Turbulent Drag & $\theta_0\,\rho\, v^2$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\times$ & $\times$ \\
+MV-4: Van der Waals & $\theta_0\,(n/n_0)^2/(V/V_0)^2$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ \\
 \midrule
-\textbf{Total} & & & $3/4$ & $2/4$ & $3/4$ & $1/4$ & $2/4$ & $0/4$ \\
+\textbf{Total} & & $3/4$ & $2/4$ & $3/4$ & $1/4$ & $2/4$ & $0/4$ \\
 \bottomrule
 \end{tabularx}
 \end{table}
