@@ -113,7 +113,7 @@ class TestResidualFactorizerV2:
         assert result.factorization_type == "none" or result.explained_variance < 0.8
 
 
-@pytest.mark.skip(reason="Requires MultivariableOrchestrator (MV-5)")
+@pytest.mark.skip(reason="Requires stable MV benchmark tuning (MV-5)")
 class TestMultivariableEndToEnd:
     def test_yukawa_mass_ratio_discovery(self):
         """ADCD discovers θ₀·(m/M)·exp(-r/r_0) at 0% noise."""

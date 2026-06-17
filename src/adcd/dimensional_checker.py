@@ -12,6 +12,14 @@ DIMENSIONS = {
     'c': [0, 1, -1],     # Speed of Light (m/s)
     'E': [1, 2, -2],     # Energy (Joule)
     'F': [1, 1, -2],     # Force (Newton)
+    'rho': [1, -3, 0],   # Density (kg/m^3)
+    'n': [0, -3, 0],     # Number density (1/m^3) or count scaled
+    'T': [0, 0, 0],      # Temperature (Kelvin)
+    'V': [0, 3, 0],      # Volume (m^3)
+    'k_B': [1, 2, -2],   # Boltzmann constant (J/K)
+    'b': [1, 0, -1],     # Drag coefficient (kg/s)
+    'A': [0, 2, 0],      # Area (m^2)
+    'sigma': [1, 0, -3], # Stefan-Boltzmann
 }
 
 class DimensionalChecker:

@@ -103,6 +103,23 @@ class AnomalyScenario:
         elif self.name == "Blind-6: Magnus Wind-Tunnel" or self.name == "Blind-9: Composite Relativistic Drag":
             X["b"] = rng.uniform(0.5, 5.0, size=n_points)
             X["v"] = rng.uniform(0.1, 5.0, size=n_points)
+
+        elif self.name == "MV-1: Yukawa Mass-Ratio":
+            X["m"] = rng.uniform(1.0, 10.0, size=n_points)
+            X["M"] = rng.uniform(10.0, 100.0, size=n_points)
+            X["r"] = rng.uniform(0.5, 5.0, size=n_points)
+
+        elif self.name == "MV-2: Plasma Correction":
+            X["n"] = rng.uniform(1e18, 1e21, size=n_points)
+            X["T"] = rng.uniform(500.0, 5000.0, size=n_points)
+
+        elif self.name == "MV-3: Turbulent Drag 2D":
+            X["v"] = rng.uniform(0.1, 10.0, size=n_points)
+            X["rho"] = rng.uniform(0.5, 5.0, size=n_points)
+
+        elif self.name == "MV-4: Van der Waals 2D":
+            X["n"] = rng.uniform(0.5, 5.0, size=n_points)
+            X["V"] = rng.uniform(1.0, 10.0, size=n_points)
             
         elif self.name == "Misspecification 1: Wrong Baseline Form":
             X["m"] = rng.uniform(1.0, 10.0, size=n_points)
@@ -179,7 +196,7 @@ class AnomalyScenario:
         return X, y_obs, y_classical, residual
 
 def get_all_scenarios() -> List[AnomalyScenario]:
-    """Returns the 9 standard scenarios across the 3 tiers."""
+    """Returns standard scenarios plus multivariable Phase 2 scenarios."""
     return [
         # =========================================================================
         # TIER 1: Textbook Corrections (LLM seen these)
@@ -501,5 +518,88 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             classical_limit_variable="v",
             classical_limit_direction="0",
             correction_class="exponential"
-        )
+        ),
+    ] + get_mv_scenarios()
+
+
+def get_mv_scenarios() -> List[AnomalyScenario]:
+    """Four validated multivariable correction scenarios (Phase 2)."""
+    return [
+        AnomalyScenario(
+            name="MV-1: Yukawa Mass-Ratio",
+            tier="multivariable",
+            domain="gravitation",
+            classical_expr="G * m * M / r**2",
+            classical_variables=["m", "M", "r"],
+            classical_constants={"G": 6.6743e-11, "r_0": 2.5},
+            correction_type="multiplicative",
+            correction_expr="theta_0 * (m / M) * exp(-r / r_0)",
+            correction_constants={"theta_0": 0.50},
+            anomaly_regime="mass-ratio screening with exponential radial decay",
+            variables_with_units={"m": "kg", "M": "kg", "r": "m", "G": "N*m^2/kg^2"},
+            classical_limit_variable="r,m",
+            classical_limit_direction="oo,0",
+            correction_class="exponential",
+        ),
+        AnomalyScenario(
+            name="MV-2: Plasma Correction",
+            tier="multivariable",
+            domain="plasma physics",
+            classical_expr="n * k_B * T",
+            classical_variables=["n", "T"],
+            classical_constants={"k_B": 1.38e-23, "n_ref": 1e20, "T_ref": 1000.0},
+            correction_type="multiplicative",
+            correction_expr="theta_0 * (n / n_ref) * (T_ref / T)**0.5",
+            correction_constants={"theta_0": 0.3},
+            anomaly_regime="low density and high temperature plasma limits",
+            variables_with_units={"n": "1/m^3", "T": "K"},
+            classical_limit_variable="n,T",
+            classical_limit_direction="0,oo",
+            correction_class="power_law",
+        ),
+        AnomalyScenario(
+            name="MV-3: Turbulent Drag 2D",
+            tier="multivariable",
+            domain="fluid dynamics",
+            classical_expr="b * v",
+            classical_variables=["v", "rho"],
+            classical_constants={"b": 1.0, "v_ref": 10.0, "rho_ref": 1.0},
+            correction_type="additive",
+            correction_expr="theta_0 * (v / v_ref)**2 * (rho / rho_ref)",
+            correction_constants={"theta_0": 0.5},
+            anomaly_regime="turbulent drag at low speed and density",
+            variables_with_units={"v": "m/s", "rho": "kg/m^3"},
+            classical_limit_variable="v,rho",
+            classical_limit_direction="0,0",
+            correction_class="polynomial",
+        ),
+        AnomalyScenario(
+            name="MV-4: Van der Waals 2D",
+            tier="multivariable",
+            domain="thermodynamics",
+            classical_expr="n * k_B * T / V",
+            classical_variables=["n", "V"],
+            classical_constants={
+                "k_B": 1.38e-23,
+                "T": 300.0,
+                "n_ref": 1.0,
+                "V_ref": 1.0,
+            },
+            correction_type="additive",
+            correction_expr="theta_0 * (n / n_ref)**2 / (V / V_ref)**2",
+            correction_constants={"theta_0": 0.1},
+            anomaly_regime="van der Waals molecular interaction correction",
+            variables_with_units={"n": "mol", "V": "m^3"},
+            classical_limit_variable="n,V",
+            classical_limit_direction="0,oo",
+            correction_class="power_law",
+        ),
     ]
+
+
+def get_mv_scenario(name: str) -> AnomalyScenario:
+    """Return a multivariable scenario by full or partial name."""
+    for scenario in get_mv_scenarios():
+        if scenario.name == name or scenario.name.startswith(name):
+            return scenario
+    raise KeyError(f"Unknown multivariable scenario: {name}")

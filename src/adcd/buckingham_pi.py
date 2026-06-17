@@ -38,41 +38,69 @@ class BuckinghamPiEngine:
                 base = const_name.replace("_ref", "").replace("_0", "")
                 if base in checker.registry:
                     self.register(const_name, checker.registry[base])
+                else:
+                    self.register(const_name, [0, 0, 0])
 
     def compute_pi_groups(self) -> List[sp.Expr]:
         """
         Compute independent dimensionless Pi groups.
 
-        Returns SymPy expressions, each dimensionless by construction.
+        Uses exact rational nullspace (SymPy) for clean ratio forms like m/M.
         """
         if len(self.registry) < 2:
             return []
 
         names = list(self.registry.keys())
         dim_matrix = np.array([self.registry[n] for n in names]).T
+        k, n = dim_matrix.shape
 
-        _, singular_values, vt = np.linalg.svd(dim_matrix, full_matrices=True)
-        rank = int(np.sum(singular_values > 1e-10))
-        null_basis = vt[rank:]
+        if k >= n:
+            return self._simple_same_dimension_ratios(names)
 
-        syms = {n: sp.Symbol(n) for n in names}
+        from sympy import Matrix
+
+        null_vectors = Matrix(dim_matrix.tolist()).nullspace()
+        syms = {name: sp.Symbol(name) for name in names}
         pi_groups: List[sp.Expr] = []
 
-        for row in null_basis:
+        for vec in null_vectors:
             factors = []
-            for name, exp in zip(names, row):
-                if abs(exp) < 1e-6:
+            for name, exp in zip(names, vec):
+                if exp == 0:
                     continue
-                rational_exp = sp.Rational(int(round(exp * 12)), 12)
-                factors.append(syms[name] ** rational_exp)
+                factors.append(syms[name] ** int(exp))
             if not factors:
                 continue
-            pi_expr = sp.Mul(*factors)
+            pi_expr = sp.simplify(sp.Mul(*factors))
             free_vars = {str(s) for s in pi_expr.free_symbols}
             if len(free_vars) >= 2:
-                pi_groups.append(sp.simplify(pi_expr))
+                pi_groups.append(pi_expr)
+
+        if not pi_groups:
+            pi_groups = self._simple_same_dimension_ratios(names)
 
         return pi_groups
+
+    def _simple_same_dimension_ratios(self, names: List[str]) -> List[sp.Expr]:
+        """Fallback: pairwise ratios among equal-dimension variables."""
+        groups: List[sp.Expr] = []
+        seen: set[str] = set()
+        by_dim: Dict[tuple, List[str]] = {}
+        for name in names:
+            key = tuple(int(x) for x in self.registry[name])
+            by_dim.setdefault(key, []).append(name)
+
+        for dim_vars in by_dim.values():
+            if len(dim_vars) < 2:
+                continue
+            for i in range(len(dim_vars)):
+                for j in range(i + 1, len(dim_vars)):
+                    a, b = dim_vars[i], dim_vars[j]
+                    for ratio in (f"{a}/{b}", f"{b}/{a}"):
+                        if ratio not in seen:
+                            seen.add(ratio)
+                            groups.append(sp.sympify(ratio))
+        return groups
 
     def get_parameterized_ratios(self) -> List[sp.Expr]:
         """Parameterized Pi forms Π/θ and Π·θ for grammar ratio candidates."""
