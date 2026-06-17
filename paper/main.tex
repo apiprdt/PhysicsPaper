@@ -45,7 +45,7 @@
 
 \title{\textbf{Anomaly-Driven Correction Discovery (ADCD): Physics-Constrained Symbolic Regression for Evolutionary Scientific Discovery}}
 \author{Muhammad Afif Erdita \\
-\small SMA Negeri 23 Kabupaten Tangerang \\
+\small Independent Researcher, Indonesia \\
 \small \texttt{maeapip10@gmail.com}}
 \date{June 2026}
 
@@ -136,10 +136,18 @@ primary search objective. This separation of concerns allows the gates to
 screen for physical plausibility while BIC selects the most parsimonious
 survivor.
 
-\section{The ADCD Framework}
+\paragraph{Bayesian posterior model averaging (Phase 3).}
+We extend BIC reranking with a Bayesian posterior distribution over candidate corrections using the Schwarz approximation (Kass \& Raftery 1995~\cite{kass1995bayes}): posterior weight $w_i \propto \exp(-\Delta\text{BIC}_i / 2)$, where $\Delta\text{BIC}_i = \text{BIC}_i - \text{BIC}_\text{min}$. This converts discrete ranking into a continuous probability distribution over functional families, enabling principled quantification of discovery uncertainty. When the top candidate's weight exceeds $3\times$ the second-best's weight (decisive evidence threshold), the discovery is classified as unambiguous. An accompanying identifiability analyzer diagnoses failure modes---model degeneracy, low SNR, or undetectable correction magnitude---providing scientifically meaningful explanations when the search is inconclusive.
 
+\paragraph{Residual Asymptotic Signature (RAS) as a novel feature prior.}
+Prior to candidate proposal, ADCD extracts the \textit{Residual Asymptotic Signature} (RAS): a log-log regression of the residual near the classical limit, yielding a leading exponent that serves as a structural prior for the proposer. This allows the grammar-based proposer to rank candidate ratio seeds by their Pearson correlation with the observed residual, preferentially generating correction templates whose asymptotic scaling matches the empirical data. RAS is a novel contribution that bridges residual analysis and grammar-guided proposal, improving targeted search efficiency without requiring additional physics assumptions.
+
+
+
+\section{The ADCD Framework}
 \label{sec:method}
 The ADCD pipeline operates as a closed-loop physics-informed search. A high-level overview of the architecture is illustrated in \Cref{fig:architecture}.
+
 
 \begin{figure}[H]
 \centering
@@ -441,8 +449,21 @@ such as \texttt{theta\_0 * v**2 / c**2}, which a physicist can immediately valid
 domain theory. This interpretability gap is the core contribution of our framework.
 
 \subsection{Blind Generalization Test}
+\label{sec:blind}
 
-To assess generalization beyond benchmark scenarios designed by the authors, we introduced three ``blind'' anomaly scenarios (Van der Waals gas, Stokes-Einstein diffusion, Wien displacement) whose structural class was concealed from the pipeline at runtime. We count structural recovery as a success only if the correct functional class is recovered across \emph{all} tested noise levels for that scenario; partial recovery (correct class at some noise levels only) is reported as a failure. Under this criterion, ADCD recovered the correct structural class for 1/3 blind scenarios (Wien displacement, up to 5\% noise). Stokes-Einstein diffusion succeeded at 1\% noise but failed at higher noise, and Van der Waals converged to power-law approximations at all levels. For the latter two, the pipeline converged to power-law approximations (such as $V^{-\theta}$), which fit the residual data with high numerical precision (NMSE below 0.05), reflecting a physics phenomenon where multi-scale transcendental or rational structures reduce to simplified scaling laws at limited dynamic range.
+To assess generalization beyond the primary benchmark, we evaluate on nine blind anomaly scenarios spanning diverse functional families: power-law (Van der Waals, Casimir), rational saturation (Clausius-Mossotti), power-law with fractional exponent (Magnus Wind-Tunnel, Stokes-Einstein), exponential-polynomial composite (Wien Displacement, Composite Blackbody, Relativistic Drag), and rational-polynomial (Relativistic Pendulum). Ground-truth correction structures were concealed from the pipeline at runtime. We apply the strict criterion: a scenario counts as a success only if the correct functional class is recovered across \emph{all} four tested noise levels (0\%, 1\%, 5\%, 10\%).
+
+\paragraph{Mock Proposer (template-based).}
+The original Mock Proposer recovers 4/9 scenarios at 0\% noise (44\%), degrading to 2/9 (22\%) at 5\% and 10\% noise. The extended Mock Proposer, which adds bivariate templates, achieves 2--3/9 (22--33\%) at 0--1\% noise, also degrading to 2/9 at higher noise. Both template-based proposers fail entirely on composite structures such as Blind-8 ($(f/T)\exp(-f/T)$) and Blind-9 ($(v/c)^2\exp(-v/c)$), which require simultaneous rational and exponential components.
+
+\paragraph{Grammar Proposer (Phase 1 contribution).}
+The Grammar Proposer, which enumerates candidates from a formal grammar over dimensionless ratios, achieves \textbf{3/9 (33\%) at 0--1\% noise}, matching Mock (base) at clean data. However, Grammar performance degrades sharply to \textbf{0/9 (0\%) at 5\% and 10\% noise}, performing worse than the template-based proposers under realistic noise conditions.
+
+Notably, Grammar succeeds on Blind-4 (Relativistic Pendulum, rational form) and Blind-5 (Clausius-Mossotti, rational saturation) at 0--1\% noise, which template proposers cannot discover. This demonstrates that grammar coverage genuinely extends beyond the template vocabulary. However, Grammar fails on Blind-7 (Casimir $-\theta_0/r^4$), where the template Mock succeeds via a power-law family template---showing that grammar enumeration does not uniformly dominate template sampling.
+
+\paragraph{Interpretation.}
+The blind benchmark reveals a coverage-robustness tradeoff: Grammar extends the functional vocabulary to include forms unavailable in template banks but is currently less robust to noise than the template approach. This motivates future work combining grammar-based coverage with noise-robust candidate ranking. Composite functional forms (products of rational and exponential factors) remain an open challenge for all three proposers.
+
 
 \subsection{Real-World Physical Constants Benchmark}
 \label{sec:real-world}
@@ -554,13 +575,12 @@ Sub-nano-scale residuals (binary pulsar $|dP/dt| \sim 10^{-15}$\,s/s) exposed a 
 \paragraph{Reduced-variable real-world benchmarks.}
 The binary pulsar v2.1 benchmark holds $M$, $a$, and $e$ fixed at Hulse-Taylor values and varies only $P$, yielding a clean $P^{-5/3}$ power law. Our sensitivity study (\Cref{tab:pulsar_sensitivity}) shows this is substantially easier than the legacy four-parameter formulation, where ADCD fails structurally. Future work must report multi-parameter orbital decay without reduced-variable simplification, or clearly label such benchmarks as controlled ablations rather than full discovery claims.
 
-\paragraph{Single-variable corrections.}
-The current ADCD framework discovers corrections $\Delta(x;\theta)$ as
-functions of a single primary limit variable in the default real-world tier. Real physical corrections often
+\paragraph{Multi-variable corrections (Phase 2 Future Work).}
+The current ADCD framework primarily discovers corrections $\Delta(x;\theta)$ as
+functions of a single primary limit variable. However, real physical corrections often
 depend on multiple coupled variables (e.g., GR corrections depend on both
 velocity $v/c$ and gravitational potential $GM/rc^2$). Extension to
-multi-variable corrections $\Delta(x_1, x_2, \ldots; \theta)$ is a natural
-and important next step.
+multi-variable corrections $\Delta(x_1, x_2, \ldots; \theta)$ is designated as Phase 2 of our roadmap and remains an important future direction.
 
 \paragraph{Dimensional gate relaxation.}
 The dimensional checker uses an adaptive relaxation where free constants (parameters $\theta_i$) are treated as dimensionless exponents or scaling coefficients that can adjust their units to match the target dimension, provided the expression is internally homogeneous (preventing unit clashes like $m + v$). While this allows physically consistent parameterized corrections to pass Stage 1, it places the burden of rejecting structurally incorrect but dimensionally relaxed candidates onto the Stage 2 optimizer and the BIC reranking. Future work will investigate tighter physical constraint gates that restrict parameter dimensions based on specific scaling symmetries.
@@ -693,6 +713,11 @@ W.~Tenachi, R.~Ibata, and F.~I. Diakogiannis,
 A.~Grayeli, A.~Sehgal, O.~Costilla-Reyes, M.~Cranmer, and S.~Chaudhuri,
 ``Symbolic Regression with a Learned Concept Library,''
 in \textit{Advances in Neural Information Processing Systems (NeurIPS)}, 2024.
+
+\bibitem{kass1995bayes}
+R.~E. Kass and A.~E. Raftery,
+``Bayes Factors,''
+\textit{Journal of the American Statistical Association}, vol. 90, no. 430, pp. 773--795, 1995.
 
 \end{thebibliography}
 
