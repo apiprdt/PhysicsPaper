@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adcd"
-version = "2.1.3"
+version = "2.2.0"
 description = "Anomaly-Driven Correction Discovery: Physics-Constrained Symbolic Regression for Evolutionary Scientific Discovery"
 readme = "README.md"
 license = { text = "MIT" }
@@ -31,6 +31,7 @@ dependencies = [
     "jaxlib>=0.4.20",
     "matplotlib>=3.7",
     "scikit-learn>=1.3",
+    "pandas>=1.5",
 ]
 
 [project.optional-dependencies]
@@ -52,6 +53,7 @@ Repository = "https://github.com/apiprdt/PhysicsPaper"
 DOI = "https://doi.org/10.5281/zenodo.20534940"
 
 [project.scripts]
+adcd = "adcd.cli:main"
 adcd-discover = "adcd.correction_orchestrator:main_cli"
 
 [tool.setuptools.packages.find]
