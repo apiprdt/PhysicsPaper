@@ -13,7 +13,7 @@
   <a href="https://pypi.org/project/adcd/"><img src="https://img.shields.io/pypi/v/adcd?color=teal" alt="PyPI Version"></a>
   <a href="https://doi.org/10.5281/zenodo.20534940"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.20534940.svg" alt="DOI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
-  <a href="https://github.com/apiprdt/PhysicsPaper/actions"><img src="https://img.shields.io/badge/tests-77%20passing-brightgreen" alt="Tests Status"></a>
+  <a href="https://github.com/apiprdt/PhysicsPaper/actions"><img src="https://img.shields.io/badge/tests-95%20passing-brightgreen" alt="Tests Status"></a>
   <a href="https://pypi.org/project/adcd/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python Support"></a>
 </p>
 
@@ -46,6 +46,7 @@
 - **JAX-Traced L-BFGS-B Optimizer** — Highly optimized parameter-scaled differentiable fitting with multi-restart log-uniform initialization.
 - **BIC Model Selection** — Employs the Bayesian Information Criterion (BIC) to rank models, favoring simpler physical theories over overly complex numerical fits.
 - **Residual Feature Intelligence** — Extracts mathematical features (monotonicity, curvature, oscillation, decay) from residuals to bias proposal templates.
+- **Phase 2: Multivariable Discovery** — Buckingham Π group decomposition + per-variable Sequential ARC + variance-factorization separability detection for multi-input physical laws.
 - **Real-World Validated** — Successfully identifies correct structural classes on Mercury's perihelion (GR), Lamb Shift (QED), Muon g-2 (Schwinger), and Blackbody (Planck).
 
 ---
@@ -154,7 +155,17 @@ result.summary()
 
 ADCD outperforms PySR by **+77.8 percentage points** at 5% noise.
 
-### 3. Real-World Physical Constants
+### 3. Phase 2: Multivariable Benchmark (v2.2.0)
+
+| Scenario | Variables | ADCD Solved | Notes |
+|----------|-----------|:-----------:|-------|
+| Yukawa Mass-Ratio | m, M, r, r₀ | ✓ | Π groups: m/M, r/r₀ |
+| Turbulent Drag | v, ρ, A, C_D | ✓ | Separable multiplicative |
+| Coupled Oscillator | k, m, Ω, ω₀ | ✗ | Mixed functional form |
+| Van der Waals MV | a, b, P, V, T | ✗ | Requires 3rd Π group |
+| **Overall** | | **2/4 (50%)** | Baseline: 0/4 |
+
+### 4. Real-World Physical Constants
 
 Validation on historical anomalies using physical constants from JPL DE440, NIST, and CODATA:
 
@@ -173,18 +184,22 @@ Validation on historical anomalies using physical constants from JPL DE440, NIST
 PhysicsPaper/
 ├── src/adcd/                       # Installable package
 │   ├── __init__.py                 # Public API (fit, discover_correction)
-│   ├── anomaly_scenarios.py        # 9 standard + 3 blind benchmark scenarios
+│   ├── anomaly_scenarios.py        # 9 standard + 3 blind + 4 multivariable scenarios
 │   ├── arc_scorer.py               # Asymptotic consistency gate (ARC)
+│   ├── buckingham_pi.py            # [Phase 2] Buckingham Π group engine
 │   ├── coarse_evaluator.py         # Coarse numerical pre-filter
 │   ├── correction_orchestrator.py  # Main multi-iteration discovery loop
 │   ├── dimensional_checker.py      # Dimensional homogeneity + transcendental gate
 │   ├── jax_optimizer.py            # JAX L-BFGS-B optimizer
 │   ├── llm_proposer.py             # Mock + Gemini + OpenAI proposers
 │   ├── metrics.py                  # NMSE, BIC, structural classification
+│   ├── multivar_orchestrator.py    # [Phase 2] Multivariable correction pipeline
 │   ├── pipeline.py                 # Stage 1 filter cascade
 │   ├── real_data_loader.py         # Real-world data loading (JPL, NIST, CODATA)
-│   └── result.py                   # CorrectionResult object
-├── tests/                          # 77 unit + integration tests
+│   ├── residual_factorizer_v2.py   # [Phase 2] Variance-decomposition separability
+│   ├── result.py                   # CorrectionResult object
+│   └── sequential_arc.py           # [Phase 2] Per-variable Sequential ARC checker
+├── tests/                          # 95 unit + integration tests
 ├── paper/                          # LaTeX source (main.tex) + figures
 ├── run_correction_discovery.py     # Benchmark runner
 └── README.md                       # This file

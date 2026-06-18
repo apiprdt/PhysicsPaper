@@ -32,7 +32,7 @@ Open a [Feature Request issue](https://github.com/apiprdt/PhysicsPaper/issues/ne
 4. **Run the test suite** locally before pushing:
    ```bash
    pytest --cov=adcd
-   flake8 src/
+   flake8 src/ tests/
    ```
 
 5. **Submit** a Pull Request against `main` and fill out the PR template.

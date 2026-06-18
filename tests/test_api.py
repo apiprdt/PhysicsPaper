@@ -1,7 +1,6 @@
 import pytest
 import os
 import numpy as np
-import sympy as sp
 import adcd
 
 def test_discover_correction_scenario():

@@ -1,7 +1,6 @@
 """Tests for scale-adaptive NMSE on extreme dynamic-range residuals."""
 
 import numpy as np
-import pytest
 
 from adcd.jax_optimizer import JAXOptimizer
 from adcd.metrics import _nmse, evaluate_correction, _evaluate_delta_array

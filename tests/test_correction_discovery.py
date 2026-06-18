@@ -1,8 +1,7 @@
-import pytest
 import sympy as sp
 import numpy as np
-from adcd.anomaly_scenarios import get_all_scenarios, AnomalyScenario
-from adcd.metrics import classify_structure, get_ast_tokens, compute_levenshtein_distance, evaluate_correction
+from adcd.anomaly_scenarios import get_all_scenarios
+from adcd.metrics import classify_structure, get_ast_tokens, compute_levenshtein_distance
 from adcd.llm_proposer import CorrectionMockProposer, ProposalContext
 from adcd.correction_orchestrator import CorrectionOrchestrator
 from adcd.dimensional_checker import ASTValidator, DimensionalChecker

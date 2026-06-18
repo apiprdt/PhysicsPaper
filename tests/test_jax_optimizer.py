@@ -18,7 +18,6 @@ os.environ["JAX_PLATFORM_NAME"] = "cpu"
 
 import numpy as np
 import pytest
-import sympy as sp
 
 from adcd.jax_optimizer import JAXOptimizer, OptimizationResult, NMSE_FAIL
 
@@ -68,8 +67,8 @@ class TestCoefficientRecovery:
         assert result.nmse < 1e-3, f"NMSE too high: {result.nmse}"
 
         # Coefficient check (tolerant of local minima near correct values)
-        theta_0 = result.theta["theta_0"]
-        theta_1 = result.theta["theta_1"]
+        # theta values not checked directly (possible local minima degeneracy)
+        # NMSE check below is the robust criterion
 
         # theta_0 * theta_1^2 should be close to 0.5 * 2.0 = 1.0 regardless of degeneracy
         # More robustly: check NMSE
@@ -174,7 +173,7 @@ class TestScaleInvariance:
         result_j  = optimizer.optimize("theta_0 * m * v**2", X_joule, y_joule, ["m", "v"])
         result_mj = optimizer.optimize("theta_0 * m * v**2", X_mj,    y_mj,    ["m", "v"])
 
-        assert result_j.error  is None
+        assert result_j.error is None
         assert result_mj.error is None
 
         # NMSE must be scale-invariant (within numerical precision)

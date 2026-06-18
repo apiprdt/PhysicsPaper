@@ -8,7 +8,6 @@ Tests verify:
   4. Scenarios can generate data via the standard AnomalyScenario interface
 """
 
-import pytest
 import numpy as np
 
 from adcd.real_data_loader import (

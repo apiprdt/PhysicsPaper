@@ -1,6 +1,5 @@
 """Unit tests for IdentifiabilityAnalyzer (Task P3-2)."""
 
-import pytest
 import numpy as np
 from unittest.mock import MagicMock
 from adcd.identifiability import IdentifiabilityAnalyzer, IdentifiabilityReport
@@ -15,7 +14,6 @@ def _mock_bayesian_output(weights):
 
 def test_identifiable_case():
     """High SNR, clear winner -> identifiable."""
-    rng = np.random.default_rng(0)
     y_classical = np.ones(100) * 10.0
     residual = np.sin(np.linspace(0, 2, 100)) * 5.0   # large correction
     bayesian = _mock_bayesian_output([0.95, 0.05])

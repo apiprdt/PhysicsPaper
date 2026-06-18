@@ -5,7 +5,6 @@ End-to-end test skipped until MultivariableOrchestrator (MV-5).
 """
 
 import numpy as np
-import pytest
 import sympy as sp
 
 from adcd.buckingham_pi import BuckinghamPiEngine
@@ -23,8 +22,6 @@ class TestBuckinghamPiEngine:
         engine.register("r_0", [0, 1, 0])
         pi_groups = engine.compute_pi_groups()
         assert len(pi_groups) == 2
-        pi_strs = {sp.simplify(g).as_numer_denom()[0] / sp.simplify(g).as_numer_denom()[1]
-                   if False else str(sp.simplify(g)) for g in pi_groups}
         joined = " ".join(str(sp.simplify(g)) for g in pi_groups)
         assert "m" in joined and "M" in joined
         assert "r" in joined

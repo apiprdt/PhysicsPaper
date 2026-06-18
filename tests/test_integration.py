@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 import sympy as sp
-from typing import Dict
 
 from adcd.feynman_dataset import get_all_problems, get_problem, FeynmanProblem
 from adcd.llm_proposer import MockProposer, AnthropicProposer, ProposalContext

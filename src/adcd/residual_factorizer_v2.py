@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Literal, Optional
+from typing import Dict, Literal
 
 import numpy as np
 from sklearn.linear_model import Ridge

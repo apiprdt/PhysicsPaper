@@ -1,4 +1,3 @@
-import pytest
 import sympy as sp
 from adcd.grammar_proposer import GrammarProposer
 from adcd.llm_proposer import ProposalContext

@@ -6,6 +6,26 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [2.2.0] — 2026-06-18
+
+### Added
+- **Phase 2 — Multivariable Correction Discovery**: Four new core modules:
+  - `buckingham_pi.py` — `BuckinghamPiEngine`: nullspace-based Buckingham Π group generator from dimensional matrix
+  - `sequential_arc.py` — `SequentialARCChecker`: per-variable independent ARC limit checking
+  - `residual_factorizer_v2.py` — `ResidualFactorizerV2`: variance-decomposition separability detection (multiplicative / additive / none)
+  - `multivar_orchestrator.py` — `MultivariableOrchestrator`: end-to-end multivariable correction search pipeline
+- **Phase 2 benchmark**: 2/4 multivariable scenarios solved (50% from baseline 0/4) on Yukawa Mass-Ratio and Turbulent Drag
+- **New test files**: `test_multivar_arc.py`, `test_phase2_components.py`, `test_bayesian_ranker.py`, `test_identifiability.py`, `test_gate_telemetry.py`
+- **LaTeX table overflow fixes**: All `\hbox` overfull warnings resolved in `tab_pysr_config.tex`, `tab_runtime.tex`, `tab_template_leakage.tex`, and `main.tex` (paper compiles cleanly at 725 KB)
+
+### Fixed
+- **Flake8 CI**: Removed all 40+ unused imports and unused variable warnings (F401, F841, E111, E272) across `src/` and `tests/`
+- **`multivar_orchestrator.py`**: Removed unused `get_mv_scenario` import
+- **`residual_factorizer_v2.py`**: Removed unused `Optional` from typing imports
+- **`test_multivar_arc.py`**: Fixed E111 indentation (2-space → 4-space) throughout
+
+---
+
 ## [2.1.3] — 2026-06-11
 
 ### Changed

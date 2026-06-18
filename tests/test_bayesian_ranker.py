@@ -1,7 +1,6 @@
 """Unit tests for BayesianReranker (Task P3-1)."""
 
 import pytest
-import numpy as np
 from adcd.bayesian_ranker import BayesianReranker, BayesianCorrectionOutput
 
 
