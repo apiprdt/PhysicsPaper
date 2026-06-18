@@ -10,7 +10,7 @@ import numpy as np
 import sympy as sp
 from scipy.stats import pearsonr
 
-from adcd.anomaly_scenarios import AnomalyScenario
+from adcd.anomaly_scenarios import AnomalyScenario, get_mv_scenario  # noqa: F401
 from adcd.buckingham_pi import BuckinghamPiEngine
 from adcd.correction_orchestrator import CorrectionOrchestrator, CorrectionSearchResult
 from adcd.dimensional_checker import ASTValidator, DimensionalChecker
