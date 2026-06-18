@@ -690,6 +690,9 @@ The author thanks AI coding assistants---Cursor IDE, Google DeepMind's Antigravi
 
 We have presented Anomaly-Driven Correction Discovery (ADCD), a physics-informed symbolic regression framework that discovers physical corrections rather than equations from scratch. By using statistical residual feature priors, physics-gated pre-optimization filters, traced L-BFGS-B parameter fitting, and Bayesian Information Criterion reranking, ADCD achieves a mean structural recovery rate of 82.8\% ($\pm$7.7\%) across five random seeds on a 9-anomaly benchmark suite, with peak performance of 94.4\% at the reference seed. On four physics-inspired real-world validation scenarios using synthetic-real hybrid data (JPL DE440, NIST, CODATA constants), ADCD achieves structural class recovery on all four; quantitative recovery (NMSE $< 10^{-4}$) holds for three scenarios, with full optimizer convergence on Hydrogen Lamb Shift and Muon $g$-2 (residual NMSE $< 10^{-5}$; see \Cref{sec:real-world} for threshold definition), while Blackbody remains structurally correct but numerically limited (NMSE $\approx 2.6 \times 10^{-2}$). Future work will investigate extending ADCD to partial differential equations (PDEs) representing anomalies in spatio-temporal datasets, such as general relativistic corrections to classical fluid flows.
 
+\section*{Code Availability}
+The complete source code for the ADCD framework, along with all reproduction scripts and benchmarks, is open-source and publicly available at \url{https://github.com/apiprdt/PhysicsPaper}. The package is also published on the Python Package Index (PyPI) at \url{https://pypi.org/project/adcd/}.
+
 \bibliographystyle{plain}
 \begin{thebibliography}{9}
 \bibitem{udrescu2020ai}
