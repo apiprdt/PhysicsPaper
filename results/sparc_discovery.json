@@ -2,17 +2,24 @@
   "data_source": "REAL",
   "n_galaxies": 171,
   "n_points": 3342,
-  "discovered_expr": "theta_r1_0/(theta_r1_1*x + 1.0) + 1.0",
-  "final_nmse": 0.3741850954459835,
+  "discovered_expr": "theta_r1_0*(sqrt(theta_r1_1/x + 1.0) - 1.0) + 1.0",
+  "final_nmse": 0.372875912348825,
   "g_dagger": 1.2e-10,
   "simple_mond_reference": "(1 + sqrt(1 + 4/x)) / 2",
   "mond_comparison": [
     {
       "name": "ADCD discovered",
       "formula": "(from iADCD search)",
-      "nmse": 0.3741850954459835,
-      "bic": -3268.9730458983645,
+      "nmse": 0.372875912348825,
+      "bic": -3280.6863982055784,
       "n_params": 2
+    },
+    {
+      "name": "RAR (McGaugh)",
+      "formula": "1 / (1 - exp(-sqrt(x)))",
+      "nmse": 0.6360551903379414,
+      "bic": -1512.1545466520301,
+      "n_params": 0
     },
     {
       "name": "Simple MOND",
@@ -33,7 +40,39 @@
     "is_identifiable": true,
     "failure_mode": null,
     "snr": 1622491537196440.8,
-    "weight_ratio": Infinity,
-    "summary": "Correction is identifiable: SNR=1622491537196440.75, weight_ratio=inf, relative_magnitude=6.07e-01"
+    "weight_ratio": 7.358480646636065,
+    "summary": "Correction is identifiable: SNR=1622491537196440.75, weight_ratio=7.4, relative_magnitude=6.07e-01"
+  },
+  "cross_validation": {
+    "Simple MOND": {
+      "mean_nmse": 0.6725377658408138,
+      "std_error": 0.034964171714654574
+    },
+    "Standard MOND": {
+      "mean_nmse": 0.7015994221304103,
+      "std_error": 0.005494480696456171
+    },
+    "RAR (McGaugh)": {
+      "mean_nmse": 0.6601021667140128,
+      "std_error": 0.03455087183819461
+    },
+    "ADCD discovered": {
+      "mean_nmse": 0.38563896471434633,
+      "std_error": 0.015509196346496975
+    }
+  },
+  "bootstrap_ci": {
+    "theta_r1_0": {
+      "mean": 2.2411853855559976,
+      "std": 0.9649702157509787,
+      "ci_lower": 1.0481911104153563,
+      "ci_upper": 4.557304716008013
+    },
+    "theta_r1_1": {
+      "mean": 0.2675493213325693,
+      "std": 0.1791905913413361,
+      "ci_lower": 0.07438824685933652,
+      "ci_upper": 0.557568839972754
+    }
   }
 }

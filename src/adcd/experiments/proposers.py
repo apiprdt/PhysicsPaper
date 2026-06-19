@@ -29,7 +29,7 @@ class TemplateListProposer(BaseProposer):
         v1 = vars_available[0]
         sym_locals = {v: sp.Symbol(v) for v in vars_available}
         sym_locals.update({"theta_0": sp.Symbol("theta_0"), "theta_1": sp.Symbol("theta_1"),
-                           "theta_2": sp.Symbol("theta_2"), "pi": sp.pi})
+                           "theta_2": sp.Symbol("theta_2"), "pi": sp.pi, "exp": sp.exp})
 
         candidates: List[str] = []
         for tmpl in self.templates:
@@ -74,6 +74,11 @@ def mond_correction_proposer(variable: str = "x", seed: int = 42) -> TemplateLis
         f"theta_0 * sqrt(theta_1 / {v})",
         f"theta_0 * {v}**(-theta_1)",
         f"theta_0 * {v}**2 / ({v}**2 + theta_1)",
+        # Exact and generalized MOND / RAR functions (as ν(x) - 1)
+        f"(sqrt(1.0 + theta_0 / {v}) - 1.0) / 2.0",
+        f"theta_0 * (sqrt(1.0 + theta_1 / {v}) - 1.0)",
+        f"1.0 / sqrt(1.0 - exp(-sqrt(theta_0 * {v}))) - 1.0",
+        f"1.0 / (1.0 - exp(-sqrt(theta_0 * {v}))) - 1.0",
     ]
     return TemplateListProposer(templates=templates, seed=seed)
 

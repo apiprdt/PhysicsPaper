@@ -221,10 +221,17 @@ class JAXOptimizer:
         for i in range(100):
             sym_locals[f"theta_{i}"] = sp.Symbol(f"theta_{i}")
 
+        def _sort_key(s: sp.Symbol) -> int:
+            parts = str(s).split("_")
+            try:
+                return int(parts[-1])
+            except ValueError:
+                return 999
+
         expr = sp.sympify(expr_str, locals=sym_locals)
         theta_symbols = sorted(
             [s for s in expr.free_symbols if str(s).startswith("theta_")],
-            key=lambda s: int(str(s).split("_")[1]),
+            key=_sort_key,
         )
         return expr, theta_symbols
 

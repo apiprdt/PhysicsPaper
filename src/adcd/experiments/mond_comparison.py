@@ -16,6 +16,7 @@ def _nmse(y_obs: np.ndarray, y_pred: np.ndarray) -> float:
 
 SIMPLE_MOND_FORMULA = "(1 + sqrt(1 + 4/x)) / 2"
 STANDARD_MOND_FORMULA = "1 / sqrt(1 - exp(-sqrt(x)))"
+RAR_FORMULA = "1 / (1 - exp(-sqrt(x)))"
 
 
 def nu_simple_mond(x: np.ndarray) -> np.ndarray:
@@ -26,6 +27,11 @@ def nu_simple_mond(x: np.ndarray) -> np.ndarray:
 def nu_standard_mond(x: np.ndarray) -> np.ndarray:
     x = np.asarray(x, dtype=float)
     return 1.0 / np.sqrt(1.0 - np.exp(-np.sqrt(x)))
+
+
+def nu_rar(x: np.ndarray) -> np.ndarray:
+    x = np.asarray(x, dtype=float)
+    return 1.0 / (1.0 - np.exp(-np.sqrt(x)))
 
 
 @dataclass
@@ -52,6 +58,7 @@ def score_mond_models(
     for name, formula, pred in [
         ("Simple MOND", SIMPLE_MOND_FORMULA, nu_simple_mond(x)),
         ("Standard MOND", STANDARD_MOND_FORMULA, nu_standard_mond(x)),
+        ("RAR (McGaugh)", RAR_FORMULA, nu_rar(x)),
     ]:
         mse = float(np.mean((nu_obs - pred) ** 2))
         nmse_val = _nmse(nu_obs, pred)
