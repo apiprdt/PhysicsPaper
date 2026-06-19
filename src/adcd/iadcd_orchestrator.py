@@ -1,5 +1,6 @@
 import time
 import logging
+import re
 import numpy as np
 import sympy as sp
 from dataclasses import dataclass
@@ -13,6 +14,24 @@ from adcd.result import ADCDResult
 from adcd.metrics import evaluate_correction
 
 logger = logging.getLogger(__name__)
+
+
+def _infer_monomial_power(expr: str, variable: str) -> Optional[int]:
+    """Infer integer power k from template theta * x**k or theta * x."""
+    compact = expr.replace(" ", "")
+    m = re.search(rf"{re.escape(variable)}\*\*(\d+)", compact)
+    if m:
+        return int(m.group(1))
+    if re.search(rf"\*{re.escape(variable)}\b", compact):
+        return 1
+    return None
+
+
+def _ols_project(residual: np.ndarray, basis: np.ndarray) -> float:
+    denom = float(np.dot(basis, basis))
+    if denom < 1e-30:
+        return 0.0
+    return float(np.dot(basis, residual) / denom)
 
 @dataclass
 class iADCDRoundResult:
@@ -48,11 +67,17 @@ class iADCDOrchestrator:
         convergence_nmse: float = 1e-4,
         min_snr: float = 1.0,
         verbose: bool = True,
+        subtraction_mode: str = "fitted",
+        projection_variable: Optional[str] = None,
+        prior_subtractions: Optional[Dict[int, float]] = None,
     ):
         self.max_rounds = max_rounds
         self.convergence_nmse = convergence_nmse
         self.min_snr = min_snr
         self.verbose = verbose
+        self.subtraction_mode = subtraction_mode
+        self.projection_variable = projection_variable
+        self.prior_subtractions = prior_subtractions or {}
 
     def run_iterative_discovery(
         self,
@@ -66,6 +91,7 @@ class iADCDOrchestrator:
         proposer: str = "mock",
         proposer_obj: Optional[BaseProposer] = None,
         round_proposers: Optional[List[BaseProposer]] = None,
+        correction_mode: str = "auto",
         api_key: Optional[str] = None,
         seed: int = 42,
     ) -> iADCDResult:
@@ -73,6 +99,13 @@ class iADCDOrchestrator:
         
         rounds = []
         current_y_classical = y_classical.copy()
+        proj_var = self.projection_variable or limit_variable or list(X.keys())[0]
+        x_arr = np.asarray(X[proj_var], dtype=float)
+
+        for power, coeff in self.prior_subtractions.items():
+            current_y_classical = current_y_classical + coeff * (x_arr ** power)
+            if self.verbose:
+                print(f"Prior subtraction: C_{power} = {coeff:.6f} pre-loaded into baseline")
         
         # We start with the base classical expression
         current_expr_sym = sp.sympify(classical_expr)
@@ -107,9 +140,9 @@ class iADCDOrchestrator:
                 break
             
             # Run ADCD to find correction Δ_round_idx on current baseline
-            round_mode = "auto" if round_idx == 1 else "additive"
-            
-            round_mode = "auto" if round_idx == 1 else "additive"
+            round_mode = correction_mode if correction_mode != "auto" else (
+                "auto" if round_idx == 1 else "additive"
+            )
             active_proposer = (
                 round_proposers[round_idx - 1]
                 if round_proposers and round_idx - 1 < len(round_proposers)
@@ -169,37 +202,60 @@ class iADCDOrchestrator:
                     round_theta[k] = val
             
             all_thetas.update(round_theta)
-            
-            # Evaluate new predictions
+
             actual_mode = adcd_res.scenario.correction_type
-            
-            # Reconstruct the symbolic expression
-            disc_sym = sp.sympify(renamed_expr)
-            if actual_mode == "multiplicative":
-                current_expr_sym = current_expr_sym * (1 + disc_sym)
-            else:
-                current_expr_sym = current_expr_sym + disc_sym
-                
-            # Evaluate predictions numerically using the fitted parameters
-            local_dict = {**X}
-            for k, v in all_thetas.items():
-                local_dict[k] = v
-                
-            # Compile mathematical function using sympy to compute predictions
-            free_syms = list(current_expr_sym.free_symbols)
-            expr_lambdified = sp.lambdify([sp.Symbol(s.name) for s in free_syms], current_expr_sym, "numpy")
-            
-            # Calculate new classical predictions
-            args = []
-            for s in free_syms:
-                if s.name in local_dict:
-                    args.append(local_dict[s.name])
+            proj_var = self.projection_variable or limit_variable or list(X.keys())[0]
+            x_arr = np.asarray(X[proj_var], dtype=float)
+
+            if (
+                self.subtraction_mode == "ols_projection"
+                and actual_mode == "additive"
+                and proj_var in X
+            ):
+                residual_before = y_obs - current_y_classical
+                power = _infer_monomial_power(renamed_expr, proj_var) or round_idx
+                basis = x_arr ** power
+                ols_coeff = _ols_project(residual_before, basis)
+                round_theta = {f"theta_r{round_idx}_0": ols_coeff}
+                all_thetas[f"theta_r{round_idx}_0"] = ols_coeff
+                renamed_expr = (
+                    f"theta_r{round_idx}_0 * {proj_var}"
+                    if power == 1
+                    else f"theta_r{round_idx}_0 * {proj_var}**{power}"
+                )
+                current_y_classical = current_y_classical + ols_coeff * basis
+                disc_sym = sp.sympify(renamed_expr)
+                if round_idx == 1:
+                    current_expr_sym = disc_sym
                 else:
-                    args.append(1.0) # default fallback
-                    
-            current_y_classical = expr_lambdified(*args)
-            if isinstance(current_y_classical, (int, float)):
-                current_y_classical = np.full_like(y_obs, current_y_classical)
+                    current_expr_sym = current_expr_sym + disc_sym
+                if self.verbose:
+                    print(f"OLS projection: C_{power} = {ols_coeff:.6f} (order {round_idx})")
+            else:
+                disc_sym = sp.sympify(renamed_expr)
+                if actual_mode == "multiplicative":
+                    current_expr_sym = current_expr_sym * (1 + disc_sym)
+                else:
+                    current_expr_sym = current_expr_sym + disc_sym
+
+                local_dict = {**X}
+                for k, v in all_thetas.items():
+                    local_dict[k] = v
+
+                free_syms = list(current_expr_sym.free_symbols)
+                expr_lambdified = sp.lambdify(
+                    [sp.Symbol(s.name) for s in free_syms], current_expr_sym, "numpy"
+                )
+                args = []
+                for s in free_syms:
+                    if s.name in local_dict:
+                        args.append(local_dict[s.name])
+                    else:
+                        args.append(1.0)
+
+                current_y_classical = expr_lambdified(*args)
+                if isinstance(current_y_classical, (int, float)):
+                    current_y_classical = np.full_like(y_obs, current_y_classical)
                 
             # Compute updated residual and full NMSE
             new_res_var = np.var(y_obs - current_y_classical)

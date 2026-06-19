@@ -40,7 +40,9 @@ Every script prints its label on stdout and writes it to JSON under `results/`.
 |------|------|-----------|
 | **A — Isolated** | Data = C_k x^k only | Each order recovered ± tolerance |
 | **B — Residual** | Classical = exact Σ_{i<k} C_i x^i | Target order recovered |
-| **C — Integrated** | Full iADCD loop | OLS readout per round; NMSE < 10⁻⁴ |
+| **C — Integrated** | Full iADCD loop | OLS readout; C2 may fail (correlated monomials) |
+| **C+ — OLS projection** | iADCD + `subtraction_mode=ols_projection` | Same limitation as C unless `prior_subtractions` exact |
+| **D — Simultaneous** | `np.linalg.lstsq` design matrix | Oracle ceiling — all orders at once |
 
 | Order | Known C_k | Tolerance |
 |-------|-----------|-----------|
@@ -50,12 +52,17 @@ Every script prints its label on stdout and writes it to JSON under `results/`.
 **Note:** Tier C may fail order-2 when Tier A/B pass — that indicates
 cross-order numerical pollution, not proposer failure. Report all three tiers honestly.
 
-### Run
+## Estimated runtime (Intel i5-class laptop, CPU JAX)
 
-```powershell
-python -m adcd.experiments.muon_g2_validation
-# Output: results/muon_g2_validation.json
-```
+| Step | Command | Time |
+|------|---------|------|
+| Experiment tests | `pytest tests/test_experiments.py` | ~15–30 s |
+| Muon g-2 only | `python -m adcd.experiments.muon_g2_validation` | ~10–15 s |
+| SPARC only (real data cached) | `python -m adcd.experiments.sparc_stacking` | ~6–15 s |
+| SPARC first download | + network | +10–30 s |
+| **Full suite** | `python -m adcd.experiments.run_all` | **~20–40 s** |
+
+Measured on this machine: **18.7 s** total (muon 9.6s + sparc 5.9s real 171 galaxies).
 
 ---
 

@@ -69,6 +69,37 @@ def test_sparc_stack_from_minimal_dataframe():
     assert np.all(nu > 0)
 
 
+def test_muon_tier_d_simultaneous():
+    from adcd.experiments.muon_g2_validation import validate_simultaneous_reference
+    rows = validate_simultaneous_reference(max_order=2, seed=42)
+    assert all(r.passed for r in rows)
+
+
+def test_muon_tier_c_ols_with_exact_c1_prior():
+    """Tier C+: OLS projection round 2 with exact Schwinger term pre-subtracted."""
+    from adcd.experiments.muon_g2_validation import generate_muon_g2_data, QED_COEFFICIENTS, VARIABLE
+    from adcd.experiments.proposers import perturbative_order_proposer
+    from adcd.iadcd_orchestrator import iADCDOrchestrator
+
+    X, y_obs, y_classical = generate_muon_g2_data(150, 0.0, 42, max_order=2)
+    orch = iADCDOrchestrator(
+        max_rounds=1, convergence_nmse=1e-6, min_snr=0.01, verbose=False,
+        subtraction_mode="ols_projection", projection_variable=VARIABLE,
+        prior_subtractions={1: QED_COEFFICIENTS[1]},
+    )
+    res = orch.run_iterative_discovery(
+        X=X, y_obs=y_obs, y_classical=y_classical,
+        limit_variable=VARIABLE, limit_direction="0", classical_expr="0.0",
+        variables_with_units={VARIABLE: "dimensionless"},
+        round_proposers=[perturbative_order_proposer(2, VARIABLE, 43)],
+        correction_mode="additive",
+        seed=43,
+    )
+    coeff = res.rounds[0].discovered_theta.get("theta_r1_0")
+    err = abs(coeff - QED_COEFFICIENTS[2]) / QED_COEFFICIENTS[2]
+    assert err < 0.20, f"C2 error {err:.1%}"
+
+
 def test_simulated_sparc_stack_is_labeled():
     stack = _simulate_sparc_stack(n_samples=100)
     assert stack.data_source == "SIMULATED"

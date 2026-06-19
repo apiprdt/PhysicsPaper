@@ -150,11 +150,33 @@ def validate_residual_order(
     )
 
 
+def validate_simultaneous_reference(
+    max_order: int = 2,
+    noise_level: float = 0.0,
+    seed: int = 42,
+) -> List[OrderRecovery]:
+    """Tier D: simultaneous linear regression ceiling (oracle for correlated monomials)."""
+    X, y_obs, _ = generate_muon_g2_data(150, noise_level, seed, max_order=max_order)
+    x = X[VARIABLE]
+    design = np.column_stack([x ** k for k in range(1, max_order + 1)])
+    coeffs, _, _, _ = np.linalg.lstsq(design, y_obs, rcond=None)
+    recoveries = []
+    for k, coeff in enumerate(coeffs, start=1):
+        rel = abs(coeff - QED_COEFFICIENTS[k]) / abs(QED_COEFFICIENTS[k])
+        recoveries.append(OrderRecovery(
+            order=k, tier="D_simultaneous", discovered_theta=float(coeff),
+            ols_coefficient=float(coeff), known=QED_COEFFICIENTS[k],
+            relative_error=rel, passed=_eval_pass(k, rel), expression=f"C_{k}*x**{k}",
+        ))
+    return recoveries
+
+
 def validate_integrated_iadcd(
     max_order: int = 2,
     noise_level: float = 0.0,
     seed: int = 42,
     verbose: bool = False,
+    subtraction_mode: str = "fitted",
 ) -> Tuple[iADCDResult, List[OrderRecovery]]:
     """Tier C: full iADCD loop; OLS readout per round on actual residual."""
     X, y_obs, y_classical = generate_muon_g2_data(
@@ -165,7 +187,10 @@ def validate_integrated_iadcd(
         perturbative_order_proposer(order=k, variable=VARIABLE, seed=seed + k)
         for k in range(1, max_order + 1)
     ]
-    orch = iADCDOrchestrator(max_rounds=max_order, convergence_nmse=1e-6, min_snr=0.01, verbose=verbose)
+    orch = iADCDOrchestrator(
+        max_rounds=max_order, convergence_nmse=1e-6, min_snr=0.01, verbose=verbose,
+        subtraction_mode=subtraction_mode, projection_variable=VARIABLE,
+    )
     res = orch.run_iterative_discovery(
         X=X, y_obs=y_obs, y_classical=y_classical,
         limit_variable=VARIABLE, limit_direction="0", classical_expr="0.0",
@@ -177,7 +202,10 @@ def validate_integrated_iadcd(
     recoveries: List[OrderRecovery] = []
     for rnd in res.rounds:
         residual = y_obs - y_base
-        ols = _ols_monomial_coeff(x, residual, rnd.round_idx)
+        if subtraction_mode == "ols_projection":
+            ols = next((v for k, v in rnd.discovered_theta.items() if k.endswith("_0")), None)
+        else:
+            ols = _ols_monomial_coeff(x, residual, rnd.round_idx)
         theta = next((v for k, v in rnd.discovered_theta.items() if k.endswith("_0")), None)
         rel = abs(ols - QED_COEFFICIENTS[rnd.round_idx]) / abs(QED_COEFFICIENTS[rnd.round_idx])
         recoveries.append(OrderRecovery(
@@ -205,13 +233,20 @@ def validate_iadcd_on_qed(
     for k in range(1, max_order + 1):
         orders.append(validate_single_order(k, noise_level, seed))
         orders.append(validate_residual_order(k, noise_level, seed))
+    orders.extend(validate_simultaneous_reference(max_order, noise_level, seed))
 
     iadcd_res, integrated = validate_integrated_iadcd(max_order, noise_level, seed, verbose)
-    orders.extend(integrated)
-
-    int_pass = iadcd_res.final_nmse_full < 1e-4 and any(
-        r.tier == "C_integrated" and r.order == 1 and r.passed for r in integrated
+    iadcd_ols, integrated_ols = validate_integrated_iadcd(
+        max_order, noise_level, seed, verbose=False, subtraction_mode="ols_projection"
     )
+    orders.extend(integrated)
+    for r in integrated_ols:
+        r.tier = "C_ols_projection"
+        orders.append(r)
+
+    int_pass = all(
+        r.passed for r in orders if r.tier == "D_simultaneous"
+    ) and iadcd_res.final_nmse_full < 1e-4
     return MuonG2ValidationResult(
         data_label="SYNTHETIC",
         noise_level=noise_level,
@@ -235,10 +270,18 @@ def print_validation_report(result: MuonG2ValidationResult) -> None:
         print(f"Expression: {result.final_expr}")
 
 
+def _json_default(obj):
+    if isinstance(obj, (np.bool_, np.integer)):
+        return int(obj) if isinstance(obj, np.integer) else bool(obj)
+    if isinstance(obj, np.floating):
+        return float(obj)
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+
 def save_validation_json(result: MuonG2ValidationResult, path: str = "results/muon_g2_validation.json") -> Path:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(asdict(result), indent=2), encoding="utf-8")
+    out.write_text(json.dumps(asdict(result), indent=2, default=_json_default), encoding="utf-8")
     return out
 
 

@@ -57,7 +57,10 @@ def download_sparc(cache_path: str = DEFAULT_CACHE, timeout: int = 30) -> bool:
     for url in SPARC_URLS:
         try:
             print(f"Trying SPARC download: {url}")
-            urllib.request.urlretrieve(url, cache_path, timeout=timeout)
+            with urllib.request.urlopen(url, timeout=timeout) as response:
+                data = response.read()
+            with open(cache_path, "wb") as fh:
+                fh.write(data)
             if os.path.getsize(cache_path) > 1000:
                 print("Download complete.")
                 return True

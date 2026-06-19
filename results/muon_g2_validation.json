@@ -45,6 +45,26 @@
     },
     {
       "order": 1,
+      "tier": "D_simultaneous",
+      "discovered_theta": 0.5000000000000002,
+      "ols_coefficient": 0.5000000000000002,
+      "known": 0.5,
+      "relative_error": 4.440892098500626e-16,
+      "passed": true,
+      "expression": "C_1*x**1"
+    },
+    {
+      "order": 2,
+      "tier": "D_simultaneous",
+      "discovered_theta": 0.7658574249999999,
+      "ols_coefficient": 0.7658574249999999,
+      "known": 0.765857425,
+      "relative_error": 1.449647138467263e-16,
+      "passed": true,
+      "expression": "C_2*x**2"
+    },
+    {
+      "order": 1,
       "tier": "C_integrated",
       "discovered_theta": 0.5131695054679533,
       "ols_coefficient": 0.5131695054679533,
@@ -57,6 +77,26 @@
       "order": 2,
       "tier": "C_integrated",
       "discovered_theta": 0.08467484530022647,
+      "ols_coefficient": 0.0846748453002265,
+      "known": 0.765857425,
+      "relative_error": 0.8894378476513086,
+      "passed": false,
+      "expression": "theta_r2_0 * x**2"
+    },
+    {
+      "order": 1,
+      "tier": "C_ols_projection",
+      "discovered_theta": 0.5131695054679533,
+      "ols_coefficient": 0.5131695054679533,
+      "known": 0.5,
+      "relative_error": 0.026339010935906515,
+      "passed": true,
+      "expression": "theta_r1_0 * x"
+    },
+    {
+      "order": 2,
+      "tier": "C_ols_projection",
+      "discovered_theta": 0.0846748453002265,
       "ols_coefficient": 0.0846748453002265,
       "known": 0.765857425,
       "relative_error": 0.8894378476513086,
