@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 from adcd.iadcd_orchestrator import iADCDOrchestrator
 
 def test_iadcd_orchestrator_synthetic():
