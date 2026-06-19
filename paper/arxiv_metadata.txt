@@ -2,7 +2,7 @@ Title: Anomaly-Driven Correction Discovery (ADCD): Physics-Constrained Symbolic
        Regression for Evolutionary Scientific Discovery
 
 Authors: Erdita, Muhammad Afif
-         SMA Negeri 23 Kabupaten Tangerang
+         Independent Researcher, Indonesia
          maeapip10@gmail.com
 
 Abstract:
