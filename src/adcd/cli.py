@@ -10,7 +10,6 @@ Provides clean CLI commands:
 import sys
 import argparse
 import json
-import numpy as np
 from adcd.api import fit
 from adcd.experiments.muon_g2_validation import run_validation_demo
 from adcd.experiments.sparc_stacking import run_sparc_discovery

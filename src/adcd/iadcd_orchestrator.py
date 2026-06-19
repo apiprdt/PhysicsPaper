@@ -4,14 +4,12 @@ import re
 import numpy as np
 import sympy as sp
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Optional
 
-from adcd.anomaly_scenarios import AnomalyScenario
-from adcd.api import CustomAnomalyScenario, fit
+from adcd.api import fit
 from adcd.experiments._fit import fit_with_proposer
 from adcd.llm_proposer import BaseProposer
 from adcd.result import ADCDResult
-from adcd.metrics import evaluate_correction
 
 logger = logging.getLogger(__name__)
 

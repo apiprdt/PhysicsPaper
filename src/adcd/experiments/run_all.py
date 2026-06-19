@@ -20,11 +20,7 @@ from typing import Any, Dict
 
 import numpy as np
 
-from adcd.experiments.muon_g2_validation import (
-    run_validation_demo,
-    validate_iadcd_on_qed,
-    validate_integrated_iadcd,
-)
+from adcd.experiments.muon_g2_validation import validate_iadcd_on_qed
 from adcd.experiments.sparc_stacking import run_sparc_discovery, save_sparc_json
 
 
@@ -74,15 +70,15 @@ def run_all(output_dir: str = "results") -> Dict[str, Any]:
 
     # --- Muon Tier C with OLS projection ---
     print("\n[2/3] Muon g-2 integrated + OLS projection (Tier C+)...")
+
     def _tier_c_ols():
         from adcd.experiments.proposers import perturbative_order_proposer
         from adcd.experiments.muon_g2_validation import (
-            VARIABLE, QED_COEFFICIENTS, TOLERANCES, OrderRecovery, generate_muon_g2_data, _eval_pass,
+            VARIABLE, QED_COEFFICIENTS, generate_muon_g2_data, _eval_pass,
         )
         from adcd.iadcd_orchestrator import iADCDOrchestrator
 
         X, y_obs, y_classical = generate_muon_g2_data(150, 0.0, 42, max_order=2)
-        x = X[VARIABLE]
         round_proposers = [
             perturbative_order_proposer(k, VARIABLE, 42 + k) for k in (1, 2)
         ]

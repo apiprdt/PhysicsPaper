@@ -289,7 +289,6 @@ def plot_sparc_results(
     # Sort x to make smooth curves
     sort_idx = np.argsort(x)
     x_sorted = x[sort_idx]
-    nu_obs_sorted = nu_obs[sort_idx]
     
     # Evaluate discovered model
     optimizer = JAXOptimizer()

@@ -53,7 +53,6 @@ class MuonG2ValidationResult:
 
 
 def _alpha_grid(n_points: int, seed: int) -> np.ndarray:
-    rng = np.random.default_rng(seed)
     # Log-spaced coupling — improves scale separation between x^k terms
     base = np.exp(np.linspace(np.log(0.002), np.log(0.08), n_points))
     return base

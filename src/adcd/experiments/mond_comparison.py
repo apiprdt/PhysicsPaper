@@ -60,7 +60,6 @@ def score_mond_models(
         ("Standard MOND", STANDARD_MOND_FORMULA, nu_standard_mond(x)),
         ("RAR (McGaugh)", RAR_FORMULA, nu_rar(x)),
     ]:
-        mse = float(np.mean((nu_obs - pred) ** 2))
         nmse_val = _nmse(nu_obs, pred)
         scores.append(MondModelScore(
             name=name, formula=formula, nmse=nmse_val,
