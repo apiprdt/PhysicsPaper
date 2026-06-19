@@ -1,0 +1,32 @@
+[
+  {
+    "scenario": "Baseline (Standard)",
+    "galaxies": 171,
+    "points": 3342,
+    "theta_0": 1.8281385981770948,
+    "theta_1": 0.2615186295495788,
+    "nmse_adcd": 0.37502834321387624,
+    "nmse_rar": 0.6360551903379414,
+    "nmse_sm": 0.6477336814139196
+  },
+  {
+    "scenario": "Strict (High Quality)",
+    "galaxies": 121,
+    "points": 2939,
+    "theta_0": 1.6122998955628236,
+    "theta_1": 0.32366371585119064,
+    "nmse_adcd": 0.30318143454367374,
+    "nmse_rar": 0.5669697072870299,
+    "nmse_sm": 0.5812425366908656
+  },
+  {
+    "scenario": "Ultra-Strict (Pristine)",
+    "galaxies": 75,
+    "points": 2287,
+    "theta_0": 1.1971766383847628,
+    "theta_1": 0.4676741705879466,
+    "nmse_adcd": 0.2717706580429195,
+    "nmse_rar": 0.6512809301509155,
+    "nmse_sm": 0.6755653100879905
+  }
+]
