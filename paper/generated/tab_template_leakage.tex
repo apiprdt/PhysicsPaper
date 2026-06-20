@@ -1,11 +1,10 @@
 \begin{table}[H]
-\centering\small
-\caption{Template Leakage Disclosure for Real-World Benchmark (Mock Proposer extended mode).
-``Exact'' = ground-truth functional form appears verbatim in the extended template bank.}
+\centering
+\caption{Template Leakage Disclosure for Real-World Benchmark (Mock Proposer extended mode). ``Exact'' = ground-truth functional form appears verbatim in the extended template bank.}
 \label{tab:template_leakage}
-\begin{tabularx}{\textwidth}{X l c c l}
+\begin{tabularx}{\textwidth}{l l c c l}
 \toprule
-\textbf{Scenario} & \textbf{Ground Truth} & \textbf{Exact?} & \textbf{Family?} & \textbf{Expected Class} \\
+\textbf{Scenario} & \textbf{Ground Truth} & \textbf{Exact Template?} & \textbf{Family in Bank?} & \textbf{Expected Class} \\
 \midrule
 Mercury Perihelion & $\theta_0 \cdot (v/c)^2$ & Yes & Yes & \texttt{polynomial} \\
 Hydrogen Lamb Shift & $\theta_0 / n^3$ & No & Yes & \texttt{power\_law} \\

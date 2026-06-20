@@ -100,7 +100,9 @@ def generate_parameter_recovery_table(real_results: list) -> str:
             continue
         sc = scenarios.get(r["scenario"])
         true_expr = _latex_expr(sc.correction_expr if sc else "—")
+        true_expr = true_expr.replace("vc_{2}", "(v/c)^2").replace("vc2", "(v/c)^2")
         recovered = _latex_expr(r.get("discovered_expr", "—"))
+        recovered = recovered.replace("vc_{2}", "(v/c)^2").replace("vc2", "(v/c)^2")
         # Clean up Muon g-2 literal constant representation to show \alpha/\pi
         recovered = re.sub(r"0\.31830988618379\d*\s*\\cdot\s*\\alpha", r"\\frac{\\alpha}{\\pi}", recovered)
         recovered = re.sub(r"\\alpha\s*\\cdot\s*0\.31830988618379\d*", r"\\frac{\\alpha}{\\pi}", recovered)
