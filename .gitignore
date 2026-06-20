@@ -41,3 +41,6 @@ site/
 # Release builds
 release/
 
+# IDE / agent local state (never commit)
+.zcode/
+
