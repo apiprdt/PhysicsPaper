@@ -25,7 +25,7 @@ Newton to Einstein, from Rayleigh–Jeans to Planck.
 [![PyPI](https://img.shields.io/pypi/v/adcd?color=teal)](https://pypi.org/project/adcd/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20534940.svg)](https://doi.org/10.5281/zenodo.20534940)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-77%20passing-brightgreen)](https://github.com/apiprdt/PhysicsPaper/actions)
+[![Tests](https://img.shields.io/badge/tests-116%20passing-brightgreen)](https://github.com/apiprdt/PhysicsPaper/actions)
 
 </div>
 
@@ -53,15 +53,15 @@ Newton to Einstein, from Rayleigh–Jeans to Planck.
 <span class="label">Real-world class matches</span>
 </div>
 <div class="stat-card">
-<span class="number">+44.5 pp</span>
+<span class="number">+77.8 pp</span>
 <span class="label">Over PySR at 5% noise</span>
 </div>
 <div class="stat-card">
-<span class="number">77</span>
+<span class="number">116</span>
 <span class="label">Automated tests passing</span>
 </div>
 <div class="stat-card">
-<span class="number">v2.1.3</span>
+<span class="number">v2.2.1</span>
 <span class="label">Latest stable release</span>
 </div>
 </div>
@@ -167,7 +167,7 @@ ADCD leads by **+77.8 pp** at 5% noise. See [full benchmark results →](benchma
   title     = {{Anomaly-Driven Correction Discovery (ADCD)}},
   year      = {2026},
   publisher = {Zenodo},
-  version   = {2.1.3},
+  version   = {2.2.1},
   doi       = {10.5281/zenodo.20534940},
   url       = {https://doi.org/10.5281/zenodo.20534940}
 }

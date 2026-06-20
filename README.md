@@ -13,7 +13,7 @@
   <a href="https://pypi.org/project/adcd/"><img src="https://img.shields.io/pypi/v/adcd?color=teal" alt="PyPI Version"></a>
   <a href="https://doi.org/10.5281/zenodo.20534940"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20534940-blue" alt="DOI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
-  <a href="https://github.com/apiprdt/PhysicsPaper/actions"><img src="https://img.shields.io/badge/tests-95%20passing-brightgreen" alt="Tests Status"></a>
+  <a href="https://github.com/apiprdt/PhysicsPaper/actions"><img src="https://img.shields.io/badge/tests-116%20passing-brightgreen" alt="Tests Status"></a>
   <a href="https://pypi.org/project/adcd/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python Support"></a>
 </p>
 
@@ -155,7 +155,7 @@ result.summary()
 
 ADCD outperforms PySR by **+77.8 percentage points** at 5% noise.
 
-### 3. Phase 2: Multivariable Benchmark (v2.2.0)
+### 3. Phase 2: Multivariable Benchmark (v2.2.1)
 
 | Scenario | Variables | ADCD Solved | Notes |
 |----------|-----------|:-----------:|-------|
@@ -199,7 +199,7 @@ PhysicsPaper/
 │   ├── residual_factorizer_v2.py   # [Phase 2] Variance-decomposition separability
 │   ├── result.py                   # CorrectionResult object
 │   └── sequential_arc.py           # [Phase 2] Per-variable Sequential ARC checker
-├── tests/                          # 95 unit + integration tests
+├── tests/                          # 116 unit + integration tests
 ├── paper/                          # LaTeX source (main.tex) + figures
 ├── run_correction_discovery.py     # Benchmark runner
 └── README.md                       # This file

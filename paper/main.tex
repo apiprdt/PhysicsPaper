@@ -630,7 +630,14 @@ and test sets):
     bootstrap resamples give $\hat\theta_0 = 2.24 \pm 0.96$ and
     $\hat\theta_1 = 0.27 \pm 0.18$ (95\% percentile CI $[1.05, 4.56]$ and
     $[0.07, 0.56]$), confirming both parameters are non-zero and the functional
-    family is stably recovered.
+    family is stably recovered. The wide $\hat\theta_0$ CI reflects a mild
+    parameter degeneracy: in the deep-MOND regime the model depends on the two
+    free parameters mainly through the product $\hat\theta_0\sqrt{\hat\theta_1}$,
+    so per-fit point estimates of the prefactor vary substantially while the
+    fitted curve (and hence the NMSE) is essentially invariant. The relevant
+    stability signal is therefore the recovered functional family and the
+    out-of-sample/CV NMSE, both of which are stable---not the absolute value of
+    the prefactor.
 \end{itemize}
 
 \input{generated/tab_sparc_validation}
@@ -643,7 +650,14 @@ discovery under three increasingly strict quality cuts on the SPARC sample
 fit throughout---improving to NMSE $0.272$ on the ultra-strict pristine
 subsample ($N_{\rm gal}=75$)---while the RAR and Simple MOND baselines do not.
 This monotonic improvement as low-quality data is removed is consistent with a
-genuine signal rather than a noise-driven fit.
+genuine signal rather than a noise-driven fit. Note that the per-cut point
+estimates of $\hat\theta_0$ in \Cref{tab:sparc_robustness} (e.g.\ $1.83$ on the
+baseline cut) differ from the boxed headline value ($\hat\theta_0\approx2.24$)
+because the robustness fits re-optimize each cut independently with a fresh
+multi-restart search; as discussed under the bootstrap analysis above, the
+two parameters are mildly degenerate (the fitted curve depends on them mainly
+through $\hat\theta_0\sqrt{\hat\theta_1}$), so their individual point estimates
+move while the fitted curve and the relative ranking of models stay fixed.
 
 \input{generated/tab_sparc_robustness}
 
@@ -886,9 +900,9 @@ E.~Buckingham,
 \textit{Physical Review}, vol. 4, no. 4, pp. 345--376, 1914.
 
 \bibitem{lelli2017sparc}
-L.~Lelli, S.~S.~McGaugh, J.~M.~Schombert, and M.~S.~Pawlowski,
+L.~Lelli, S.~S.~McGaugh, and J.~M.~Schombert,
 ``SPARC: Mass Models for 175 Disk Galaxies with Spitzer Photometry and Accurate Rotation Curves,''
-\textit{The Astrophysical Journal}, vol. 836, no. 1, p.~152, 2017.
+\textit{The Astronomical Journal}, vol. 152, no. 6, p.~157, 2016.
 
 \bibitem{milgrom1983mond}
 M.~Milgrom,

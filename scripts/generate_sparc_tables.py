@@ -91,14 +91,27 @@ galaxy). ADCD-discovered function generalizes best out-of-sample.}
 (OUT / "tab_sparc_validation.tex").write_text(tab2, encoding="utf-8")
 
 # ---- Table 3: bootstrap parameter CIs --------------------------------------
+# Map internal symbol names (e.g. "theta_r1_0") to display symbols theta_0, theta_1, ...
+_PARAM_DISPLAY = {}
+def _param_display(name: str) -> str:
+    if name not in _PARAM_DISPLAY:
+        # Extract trailing integer index from names like "theta_r1_0", "theta_0", etc.
+        idx = "".join(ch for ch in name if ch.isdigit())[-1] if any(ch.isdigit() for ch in name) else "0"
+        _PARAM_DISPLAY[name] = rf"\theta_{{{idx}}}"
+    return _PARAM_DISPLAY[name]
+
 boot = DISC["bootstrap_ci"]
+# Preserve canonical order theta_0 then theta_1 (sort by trailing index)
+def _param_idx(name: str) -> int:
+    digits = [ch for ch in name if ch.isdigit()]
+    return int(digits[-1]) if digits else 0
 bootrows = []
-for param in sorted(boot.keys()):
+for param in sorted(boot.keys(), key=_param_idx):
     s = boot[param]
     mean = f(s["mean"], 3)
     lo = f(s["ci_lower"], 3)
     hi = f(s["ci_upper"], 3)
-    bootrows.append(f"  ${param}$ & {mean} & [{lo}, {hi}] \\\\")
+    bootrows.append(f"  ${_param_display(param)}$ & {mean} & [{lo}, {hi}] \\\\")
 
 tab3 = r"""\begin{table}[H]
 \centering\footnotesize

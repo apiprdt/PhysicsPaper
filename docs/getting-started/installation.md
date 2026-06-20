@@ -39,7 +39,7 @@ To verify that the library and its JAX accelerators are functioning correctly on
 python -c "import adcd; print(adcd.__version__)"
 ```
 
-To run the full unit test suite (77 tests):
+To run the full unit test suite (116 tests):
 
 ```bash
 pytest

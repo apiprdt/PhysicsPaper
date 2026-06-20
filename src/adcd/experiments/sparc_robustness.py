@@ -8,11 +8,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import numpy as np
-import pandas as pd
 
-from adcd.experiments.sparc_data import parse_sparc_mrt, stack_sparc_galaxies, DEFAULT_CACHE
-from adcd.experiments.mond_comparison import nu_simple_mond, nu_standard_mond, nu_rar
-from adcd.jax_optimizer import JAXOptimizer, jnp
+from adcd.experiments.sparc_data import parse_sparc_mrt, DEFAULT_CACHE
+from adcd.experiments.mond_comparison import nu_simple_mond, nu_rar
+from adcd.jax_optimizer import JAXOptimizer
 
 
 def _nmse(y_obs: np.ndarray, y_pred: np.ndarray) -> float:
@@ -52,8 +51,6 @@ def run_robustness_test(cache_path: str = DEFAULT_CACHE, seed: int = 42):
     # Discovered formula
     discovered_expr = "theta_r1_0 * (sqrt(1.0 + theta_r1_1 / x) - 1.0) + 1.0"
     optimizer = JAXOptimizer(n_restarts=10)
-    expr, theta_symbols = optimizer._parse_expression(discovered_expr, ["x"])
-    jax_fn = optimizer._build_jax_fn(expr, theta_symbols, ["x"])
     
     results = []
     
@@ -132,10 +129,10 @@ def run_robustness_test(cache_path: str = DEFAULT_CACHE, seed: int = 42):
         nmse_sm = _nmse(nu_stack, nu_simple_mond(x_stack))
         nmse_rar = _nmse(nu_stack, nu_rar(x_stack))
         
-        print(f"ADCD Discovered Formula Parameter Fit:")
+        print("ADCD Discovered Formula Parameter Fit:")
         print(f"  theta_0 (scale)    : {theta_0_val:.4f}")
         print(f"  theta_1 (acc scale): {theta_1_val:.4f}")
-        print(f"NMSE Comparison:")
+        print("NMSE Comparison:")
         print(f"  ADCD Discovered    : {nmse_adcd:.5f} (lower is better)")
         print(f"  RAR (McGaugh)      : {nmse_rar:.5f}")
         print(f"  Simple MOND        : {nmse_sm:.5f}")

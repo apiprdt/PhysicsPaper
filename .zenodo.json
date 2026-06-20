@@ -27,7 +27,7 @@
   ],
   "related_identifiers": [
     {
-      "identifier": "https://github.com/apiprdt/PhysicsPaper/tree/v2.2.0",
+      "identifier": "https://github.com/apiprdt/PhysicsPaper/tree/v2.2.1",
       "relation": "isSupplementTo",
       "resource_type": "software"
     },

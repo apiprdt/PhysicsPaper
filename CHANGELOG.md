@@ -6,6 +6,26 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [2.2.1] — 2026-06-20
+
+### Added
+- **SPARC MOND validation**: rigorous galaxy-level cross-validation (10 repeated 50/50 train/test splits), 50-resample bootstrap parameter CIs, and three-tier quality-cut robustness study on the SPARC sample
+- **Bootstrap CI table** (`tab_sparc_bootstrap.tex`) with display symbols $\theta_0$, $\theta_1$ rendered in canonical order
+- **Paper text**: parameter-degeneracy discussion (deep-MOND $\hat\theta_0\sqrt{\hat\theta_1}$ invariance) added to bootstrap and robustness sections to explain the wide $\hat\theta_0$ CI
+
+### Changed
+- **Lelli et al. SPARC citation corrected**: *The Astrophysical Journal* 836:152 (2017) → *The Astronomical Journal* 152:157 (2016); dropped non-author Pawlowski and aligned `.bib` entry
+- **Lint/format config aligned**: `[tool.black]` line-length raised 100 → 120 to match `.flake8` `max-line-length`; removed redundant `[tool.flake8]` block from `pyproject.toml`
+- **Version strings synced to 2.2.1** across `README.md`, `CITATION.cff`, `.zenodo.json`, `docs/index.md`, `docs/paper.md` (previously a mix of 2.1.3 / 2.2.0)
+- **Test counts updated** 95/77 → **116** in README badge, project structure, docs hero stats, and installation guide
+- **Docs hero stat** corrected: stale "+44.5 pp over PySR" → **+77.8 pp** (the value used everywhere else)
+
+### Fixed
+- **CI lint gate**: 7 flake8 errors in `src/adcd/experiments/sparc_robustness.py` (unused imports `pandas`, `stack_sparc_galaxies`, `nu_standard_mond`, `jnp`; unused `expr`/`theta_symbols`/`jax_fn` bindings; missing whitespace after keyword on two `print(...)` calls); CI lint step now passes clean
+- **`scripts/generate_sparc_tables.py`**: bootstrap row symbols now map `theta_r1_0`/`theta_r1_1` → $\theta_0$/$\theta_1$ and sort by trailing index instead of lexicographic order
+
+---
+
 ## [2.2.0] — 2026-06-18
 
 ### Added

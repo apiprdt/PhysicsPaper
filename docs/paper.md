@@ -63,7 +63,7 @@ If you use ADCD or refer to the paper benchmarks in your academic work, please u
                 Symbolic Regression for Evolutionary Scientific Discovery}},
   year      = {2026},
   publisher = {Zenodo},
-  version   = {2.1.3},
+  version   = {2.2.1},
   doi       = {10.5281/zenodo.20534940},
   url       = {https://doi.org/10.5281/zenodo.20534940}
 }
