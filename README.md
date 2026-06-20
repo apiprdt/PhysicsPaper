@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <video src="docs/adcd_discovery.mp4" width="92%" autoplay loop muted playsinline></video>
+  <img src="docs/adcd_discovery.gif" alt="ADCD discovery pipeline animation" width="92%">
 </p>
 
 <p align="center">
