@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+  <a href="docs/adcd_discovery.mp4">▶ Download video (MP4)</a>
+</p>
+
+<p align="center">
   <a href="https://github.com/apiprdt/PhysicsPaper/actions/workflows/ci.yml"><img src="https://github.com/apiprdt/PhysicsPaper/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
   <a href="https://pypi.org/project/adcd/"><img src="https://img.shields.io/badge/PyPI-2.2.1-teal" alt="PyPI Version"></a>
   <a href="https://doi.org/10.5281/zenodo.20534940"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20534940-blue" alt="DOI"></a>
