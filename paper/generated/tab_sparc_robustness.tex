@@ -1,0 +1,20 @@
+\begin{table}[H]
+\centering\footnotesize
+\caption{SPARC robustness across three quality cuts. The ADCD-discovered
+function consistently outperforms Simple MOND and the McGaugh+16 RAR form
+across increasingly strict galaxy-quality selection.}
+\label{tab:sparc_robustness}
+\begin{tabularx}{\textwidth}{L c c c c c c c}
+\toprule
+\textbf{Quality cut} & \textbf{Gal.} & \textbf{Pts} &
+$\hat\theta_0$ & $\hat\theta_1$ &
+\textbf{ADCD} & \textbf{RAR} & \textbf{Simple MOND} \\
+& & & & & \multicolumn{3}{c}{NMSE} \\
+\cmidrule(lr){6-8}
+\midrule
+  Baseline (Standard) & 171 & 3342 & 1.828 & 0.262 & 0.3750 & 0.6361 & 0.6477 \\
+  Strict (High Quality) & 121 & 2939 & 1.612 & 0.324 & 0.3032 & 0.5670 & 0.5812 \\
+  Ultra-Strict (Pristine) & 75 & 2287 & 1.197 & 0.468 & 0.2718 & 0.6513 & 0.6756 \\
+\bottomrule
+\end{tabularx}
+\end{table}
