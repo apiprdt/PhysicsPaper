@@ -1,11 +1,12 @@
 """Generate LaTeX tables for the SPARC capstone section from result JSONs.
 
 Reads:
-  - results/sparc_discovery.json         (model comparison, CV, bootstrap)
+  - results/sparc_discovery.json         (model comparison, CV, bootstrap, fitted baselines)
   - results/sparc_robustness_results.json (3 quality-cut scenarios)
 
 Writes:
   - paper/generated/tab_sparc_comparison.tex   (4-model NMSE/BIC/n_params)
+  - paper/generated/tab_sparc_fitted.tex       (2-param fitted baseline comparison)
   - paper/generated/tab_sparc_validation.tex   (CV mean +/- SE)
   - paper/generated/tab_sparc_bootstrap.tex    (parameter 95% CI)
   - paper/generated/tab_sparc_robustness.tex   (3 quality cuts)
@@ -62,22 +63,87 @@ lowest NMSE and the lowest BIC.}
 """
 (OUT / "tab_sparc_comparison.tex").write_text(tab1, encoding="utf-8")
 
+# ---- Table 1b: 2-param fitted baselines (fair comparison) ---------------------
+fitted_comp = DISC.get("fitted_baselines", [])
+if fitted_comp:
+    fitted_rows = []
+    for m in fitted_comp:
+        name = m["name"]
+        is_adcd = name.lower().startswith("adcd")
+        nmse = f(m["nmse"], 4)
+        bic = f"{m['bic']:.2f}" if m["bic"] is not None else "---"
+        ft = m.get("fitted_theta", {})
+        t0_str = f(ft["theta_0"], 3) if ft else "---"
+        t1_str = f(ft["theta_1"], 3) if ft else "---"
+        # Highlight ADCD row with underline (not bold-lowest, since fitted baselines
+        # are competitive — see honest caption below).
+        if is_adcd:
+            nmse_str = rf"\underline{{{nmse}}}"
+            bic_str = rf"\underline{{{bic}}}"
+        else:
+            nmse_str = nmse
+            bic_str = bic
+        fitted_rows.append(
+            f"  {name} & {t0_str} & {t1_str} & {nmse_str} & {bic_str} \\\\"
+        )
+
+    tab1b = r"""\begin{table}[H]
+\centering\footnotesize
+\caption{Fair parameter-matched comparison: all four models fitted with
+exactly 2 free parameters via L-BFGS-B (20 random restarts) on the same
+stacked SPARC dataset ($N_{\rm gal}=171$, $N_{\rm pts}=3342$).
+Under matched parameter count, the fitted Simple-MOND and RAR forms attain
+marginally lower in-sample NMSE than the ADCD-discovered form (a $\sim$1.5\%
+difference, well within the bootstrap CI). Galaxy-level cross-validation
+(Table~\ref{tab:sparc_cv}) shows the three are statistically
+indistinguishable out-of-sample. The honest conclusion is therefore that
+ADCD's correction-first search recovers an interpolating function
+\emph{competitive with}—not superior to—well-known 2-param MOND forms, while
+requiring no prior knowledge of the MOND/RAR functional family.}
+\label{tab:sparc_fitted}
+\begin{tabular}{l c c c c}
+\toprule
+\textbf{Model (2-param)} & $\hat\theta_0$ & $\hat\theta_1$ &
+\textbf{NMSE} $\downarrow$ & \textbf{BIC} $\downarrow$ \\
+\midrule
+""" + "\n".join(fitted_rows) + r"""
+\bottomrule
+\end{tabular}
+\end{table}
+"""
+    (OUT / "tab_sparc_fitted.tex").write_text(tab1b, encoding="utf-8")
+else:
+    print("  (skipping tab_sparc_fitted.tex — no fitted_baselines in JSON)")
+
 # ---- Table 2: cross-validation ---------------------------------------------
 cv = DISC["cross_validation"]
-order = ["Simple MOND", "Standard MOND", "RAR (McGaugh)", "ADCD discovered"]
+order = [
+    "Simple MOND", "Standard MOND", "RAR (McGaugh)", "ADCD discovered",
+    "Simple MOND (2-param)", "Standard MOND (2-param)", "RAR (McGaugh, 2-param)",
+]
+# Only include models that are present in the CV results
+order = [m for m in order if m in cv]
 cvrows = []
 for name in order:
     s = cv[name]
     is_adcd = name.lower().startswith("adcd")
     mean = f(s["mean_nmse"], 4)
     se = f(s["std_error"], 4)
-    mean_str = rf"\textbf{{{mean}}}" if is_adcd else mean
+    # Underline (not bold) the ADCD row: fitted baselines are competitive,
+    # so we mark rather than emphasize ADCD as the unique winner.
+    mean_str = rf"\underline{{{mean}}}" if is_adcd else mean
     cvrows.append(f"  {name} & {mean_str} $\\pm$ {se} \\\\")
 
 tab2 = r"""\begin{table}[H]
 \centering\footnotesize
 \caption{Galaxy-level cross-validation (10 repeated 50/50 train/test splits by
-galaxy). ADCD-discovered function generalizes best out-of-sample.}
+galaxy). The top three rows are zero-parameter canonical forms; the middle row
+is the ADCD-discovered 2-param form; the bottom three rows are the same MOND/RAR
+families refit with 2 free parameters (fair parameter-matched comparison).
+ADCD's out-of-sample NMSE is statistically indistinguishable from the best
+2-param fitted baselines (overlapping $\pm$SE intervals), confirming the
+correction-first search is competitive with hand-crafted MOND forms without
+requiring prior knowledge of the interpolating-function family.}
 \label{tab:sparc_cv}
 \begin{tabular}{l c}
 \toprule

@@ -11,6 +11,7 @@ import pandas as pd
 from adcd.experiments.mond_comparison import (
     print_mond_comparison,
     score_mond_models,
+    score_fitted_baselines,
     scores_to_dict,
     nu_simple_mond,
     nu_standard_mond,
@@ -41,6 +42,7 @@ class SparcDiscoveryResult:
     g_dagger: float
     simple_mond_reference: str
     mond_comparison: List[Dict[str, Any]] = field(default_factory=list)
+    fitted_baselines: List[Dict[str, Any]] = field(default_factory=list)
     identifiability: Optional[Dict[str, Any]] = None
     cross_validation: Optional[Dict[str, Any]] = None
     bootstrap_ci: Optional[Dict[str, Any]] = None
@@ -85,6 +87,15 @@ def run_sparc_discovery(
     n_params = len(res.rounds[0].discovered_theta) if res.rounds else 2
     mond_scores = score_mond_models(stack.x, stack.nu_obs, adcd_nmse=adcd_nmse, adcd_n_params=n_params)
 
+    # Fair comparison: fit baselines with 2 free params (same as ADCD)
+    if verbose:
+        print("\nFitting 2-parameter baselines (L-BFGS-B, 20 restarts)...")
+    fitted_scores = score_fitted_baselines(
+        stack.x, stack.nu_obs,
+        adcd_nmse=adcd_nmse, adcd_n_params=n_params,
+        n_restarts=20, seed=seed,
+    )
+
     ident: Optional[Dict[str, Any]] = None
     if res.rounds and res.rounds[0].adcd_result.search_result.identifiability_report:
         rep = res.rounds[0].adcd_result.search_result.identifiability_report
@@ -124,7 +135,8 @@ def run_sparc_discovery(
             plot_sparc_results(
                 stack.x, stack.nu_obs, res.final_expr, theta_vals, theta_symbols,
                 n_galaxies=stack.n_galaxies,
-                output_path="results/sparc_discovery_plot.png"
+                output_path="results/sparc_discovery_plot.png",
+                fitted_baselines=scores_to_dict(fitted_scores),
             )
         except Exception as e:
             print(f"Error during CV/bootstrap/plotting: {e}")
@@ -140,6 +152,7 @@ def run_sparc_discovery(
         g_dagger=G_DAGGER,
         simple_mond_reference=SIMPLE_MOND_NU,
         mond_comparison=scores_to_dict(mond_scores),
+        fitted_baselines=scores_to_dict(fitted_scores),
         identifiability=ident,
         cross_validation=cv_res,
         bootstrap_ci=boot_res,
@@ -151,6 +164,7 @@ def run_sparc_discovery(
     print(f"Discovered nu(x): {result.discovered_expr}")
     print(f"ADCD NMSE:       {result.final_nmse:.5f}")
     print_mond_comparison(mond_scores)
+    print_mond_comparison(fitted_scores)
     if ident:
         print(f"\nIdentifiability: {ident['summary']}")
     if result.data_source == "SIMULATED":
@@ -159,46 +173,107 @@ def run_sparc_discovery(
     return result
 
 
+def _fit_2param_on_train(fn, x_tr, nu_tr, x_te, nu_te, n_restarts=10, seed=42):
+    """Fit a 2-param model on train, evaluate NMSE on test."""
+    from scipy.optimize import minimize
+
+    def objective(log_params):
+        theta0 = np.exp(log_params[0])
+        theta1 = np.exp(log_params[1])
+        pred = fn(x_tr, theta0, theta1)
+        cost = float(np.mean((nu_tr - pred) ** 2))
+        if not np.isfinite(cost):
+            return 1e15
+        return cost
+
+    rng = np.random.default_rng(seed)
+    best_cost = np.inf
+    best_params = np.array([0.0, np.log(1.0)])
+
+    for _ in range(n_restarts):
+        x0 = np.array([
+            rng.uniform(np.log(0.01), np.log(100.0)),
+            rng.uniform(np.log(0.1), np.log(10.0)),
+        ])
+        try:
+            res = minimize(objective, x0, method="L-BFGS-B",
+                           options={"maxiter": 3000, "ftol": 1e-15})
+            if res.fun < best_cost:
+                best_cost = res.fun
+                best_params = res.x.copy()
+        except Exception:
+            continue
+
+    theta0 = float(np.exp(best_params[0]))
+    theta1 = float(np.exp(best_params[1]))
+    pred_te = fn(x_te, theta0, theta1)
+    return _nmse(nu_te, pred_te)
+
+
 def run_galaxy_cv(
     df: pd.DataFrame,
     discovered_expr: str,
     n_repeats: int = 10,
     seed: int = 42,
 ) -> Dict[str, Any]:
-    """Perform repeated 50/50 train/test splits on galaxy level."""
+    """Perform repeated 50/50 train/test splits on galaxy level.
+
+    Includes both zero-parameter (canonical) and 2-param fitted baselines
+    for fair cross-validation comparison.
+    """
     from adcd.jax_optimizer import JAXOptimizer, jnp
-    
+    from adcd.experiments.mond_comparison import (
+        nu_simple_mond_2param, nu_standard_mond_2param, nu_rar_2param,
+    )
+
     galaxies = df["galaxy"].unique()
     n_gals = len(galaxies)
     rng = np.random.default_rng(seed)
-    
+
     optimizer = JAXOptimizer(n_restarts=5)
-    
-    models = ["Simple MOND", "Standard MOND", "RAR (McGaugh)", "ADCD discovered"]
+
+    models = [
+        "Simple MOND", "Standard MOND", "RAR (McGaugh)", "ADCD discovered",
+        "Simple MOND (2-param)", "Standard MOND (2-param)", "RAR (McGaugh, 2-param)",
+    ]
     nmse_history = {m: [] for m in models}
-    
+
     # Pre-parse expr
     expr, theta_symbols = optimizer._parse_expression(discovered_expr, ["x"])
     jax_fn = optimizer._build_jax_fn(expr, theta_symbols, ["x"])
-    
+
+    # Convert to plain Python list to avoid pandas StringArray shuffle warning
+    galaxies = list(galaxies)
+
     for run in range(n_repeats):
         rng.shuffle(galaxies)
         split_idx = n_gals // 2
         train_gals = galaxies[:split_idx]
         test_gals = galaxies[split_idx:]
-        
+
         df_train = df[df["galaxy"].isin(train_gals)]
         df_test = df[df["galaxy"].isin(test_gals)]
-        
+
         x_tr, nu_tr, _, _, _ = stack_sparc_galaxies(df_train)
         x_te, nu_te, _, _, _ = stack_sparc_galaxies(df_test)
-        
-        # Benchmarks
+
+        # Zero-parameter benchmarks (fitted on full dataset by definition)
         nmse_history["Simple MOND"].append(_nmse(nu_te, nu_simple_mond(x_te)))
         nmse_history["Standard MOND"].append(_nmse(nu_te, nu_standard_mond(x_te)))
         nmse_history["RAR (McGaugh)"].append(_nmse(nu_te, nu_rar(x_te)))
-        
-        # Fit on train
+
+        # Two-parameter fitted baselines (fit on train, evaluate on test)
+        nmse_history["Simple MOND (2-param)"].append(
+            _fit_2param_on_train(nu_simple_mond_2param, x_tr, nu_tr, x_te, nu_te,
+                                 n_restarts=10, seed=seed + run))
+        nmse_history["Standard MOND (2-param)"].append(
+            _fit_2param_on_train(nu_standard_mond_2param, x_tr, nu_tr, x_te, nu_te,
+                                 n_restarts=10, seed=seed + run))
+        nmse_history["RAR (McGaugh, 2-param)"].append(
+            _fit_2param_on_train(nu_rar_2param, x_tr, nu_tr, x_te, nu_te,
+                                 n_restarts=10, seed=seed + run))
+
+        # ADCD discovered (fit on train)
         opt_res = optimizer.optimize(
             expr_str=discovered_expr,
             X={"x": x_tr},
@@ -212,7 +287,7 @@ def run_galaxy_cv(
             nmse_history["ADCD discovered"].append(_nmse(nu_te, pred_adcd))
         else:
             nmse_history["ADCD discovered"].append(float("inf"))
-            
+
     summary = {}
     for model in models:
         vals = [v for v in nmse_history[model] if np.isfinite(v)]
@@ -283,8 +358,13 @@ def plot_sparc_results(
     theta_symbols: List[Any],
     n_galaxies: int = 0,
     output_path: str = "results/sparc_discovery_plot.png",
+    fitted_baselines: Optional[List[Dict[str, Any]]] = None,
 ) -> None:
-    """Generate publication-quality RAR plot (PRL/MNRAS style)."""
+    """Generate publication-quality RAR plot (PRL/MNRAS style).
+
+    Optionally overlays the best 2-param fitted baseline if *fitted_baselines*
+    (a list of score dicts from ``score_fitted_baselines``) is provided.
+    """
     import matplotlib
     import matplotlib.pyplot as plt
 
@@ -318,6 +398,37 @@ def plot_sparc_results(
     pred_sm_s   = nu_simple_mond(x_sorted)
     pred_std_s  = nu_standard_mond(x_sorted)
     pred_rar_s  = nu_rar(x_sorted)
+
+    # ── Evaluate best 2-param fitted baseline (if available) ───────────────────
+    from adcd.experiments.mond_comparison import (
+        nu_simple_mond_2param, nu_standard_mond_2param, nu_rar_2param,
+    )
+    pred_best_fitted_s = None
+    pred_best_fitted = None
+    best_fitted_label = None
+    nmse_best_fitted = None
+    if fitted_baselines:
+        non_adcd = [b for b in fitted_baselines if "ADCD" not in b["name"]]
+        if non_adcd:
+            best_fb = min(non_adcd, key=lambda b: b["bic"])
+            ft = best_fb.get("fitted_theta", {})
+            if ft:
+                t0f, t1f = ft["theta_0"], ft["theta_1"]
+                fn_map = {
+                    "RAR": nu_rar_2param,
+                    "Simple MOND": nu_simple_mond_2param,
+                    "Standard MOND": nu_standard_mond_2param,
+                }
+                for key, fn in fn_map.items():
+                    if key in best_fb["name"]:
+                        pred_best_fitted_s = fn(x_sorted, t0f, t1f)
+                        pred_best_fitted = fn(x, t0f, t1f)
+                        nmse_best_fitted = _nmse(nu_obs, pred_best_fitted)
+                        best_fitted_label = (
+                            rf"{best_fb['name']}: "
+                            rf"$\theta_0={t0f:.3f},\ \theta_1={t1f:.3f}$"
+                        )
+                        break
 
     # ── Residuals & metrics ───────────────────────────────────────────────────
     res_adcd = nu_obs - pred_adcd
@@ -372,6 +483,10 @@ def plot_sparc_results(
              label="Standard MOND (0 free params)")
     ax1.plot(x_sorted, pred_rar_s, color=c_rar, ls="-.", lw=1.7, zorder=3,
              label="RAR McGaugh+16 (0 free params)")
+    if pred_best_fitted_s is not None:
+        ax1.plot(x_sorted, np.clip(pred_best_fitted_s, None, nu_ymax + 0.3),
+                 color="#E6AB02", ls=(0, (5, 2)), lw=1.8, zorder=4,
+                 label=best_fitted_label)
     ax1.plot(
         x_sorted, np.clip(pred_adcd_s, None, nu_ymax + 0.3),
         color=c_adcd, ls="-", lw=2.4, zorder=5, label=adcd_label,
@@ -400,6 +515,11 @@ def plot_sparc_results(
                 label=f"Simple MOND  (NMSE={nmse_sm:.3f})")
     ax2.scatter(x, res_rar,  s=2,   alpha=0.07, color=c_rar,  rasterized=True, zorder=2,
                 label=f"RAR McGaugh+16  (NMSE={nmse_rar:.3f})")
+    if pred_best_fitted is not None:
+        res_best_fitted = nu_obs - pred_best_fitted
+        ax2.scatter(x, res_best_fitted, s=2, alpha=0.07, color="#E6AB02",
+                    rasterized=True, zorder=2,
+                    label=f"Best 2-param baseline  (NMSE={nmse_best_fitted:.3f})")
     ax2.scatter(x, res_adcd, s=2.5, alpha=0.14, color=c_adcd, rasterized=True, zorder=3,
                 label=f"ADCD discovered  (NMSE={nmse_adcd:.3f})")
 

@@ -104,3 +104,66 @@ def test_simulated_sparc_stack_is_labeled():
     stack = _simulate_sparc_stack(n_samples=100)
     assert stack.data_source == "SIMULATED"
     assert stack.n_points == 100
+
+
+# ---------------------------------------------------------------------------
+# T2.1 — SPARC fair-comparison (2-param fitted baselines)
+# ---------------------------------------------------------------------------
+
+def test_2param_evaluators_match_canonical_at_theta_identity():
+    """At θ₀=1, θ₁=1 the 2-param variants reduce to the canonical 0-param forms."""
+    from adcd.experiments.mond_comparison import (
+        nu_simple_mond, nu_standard_mond, nu_rar,
+        nu_simple_mond_2param, nu_standard_mond_2param, nu_rar_2param,
+    )
+    x = np.linspace(0.1, 10, 50)
+    assert np.allclose(nu_simple_mond_2param(x, 1.0, 1.0), nu_simple_mond(x))
+    assert np.allclose(nu_standard_mond_2param(x, 1.0, 1.0), nu_standard_mond(x))
+    assert np.allclose(nu_rar_2param(x, 1.0, 1.0), nu_rar(x))
+
+
+def test_2param_evaluators_are_finite_under_extreme_params():
+    """Optimiser explores extreme θ values — evaluators must not blow up."""
+    from adcd.experiments.mond_comparison import (
+        nu_simple_mond_2param, nu_standard_mond_2param, nu_rar_2param,
+    )
+    x = np.array([1e-3, 1.0, 1e3])
+    for theta0 in [1e-6, 1e-2, 1.0, 1e2, 1e6]:
+        for theta1 in [1e-4, 1.0, 1e4]:
+            for fn in (nu_simple_mond_2param, nu_standard_mond_2param, nu_rar_2param):
+                out = fn(x, theta0, theta1)
+                # Allow inf/nan at pathological corners but not exceptions
+                # (the objective wraps these to a large finite value).
+                assert out.shape == x.shape
+
+
+def test_score_fitted_baselines_returns_4_models_with_2_params():
+    from adcd.experiments.mond_comparison import score_fitted_baselines
+    x = np.linspace(0.1, 5, 60)
+    nu = 1.0 / (1.0 - np.exp(-np.sqrt(x))) + 0.01 * np.random.default_rng(0).normal(size=60)
+    scores = score_fitted_baselines(x, nu, adcd_nmse=0.5, n_restarts=3, seed=0)
+    assert len(scores) == 4  # 3 fitted baselines + ADCD
+    # Every baseline entry should report exactly 2 free parameters
+    for s in scores:
+        assert s.n_params == 2
+    # The fitted_theta dict must be populated for the 3 fitted baselines (not ADCD)
+    fitted = [s for s in scores if "ADCD" not in s.name]
+    assert len(fitted) == 3
+    for s in fitted:
+        assert s.fitted_theta is not None
+        assert set(s.fitted_theta.keys()) == {"theta_0", "theta_1"}
+    # ADCD entry has no fitted_theta (discovered upstream)
+    adcd = [s for s in scores if "ADCD" in s.name][0]
+    assert adcd.fitted_theta is None
+
+
+def test_2param_fitting_recovers_known_synthetic_truth():
+    """Fit ν = θ₁/(1 − exp(−√(θ₀·x))) on noise-free data → recover θ₀,θ₁."""
+    from adcd.experiments.mond_comparison import nu_rar_2param, _fit_2param
+    x = np.linspace(0.1, 5, 100)
+    theta0_true, theta1_true = 0.7, 1.3
+    nu = nu_rar_2param(x, theta0_true, theta1_true)
+    res = _fit_2param(nu_rar_2param, x, nu, "RAR", "test", n_restarts=5, seed=0)
+    assert res.theta0 == pytest.approx(theta0_true, rel=0.05)
+    assert res.theta1 == pytest.approx(theta1_true, rel=0.05)
+    assert res.nmse < 1e-6

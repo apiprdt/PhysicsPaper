@@ -1,0 +1,215 @@
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+C:\Users\user\AppData\Roaming\Python\Python311\site-packages\pysr\sr.py:2858: UserWarning: The `multithreading: bool` parameter has been deprecated in favor of `parallelism: Literal['multithreading', 'serial', 'multiprocessing']`.
+Previous usage of `multithreading=True` (default) is now `parallelism='multithreading'`; `multithreading=False, procs=0` is now `parallelism='serial'`; and `multithreading=True, procs={int}` is now `parallelism='multiprocessing', procs={int}`.
+  warnings.warn(
+======================================================================
+     PySR BASELINE — profile=GENEROUS
+     Upper-bound PySR search budget
+     niter=200 maxsize=40 timeout=120s
+======================================================================
+[1/52] FAIL Relativistic KE noise=0% class=exponential NMSE=3.93e-05 time=42.4s exprs=13
+[2/52] FAIL Relativistic KE noise=1% class=trigonometric NMSE=4.11e-04 time=28.1s exprs=19
+[3/52] OK Relativistic KE noise=5% class=polynomial NMSE=4.19e-03 time=18.9s exprs=16
+[4/52] OK Relativistic KE noise=10% class=polynomial NMSE=2.29e-02 time=20.8s exprs=17
+[5/52] FAIL Yukawa Gravity noise=0% class=trigonometric NMSE=2.50e-08 time=26.9s exprs=19
+[6/52] OK Yukawa Gravity noise=1% class=exponential NMSE=9.12e-05 time=25.3s exprs=22
+[7/52] FAIL Yukawa Gravity noise=5% class=power_law NMSE=4.19e-03 time=18.4s exprs=19
+[8/52] FAIL Yukawa Gravity noise=10% class=trigonometric NMSE=6.33e-03 time=18.3s exprs=22
+[9/52] OK Anharmonic Spring noise=0% class=polynomial NMSE=1.50e-19 time=23.8s exprs=9
+[10/52] FAIL Anharmonic Spring noise=1% class=exponential NMSE=1.80e-04 time=28.1s exprs=14
+[11/52] FAIL Anharmonic Spring noise=5% class=exponential NMSE=4.48e-03 time=27.1s exprs=23
+[12/52] FAIL Anharmonic Spring noise=10% class=exponential NMSE=1.48e-02 time=30.7s exprs=21
+[13/52] FAIL Screened Coulomb noise=0% class=trigonometric NMSE=5.60e-08 time=23.1s exprs=16
+[14/52] FAIL Screened Coulomb noise=1% class=trigonometric NMSE=4.79e-05 time=22.3s exprs=19
+[15/52] OK Screened Coulomb noise=5% class=exponential NMSE=1.47e-03 time=24.5s exprs=23
+[16/52] FAIL Screened Coulomb noise=10% class=trigonometric NMSE=1.98e-02 time=25.4s exprs=24
+[17/52] FAIL Net Radiation noise=0% class=exponential NMSE=9.14e-05 time=25.6s exprs=12
+[18/52] FAIL Net Radiation noise=1% class=trigonometric NMSE=1.51e-04 time=28.9s exprs=22
+[19/52] FAIL Net Radiation noise=5% class=trigonometric NMSE=4.81e-03 time=29.2s exprs=9
+[20/52] FAIL Net Radiation noise=10% class=trigonometric NMSE=1.70e-02 time=27.4s exprs=19
+[21/52] OK Nonlinear Drag noise=0% class=polynomial NMSE=0.00e+00 time=25.4s exprs=4
+[22/52] OK Nonlinear Drag noise=1% class=polynomial NMSE=2.64e-04 time=24.0s exprs=24
+[23/52] OK Nonlinear Drag noise=5% class=polynomial NMSE=6.59e-03 time=22.2s exprs=21
+[24/52] OK Nonlinear Drag noise=10% class=polynomial NMSE=2.60e-02 time=24.2s exprs=23
+[25/52] OK Mystery-A noise=0% class=trigonometric NMSE=4.74e-05 time=24.2s exprs=12
+[26/52] OK Mystery-A noise=1% class=trigonometric NMSE=2.93e-03 time=23.5s exprs=12
+[27/52] OK Mystery-A noise=5% class=trigonometric NMSE=9.78e-02 time=27.9s exprs=18
+[28/52] FAIL Mystery-A noise=10% class=exponential NMSE=2.35e-02 time=27.2s exprs=19
+[29/52] OK Mystery-B noise=0% class=trigonometric NMSE=7.30e-07 time=23.6s exprs=8
+[30/52] OK Mystery-B noise=1% class=trigonometric NMSE=2.94e-04 time=23.9s exprs=22
+[31/52] FAIL Mystery-B noise=5% class=polynomial NMSE=9.34e-03 time=21.9s exprs=24
+[32/52] FAIL Mystery-B noise=10% class=polynomial NMSE=2.59e-02 time=24.8s exprs=21
+[33/52] FAIL Mystery-C noise=0% class=trigonometric NMSE=3.07e-07 time=33.8s exprs=12
+[34/52] FAIL Mystery-C noise=1% class=rational NMSE=2.75e-04 time=28.0s exprs=19
+[35/52] OK Mystery-C noise=5% class=logarithmic NMSE=7.12e-03 time=34.8s exprs=19
+[36/52] FAIL Mystery-C noise=10% class=power_law NMSE=2.89e-02 time=45.1s exprs=26
+[37/52] FAIL MV-1: Yukawa Mass-Ratio noise=0% class=trigonometric NMSE=1.47e-06 time=29.9s exprs=16
+[38/52] FAIL MV-1: Yukawa Mass-Ratio noise=1% class=power_law NMSE=5.91e-04 time=28.6s exprs=18
+[39/52] FAIL MV-1: Yukawa Mass-Ratio noise=5% class=power_law NMSE=2.12e-03 time=31.0s exprs=22
+[40/52] FAIL MV-1: Yukawa Mass-Ratio noise=10% class=power_law NMSE=8.55e-03 time=24.7s exprs=24
+[41/52] FAIL MV-2: Plasma Correction noise=0% class=exponential NMSE=2.59e-03 time=48.8s exprs=24
+[42/52] FAIL MV-2: Plasma Correction noise=1% class=exponential NMSE=2.28e-04 time=38.4s exprs=15
+[43/52] FAIL MV-2: Plasma Correction noise=5% class=exponential NMSE=6.27e-03 time=47.9s exprs=16
+[44/52] FAIL MV-2: Plasma Correction noise=10% class=exponential NMSE=2.49e-02 time=39.0s exprs=20
+[45/52] OK MV-3: Turbulent Drag 2D noise=0% class=polynomial NMSE=5.05e-33 time=24.6s exprs=6
+[46/52] OK MV-3: Turbulent Drag 2D noise=1% class=polynomial NMSE=2.91e-04 time=33.6s exprs=21
+[47/52] OK MV-3: Turbulent Drag 2D noise=5% class=polynomial NMSE=7.29e-03 time=34.7s exprs=26
+[48/52] OK MV-3: Turbulent Drag 2D noise=10% class=polynomial NMSE=3.50e-02 time=32.7s exprs=23
+[49/52] OK MV-4: Van der Waals 2D noise=0% class=power_law NMSE=1.97e-32 time=28.1s exprs=11
+[50/52] FAIL MV-4: Van der Waals 2D noise=1% class=trigonometric NMSE=3.15e-05 time=27.8s exprs=20
+[51/52] FAIL MV-4: Van der Waals 2D noise=5% class=exponential NMSE=1.96e-03 time=34.1s exprs=21
+[52/52] FAIL MV-4: Van der Waals 2D noise=10% class=trigonometric NMSE=3.27e-03 time=34.2s exprs=12
+Saved: pysr_baseline_generous.json (52 entries)
+scratch_correction_results.json not found — skipping ADCD comparison

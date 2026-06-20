@@ -1,7 +1,13 @@
 \begin{table}[H]
 \centering\footnotesize
 \caption{Galaxy-level cross-validation (10 repeated 50/50 train/test splits by
-galaxy). ADCD-discovered function generalizes best out-of-sample.}
+galaxy). The top three rows are zero-parameter canonical forms; the middle row
+is the ADCD-discovered 2-param form; the bottom three rows are the same MOND/RAR
+families refit with 2 free parameters (fair parameter-matched comparison).
+ADCD's out-of-sample NMSE is statistically indistinguishable from the best
+2-param fitted baselines (overlapping $\pm$SE intervals), confirming the
+correction-first search is competitive with hand-crafted MOND forms without
+requiring prior knowledge of the interpolating-function family.}
 \label{tab:sparc_cv}
 \begin{tabular}{l c}
 \toprule
@@ -10,7 +16,10 @@ galaxy). ADCD-discovered function generalizes best out-of-sample.}
   Simple MOND & 0.6725 $\pm$ 0.0350 \\
   Standard MOND & 0.7016 $\pm$ 0.0055 \\
   RAR (McGaugh) & 0.6601 $\pm$ 0.0346 \\
-  ADCD discovered & \textbf{0.3856} $\pm$ 0.0155 \\
+  ADCD discovered & \underline{0.3856} $\pm$ 0.0155 \\
+  Simple MOND (2-param) & 0.3774 $\pm$ 0.0147 \\
+  Standard MOND (2-param) & 0.4664 $\pm$ 0.0082 \\
+  RAR (McGaugh, 2-param) & 0.3774 $\pm$ 0.0147 \\
 \bottomrule
 \end{tabular}
 \end{table}

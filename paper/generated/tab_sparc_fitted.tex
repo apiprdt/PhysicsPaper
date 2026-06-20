@@ -1,0 +1,26 @@
+\begin{table}[H]
+\centering\footnotesize
+\caption{Fair parameter-matched comparison: all four models fitted with
+exactly 2 free parameters via L-BFGS-B (20 random restarts) on the same
+stacked SPARC dataset ($N_{\rm gal}=171$, $N_{\rm pts}=3342$).
+Under matched parameter count, the fitted Simple-MOND and RAR forms attain
+marginally lower in-sample NMSE than the ADCD-discovered form (a $\sim$1.5\%
+difference, well within the bootstrap CI). Galaxy-level cross-validation
+(Table~\ref{tab:sparc_cv}) shows the three are statistically
+indistinguishable out-of-sample. The honest conclusion is therefore that
+ADCD's correction-first search recovers an interpolating function
+\emph{competitive with}—not superior to—well-known 2-param MOND forms, while
+requiring no prior knowledge of the MOND/RAR functional family.}
+\label{tab:sparc_fitted}
+\begin{tabular}{l c c c c}
+\toprule
+\textbf{Model (2-param)} & $\hat\theta_0$ & $\hat\theta_1$ &
+\textbf{NMSE} $\downarrow$ & \textbf{BIC} $\downarrow$ \\
+\midrule
+  Simple MOND (2-param) & 0.497 & 0.548 & 0.3674 & -3329.77 \\
+  RAR (McGaugh, 2-param) & 0.560 & 0.579 & 0.3675 & -3329.37 \\
+  ADCD discovered & --- & --- & \underline{0.3729} & \underline{-3280.69} \\
+  Standard MOND (2-param) & 0.000 & 0.000 & 0.4628 & -2558.95 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -19,6 +19,16 @@ from pysr_profiles import PYSR_PROFILES
 
 NOISE_LEVELS = [0.0, 0.01, 0.05, 0.10]
 
+# Primary benchmark = 9 standard scenarios (textbook / cross_domain / synthetic).
+# Exclude blind (held-out) and multivariable (different benchmark family) so all
+# PySR profiles are compared on the same residual targets as ADCD.
+STD9_TIERS = ("textbook", "cross_domain", "synthetic")
+
+
+def _filter_std9(results):
+    """Restrict a result list to the 9-scenario primary benchmark."""
+    return [r for r in results if r.get("tier") in STD9_TIERS]
+
 
 def _class_at_noise(results, noise):
     sub = [r for r in results if abs(r["noise"] - noise) < 1e-9]
@@ -60,19 +70,23 @@ def generate_pysr_config_table() -> str:
     return "\n".join(lines)
 
 
-def generate_baseline_comparison_table(adcd, pysr_fair, pysr_fast=None) -> str:
+def generate_baseline_comparison_table(adcd, pysr_fair, pysr_fast=None,
+                                       pysr_generous=None) -> str:
     lines = [
         r"\begin{table}[H]",
         r"\centering",
         r"\caption{Structural class match rate: ADCD (Mock Proposer, seed=42) vs.\ PySR on the same "
-        r"9-scenario residual benchmark. PySR \texttt{fair} is the primary unconstrained baseline.}",
+        r"9-scenario residual benchmark. PySR \texttt{fair} is the primary unconstrained baseline; "
+        r"\texttt{generous} ($2\times$ iterations, $2\times$ timeout, larger \texttt{maxsize}) is an "
+        r"upper-bound ablation showing that additional search budget does not close the gap.}",
         r"\label{tab:baseline}",
         r"\begin{tabular}{lcccc}",
         r"\toprule",
         r"\textbf{Method} & \textbf{0\%} & \textbf{1\%} & \textbf{5\%} & \textbf{10\%} \\",
         r"\midrule",
     ]
-    for label, data in [("ADCD (ours)", adcd), ("PySR fair", pysr_fair)]:
+    for label, data in [("ADCD (ours)", adcd), ("PySR fair", pysr_fair),
+                        ("PySR generous (upper bound)", pysr_generous)]:
         if not data:
             continue
         row = [label]
@@ -121,11 +135,15 @@ def generate_search_funnel_table(gate: dict) -> str:
     return "\n".join(lines)
 
 
-def generate_runtime_table(adcd, pysr_fair) -> str:
+def generate_runtime_table(adcd, pysr_fair, pysr_generous=None) -> str:
     adcd_t = sum(r.get("time_seconds", 0) for r in adcd) / len(adcd) if adcd else 0
     pysr_t = sum(r.get("time_seconds", 0) for r in pysr_fair) / len(pysr_fair) if pysr_fair else 0
     adcd_opt = sum(r.get("total_candidates_optimized", 0) for r in adcd)
     pysr_expr = sum(r.get("expressions_evaluated", 0) for r in pysr_fair)
+    pysr_g_t = (sum(r.get("time_seconds", 0) for r in pysr_generous) / len(pysr_generous)
+                if pysr_generous else None)
+    pysr_g_expr = (sum(r.get("expressions_evaluated", 0) for r in pysr_generous) / len(pysr_generous)
+                   if pysr_generous else None)
     lines = [
         r"\begin{table}[H]",
         r"\centering",
@@ -137,10 +155,13 @@ def generate_runtime_table(adcd, pysr_fair) -> str:
         r"\midrule",
         f"ADCD (Mock) & {adcd_t:.1f}\\,s & {adcd_opt:,} JAX optim. calls \\\\",
         f"PySR (fair) & {pysr_t:.1f}\\,s & $\\sim${pysr_expr // len(pysr_fair) if pysr_fair else 0} hall-of-fame / run \\\\",
-        r"\bottomrule",
-        r"\end{tabular}",
-        r"\end{table}",
     ]
+    if pysr_g_t is not None:
+        lines.append(
+            f"PySR (generous) & {pysr_g_t:.1f}\\,s & "
+            f"$\\sim${pysr_g_expr:.0f} hall-of-fame / run \\\\"
+        )
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
     return "\n".join(lines)
 
 
@@ -151,19 +172,38 @@ def main():
     adcd_path = ROOT / "scratch_correction_results.json"
     fair_path = ROOT / "pysr_baseline_fair.json"
     fast_path = ROOT / "pysr_baseline_results.json"
+    generous_path = ROOT / "pysr_baseline_generous.json"
     gate_path = ROOT / "gate_telemetry.json"
+    repro_path = ROOT / "reproducibility_results.json"
 
-    adcd = json.load(open(adcd_path)) if adcd_path.exists() else []
-    std9 = [r for r in adcd if r.get("tier") in ("textbook", "cross_domain", "synthetic")]
-    pysr_fair = json.load(open(fair_path)) if fair_path.exists() else []
-    pysr_fast = json.load(open(fast_path)) if fast_path.exists() else None
+    if adcd_path.exists():
+        adcd = json.load(open(adcd_path))
+    elif repro_path.exists():
+        # scratch_correction_results.json is gitignored and may be absent in a
+        # fresh checkout; the same seed=42 primary-benchmark data is preserved
+        # inside reproducibility_results.json, so fall back to it.
+        repro = json.load(open(repro_path))
+        adcd = [r for r in repro if r.get("seed") == 42]
+        print(f"NOTE: {adcd_path.name} missing — using seed=42 slice from "
+              f"{repro_path.name} ({len(adcd)} entries).")
+    else:
+        adcd = []
+    std9 = _filter_std9(adcd)
+    # Filter every PySR profile to the 9-scenario primary benchmark so that all
+    # profiles (which may have picked up extra tiers, e.g. multivariable) are
+    # compared on the same residual targets as ADCD.
+    pysr_fair = _filter_std9(json.load(open(fair_path))) if fair_path.exists() else []
+    pysr_fast = _filter_std9(json.load(open(fast_path))) if fast_path.exists() else None
+    pysr_generous = (_filter_std9(json.load(open(generous_path)))
+                     if generous_path.exists() else None)
     gate = json.load(open(gate_path)) if gate_path.exists() else {}
 
     tables = {
         "tab_pysr_config.tex": generate_pysr_config_table(),
-        "tab_baseline_comparison.tex": generate_baseline_comparison_table(std9, pysr_fair, pysr_fast),
+        "tab_baseline_comparison.tex": generate_baseline_comparison_table(
+            std9, pysr_fair, pysr_fast, pysr_generous),
         "tab_search_funnel.tex": generate_search_funnel_table(gate),
-        "tab_runtime.tex": generate_runtime_table(std9, pysr_fair),
+        "tab_runtime.tex": generate_runtime_table(std9, pysr_fair, pysr_generous),
     }
     for name, content in tables.items():
         path = out / name

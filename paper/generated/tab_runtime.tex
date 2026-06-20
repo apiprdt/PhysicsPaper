@@ -6,14 +6,9 @@
 \toprule
 \textbf{Method} & \textbf{Mean wall-clock / run} & \textbf{Expressions explored} \\
 \midrule
-ADCD (Mock) & 4.8\,s & 598 JAX optim.\ calls \\
-PySR (fair) & 8.8\,s & $\sim$14 hall-of-fame / run$^\dagger$ \\
+ADCD (Mock) & 4.2\,s & 598 JAX optim. calls \\
+PySR (fair) & 8.8\,s & $\sim$14 hall-of-fame / run \\
+PySR (generous) & 26.4\,s & $\sim$18 hall-of-fame / run \\
 \bottomrule
 \end{tabular}
-\par\smallskip\noindent
-\begin{minipage}{\linewidth}
-\footnotesize $^\dagger$\textit{Final Pareto-optimal equations returned in PySR's
-hall of fame (mean 14.2 across all runs in \texttt{pysr\_baseline\_fair.json}).
-No physics pre-filtering; expressions selected purely by training MSE.}
-\end{minipage}
 \end{table}
