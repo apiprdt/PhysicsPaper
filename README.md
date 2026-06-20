@@ -1,16 +1,16 @@
 # ADCD — Anomaly-Driven Correction Discovery
 
 <p align="center">
-  <img src="docs/assets/adcd_logo.svg" alt="ADCD Logo" width="160">
+  <em>Physics-constrained symbolic regression that discovers <b>correction terms</b> — not equations from scratch. The same logic that led from Newton to Einstein, from Rayleigh–Jeans to Planck.</em>
 </p>
 
 <p align="center">
-  <strong>Physics-Constrained Symbolic Regression for Evolutionary Scientific Discovery</strong>
+  <video src="docs/adcd_discovery.mp4" width="92%" autoplay loop muted playsinline></video>
 </p>
 
 <p align="center">
   <a href="https://github.com/apiprdt/PhysicsPaper/actions/workflows/ci.yml"><img src="https://github.com/apiprdt/PhysicsPaper/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
-  <a href="https://pypi.org/project/adcd/"><img src="https://img.shields.io/pypi/v/adcd?color=teal" alt="PyPI Version"></a>
+  <a href="https://pypi.org/project/adcd/"><img src="https://img.shields.io/badge/PyPI-2.2.1-teal" alt="PyPI Version"></a>
   <a href="https://doi.org/10.5281/zenodo.20534940"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20534940-blue" alt="DOI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
   <a href="https://github.com/apiprdt/PhysicsPaper/actions"><img src="https://img.shields.io/badge/tests-116%20passing-brightgreen" alt="Tests Status"></a>
@@ -18,24 +18,17 @@
 </p>
 
 <p align="center">
-  <a href="https://apiprdt.github.io/PhysicsPaper/"><strong>Explore the Documentation »</strong></a>
-  <br>
-  <br>
-  <a href="#quick-start">Quick Start</a>
-  ·
-  <a href="#key-features">Key Features</a>
-  ·
-  <a href="#benchmark-results">Benchmarks</a>
-  ·
-  <a href="https://colab.research.google.com/github/apiprdt/PhysicsPaper/blob/main/notebooks/adcd_demo.ipynb">Run in Colab</a>
+  <a href="https://apiprdt.github.io/PhysicsPaper/"><strong>📖 Documentation</strong></a>
+  &nbsp;·&nbsp;
+  <a href="#quick-start"><strong>⚡ Quick Start</strong></a>
+  &nbsp;·&nbsp;
+  <a href="#benchmark-results"><strong>📊 Benchmarks</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://colab.research.google.com/github/apiprdt/PhysicsPaper/blob/main/notebooks/adcd_demo.ipynb"><strong>▶ Run in Colab</strong></a>
 </p>
 
-> **Science rarely discovers from a blank slate — it corrects.**  
-> ADCD automates the step between *anomaly* and *theory correction*, the same step that led from Newtonian gravity to General Relativity, from Dirac to QED, and from Rayleigh-Jeans to Planck.
-
-<p align="center">
-  <img src="docs/adcd_discovery.gif" alt="ADCD discovery pipeline animation" width="85%">
-</p>
+> **Science rarely discovers from a blank slate — it corrects.**
+> ADCD automates the step between *anomaly* and *theory correction*: given a classical law and data that disagrees with it, it searches for the minimal physically-valid correction term $\Delta$ — passing every candidate through dimensional, asymptotic, and complexity gates before a single parameter is ever fit.
 
 ---
 

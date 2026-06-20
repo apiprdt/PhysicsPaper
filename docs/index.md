@@ -33,7 +33,10 @@ Newton to Einstein, from Rayleigh–Jeans to Planck.
 
 ## See It in Action
 
-<img src="adcd_discovery.gif" alt="ADCD discovery pipeline animation" class="demo-gif">
+<video src="adcd_discovery.mp4" autoplay loop muted playsinline
+       style="width:100%;max-width:960px;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.10);">
+  Your browser does not support embedded video. <a href="adcd_discovery.mp4">Watch the MP4 →</a>
+</video>
 
 ---
 
