@@ -13,6 +13,7 @@ from typing import Dict, Tuple
 import numpy as np
 
 from adcd.anomaly_scenarios import AnomalyScenario
+from adcd.constants import G as G_CODATA, C as C_CODATA, M_SUN as M_SUN_CODATA, K_B as K_B_CODATA
 from adcd.real_data_loader import (
     load_mercury_perihelion,
     load_hydrogen_lamb_shift,
@@ -73,7 +74,7 @@ def get_real_scenarios():
             domain="gravity",
             classical_expr="0",
             classical_variables=["vc2", "r", "v"],
-            classical_constants={"G": 6.674e-11, "M": 1.989e30, "c": 2.998e8},
+            classical_constants={"G": G_CODATA, "M": M_SUN_CODATA, "c": C_CODATA},
             correction_type="additive",
             correction_expr="theta_0 * vc2",
             correction_constants={"theta_0": 1.0},
@@ -110,7 +111,7 @@ def get_real_scenarios():
             domain="quantum_optics",
             classical_expr="2 * k_B * T * f**2 / c**2",   # Rayleigh-Jeans law
             classical_variables=["f", "T"],
-            classical_constants={"k_B": 1.381e-23, "c": 2.998e8},
+            classical_constants={"k_B": K_B_CODATA, "c": C_CODATA},
             correction_type="multiplicative",
             # Planck correction: exponential suppression at high f (UV regime)
             correction_expr="exp(-theta_0 * f / T)",
@@ -149,7 +150,7 @@ def get_real_scenarios():
             domain="gravity",
             classical_expr="0",
             classical_variables=["P"],
-            classical_constants={"G": 6.674e-11, "c": 2.998e8},
+            classical_constants={"G": G_CODATA, "c": C_CODATA},
             correction_type="additive",
             correction_expr="theta_0 * P**(-5.0/3.0)",
             correction_constants={"theta_0": binary_pulsar_prefactor()},

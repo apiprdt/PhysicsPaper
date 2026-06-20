@@ -261,8 +261,12 @@ def run_adcd_mv(
             scenario.classical_limit_variable.split(",")[0].strip()
         )
 
-    result = orchestrator.search_correction(
-        scenario_for_search, noise_level=noise, seed=seed
-    )
-    pipeline.execute = original_execute
+    try:
+        result = orchestrator.search_correction(
+            scenario_for_search, noise_level=noise, seed=seed
+        )
+    finally:
+        # Always restore the original method, even if search_correction raises,
+        # so the pipeline object is not left with a permanently patched `execute`.
+        pipeline.execute = original_execute
     return result

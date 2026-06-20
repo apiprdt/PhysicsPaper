@@ -1,7 +1,10 @@
+import logging
 import numpy as np
 import scipy.stats as stats
 from dataclasses import dataclass
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class ResidualFeatures:
@@ -55,6 +58,7 @@ def analyze_residual(x: np.ndarray, residual: np.ndarray, classical_limit_val: O
         p = np.polyfit(x, residual, 2)
         curvature_sign = float(np.sign(p[0]))
     except Exception:
+        logger.debug("curvature_sign computation failed, defaulting to 0.0", exc_info=True)
         curvature_sign = 0.0
 
     # 3. Oscillation score (zero-crossings of detrended, smoothed residual)
@@ -77,6 +81,7 @@ def analyze_residual(x: np.ndarray, residual: np.ndarray, classical_limit_val: O
         zero_crossings = np.sum(np.diff(np.sign(smoothed)) != 0)
         oscillation_score = float(zero_crossings / len(smoothed)) if len(smoothed) > 0 else 0.0
     except Exception:
+        logger.debug("oscillation_score computation failed, defaulting to 0.0", exc_info=True)
         oscillation_score = 0.0
 
     # 4. Decay rate (Exponential fit: log(|y| + eps) = a*x + b)
@@ -93,6 +98,7 @@ def analyze_residual(x: np.ndarray, residual: np.ndarray, classical_limit_val: O
         else:
             decay_rate = 0.0
     except Exception:
+        logger.debug("decay_rate computation failed, defaulting to 0.0", exc_info=True)
         decay_rate = 0.0
 
     # 5. Symmetry (Even polynomial fit vs Odd polynomial fit)
@@ -118,6 +124,7 @@ def analyze_residual(x: np.ndarray, residual: np.ndarray, classical_limit_val: O
         
         symmetry = float(r2_even - r2_odd)
     except Exception:
+        logger.debug("symmetry computation failed, defaulting to 0.0", exc_info=True)
         symmetry = 0.0
 
     # Task P1-6: Compute RAS features if classical_limit_val is provided
@@ -195,6 +202,7 @@ def compute_ras(x_vals: np.ndarray, delta_vals: np.ndarray,
             "suggested_class": suggested,
         }
     except Exception:
-        return {"leading_exponent": None, "leading_coeff": None, "fit_quality": 0.0, 
+        logger.debug("RAS log-log fit failed, returning unknown", exc_info=True)
+        return {"leading_exponent": None, "leading_coeff": None, "fit_quality": 0.0,
                 "suggested_class": "unknown"}
 

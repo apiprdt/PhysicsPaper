@@ -20,14 +20,14 @@ from typing import Literal, Tuple
 import numpy as np
 import pandas as pd
 
+from adcd.constants import G_DAGGER, KPC_TO_M
+
 # Primary + mirror URLs (astroweb migrated case.edu; legacy cwru often down)
 SPARC_URLS = [
     "https://astroweb.case.edu/SPARC/MassModels_Lelli2016c.mrt",
     "http://astroweb.cwru.edu/SPARC/MassModels_Lelli2016c.mrt",
 ]
 DEFAULT_CACHE = "data/sparc/MassModels_Lelli2016c.mrt"
-G_DAGGER = 1.2e-10  # m/s^2 — Milgrom acceleration scale
-KPC_TO_M = 3.085677581e19
 KM_TO_M = 1000.0
 
 DataSource = Literal["REAL", "SIMULATED"]

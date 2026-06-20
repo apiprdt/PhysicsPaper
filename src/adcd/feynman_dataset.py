@@ -2,6 +2,8 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Optional
 
+from adcd.constants import G as G_CODATA, K_B as K_B_CODATA
+
 @dataclass
 class FeynmanProblem:
     name: str
@@ -71,7 +73,7 @@ class FeynmanProblem:
         elif self.name == "Ideal Gas Law":
             X["N"] = rng.uniform(1e20, 1e23, size=n_points)
             X["t"] = rng.uniform(200.0, 500.0, size=n_points)
-            k_B = self.constants.get("theta_0", 1.38e-23)
+            k_B = self.constants.get("theta_0", K_B_CODATA)
             y = k_B * X["N"] * X["t"]
             
         elif self.name == "Projectile Range":
@@ -165,7 +167,7 @@ PROBLEMS = [
         name="Gravitational Force",
         equation="G * m * M / r**2",
         variables=["m", "M", "r"],
-        constants={"G": 6.6743e-11},
+        constants={"G": G_CODATA},
         target_dimension="F",
         regimes=[
             {"variable": "r", "limit": "oo", "expected": "0"},
@@ -252,7 +254,7 @@ PROBLEMS = [
         name="Gravitational Potential Energy",
         equation="-G * m * M / r",
         variables=["m", "M", "r"],
-        constants={"G": 6.6743e-11},
+        constants={"G": G_CODATA},
         target_dimension="E",
         regimes=[
             {"variable": "r", "limit": "oo", "expected": "0"}
@@ -286,7 +288,7 @@ PROBLEMS = [
         name="Ideal Gas Law",
         equation="theta_0 * N * t",
         variables=["N", "t"],
-        constants={"theta_0": 1.38e-23},
+        constants={"theta_0": K_B_CODATA},
         target_dimension=None,
         regimes=[
             {"variable": "t", "limit": 0, "expected": "0"}

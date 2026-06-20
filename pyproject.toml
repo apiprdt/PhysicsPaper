@@ -44,7 +44,12 @@ dev = [
 llm = [
     "google-generativeai>=0.3",
 ]
-all = ["adcd[dev,llm]"]
+# Primary comparison baseline (PySR pulls in a Julia runtime; only needed to
+# re-run the baseline benchmark, not for ADCD itself).
+benchmark = [
+    "pysr>=1.5",
+]
+all = ["adcd[dev,llm,benchmark]"]
 
 [project.urls]
 Homepage = "https://zenodo.org/records/20534940"

@@ -1,7 +1,27 @@
-sympy>=1.12
-numpy>=1.24.0
-pytest>=7.4.0
-jax>=0.4.20
-jaxlib>=0.4.20
-scipy>=1.11.0
-scikit-learn>=1.3.0
+# ADCD runtime dependencies — exact-pinned to the versions used to generate
+# the paper results (reproducibility lockfile).
+#
+# Install with:  pip install -r requirements.txt
+# (or use the editable install for development:  pip install -e ".[dev]")
+#
+# For library use as a dependency, see pyproject.toml which keeps flexible
+# lower bounds.
+
+numpy==2.4.3
+scipy==1.17.1
+sympy==1.14.0
+jax==0.10.1
+jaxlib==0.10.1
+scikit-learn==1.9.0
+matplotlib==3.10.9
+pandas==3.0.3
+
+# Development / testing (matched to the locked environment)
+pytest==9.0.3
+pytest-cov==7.1.0
+flake8==7.3.0
+black==26.5.1
+
+# Primary comparison baseline (declared here, not in pyproject runtime deps,
+# because it pulls in a Julia runtime and is only needed for benchmarking).
+pysr==1.5.10

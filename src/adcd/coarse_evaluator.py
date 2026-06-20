@@ -2,11 +2,7 @@ import sympy as sp
 import numpy as np
 from typing import Dict, Tuple
 
-DEFAULT_CONSTANTS = {
-    'c': 3.0e8,
-    'G': 6.6743e-11,
-    'M': 1.989e30,
-}
+from adcd.constants import DEFAULT_CONSTANTS  # noqa: F401  (re-exported for backwards compat)
 
 class CoarseEvaluator:
     """

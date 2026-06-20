@@ -84,13 +84,15 @@ def fit(
 ) -> ADCDResult:
     """
     Fit a physical correction term to an observed anomaly dataset.
-    
+
     Args:
         X: Dictionary of independent variable arrays, e.g. {"v": array, "m": array}
         y_obs: Observed outputs (containing anomaly)
         y_classical: Classical theory predictions
-        limit_variable: The variable governing the asymptotic classical limit
-        limit_direction: The direction of the limit ("0" or "oo")
+        limit_variable: The variable governing the asymptotic classical limit.
+            Comma-separated for multivariable scenarios.
+        limit_direction: The direction of the limit ("0" or "oo").
+            Comma-separated for multivariable scenarios.
         classical_expr: Formula of the classical law (for LLM context)
         variables_with_units: Dictionary of variables and units (e.g. {"v": "m/s"})
         correction_mode: "additive", "multiplicative", or "auto" (automatically detected)
@@ -99,7 +101,8 @@ def fit(
         api_key: LLM API key (falls back to GEMINI_API_KEY env variable)
         verbose: Print progress logs during optimization
         seed: Random seed for repeatability
-        
+        scenario_name: Label for this run (used in logging and result metadata)
+
     Returns:
         ADCDResult wrapping the discovery outcomes and visualization helpers.
     """
@@ -214,17 +217,17 @@ def discover_correction(
 ) -> ADCDResult:
     """
     Run ADCD correction discovery on a pre-defined AnomalyScenario.
-    
+
     Args:
         scenario: The AnomalyScenario to run
-        noise_level: Noise level to apply (0.0 to 1.0)
+        noise_level: Gaussian noise σ as fraction of classical amplitude (0.0 = clean)
         max_iterations: Max iterations for discovery search
         proposer: Proposer type ("mock", "gemini", "hybrid")
         correction_mode: "additive", "multiplicative", or "auto" (default: auto)
         api_key: LLM API key
         verbose: Print progress logs
         seed: Random seed
-        
+
     Returns:
         ADCDResult wrapping discovery outcome.
     """

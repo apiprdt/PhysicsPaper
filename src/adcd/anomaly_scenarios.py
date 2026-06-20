@@ -3,6 +3,8 @@ import sympy as sp
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
+from adcd.constants import G as G_CODATA, K_B as K_B_CODATA
+
 @dataclass
 class AnomalyScenario:
     name: str
@@ -223,7 +225,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             domain="gravitation",
             classical_expr="G * m * M / r**2",
             classical_variables=["m", "M", "r"],
-            classical_constants={"G": 6.6743e-11},
+            classical_constants={"G": G_CODATA},
             correction_type="multiplicative",
             correction_expr="theta_0 * exp(-r / theta_1)",
             correction_constants={"theta_0": 0.15, "theta_1": 2.5},
@@ -315,7 +317,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             domain="gravitation",
             classical_expr="G * m * M / r**2",
             classical_variables=["m", "M", "r"],
-            classical_constants={"G": 6.6743e-11},
+            classical_constants={"G": G_CODATA},
             correction_type="multiplicative",
             correction_expr="-tanh(theta_0 / r)**2",
             correction_constants={"theta_0": 1.2},
@@ -390,7 +392,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             # Anomaly: Shape correction factor for non-spherical particles
             classical_expr="k_B * T / (6 * pi * eta * r)",
             classical_variables=["T", "r"],
-            classical_constants={"k_B": 1.380649e-23, "pi": 3.14159, "eta": 1e-3},
+            classical_constants={"k_B": K_B_CODATA, "pi": 3.14159, "eta": 1e-3},
             correction_type="multiplicative",
             # Oblate spheroid correction: (3/8)*sqrt(pi)*r^0.5 - 1  (simplified)
             correction_expr="theta_0 * (r / theta_1)**0.5",
@@ -409,7 +411,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             # Anomaly: Planck quantum correction
             classical_expr="2 * k_B * T * f**2 / c**2",
             classical_variables=["T", "f"],
-            classical_constants={"k_B": 1.380649e-23, "c": 3e8},
+            classical_constants={"k_B": K_B_CODATA, "c": 3e8},
             correction_type="multiplicative",
             # Quantum correction: (hf/kT)/(exp(hf/kT) - 1) relative to kT/hf limit
             # Simplified as: exp(-theta_0 * f / T) correction
@@ -443,7 +445,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             domain="gravitation",
             classical_expr="G * m * M / r**2",
             classical_variables=["m", "M", "r"],
-            classical_constants={"G": 6.6743e-11},
+            classical_constants={"G": G_CODATA},
             correction_type="multiplicative",
             correction_expr="theta_0 * (r / theta_1) / (1.0 + r / theta_1)",
             correction_constants={"theta_0": 0.25, "theta_1": 2.0},
@@ -475,7 +477,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             domain="gravitation",
             classical_expr="G * m * M / r**2",
             classical_variables=["m", "M", "r"],
-            classical_constants={"G": 6.6743e-11},
+            classical_constants={"G": G_CODATA},
             correction_type="additive",
             correction_expr="-theta_0 / r**4",
             correction_constants={"theta_0": 0.05},
@@ -491,7 +493,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             domain="quantum_optics",
             classical_expr="2 * k_B * T * f**2 / c**2",
             classical_variables=["T", "f"],
-            classical_constants={"k_B": 1.380649e-23, "c": 3e8},
+            classical_constants={"k_B": K_B_CODATA, "c": 3e8},
             correction_type="multiplicative",
             # Composite product of polynomial and exponential
             correction_expr="(theta_0 * f / T) * exp(-theta_0 * f / T)",
@@ -531,7 +533,7 @@ def get_mv_scenarios() -> List[AnomalyScenario]:
             domain="gravitation",
             classical_expr="G * m * M / r**2",
             classical_variables=["m", "M", "r"],
-            classical_constants={"G": 6.6743e-11, "r_0": 2.5},
+            classical_constants={"G": G_CODATA, "r_0": 2.5},
             correction_type="multiplicative",
             correction_expr="theta_0 * (m / M) * exp(-r / r_0)",
             correction_constants={"theta_0": 0.50},
@@ -547,7 +549,7 @@ def get_mv_scenarios() -> List[AnomalyScenario]:
             domain="plasma physics",
             classical_expr="n * k_B * T",
             classical_variables=["n", "T"],
-            classical_constants={"k_B": 1.38e-23, "n_ref": 1e20, "T_ref": 1000.0},
+            classical_constants={"k_B": K_B_CODATA, "n_ref": 1e20, "T_ref": 1000.0},
             correction_type="multiplicative",
             correction_expr="theta_0 * (n / n_ref) * (T_ref / T)**0.5",
             correction_constants={"theta_0": 0.3},
@@ -580,7 +582,7 @@ def get_mv_scenarios() -> List[AnomalyScenario]:
             classical_expr="n * k_B * T / V",
             classical_variables=["n", "V"],
             classical_constants={
-                "k_B": 1.38e-23,
+                "k_B": K_B_CODATA,
                 "T": 300.0,
                 "n_ref": 1.0,
                 "V_ref": 1.0,

@@ -12,6 +12,8 @@ from AnomalyScenario.generate_data().
 import numpy as np
 from typing import Dict, Tuple
 
+from adcd.constants import G, C as c, M_SUN as M_sun, K_B as k_B, H as h, M_E as m_e, E as eV
+
 
 def load_mercury_perihelion(
     seed: int = 42,
@@ -30,9 +32,6 @@ def load_mercury_perihelion(
     """
     rng = np.random.RandomState(seed)
 
-    G = 6.674e-11
-    M_sun = 1.989e30
-    c = 2.998e8
     a = 5.791e10
     e = 0.2056
 
@@ -57,10 +56,11 @@ def load_mercury_perihelion(
 
 
 def _binary_pulsar_constants():
-    """Shared Hulse-Taylor / CODATA parameters for binary pulsar loaders."""
-    G = 6.674e-11
-    c = 2.998e8
-    M_sun = 1.989e30
+    """Shared Hulse-Taylor / CODATA parameters for binary pulsar loaders.
+
+    G, c and M_sun come from the centralized :mod:`adcd.constants` module so
+    that every loader shares identical CODATA values.
+    """
     m1 = 1.4408 * M_sun
     m2 = 1.3873 * M_sun
     M = m1 + m2
@@ -165,13 +165,9 @@ def load_hydrogen_lamb_shift(
     Correction type: additive.
     """
     rng = np.random.RandomState(seed)
-    
-    # Physical constants
+
+    # Physical constants (m_e, c, eV via adcd.constants)
     alpha = 7.297e-3     # fine structure constant
-    m_e = 9.109e-31      # electron mass [kg]
-    c = 2.998e8          # speed of light [m/s]
-    # h = 6.626e-34      # Planck constant [J·s] (unused, kept for reference)
-    eV = 1.602e-19       # electron-volt [J]
     
     # Quantum numbers
     n_values = np.arange(2, 20, dtype=np.float64)  # n = 2 to 19
@@ -213,11 +209,8 @@ def load_blackbody_radiation(
     Correction type: multiplicative.
     """
     rng = np.random.RandomState(seed)
-    
-    # Physical constants
-    k_B = 1.381e-23     # Boltzmann constant [J/K]
-    h = 6.626e-34        # Planck constant [J·s]
-    c = 2.998e8          # speed of light [m/s]
+
+    # Physical constants (routed through adcd.constants for consistency)
     T = 5778.0           # Sun surface temperature [K]
     
     n_points = 200

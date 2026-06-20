@@ -122,3 +122,41 @@ class TestMultivariableEndToEnd:
         expr = sp.sympify(result.best_expr)
         vars_found = {str(s) for s in expr.free_symbols if s.name in ["m", "M", "r"]}
         assert len(vars_found) >= 2
+
+    def test_pipeline_execute_restored_on_exception(self):
+        """Regression: the monkey-patched `pipeline.execute` must be restored
+        even when ``orchestrator.search_correction`` raises. Previously the
+        restore lived outside a ``finally`` block, leaving the pipeline in a
+        permanently patched state after any failure."""
+        from adcd.multivar_orchestrator import _build_mv_pipeline, run_adcd_mv, get_mv_scenario
+        from adcd.pipeline import Stage1Pipeline
+        from unittest.mock import patch
+
+        scenario = get_mv_scenario("MV-1: Yukawa Mass-Ratio")
+
+        # Capture the pipeline built inside run_adcd_mv and force search_correction
+        # to raise, then assert execute was restored to the original class method.
+        captured = {}
+        real_builder = _build_mv_pipeline
+
+        def capturing_builder(scen, seed=42):
+            pipeline, optimizer, proposer = real_builder(scen, seed=seed)
+            captured["pipeline"] = pipeline
+            return pipeline, optimizer, proposer
+
+        with patch("adcd.multivar_orchestrator._build_mv_pipeline", side_effect=capturing_builder):
+            with patch(
+                "adcd.multivar_orchestrator.CorrectionOrchestrator.search_correction",
+                side_effect=RuntimeError("simulated search failure"),
+            ):
+                try:
+                    run_adcd_mv(scenario, noise=0.0, seed=42)
+                except RuntimeError:
+                    pass
+
+        # After restore, pipeline.execute must resolve to the original bound
+        # class method (not the execute_dimensionless closure). Compare via
+        # __func__/__self__ since bound methods are recreated on each access.
+        restored = captured["pipeline"].execute
+        assert restored.__func__ is Stage1Pipeline.execute
+        assert restored.__self__ is captured["pipeline"]

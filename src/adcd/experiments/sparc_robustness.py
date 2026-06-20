@@ -12,6 +12,9 @@ import numpy as np
 from adcd.experiments.sparc_data import parse_sparc_mrt, DEFAULT_CACHE
 from adcd.experiments.mond_comparison import nu_simple_mond, nu_rar
 from adcd.jax_optimizer import JAXOptimizer
+from adcd.constants import G_DAGGER, KPC_TO_M
+
+KM_TO_M = 1000.0
 
 
 def _nmse(y_obs: np.ndarray, y_pred: np.ndarray) -> float:
@@ -69,12 +72,8 @@ def run_robustness_test(cache_path: str = DEFAULT_CACHE, seed: int = 42):
             v_bulge = grp["v_bulge"].values
             
             v_bar = np.sqrt(v_gas ** 2 + v_disk ** 2 + v_bulge ** 2)
-            
-            # Physics conversion
-            KPC_TO_M = 3.085677581e19
-            KM_TO_M = 1000.0
-            G_DAGGER = 1.2e-10
-            
+
+            # Physics conversion (constants via adcd.constants)
             r_m = r_kpc * KPC_TO_M
             v_bar_ms = v_bar * KM_TO_M
             v_obs_ms = v_obs * KM_TO_M

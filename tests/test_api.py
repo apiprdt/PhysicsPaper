@@ -25,9 +25,8 @@ def test_discover_correction_scenario():
     latex_text = result.export_latex()
     assert "\\Delta" in latex_text
     
-    # Test candidates display (returns HTML table in mockup test environment)
-    candidates_display = result.show_candidates(top_k=3)
-    assert candidates_display is not None or True
+    # Test candidates display does not crash (returns None in non-Jupyter context)
+    result.show_candidates(top_k=3)  # must not raise
     
     # repr_html
     html_repr = result._repr_html_()
