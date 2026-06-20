@@ -226,9 +226,70 @@ If you use ADCD in your research, please cite:
 
 ---
 
-## 👥 AI Disclosure
+## 🔬 Reproducibility
 
-This project was developed with assistance from Google DeepMind's Antigravity AI assistant. AI was used as a pair-programming and writing tool. All scientific content, experimental design decisions, and intellectual contributions are the author's own.
+Every quantitative claim in this project is reproducible from committed scripts. No number is hand-typed.
+
+```bash
+# Regenerate the 9-scenario benchmark (seed=42)
+python run_correction_discovery.py
+
+# Multi-seed study (5 seeds × 9 scenarios × 4 noise levels)
+python run_reproducibility.py
+
+# Guard: fails loudly if any headline number drifts
+python scripts/verify_paper_claims.py
+
+# SPARC MOND robustness study
+python -m adcd.experiments.sparc_robustness
+```
+
+The full test suite (116 tests) must pass before any release:
+
+```bash
+pytest tests/ -q
+```
+
+See [`docs/SUBMISSION_CHECKLIST_v2.1.3.md`](docs/SUBMISSION_CHECKLIST_v2.1.3.md) for the end-to-end release procedure.
+
+---
+
+## 👥 AI Disclosure & Responsible Use
+
+Transparency matters. This section documents exactly how AI tools were used in the ADCD project, in line with emerging norms for AI-assisted scientific software.
+
+### Authoring assistance
+
+The source code, the accompanying paper, and this documentation were written with assistance from AI assistants (Google DeepMind's Antigravity, and earlier OpenAI/Claude-based coding tools). AI was used as a **pair-programming and writing aid**:
+
+- **Code generation & refactoring** — drafting modules, fixing lint errors, generating boilerplate, suggesting type hints.
+- **Prose editing** — improving clarity, grammar, and structure of the paper and docs.
+- **Debugging** — diagnosing stack traces, suggesting fixes for JAX/NumPy numerical issues.
+- **Code review** — catching edge cases, suggesting test coverage improvements.
+
+### AI as an *optional* discovery backend (not a co-author)
+
+ADCD supports an **LLM-based proposer** (`src/adcd/llm_proposer.py`), which can query a language model (Gemini or OpenAI) to suggest candidate correction templates. This is an **opt-in research feature**, not the default:
+
+- The default and headline benchmarks use the **`mock` proposer** (deterministic template library), **not** the LLM proposer.
+- When the LLM proposer is enabled, its suggestions are still passed through the full physics-gate pipeline (dimensional homogeneity, ARC, BIC). The AI **cannot** bypass physics validation — every candidate must satisfy the same constraints as any other template.
+- AI never runs experiments or computes final benchmark numbers. All quantitative results were generated, verified, and curated by the author.
+
+### What is *not* AI-generated
+
+To be explicit, the following are the **sole intellectual contribution of the author (Muhammad Afif Erdita)**:
+
+- The scientific idea — anomaly-driven *correction* discovery as opposed to blank-slate symbolic regression.
+- The physics-gate pipeline design (cascaded gates, ARC, BIC reranking, Occam's razor).
+- All experimental design decisions: scenario selection, noise levels, evaluation protocols, the PySR fair-profile comparison, the SPARC MOND validation protocol.
+- Selection and interpretation of real-world benchmarks (Mercury perihelion, Lamb Shift, Muon g-2, Blackbody).
+- All claims, conclusions, and limitations discussed in the paper.
+
+### Reproducibility safeguard
+
+Because AI tools can fabricate plausible-looking numbers, every benchmark figure reported in this README and in the paper is **regenerable from frozen scripts** (`run_correction_discovery.py`, `run_reproducibility.py`, `scripts/verify_paper_claims.py`). The `verify_paper_claims.py` guard fails loudly if any headline number drifts. **Nothing in the headline results was hand-typed from AI output.**
+
+If you spot any inaccuracy or have questions about AI use in this project, please open an issue.
 
 ---
 
