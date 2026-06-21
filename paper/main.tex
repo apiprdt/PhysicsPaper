@@ -54,8 +54,15 @@
 \maketitle
 
 \begin{abstract}
-Traditional symbolic regression algorithms attempt to discover mathematical laws from physical experimental data starting from a blank slate. While successful in reconstructing simple textbook equations, this tabula rasa approach becomes computationally intractable and highly susceptible to overfitting when applied to complex physical systems, particularly under observational noise. In this work, we present \textbf{Anomaly-Driven Correction Discovery (ADCD)}, a physics-informed symbolic regression framework designed to mimic the evolutionary nature of scientific discovery. Rather than learning entire equations from scratch, ADCD takes a known classical physical law and seeks to discover the mathematical structure of the dimensionless correction term ($\Delta$) that explains the discrepancy between classical predictions and anomalous experimental observations. By utilizing a cascaded pipeline of physical filters---including AST complexity limits, dimensional homogeneity with transcendental argument constraints, and asymptotic limits (ARC)---coupled with a JAX-traced L-BFGS-B parameter optimizer and Bayesian Information Criterion (BIC) reranking, ADCD strongly enforces physical plausibility on the candidate search space and demonstrates robustness to experimental error. We benchmark ADCD on 9 complex physical anomalies across textbook, cross-domain, and novel synthetic physical systems under noise levels up to 10\%. ADCD achieves a mean structural recovery rate of \textbf{82.8\% ($\pm$7.7\%) across five random seeds}, with peak performance of 94.4\% (34/36) at the reference seed (seed=42, the highest-performing seed in the set---disclosed explicitly in Section~4).
- Performance variation across seeds reflects the stochastic nature of template sampling in the MockProposer; physics gates ensure that when a correct functional family is sampled, it consistently survives gate filtering and is selected by BIC reranking. At the reference seed (both figures reported at seed=42), the Mock Proposer achieves 94.4\% and the Hybrid Proposer achieves 91.7\%, both outperforming PySR fair at 5\% observational noise (88.9\% vs.\ 11.1\% structural recovery; 77.8 percentage-point gap). ADCD recovers highly non-linear, multi-scale transcendental corrections (such as relativistic kinetic energy, Yukawa gravity, and quantum mechanical sinc fluctuations) across three complexity tiers. Beyond synthetic benchmarks, ADCD achieves \textbf{structural class recovery on 4/4} established real-world physics scenarios (Mercury perihelion, Lamb shift, blackbody UV correction, and muon $g-2$); \textbf{quantitative recovery} (NMSE $< 10^{-4}$) holds for 3/4, with Blackbody limited to structural identification (NMSE $\approx 2.6 \times 10^{-2}$). A fifth scenario (binary pulsar orbital decay) is reported as a \textbf{controlled sensitivity study}: under a single-variable reduced formulation ADCD recovers the correct power-law class, but performance degrades monotonically as additional orbital parameters are exposed, and the full four-parameter scan fails structurally. As the strongest test, we apply ADCD to \textbf{real observational data}---the SPARC sample of 171 galactic rotation curves ($N=3342$ radial points). Starting only from the Newtonian baseline and the asymptotic constraint that the correction vanishes in the high-acceleration limit, ADCD discovers a two-parameter interpolating function for the radial acceleration relation that \textbf{decisively outperforms the fixed zero-parameter canonical MOND/RAR forms} (41\% stacked-NMSE reduction) and, under a fair galaxy-level comparison---10-repeat cross-validation plus a 1{,}000-resample cluster bootstrap at $N_{\rm eff}=171$---\textbf{reaches statistical parity with the two-parameter refit Simple-MOND and McGaugh RAR forms} ($\Delta$NMSE$=0.008$, $z=0.39$; $\delta{\rm BIC}_{\rm eff}=+3.4$, 95\% CI brackets zero) while \textbf{decisively beating two-parameter Standard MOND} ($z=-4.60$). We interpret this not as predictive superiority but as evidence that autonomous correction discovery can reach the performance of interpolating functions refined by domain experts over decades---without access to those forms as candidates. We disclose all template overlaps, report recovered functional forms (not only class labels), and provide a binary pulsar sensitivity table showing the reliability boundary of the current method. A multivariable extension (Buckingham-$\Pi$ + sequential ARC) is reported honestly as an exploratory capability (2--3/4 scenarios) rather than a headline claim.
+Traditional symbolic regression discovers equations from scratch, an approach that becomes computationally intractable and overfitting-prone on complex physical systems under observational noise. We present \textbf{Anomaly-Driven Correction Discovery (ADCD)}, a physics-informed symbolic regression framework that instead takes a known classical law and searches for the dimensionless correction term $\Delta$ that reconciles it with anomalous observations. ADCD cascades physical filters---AST complexity, dimensional homogeneity with a transcendental-argument guardrail, and asymptotic-regime consistency (ARC)---with a JAX-traced L-BFGS-B optimizer and Bayesian Information Criterion (BIC) reranking, enforcing physical plausibility \emph{before} numerical optimization and demonstrating robustness to experimental error.
+
+\textbf{Synthetic benchmark.} On 9 physical anomalies spanning textbook, cross-domain, and synthetic systems under noise up to 10\%, ADCD achieves a mean structural recovery of \textbf{82.8\% ($\pm$7.7\%) across five seeds}, with 94.4\% (34/36) at the reference seed=42 (disclosed explicitly as the highest-performing seed; the mean is the primary claim). At 5\% noise, ADCD reaches 88.9\% versus 11.1\% for PySR under a matched residual formulation---a 77.8 percentage-point gap that persists even when PySR's search budget is doubled. The same machinery recovers the correct structural class on 4/4 established real-world scenarios (Mercury perihelion, Lamb shift, muon $g-2$, blackbody) and fails safe on the misspecification benchmark.
+
+\textbf{Real-world: SPARC (honest framing).} On the SPARC sample ($N_{\rm gal}=171$, $N_{\rm pts}=3342$), ADCD autonomously converges to a \emph{two-parameter member of the Simple MOND algebraic family} (Famaey \& Binney 2005), with a transition parameter $\hat\theta_1\approx 0.27$ versus the canonical $c=4.0$ (a factor of $\sim\!15$). The discovered form achieves a 41\% stacked-NMSE reduction over the fixed zero-parameter canonical MOND/RAR forms and, under fair galaxy-level cross-validation plus a 1{,}000-resample cluster bootstrap, reaches statistical parity with two-parameter domain-expert forms ($\Delta$NMSE$=0.008$, $z=0.39$; $\delta{\rm BIC}_{\rm eff}=+3.4$, 95\% CI brackets zero) while decisively beating two-parameter Standard MOND ($z=-4.60$). We claim autonomous rediscovery of this family from data, not a novel family.
+
+\textbf{Cosmological probes.} Extended to cosmological datasets---63 $f\sigma_8$ growth-rate measurements and 34 $H(z)$ cosmic-chronometer points---ACCD finds \emph{no} $z$-dependent functional correction beyond a constant amplitude rescaling in five independent tests (two observables, three homogeneous survey subsets). The best-fit amplitudes are consistent with the $S_8$ tension direction ($\sigma_{8,0}=0.7815$ vs.\ Planck $0.811$); the null result constrains but does not determine the physical origin of the tension.
+
+\textbf{Structural dichotomy.} These results suggest a structural pattern---reported as an observation, not a proof: anomalies in individual gravitational systems (textbook, SPARC) exhibit functional corrections recoverable by ADCD, while large-scale cosmological tensions appear as amplitude offsets. Whether this reflects genuine physics or current survey-precision limits is an open question we explicitly flag. We disclose all template overlaps, report recovered forms, and document a multivariable extension as an exploratory capability rather than a headline claim.
 \end{abstract}
 
 \section{Introduction}
@@ -76,6 +83,16 @@ Consider three prominent historical examples of this evolutionary paradigm:
 \end{enumerate}
 
 Motivated by these historical precedents, we propose the \textbf{Anomaly-Driven Correction Discovery (ADCD)} framework. ADCD contributes at three levels. At the \textbf{conceptual level}, it introduces the correction-first paradigm: searching for $\Delta$ in a restricted subspace $\mathcal{D} \subset \mathcal{F}$ rather than the full function space $\mathcal{F}$. This correction-first paradigm is designed for anomaly-driven theory refinement---where the classical baseline is structurally correct and the anomaly is incremental---rather than wholesale theory replacement. At the \textbf{algorithmic level}, ADCD implements physics-gated search: AST complexity, dimensional homogeneity with transcendental guardrail, and asymptotic limit (ARC) gates operate as a collective physical consistency filter that screens candidates \textit{before} any numerical optimization occurs, with adaptive dimensional relaxation on free parameters as detailed in \Cref{sec:limitations}. Empirically, ablation on the primary benchmark (\Cref{fig:ablation}) shows that removing the ARC, AST, or Coarse-Eval gate individually does not change structural accuracy at 5\% noise; removing the dimensional gate alone reduces accuracy by 11.1 percentage points (8/9 to 7/9), confirming its role as the primary structural filter. Only removing \emph{all} gates simultaneously causes a larger collapse (8/9 to 4/9), indicating that the gates reinforce each other as a collective physical consistency filter. At the \textbf{engineering level}, ADCD provides a JAX-traced L-BFGS-B optimizer, a Python package with a public API, CLI interface, and CI/CD pipeline for reproducible benchmarking.
+
+\paragraph{Scope and extended validation.}
+In this work, we extend ADCD beyond synthetic validation to three classes of
+real-world anomaly at progressively larger physical scales: \emph{galactic}
+rotation curves (SPARC), \emph{stellar-system} kinematics (wide-binary stars),
+and \emph{large-scale cosmological} structure growth ($f\sigma_8$) and expansion
+history ($H(z)$). Each class yields a qualitatively different outcome---functional
+recovery, ambiguous cross-system transfer, and an amplitude-only null result
+respectively---revealing a structural pattern in how anomalies manifest across
+physical scales (\Cref{sec:dichotomy}).
 
 
 \section{Related Work}
@@ -98,6 +115,21 @@ much smaller space of physically meaningful \textit{corrections} to known
 laws, exploiting the prior knowledge embedded in the classical theory.
 PhySO ($\Phi$-SO) \cite{tenachi2023physo} incorporates dimensional analysis as a hard constraint during tabula rasa symbolic regression, using deep reinforcement learning to generate only unit-consistent expression trees. This directly addresses the problem of dimensionally impossible candidates in the search space---a concern that also motivates ADCD's dimensional homogeneity gate. The two frameworks diverge in problem formulation and scope: PhySO discovers full governing equations from data, whereas ADCD restricts search to physically meaningful \textit{corrections} $\Delta$ relative to a known classical baseline, substantially reducing the hypothesis space. ADCD further complements unit checking with asymptotic regime consistency (ARC) and complexity filtering, applied specifically to the correction subspace. Unlike PhySO's strict unit enforcement, ADCD's dimensional gate employs adaptive parameter relaxation on free parameters, as documented in \Cref{sec:limitations}.
 LLM-assisted symbolic regression methods such as LaSR \cite{grayeli2024lasr} accelerate hypothesis generation by using language-model queries to construct and evolve an \emph{abstract concept library} that guides evolutionary search, rather than proposing expressions directly. These approaches improve search efficiency but do not enforce physical consistency on candidate expressions before numerical fitting. ADCD adopts a complementary design in its Hybrid Proposer: LLM-generated correction templates are subjected to the same physics-gated cascade---complexity, dimensional analysis with transcendental guard, and asymptotic limits---used for template-based proposals, filtering semantically plausible but physically inconsistent candidates \textit{before} Stage-2 optimization.
+
+\paragraph{Modified gravity and cosmological-tension context.}
+The two real-world physics domains we target in
+Sections~\ref{sec:sparc}--\ref{sec:cosmological} have well-developed
+domain-specific literatures that motivate the correction-first framing. For the
+galactic-scale tests, the family of MOND interpolating functions is reviewed
+comprehensively by Famaey \& McGaugh~\cite{famaey2012mond}, which we use as the
+reference for the Simple/Standard/RAR algebraic families against which the
+SPARC-discovered form is compared (\Cref{sec:sparc}). For the cosmological-scale
+tests, the $f\sigma_8$ compilation of Alestas et al.~\cite{alestas2022fs8}
+documents the $S_8$ tension as a residual of observed growth-rate measurements
+relative to the Planck-calibrated $\Lambda$CDM prediction---precisely the form
+of anomaly ($y_{\rm obs} - y_{\rm classical}$) for which ADCD is designed, and
+the dataset on which \Cref{sec:cosmological} reports a quantitative
+\textsc{constant\_wins} bound.
 
 \subsection{Physics-Informed Machine Learning}
 Physics-Informed Neural Networks (PINNs) \cite{raissi2019physics} embed
@@ -713,6 +745,70 @@ move while the fitted curve and the relative ranking of models stay fixed.
 
 \input{generated/tab_sparc_robustness}
 
+\paragraph{Algebraic identification of the discovered family.}
+A natural question---raised by any reviewer familiar with the MOND
+literature---is whether the ADCD-discovered function is novel. It is not, and we
+state the equivalence explicitly rather than leave it implicit. Expanding the
+boxed form,
+\[
+\nu_{\rm ADCD}(x) = \theta_0\!\left(\sqrt{1+\theta_1/x}-1\right)+1
+                  = (1-\theta_0) + \theta_0\sqrt{1+\theta_1/x}
+                  = a + b\sqrt{1+c/x},
+\]
+with $a=1-\theta_0$, $b=\theta_0$, $c=\theta_1$ and the constraint $a+b=1$.
+The Simple MOND interpolating function of Famaey \& Binney~\cite{famaey2005simple}
+has exactly this algebraic skeleton,
+\[
+\nu_{\rm Simple}(x) = a_{\rm S} + b_{\rm S}\sqrt{1+c_{\rm S}/x},
+\qquad a_{\rm S}=0.5,\ b_{\rm S}=0.5,\ c_{\rm S}=4.0.
+\]
+\emph{The two forms belong to the same algebraic family.} The distinction is in
+the \emph{transition parameter}: ADCD's $\hat c\approx 0.27$ versus the canonical
+$c_{\rm S}=4.0$---a factor of $\sim\!15$. The transition parameter $c$ controls
+the acceleration scale at which the interpolating function departs from unity
+and begins the Newtonian-to-deep-MOND crossover: a smaller $c$ pushes the
+departure to lower $x$ (i.e.\ lower baryonic acceleration). We therefore claim
+\emph{autonomous rediscovery of the Simple-MOND family from real data}, not the
+discovery of a novel family. The scientific content of the SPARC result is the
+\emph{autonomous-discovery parity}---a two-parameter member of this family
+recovered without knowledge of the candidate family lands within the confidence
+band of functions refined by the MOND/RAR community over decades---not novelty
+of the functional skeleton.
+
+\paragraph{Parameter degeneracy.}
+The two free parameters are mildly degenerate: the fitted curve in the
+deep-MOND regime depends on them mainly through the product
+$\theta_0\sqrt{\theta_1}$. Across the three quality cuts of
+\Cref{tab:sparc_robustness} this product is approximately constant while the
+individual parameters move substantially
+(\Cref{tab:sparc_degeneracy}). The deep-MOND asymptote
+$\nu \sim \theta_0\sqrt{\theta_1/x}$ is therefore stable across cuts at
+$\approx 0.82$--$0.94\,x^{-1/2}$, compared with the canonical Simple-MOND
+asymptote $1.0\,x^{-1/2}$---a $\sim\!6.5\%$ difference in the deep-MOND slope.
+The relevant stability signal is the recovered family and the out-of-sample NMSE
+(both stable), not the absolute prefactor.
+
+\begin{table}[H]
+\centering\footnotesize
+\caption{SPARC parameter degeneracy across quality cuts. The deep-MOND product
+$\theta_0\sqrt{\theta_1}$ is approximately constant even as the individual
+parameters move by a factor of $\sim\!1.5$, confirming that the fitted curve is
+governed by the product; individual point estimates are not separately
+identifiable from the stacked relation.}
+\label{tab:sparc_degeneracy}
+\begin{tabular}{l c c c}
+\toprule
+\textbf{Quality cut} & $\hat\theta_0$ & $\hat\theta_1$ & $\hat\theta_0\sqrt{\hat\theta_1}$ \\
+\midrule
+Baseline (171 gal)            & 1.83 & 0.262 & 0.935 \\
+Strict (121 gal)              & 1.61 & 0.324 & 0.918 \\
+Ultra-strict pristine (75 gal)& 1.20 & 0.468 & 0.819 \\
+\midrule
+Simple MOND canonical         & 0.50 & 4.000 & 1.000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \paragraph{Scope of the claim.}
 We do \emph{not} claim that ADCD has resolved the modified-gravity / dark-matter
 question, nor that the discovered family is predictively superior to the
@@ -729,6 +825,174 @@ scientific content of the result is the \emph{autonomous-discovery parity}: a
 two-parameter interpolating function recovered without knowledge of the
 candidate family lands within the confidence band of functions refined by the
 MOND/RAR community over decades.
+
+\subsection{Cosmological Probes: Growth Rate and Expansion History}
+\label{sec:cosmological}
+
+The SPARC result (\Cref{sec:sparc}) establishes that ADCD can recover a
+\emph{functional} correction from a galactic-scale anomaly. A natural and
+demanding complement is to apply the same machinery to large-scale cosmological
+tensions, where the prevailing interpretation is that of an \emph{amplitude}
+mismatch rather than a functional one. We test this on two independent
+observables: the structure-growth rate $f\sigma_8(z)$ and the expansion history
+$H(z)$.
+
+\paragraph{Growth rate $f\sigma_8(z)$.}
+We use the 63-point $f\sigma_8$ compilation of Alestas et al.~\cite{alestas2022fs8}
+(Table~II; $z\in[0.001,1.944]$). The General-Relativity baseline is the
+standard linear-theory prediction
+\[
+f\sigma_8(z) = \Omega_m(z)^{\gamma}\,D(z)\,\sigma_{8,0},
+\qquad \gamma \approx 0.55,
+\]
+with $\sigma_{8,0}$ treated as the baseline's single free amplitude (fitted by
+weighted least squares on the compilation). We then form the residual
+$\Delta(z) = f\sigma_8^{\rm obs}(z) - f\sigma_8^{\rm GR}(z)$ and run ADCD's
+candidate library---constant offset, linear, quadratic, power law, power$+$offset,
+exponential, exponential$+$offset, rational, and logarithmic---each fit by
+L-BFGS-B with 30 random restarts and scored by BIC against $\Delta(z)$. The
+1-parameter constant offset $\Delta(z)=\theta_0$ is included as the null model:
+it is the simplest physically meaningful description of an $S_8$-like amplitude
+tension (a pure $\sigma_{8,0}$ renormalisation, with no $z$-dependence).
+
+\paragraph{Homogeneous-subset cross-check.}
+Because the 63-point compilation mixes $\sim\!15$ surveys with heterogeneous
+modelling systematics, a $z$-dependent correction that ``wins'' on the full
+compilation could be an artefact of inter-survey offsets. We therefore re-run
+the discovery on three homogeneous subsets chosen for minimal systematic
+contamination: the 6 canonical BOSS DR12 (Alam+2017) consensus points, the
+20 most-precise measurements, and the 31-point BOSS-dominated mid-$z$ window
+$z\in[0.35,0.75]$.
+
+\paragraph{Expansion history $H(z)$.}
+As an independent observable, we use the 34-point cosmic-chronometer $H(z)$
+compilation ($z\in[0.070,1.965]$), which is model-independent and free of
+CMB/BAO/RSD systematics. The reference $\Lambda$CDM prediction is
+$H(z)=H_0\sqrt{\Omega_{m,0}(1+z)^3+\Omega_{\Lambda,0}}$ with $(H_0,\Omega_{m,0})$
+as two nuisance amplitudes; we then run the same candidate library on
+$\Delta_H(z)=H_{\rm obs}-H_{\rm GR}$.
+
+\paragraph{Result: no functional correction is detected.}
+\Cref{tab:cosmological_probes} summarises all five tests. In \emph{every} case
+the verdict is \textsc{constant\_wins}: no $z$-dependent functional candidate
+beats the 1-parameter constant offset by the Kass--Raftery decisive threshold
+$\Delta{\rm BIC}<-10$. On the full $f\sigma_8$ compilation the best candidate
+\emph{is} the constant offset ($\Delta$BIC vs.\ null $=+0.00$); on the
+homogeneous subsets the best candidates are Linear (BOSS DR12, $\Delta$BIC$=-9.63$,
+short of the threshold with $N=6$), Constant offset (precision), and Power law
+(mid-$z$, $\Delta$BIC$=-0.00$); on $H(z)$ the constant offset again wins
+($\Delta$BIC$=+0.00$). The best-fit amplitudes are physically reasonable:
+$\sigma_{8,0}=0.7815$ ($-3.7\%$ vs.\ Planck 2018's $0.811$---consistent in
+direction with the $S_8$ tension), and $H_0=68.48\,\mathrm{km\,s^{-1}\,Mpc^{-1}}$,
+$\Omega_{m,0}=0.296$ on $H(z)$.
+
+\input{generated/tab_cosmological_probes}
+
+% --- Figure: cosmological probes ---
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_cosmological_probes.pdf}
+\caption{Cosmological-probe residuals and the \textsc{constant\_wins} verdict.
+\textbf{(a)} $f\sigma_8$ residual $\Delta(z)=f\sigma_8^{\rm obs}-f\sigma_8^{\rm GR}$
+(63 points, Alestas+22); the GR baseline has $\sigma_{8,0}$ free.
+Inverse-variance bin means (red) are consistent with zero across all redshifts
+(|pull|~$\leq 0.5\sigma$), and the ADCD-selected model is the 1-parameter
+constant offset (dashed). \textbf{(b)} Same for $H(z)$ (34 cosmic-chronometer
+points); the best candidate is again the constant offset. In both observables
+no $z$-dependent functional form beats a pure amplitude rescaling by
+$\Delta$BIC~$<-10$.}
+\label{fig:cosmological_probes}
+\end{figure}
+
+\paragraph{Interpretation.}
+Across five independent tests spanning two observables and three survey subsets,
+ADCD finds \emph{no} $z$-dependent functional correction beyond a constant
+amplitude rescaling. Two interpretations are consistent with this null result:
+\begin{itemize}
+    \item \emph{Physics interpretation}: the $S_8$ tension originates from an
+    amplitude renormalisation (e.g.\ a $\sigma_8$ normalisation set by
+    early-universe physics) rather than modified growth dynamics---in which
+    case no functional $z$-correction exists to be discovered.
+    \item \emph{Sensitivity interpretation}: a functional correction exists
+    but falls below ADCD's detection threshold given current survey precision
+    ($\sim\!20\%$ typical point errors in $f\sigma_8$) and heterogeneous
+    systematics across $15+$ survey instruments.
+\end{itemize}
+The current data cannot distinguish these interpretations. The
+\textsc{constant\_wins} result is therefore best read as a \emph{quantitative
+upper bound} on the detectability of a functional growth correction in the
+present compilation, not as a proof of correction absence. Future surveys
+(DESI full release, Euclid, Rubin/LSST) with $3$--$5\times$ improvement in
+$f\sigma_8$ precision will provide a definitive test. Crucially, the result
+also demonstrates that ADCD does not surface spurious functional corrections
+when none is supported by the data---the fail-safe property established on the
+synthetic misspecification benchmark (\Cref{sec:results}) carries over to real
+cosmological archives.
+
+\subsection{Structural Dichotomy: Functional vs.\ Amplitude Anomalies}
+\label{sec:dichotomy}
+
+Taken together, the galactic (SPARC) and cosmological ($f\sigma_8$, $H(z)$)
+results exhibit a qualitative pattern that we report as an \emph{observation},
+not a proven conclusion. \Cref{tab:dichotomy} summarises the outcomes across
+scales. Functional corrections---where ADCD recovers a $z$- or $r$-dependent
+$\Delta$ that genuinely improves on the classical baseline---are found in
+individual gravitational systems: textbook orbital and force-law anomalies
+(synthetic), and galactic rotation curves (SPARC). Cosmological tensions, by
+contrast, manifest as amplitude offsets with no detected functional structure:
+ADCD correctly identifies the \emph{absence} of a functional correction and
+selects a constant rescaling.
+
+\begin{table}[H]
+\centering\footnotesize
+\caption{Structural dichotomy across physical scales. ``Functional'' denotes
+that ADCD recovered a $z$- or $r$-dependent correction that beats the classical
+baseline; ``Amplitude'' denotes that only a constant rescaling was supported;
+``Ambiguous'' denotes an inconclusive cross-system test (Appendix~\ref{app:wide-binary}).}
+\label{tab:dichotomy}
+\begin{tabularx}{\textwidth}{L c c L}
+\toprule
+\textbf{System} & \textbf{Scale} & \textbf{Outcome} & \textbf{Anomaly type} \\
+\midrule
+Textbook physics (9 scenarios) & micro--macro      & Functional & $z$/$r$-dependent correction \\
+SPARC rotation curves          & galactic ($\sim$kpc) & Functional & $r$-dependent correction \\
+Wide binary stars              & stellar ($\sim$kAU)  & Ambiguous  & cross-system, inconclusive (App.~\ref{app:wide-binary}) \\
+Growth rate $f\sigma_8(z)$     & cosmological ($\sim$Gpc) & Amplitude & constant rescaling only \\
+$H(z)$ chronometers            & cosmological ($\sim$Gpc) & Amplitude & constant rescaling only \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Framing.}
+This pattern is \emph{consistent with}---but does not prove---a structural
+dichotomy between two classes of physical anomaly. \emph{Class~I (Functional)}:
+anomalies in individual gravitational systems (orbital mechanics, galactic
+rotation) that require $z$- or $r$-dependent corrections to the force law,
+which ADCD reliably discovers. \emph{Class~II (Amplitude)}: cosmological
+tensions ($S_8$, $H_0$) that manifest as amplitude offsets with no detected
+functional structure, which ADCD correctly declines to over-fit. Whether this
+reflects genuine physics (different origins for micro- versus macro-scale
+anomalies) or is a methodological artefact of the order-of-magnitude difference
+in data quality and systematic complexity between the two regimes is an open
+and testable question. We report the pattern as an observation requiring further
+investigation, and flag in \Cref{sec:limitations} that \textsc{constant\_wins}
+is an upper bound on detectability rather than a proof of absence.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig_dichotomy.pdf}
+\caption{The structural dichotomy in one figure.
+\textbf{(a)} Galactic scale (SPARC): ADCD recovers a \emph{functional}
+interpolating curve (red) that tracks the data across the Newtonian-to-deep-MOND
+transition, dominating the zero-parameter canonical MOND/RAR forms.
+\textbf{(b)} Cosmological scale ($f\sigma_8$): the residual carries no
+$z$-dependent structure; ADCD selects a \emph{constant amplitude} offset
+(dashed), and the best $z$-dependent candidate (Rational, dot-dashed) is
+statistically indistinguishable from it ($\Delta$BIC$=+0.42$, far below the
+decisive threshold). Individual gravitational systems admit functional
+corrections; large-scale cosmological tensions appear as amplitude offsets.}
+\label{fig:dichotomy}
+\end{figure}
 
 \section{Discussion and Ablation Studies}
 \label{sec:ablation-text}
@@ -855,6 +1119,40 @@ domain knowledge dictates a specific form
 Detection accuracy degrades when the classical baseline is near zero or when
 additive and relative residuals are statistically ambiguous.
 
+\paragraph{Amplitude vs.\ functional distinguishability (cosmological probes).}
+The \textsc{constant\_wins} verdicts in \Cref{sec:cosmological} are best read
+as quantitative upper bounds on the detectability of a functional growth
+correction, not as proofs that no correction exists. ADCD cannot detect a
+functional correction whose amplitude falls below the noise floor of the
+available data. With current $f\sigma_8$ compilations (typical point errors
+$\sim\!20\%$, heterogeneous systematics across $15+$ surveys), a
+$z$-dependent correction of small but non-zero amplitude would be statistically
+indistinguishable from the 1-parameter constant offset. Definitive
+detection/non-detection awaits $3$--$5\times$ improvements in $f\sigma_8$
+precision from DESI, Euclid, and Rubin/LSST.
+
+\paragraph{Heterogeneous survey compilations.}
+The $f\sigma_8$ compilation of Alestas et al.~\cite{alestas2022fs8} aggregates
+measurements from surveys with different estimators (multipole versus
+clustering-$F$ versus BAO-$f$), different scale cuts, and different galaxy-bias
+models. Systematic offsets between surveys could appear as---or mask---a
+functional $z$-correction. Our homogeneous-subset cross-check (BOSS DR12,
+precision, mid-$z$) is designed to mitigate this, but no subset is fully free
+of modelling-pipeline systematics; a residual functional signal of astrophysical
+rather than cosmological origin cannot be excluded from first principles.
+
+\paragraph{Cross-system generalization (galactic versus stellar).}
+The SPARC-discovered form ($c\approx 0.27$) does not unambiguously generalize
+to wide-binary kinematics (Appendix~\ref{app:wide-binary}): it is closer to
+the observed wide-binary velocity boost than Simple MOND at $s\sim 10$--$15$~kAU
+but diverges at larger separations, while no single interpolating function
+simultaneously optimizes both SPARC and wide binaries. This suggests that the
+MOND transition parameter may be system-dependent---or, more conservatively,
+that the wide-binary dataset is too contaminated (Chae~\cite{chae2023wide}
+versus Banik et al.~\cite{banik2024wide}) to serve as a clean discriminant.
+Universal interpolating-function discovery from a single system class should
+be treated as provisional pending cleaner multi-system data.
+
 \paragraph{Synthetic-real hybrid validation.}
 Our benchmark scenarios use synthetically generated observations, following
 the established precedent of the SciML community: the foundational symbolic
@@ -884,15 +1182,90 @@ The author thanks AI coding assistants---Cursor IDE, Google DeepMind's Antigravi
 
 \section{Conclusion}
 
-We have presented Anomaly-Driven Correction Discovery (ADCD), a physics-informed symbolic regression framework that discovers physical corrections rather than equations from scratch. By using statistical residual feature priors, physics-gated pre-optimization filters, traced L-BFGS-B parameter fitting, and Bayesian Information Criterion reranking, ADCD achieves a mean structural recovery rate of 82.8\% ($\pm$7.7\%) across five random seeds on a 9-anomaly benchmark suite, with peak performance of 94.4\% at the reference seed. On four physics-inspired real-world validation scenarios using synthetic-real hybrid data (JPL DE440, NIST, CODATA constants), ADCD achieves structural class recovery on all four; quantitative recovery (NMSE $< 10^{-4}$) holds for three scenarios, with full optimizer convergence on Hydrogen Lamb Shift and Muon $g$-2 (residual NMSE $< 10^{-5}$; see \Cref{sec:real-world} for threshold definition), while Blackbody remains structurally correct but numerically limited (NMSE $\approx 2.6 \times 10^{-2}$).
+\paragraph{Methodology.}
+We have presented Anomaly-Driven Correction Discovery (ADCD), a physics-informed
+symbolic regression framework that discovers physical \emph{corrections} rather
+than equations from scratch. Statistical residual-feature priors, a cascaded
+physics-gate filter (AST complexity, dimensional homogeneity with a
+transcendental guardrail, asymptotic-regime consistency), a JAX-traced L-BFGS-B
+optimizer, and Bayesian Information Criterion reranking together constrain the
+search to physically plausible corrections before any numerical optimization
+occurs. ADCD is designed for anomaly-driven theory refinement---where the
+classical baseline is structurally correct and the anomaly is incremental---rather
+than wholesale theory replacement.
 
-The strongest evidence for the framework comes from its application to \emph{real observational data}: on the SPARC sample of 171 galactic rotation curves, ADCD---starting only from the Newtonian baseline and the asymptotic constraint that the correction vanishes in the high-acceleration limit---recovers a two-parameter interpolating function that decisively outperforms the fixed zero-parameter canonical MOND/RAR forms (41\% stacked-NMSE reduction) and, under fair galaxy-level cross-validation and a 1{,}000-resample cluster bootstrap, reaches statistical parity with the two-parameter refit Simple-MOND and McGaugh RAR forms ($\delta{\rm BIC}_{\rm eff}=+3.4$, 95\% CI brackets zero) while decisively beating two-parameter Standard MOND ($\delta{\rm BIC}_{\rm eff}=-36.5$). This demonstrates that correction-first symbolic regression, constrained by physics gates, can autonomously surface a functional form that lands within the confidence band of interpolating functions refined by domain experts over decades---directly from real astrophysical archives, without access to those forms as candidates. A multivariable extension (Buckingham-$\Pi$ dimensionless groups with sequential asymptotic checking) is reported honestly as an exploratory capability with open challenges, rather than a headline result. Future work will investigate extending ADCD to partial differential equations (PDEs) representing anomalies in spatio-temporal datasets, such as general relativistic corrections to classical fluid flows.
+\paragraph{Synthetic benchmark.}
+On a 9-anomaly suite across textbook, cross-domain, and synthetic systems under
+noise up to 10\%, ADCD achieves a mean structural recovery of 82.8\%
+($\pm$7.7\%) across five seeds (94.4\% at the reference seed=42, disclosed as
+the highest-performing seed). It outperforms PySR by 77.8 percentage points at
+5\% noise under matched residuals---a gap that does not close when PySR's budget
+is doubled---and fails safe on the misspecification benchmark. The same
+machinery recovers the correct structural class on 4/4 real-world
+physics-constant scenarios.
+
+\paragraph{SPARC: autonomous rediscovery of the Simple-MOND family.}
+On the SPARC sample of 171 galactic rotation curves, ADCD---starting only from
+the Newtonian baseline and the high-acceleration asymptotic constraint---recovers
+a two-parameter member of the Simple-MOND algebraic family
+(Famaey \& Binney 2005) with transition parameter $\hat\theta_1\approx 0.27$
+versus the canonical $c=4.0$. The discovered form delivers a 41\% stacked-NMSE
+reduction over fixed zero-parameter canonical forms and, under fair galaxy-level
+cross-validation plus a 1{,}000-resample cluster bootstrap, reaches statistical
+parity with two-parameter domain-expert forms
+($\delta{\rm BIC}_{\rm eff}=+3.4$, 95\% CI brackets zero) while decisively
+beating two-parameter Standard MOND ($\delta{\rm BIC}_{\rm eff}=-36.5$). We
+frame this as autonomous rediscovery of a known family from real data---not the
+discovery of a novel family.
+
+\paragraph{Wide-binary cross-validation.}
+An exploratory cross-system test (Appendix~\ref{app:wide-binary}) finds that the
+SPARC-discovered form does \emph{not} unambiguously generalize to wide-binary
+kinematics: it is closer to the Chae~2023 observations than Simple/RAR MOND at
+$s\!\sim\!10$--$15$~kAU but diverges at larger separations, and no single
+interpolating function simultaneously optimizes both datasets. We treat this as
+preliminary, given the unresolved Chae-versus-Banik observational controversy,
+and flag non-generalization as an explicit limitation.
+
+\paragraph{Cosmological probes: a quantitative upper bound.}
+Extended to 63 $f\sigma_8$ growth-rate measurements and 34 $H(z)$
+cosmic-chronometer points, ADCD finds \emph{no} $z$-dependent functional
+correction beyond a constant amplitude rescaling in five independent tests
+spanning two observables and three homogeneous survey subsets. The best-fit
+$\sigma_{8,0}=0.7815$ ($-3.7\%$ vs.\ Planck) is consistent with the $S_8$
+tension direction. We interpret this \textsc{constant\_wins} result as a
+quantitative upper bound on the detectability of a functional growth correction
+in present compilations---not as proof of correction absence---and note that
+ADCD's fail-safe property carries over from the synthetic misspecification
+benchmark to real cosmological archives.
+
+\paragraph{Structural dichotomy.}
+Across scales, a qualitative pattern emerges: functional corrections are
+recoverable in individual gravitational systems (textbook anomalies, SPARC),
+while cosmological tensions manifest as amplitude offsets with no detected
+functional structure. This pattern is \emph{consistent with}---but does not
+prove---a structural dichotomy between functional and amplitude anomaly classes.
+Whether it reflects genuine physics or current survey-precision limits is an
+open, testable question.
+
+\paragraph{Future work.}
+Three directions follow directly from the present results. First, the
+cosmological probes should be re-run on DESI, Euclid, and Rubin/LSST data as
+they deliver $3$--$5\times$ improvements in $f\sigma_8$ precision, providing a
+definitive test of the \textsc{constant\_wins} bound. Second, the multivariable
+extension (Buckingham-$\Pi$ dimensionless groups with sequential asymptotic
+checking) is reported here as an exploratory capability with open challenges
+(2--3/4 scenarios); promoting it to a headline claim requires resolving the
+numerical-ill-conditioning and rational/power-law-composite failure modes.
+Third, the framework should be extended to partial differential equations
+representing anomalies in spatio-temporal datasets, such as general-relativistic
+corrections to classical fluid flows.
 
 \section*{Code Availability}
 The complete source code for the ADCD framework, along with all reproduction scripts and benchmarks, is open-source and publicly available at \url{https://github.com/apiprdt/PhysicsPaper}. The package is also published on the Python Package Index (PyPI) at \url{https://pypi.org/project/adcd/}.
 
 \bibliographystyle{plain}
-\begin{thebibliography}{9}
+\begin{thebibliography}{99}
 \bibitem{udrescu2020ai}
 S. M. Udrescu and M. Tegmark, ``AI Feynman: A physics-inspired systematic approach to symbolic regression,'' \textit{Science Advances}, vol. 6, no. 16, 2020.
 
@@ -986,6 +1359,106 @@ S.~S.~McGaugh, F.~Lelli, and J.~Schombert,
 ``Radial Acceleration Relation in Rotationally Supported Galaxies,''
 \textit{Physical Review Letters}, vol. 117, no. 20, p.~201101, 2016.
 
+\bibitem{famaey2005simple}
+B.~Famaey and J.~Binney,
+``Modified Newtonian Dynamics in the Milky Way,''
+\textit{Monthly Notices of the Royal Astronomical Society}, vol. 363, no. 3, pp.~985--992, 2005.
+
+\bibitem{famaey2012mond}
+B.~Famaey and S.~S.~McGaugh,
+``Modified Newtonian Dynamics (MOND): Observational Phenomenology and Relativistic Extensions for Galaxies,''
+\textit{Living Reviews in Relativity}, vol. 15, no. 10, 2012.
+
+\bibitem{alestas2022fs8}
+G.~Alestas, Y.~Akrami, F.~Kazantzidis, S.~Nesseris, and L.~Perivolaropoulos,
+``$f\sigma_8$ tension as a signature of $\Lambda$CDM breakdown,''
+\textit{Physical Review D}, vol. 106, no. 10, p.~103525, 2022.
+
+\bibitem{chae2023wide}
+K.-H.~Chae,
+``Dynamical Evidence for a Breakdown of Newtonian Gravity at Low Acceleration in Wide Binary Stars,''
+\textit{The Astrophysical Journal}, vol. 953, no. 2, p.~153, 2023.
+
+\bibitem{banik2024wide}
+I.~Banik et al.,
+``No Evidence for a Variation of Newton's Gravity in Wide Binaries from Gaia DR3,''
+\textit{Monthly Notices of the Royal Astronomical Society}, 2024.
+
+\bibitem{pittordis2023wide}
+C.~Pittordis and W.~Sutherland,
+``Wide Binaries from Gaia DR3: Premature Conclusions on MOND,''
+\textit{Monthly Notices of the Royal Astronomical Society}, vol. 518, no. 2, pp.~2720--2731, 2023.
+
 \end{thebibliography}
+
+\appendix
+
+\section{Extended Cross-Validation: Wide-Binary Stars}
+\label{app:wide-binary}
+
+This appendix reports an exploratory cross-system test of the SPARC-discovered
+interpolating function (Section~\ref{sec:sparc}). It is placed in the appendix,
+rather than the main results, because the underlying wide-binary dataset is the
+subject of an unresolved observational controversy (Chae~\cite{chae2023wide}
+versus Banik et al.~\cite{banik2024wide}). We present it as exploratory
+cross-validation, not as a definitive validation of the SPARC-discovered form.
+
+\paragraph{Setup.}
+Wide-binary stars (separations $10^3$--$10^4$~AU) probe gravity in a
+low-acceleration regime ($g_N \lesssim a_0$) analogous to the outer parts of
+galaxies. The classical baseline is Newtonian two-body gravity; the predicted
+velocity boost under a MOND-type interpolating function $\nu(x)$ is
+$\gamma_v \equiv v_{\rm obs}/v_{\rm Newtonian} = \sqrt{\nu(x)}$, where
+$x = g_N/a_0$ depends on separation and total mass. We evaluate the
+SPARC-discovered ADCD form $\nu_{\rm ADCD}(x) = \theta_0(\sqrt{1+\theta_1/x}-1)+1$
+with $\hat\theta_0 \approx 1.83$, $\hat\theta_1 \approx 0.262$ (the
+SPARC-fitted values, \emph{with no refitting to wide-binary data}), against
+the canonical Simple MOND, Standard MOND, and RAR forms, for a $1.5\,M_\odot$
+total-mass system across $s \in [7,30]$~kAU (the Hernandez/Chae anomaly zone).
+
+\paragraph{Result.}
+\Cref{tab:wide_binary} reports the predicted velocity boost and the
+$\sigma$-distance from Chae's observed $\gamma_v = 1.20 \pm 0.06$~\cite{chae2023wide}.
+Three observations emerge:
+\begin{enumerate}
+    \item \emph{Simple MOND and RAR dramatically overshoot} the observed boost
+    at $s>15$~kAU, reaching $5$--$13\sigma$ discrepancies at $s=30$~kAU---clearly
+    inconsistent with the Chae~2023 measurements at large separations.
+    \item The SPARC-discovered ADCD form ($c\approx 0.27$) is \emph{more
+    consistent} with observations at $s=10$--$15$~kAU than Simple/RAR, but
+    \emph{less consistent} than Standard MOND at the same separations, and
+    itself diverges ($+8.4\sigma$) at $s=30$~kAU.
+    \item \emph{No single interpolating function simultaneously optimizes both
+    datasets.} The SPARC-optimized form with $c\approx 0.27$ does not
+    unambiguously generalize to wide-binary kinematics.
+\end{enumerate}
+
+\input{generated/tab_wide_binary}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig_wide_binary.pdf}
+\caption{Wide-binary predicted velocity boost $\gamma_v=\sqrt{\nu(x)}$ versus
+separation $s$ (lower axis) and dimensionless acceleration $x=g_N/a_0$ (upper
+axis), for the SPARC-discovered ADCD form ($c\approx 0.27$, no refit) versus
+Simple MOND, Standard MOND, and RAR. The shaded band is Chae~\cite{chae2023wide}'s
+observed $\gamma_v=1.20\pm0.06$. Simple MOND and RAR overshoot the observation
+at large separations; the ADCD form is closer at $s\!\sim\!10$--$15$~kAU but
+diverges beyond $s\!\sim\!20$~kAU. No single form dominates across the full
+separation range.}
+\label{fig:wide_binary}
+\end{figure}
+
+\paragraph{Caveats.}
+The wide-binary anomaly itself remains controversial. Banik et al.~\cite{banik2024wide}
+attribute the observed velocity boost to selection effects and contamination
+rather than modified gravity; Pittordis \& Sutherland~\cite{pittordis2023wide}
+caution that the Gaia DR3 sample selection can mimic or suppress a MOND-like
+signal. The discrepancies in \Cref{tab:wide_binary} should therefore not be
+over-interpreted as discriminating between gravity theories. We report the
+cross-validation to document the generalization behaviour of the SPARC-discovered
+form---and to disclose honestly that it does \emph{not} unambiguously transfer
+to an independent stellar-kinematic dataset, a limitation we flag in
+\Cref{sec:limitations}.
 
 \end{document}

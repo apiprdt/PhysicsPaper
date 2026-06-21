@@ -254,7 +254,7 @@ def run_growth_rate_discovery(
     # Baseline χ² (GR, σ₈₀ free, no functional correction)
     chi2_gr = float(np.sum((y / sigma) ** 2))
     chi2_red_gr = chi2_gr / max(len(y) - 1, 1)
-    print(f"\n=== GR baseline (σ₈₀ free, no Δ(z)) ===")
+    print("\n=== GR baseline (σ₈₀ free, no Δ(z)) ===")
     print(f"  χ²        = {chi2_gr:.3f}")
     print(f"  χ²/dof    = {chi2_red_gr:.3f}")
 

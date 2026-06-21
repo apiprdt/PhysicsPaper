@@ -1,0 +1,24 @@
+\begin{table}[H]
+\centering\footnotesize
+\caption{ADCD cosmological-probe results across five independent tests spanning
+two observables ($f\sigma_8$ and $H(z)$) and three homogeneous survey subsets.
+``Constant offset'' is the 1-parameter null model $\Delta(z)=\theta_0$ (a pure
+amplitude rescaling). No $z$-dependent functional candidate beats the constant
+offset by $\Delta$BIC~$<-10$ (the Kass--Raftery decisive-evidence threshold) in
+any test; the verdict is therefore \textsc{constant\_wins} throughout. Best-fit
+amplitudes: $\sigma_{8,0}=0.7815$ ($-3.7\%$ vs.\ Planck 2018: $0.811$);
+$H_0=68.48\,\mathrm{km\,s^{-1}\,Mpc^{-1}}$, $\Omega_{m,0}=0.296$.}
+\label{tab:cosmological_probes}
+\setlength{\tabcolsep}{5pt}
+\begin{tabularx}{\textwidth}{L c c c c c}
+\toprule
+\textbf{Test (dataset)} & \textbf{$N$} & \textbf{Observable} & \textbf{Best candidate} & \textbf{$\Delta$BIC vs.\ null} & \textbf{Verdict} \\
+\midrule
+Full compilation (Alestas+22)        & 63 & $f\sigma_8$ & Constant offset          & $+0.00$  & \textsc{constant\_wins} \\
+BOSS DR12 (Alam+17)                  & 6  & $f\sigma_8$ & Linear                   & $-9.63$  & \textsc{constant\_wins} \\
+Precision (top-20)                   & 20 & $f\sigma_8$ & Constant offset          & $+0.00$  & \textsc{constant\_wins} \\
+Mid-$z$ window $[0.35,0.75]$         & 31 & $f\sigma_8$ & Power law                & $-0.00$  & \textsc{constant\_wins} \\
+Cosmic chronometers                  & 34 & $H(z)$      & Constant offset          & $+0.00$  & \textsc{constant\_wins} \\
+\bottomrule
+\end{tabularx}
+\end{table}

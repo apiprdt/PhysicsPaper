@@ -4,10 +4,7 @@ These pin the scientific claims of the S₈-tension analysis so any regression
 in the loader, GR baseline, or discovery library is caught immediately.
 """
 
-import pytest
-
 from adcd.experiments.growth_rate_data import (
-    GrowthRateResult,
     growth_factor,
     gr_fs8_prediction,
     load_growth_rate,
