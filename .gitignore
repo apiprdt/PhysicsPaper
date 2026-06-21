@@ -18,6 +18,9 @@ paper/*.toc
 paper/*.synctex.gz
 paper/*.fls
 paper/*.fdb_latexmk
+paper/*.bbl
+paper/*.blg
+paper/*.run.xml
 *.egg-info/
 dist/
 build/
@@ -40,6 +43,9 @@ site/
 
 # Release builds
 release/
+
+# Windows redirect artifact
+nul
 
 # IDE / agent local state (never commit)
 .zcode/

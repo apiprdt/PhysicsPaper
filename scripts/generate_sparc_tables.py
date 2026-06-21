@@ -3,13 +3,15 @@
 Reads:
   - results/sparc_discovery.json         (model comparison, CV, bootstrap, fitted baselines)
   - results/sparc_robustness_results.json (3 quality-cut scenarios)
+  - results/bic_bootstrap_delta.json     (galaxy-level cluster bootstrap on delta-BIC_eff)
 
 Writes:
-  - paper/generated/tab_sparc_comparison.tex   (4-model NMSE/BIC/n_params)
-  - paper/generated/tab_sparc_fitted.tex       (2-param fitted baseline comparison)
-  - paper/generated/tab_sparc_validation.tex   (CV mean +/- SE)
-  - paper/generated/tab_sparc_bootstrap.tex    (parameter 95% CI)
-  - paper/generated/tab_sparc_robustness.tex   (3 quality cuts)
+  - paper/generated/tab_sparc_comparison.tex    (4-model NMSE/BIC/n_params)
+  - paper/generated/tab_sparc_fitted.tex        (2-param fitted baseline comparison)
+  - paper/generated/tab_sparc_validation.tex    (CV mean +/- SE)
+  - paper/generated/tab_sparc_bootstrap.tex     (parameter 95% CI)
+  - paper/generated/tab_sparc_robustness.tex    (3 quality cuts)
+  - paper/generated/tab_sparc_bic_bootstrap.tex (cluster bootstrap delta-BIC_eff)
 """
 import json
 from pathlib import Path
@@ -17,6 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DISC = json.loads((ROOT / "results" / "sparc_discovery.json").read_text())
 ROBUST = json.loads((ROOT / "results" / "sparc_robustness_results.json").read_text())
+BIC_BOOT = json.loads((ROOT / "results" / "bic_bootstrap_delta.json").read_text())
 OUT = ROOT / "paper" / "generated"
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -230,6 +233,67 @@ $\hat\theta_0$ & $\hat\theta_1$ &
 """
 (OUT / "tab_sparc_robustness.tex").write_text(tab4, encoding="utf-8")
 
-print("Generated 4 SPARC tables:")
+# ---- Table 5: cluster bootstrap on delta-BIC_eff -----------------------------
+# Renders the galaxy-level cluster bootstrap (1000 resamples) on the
+# effective-sample-size-scaled BIC difference at N_eff = 171 independent
+# galaxies. ADCD is the implicit baseline; each competitor row reports
+# delta_eff = BIC_eff(competitor) - BIC_eff(ADCD), so negative delta = ADCD wins.
+adcd_key = BIC_BOOT.get("adcd_key", "ADCD discovered")
+n_gal = BIC_BOOT.get("n_galaxies")
+n_boot = BIC_BOOT.get("n_bootstrap")
+n_failed = BIC_BOOT.get("n_failed_resamples", 0)
+n_used = n_boot - n_failed
+
+# 4-column layout: Model | BIC_eff (95% CI) | delta | 95% CI | Verdict
+boot_rows = []
+for m in BIC_BOOT["models"]:
+    name = m["name"]
+    if name == adcd_key:
+        bic_eff = f(m["bic_eff_mean"], 1)
+        bic_lo = f(m["bic_eff_ci95"][0], 1)
+        bic_hi = f(m["bic_eff_ci95"][1], 1)
+        boot_rows.append(
+            rf"  \underline{{{name}}} & {bic_eff} $\pm$ [{bic_lo}, {bic_hi}]"
+            r" & --- & --- & (baseline) \\"
+        )
+        continue
+    delta = m["delta_eff_mean"]
+    delta_lo, delta_hi = m["delta_eff_ci95"]
+    brackets = m.get("delta_eff_zero_in_ci")
+    if brackets:
+        verdict = r"Inconclusive (CI brackets $0$)"
+    else:
+        verdict = m.get("interpretation_eff", "")
+    boot_rows.append(
+        rf"  {name} & --- & {delta:+.1f} & [{delta_lo:+.1f}, {delta_hi:+.1f}]"
+        rf" & {verdict} \\"
+    )
+
+tab5 = r"""\begin{table}[H]
+\centering\footnotesize
+\caption{Galaxy-level cluster bootstrap on the effective-sample-size-scaled BIC
+difference $\delta{\rm BIC}_{\rm eff}$ at $N_{\rm eff}=""" + str(n_gal) + r"""$
+independent galaxies (""" + f"{n_used:,}" + r""" usable resamples of """ + f"{n_boot:,}" + r""",
+seed 2026). ADCD is the baseline; $\delta{\rm BIC}_{\rm eff}<0$ means ADCD wins.
+Per Kass \& Rafferty~\cite{kass1995bayes}, $|\delta|<2$ is weak,
+$2$--$6$ positive, $6$--$10$ strong, $>10$ very strong---\emph{but} if the
+95\% bootstrap CI brackets zero the result is formally inconclusive regardless
+of the point estimate. ADCD is statistically indistinguishable from the
+2-param Simple-MOND and McGaugh RAR forms (CI brackets zero) and decisively
+outperforms the 2-param Standard-MOND form (CI entirely below zero).}
+\label{tab:sparc_bic_bootstrap}
+\begin{tabular}{l c c c l}
+\toprule
+\textbf{Model (2-param)} & \textbf{BIC}$_{\rm eff}$ (95\% CI) &
+$\delta{\rm BIC}_{\rm eff}$ & \textbf{95\% CI} & \textbf{Verdict} \\
+\midrule
+""" + "\n".join(boot_rows) + r"""
+\bottomrule
+\end{tabular}
+\end{table}
+"""
+(OUT / "tab_sparc_bic_bootstrap.tex").write_text(tab5, encoding="utf-8")
+
+print("Generated SPARC tables:")
 for p in sorted(OUT.glob("tab_sparc_*.tex")):
     print(f"  {p.name} ({p.stat().st_size} bytes)")

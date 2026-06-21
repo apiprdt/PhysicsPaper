@@ -1,0 +1,45 @@
+{
+  "scenario": "B",
+  "scenario_reason": "ADCD CV NMSE (0.3856) >= Simple MOND (2-param) (0.3774); ADCD does not beat MOND out of sample, so the in-sample BIC gap reflects an OOS fit-quality difference rather than a complexity penalty alone.",
+  "n_repeats": 10,
+  "adcd": {
+    "name": "ADCD discovered",
+    "mean_nmse": 0.38563896471434633,
+    "std_error": 0.015509196346496975
+  },
+  "primary_competitor": {
+    "name": "Simple MOND (2-param)",
+    "mean_nmse": 0.3773742214187018,
+    "std_error": 0.014671820816077381
+  },
+  "deltas": [
+    {
+      "model_name": "Standard MOND (2-param)",
+      "model_nmse": 0.4664070473738463,
+      "model_se": 0.008236723909594231,
+      "delta_nmse": -0.08076808265949997,
+      "combined_se": 0.017560717299617244,
+      "z_score": -4.5993612493984175,
+      "interpretation": "Strong OOS [ADCD wins]"
+    },
+    {
+      "model_name": "Simple MOND (2-param)",
+      "model_nmse": 0.3773742214187018,
+      "model_se": 0.014671820816077381,
+      "delta_nmse": 0.008264743295644528,
+      "combined_se": 0.02134941445036085,
+      "z_score": 0.38711803149733864,
+      "interpretation": "Not significant OOS [ADCD loses]"
+    },
+    {
+      "model_name": "RAR (McGaugh, 2-param)",
+      "model_nmse": 0.377421484832549,
+      "model_se": 0.014656533475602921,
+      "delta_nmse": 0.00821747988179733,
+      "combined_se": 0.021338911519467534,
+      "z_score": 0.38509367613715934,
+      "interpretation": "Not significant OOS [ADCD loses]"
+    }
+  ],
+  "reviewer_message": "Out-of-sample, ADCD and Simple MOND (2-param) are statistically indistinguishable: CV NMSE 0.3856 vs 0.3774 (delta +0.0083, z=+0.39, Not significant OOS [ADCD loses]). The reported in-sample BIC gap thus reflects an OOS fit-quality difference of ~0.008 NMSE, not a complexity penalty alone; the SPARC result should be framed as autonomous-discovery *parity* with MOND rather than predictive *superiority*."
+}

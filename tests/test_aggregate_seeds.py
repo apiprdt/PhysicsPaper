@@ -157,7 +157,6 @@ class TestScenarioCountFromSVOnly:
 
     def _caption_scenario_count(self, agg, trials):
         """Mirror the main() summary construction to extract n_scenarios."""
-        import numpy as _np
         seeds_present = sorted(set(r["seed"] for r in trials))
         sv_rows = [r for r in trials
                    if not r.get("scenario", "").startswith("MV-")]

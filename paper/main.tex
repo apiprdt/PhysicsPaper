@@ -55,7 +55,7 @@
 
 \begin{abstract}
 Traditional symbolic regression algorithms attempt to discover mathematical laws from physical experimental data starting from a blank slate. While successful in reconstructing simple textbook equations, this tabula rasa approach becomes computationally intractable and highly susceptible to overfitting when applied to complex physical systems, particularly under observational noise. In this work, we present \textbf{Anomaly-Driven Correction Discovery (ADCD)}, a physics-informed symbolic regression framework designed to mimic the evolutionary nature of scientific discovery. Rather than learning entire equations from scratch, ADCD takes a known classical physical law and seeks to discover the mathematical structure of the dimensionless correction term ($\Delta$) that explains the discrepancy between classical predictions and anomalous experimental observations. By utilizing a cascaded pipeline of physical filters---including AST complexity limits, dimensional homogeneity with transcendental argument constraints, and asymptotic limits (ARC)---coupled with a JAX-traced L-BFGS-B parameter optimizer and Bayesian Information Criterion (BIC) reranking, ADCD strongly enforces physical plausibility on the candidate search space and demonstrates robustness to experimental error. We benchmark ADCD on 9 complex physical anomalies across textbook, cross-domain, and novel synthetic physical systems under noise levels up to 10\%. ADCD achieves a mean structural recovery rate of \textbf{82.8\% ($\pm$7.7\%) across five random seeds}, with peak performance of 94.4\% (34/36) at the reference seed (seed=42, the highest-performing seed in the set---disclosed explicitly in Section~4).
- Performance variation across seeds reflects the stochastic nature of template sampling in the MockProposer; physics gates ensure that when a correct functional family is sampled, it consistently survives gate filtering and is selected by BIC reranking. At the reference seed (both figures reported at seed=42), the Mock Proposer achieves 94.4\% and the Hybrid Proposer achieves 91.7\%, both outperforming PySR fair at 5\% observational noise (88.9\% vs.\ 11.1\% structural recovery; 77.8 percentage-point gap). ADCD recovers highly non-linear, multi-scale transcendental corrections (such as relativistic kinetic energy, Yukawa gravity, and quantum mechanical sinc fluctuations) across three complexity tiers. Beyond synthetic benchmarks, ADCD achieves \textbf{structural class recovery on 4/4} established real-world physics scenarios (Mercury perihelion, Lamb shift, blackbody UV correction, and muon $g-2$); \textbf{quantitative recovery} (NMSE $< 10^{-4}$) holds for 3/4, with Blackbody limited to structural identification (NMSE $\approx 2.6 \times 10^{-2}$). A fifth scenario (binary pulsar orbital decay) is reported as a \textbf{controlled sensitivity study}: under a single-variable reduced formulation ADCD recovers the correct power-law class, but performance degrades monotonically as additional orbital parameters are exposed, and the full four-parameter scan fails structurally. As the strongest test, we apply ADCD to \textbf{real observational data}---the SPARC sample of 171 galactic rotation curves ($N=3342$ radial points)---and recover a two-parameter interpolating function for the radial acceleration relation that \textbf{reduces stacked-data NMSE by 41\%} relative to the standard McGaugh, Lelli \& Schombert form, with out-of-sample generalization and parameter stability confirmed by galaxy-level cross-validation and bootstrapping. We disclose all template overlaps, report recovered functional forms (not only class labels), and provide a binary pulsar sensitivity table showing the reliability boundary of the current method. A multivariable extension (Buckingham-$\Pi$ + sequential ARC) is reported honestly as an exploratory capability (2--3/4 scenarios) rather than a headline claim.
+ Performance variation across seeds reflects the stochastic nature of template sampling in the MockProposer; physics gates ensure that when a correct functional family is sampled, it consistently survives gate filtering and is selected by BIC reranking. At the reference seed (both figures reported at seed=42), the Mock Proposer achieves 94.4\% and the Hybrid Proposer achieves 91.7\%, both outperforming PySR fair at 5\% observational noise (88.9\% vs.\ 11.1\% structural recovery; 77.8 percentage-point gap). ADCD recovers highly non-linear, multi-scale transcendental corrections (such as relativistic kinetic energy, Yukawa gravity, and quantum mechanical sinc fluctuations) across three complexity tiers. Beyond synthetic benchmarks, ADCD achieves \textbf{structural class recovery on 4/4} established real-world physics scenarios (Mercury perihelion, Lamb shift, blackbody UV correction, and muon $g-2$); \textbf{quantitative recovery} (NMSE $< 10^{-4}$) holds for 3/4, with Blackbody limited to structural identification (NMSE $\approx 2.6 \times 10^{-2}$). A fifth scenario (binary pulsar orbital decay) is reported as a \textbf{controlled sensitivity study}: under a single-variable reduced formulation ADCD recovers the correct power-law class, but performance degrades monotonically as additional orbital parameters are exposed, and the full four-parameter scan fails structurally. As the strongest test, we apply ADCD to \textbf{real observational data}---the SPARC sample of 171 galactic rotation curves ($N=3342$ radial points). Starting only from the Newtonian baseline and the asymptotic constraint that the correction vanishes in the high-acceleration limit, ADCD discovers a two-parameter interpolating function for the radial acceleration relation that \textbf{decisively outperforms the fixed zero-parameter canonical MOND/RAR forms} (41\% stacked-NMSE reduction) and, under a fair galaxy-level comparison---10-repeat cross-validation plus a 1{,}000-resample cluster bootstrap at $N_{\rm eff}=171$---\textbf{reaches statistical parity with the two-parameter refit Simple-MOND and McGaugh RAR forms} ($\Delta$NMSE$=0.008$, $z=0.39$; $\delta{\rm BIC}_{\rm eff}=+3.4$, 95\% CI brackets zero) while \textbf{decisively beating two-parameter Standard MOND} ($z=-4.60$). We interpret this not as predictive superiority but as evidence that autonomous correction discovery can reach the performance of interpolating functions refined by domain experts over decades---without access to those forms as candidates. We disclose all template overlaps, report recovered functional forms (not only class labels), and provide a binary pulsar sensitivity table showing the reliability boundary of the current method. A multivariable extension (Buckingham-$\Pi$ + sequential ARC) is reported honestly as an exploratory capability (2--3/4 scenarios) rather than a headline claim.
 \end{abstract}
 
 \section{Introduction}
@@ -287,6 +287,7 @@ All benchmark results are reported across five independent random seeds (0, 7, 2
 The Mock Proposer template bank contains functional families covering Tier~3 corrections (tanh, sinc, logarithmic forms). Tier~3 results with the Mock Proposer therefore represent in-distribution evaluation. Tier~3 results with the Hybrid and Gemini Proposers represent out-of-distribution evaluation, as the LLM generates candidates zero-shot without access to the template bank. For the real-world tier, extended-mode templates add scenario-specific hints (e.g.\ $\theta_0 \cdot (v/c)^2$ for Mercury); only Mercury has an \emph{exact} ground-truth template in this bank (\Cref{tab:template_leakage}). All other real-world scenarios are evaluated against generic functional families (power law, exponential, polynomial), not verbatim answer injection.
 
 \section{Experimental Results}
+\label{sec:results}
 
 \paragraph{Evaluation regimes.}
 We report results under three explicitly separated evaluation regimes to avoid conflating template-assisted recovery with zero-shot discovery: (i)~\textbf{Primary (synthetic benchmark)}: Mock Proposer, five independent seeds (0, 7, 21, 42, 99), $9 \times 4 = 36$ trials per seed---the \textbf{primary claim} is mean structural recovery 82.8\% ($\pm$7.7\%); (ii)~\textbf{Supplementary (zero-shot upper bound)}: Hybrid Proposer at reference seed=42 only (33/36 = 91.7\%), reporting LLM-augmented discovery beyond the template bank; (iii)~\textbf{Real-world (physics-constant hybrid)}: Mock Proposer on four established scenarios using CODATA/NIST/JPL parameters---4/4 structural class match, with quantitative recovery (NMSE $< 10^{-4}$) on 3/4 (Blackbody limited to structural identification; see \Cref{tab:real_param_recovery}). Binary pulsar decay is reported separately as a controlled sensitivity study (\Cref{tab:pulsar_sensitivity}), not in the main recovery headline.
@@ -619,30 +620,80 @@ tightly than Simple/Standard MOND and the McGaugh+16 RAR form.
 
 \paragraph{Statistical validation.}
 Because the stacked dataset mixes points from many galaxies, in-sample NMSE can
-overstate generalization. We therefore performed two independent resampling
-validations at the \emph{galaxy} level (so no galaxy contributes to both train
-and test sets):
-\begin{itemize}
-    \item \textbf{Cross-validation} (\Cref{tab:sparc_cv}): 10 repeated random
-    50/50 galaxy-level splits. ADCD's discovered function retains the lowest
-    out-of-sample test NMSE ($0.386 \pm 0.016$), beating RAR ($0.660 \pm 0.035$)
-    and Simple MOND ($0.673 \pm 0.035$).
-    \item \textbf{Bootstrap} (\Cref{tab:sparc_bootstrap}): 50 galaxy-level
-    bootstrap resamples give $\hat\theta_0 = 2.24 \pm 0.96$ and
-    $\hat\theta_1 = 0.27 \pm 0.18$ (95\% percentile CI $[1.05, 4.56]$ and
-    $[0.07, 0.56]$), confirming both parameters are non-zero and the functional
-    family is stably recovered. The wide $\hat\theta_0$ CI reflects a mild
-    parameter degeneracy: in the deep-MOND regime the model depends on the two
-    free parameters mainly through the product $\hat\theta_0\sqrt{\hat\theta_1}$,
-    so per-fit point estimates of the prefactor vary substantially while the
-    fitted curve (and hence the NMSE) is essentially invariant. The relevant
-    stability signal is therefore the recovered functional family and the
-    out-of-sample/CV NMSE, both of which are stable---not the absolute value of
-    the prefactor.
-\end{itemize}
+overstate generalization, and a single summary statistic can hide which
+comparison is being made. We therefore report three nested levels of evidence,
+all evaluated at the \emph{galaxy} level so that no galaxy contributes to both
+train and test sets. The three levels separate a comparison ADCD wins
+decisively from one it merely matches, and we report both rather than
+conflate them.
+
+\emph{(i) Stacked-data comparison (in-sample, vs.\ fixed canonical forms).}
+\Cref{tab:sparc_comparison} reports the stacked-data fit. The ADCD-discovered
+function achieves the lowest NMSE (\textbf{0.373}) and the lowest BIC
+($-3280.7$), a 41\% NMSE reduction relative to the McGaugh+16 RAR form
+(0.636). This establishes that ADCD's discovered function dominates the
+\emph{zero-parameter} canonical forms---i.e.\ the closed-form interpolating
+functions as they appear in the literature, with no free parameters refit to
+these data. The scientifically fairer question, however, is whether the
+\emph{family} ADCD discovered is competitive once the canonical forms are
+granted the same two free parameters; that is the out-of-sample comparison
+below.
+
+\emph{(ii) Galaxy-level cross-validation (out-of-sample, fair parameter-matched
+comparison).} \Cref{tab:sparc_cv} reports 10 repeated random 50/50
+galaxy-level splits. ADCD's discovered function attains out-of-sample test NMSE
+$0.386 \pm 0.016$. The table deliberately separates two regimes: the
+zero-parameter canonical forms (top three rows, NMSE $0.66$--$0.70$) and the
+same MOND/RAR families \emph{refit with two free parameters} (bottom three
+rows). Against the zero-parameter forms ADCD wins by a wide margin. Against the
+two-parameter refit Simple-MOND and McGaugh RAR forms, however, ADCD is
+\emph{statistically indistinguishable} ($\Delta$NMSE $= +0.008$ relative to
+Simple MOND 2-param, combined SE $0.021$, $z = +0.39$, $p = 0.69$), and it
+\emph{decisively outperforms} the two-parameter Standard-MOND form
+($\Delta$NMSE $= -0.081$, $z = -4.60$). The in-sample counterpart of this fair
+comparison is shown in \Cref{tab:sparc_fitted}: under matched parameter count
+the fitted Simple-MOND and RAR forms attain marginally lower stacked NMSE than
+ADCD by $\sim$1.5\%, well within the bootstrap CI. Cross-validation thus
+resolves the comparison into a clear hierarchy: ADCD matches the
+best-performing domain-expert interpolating families and beats the simpler one.
+
+\emph{(iii) Cluster bootstrap on $\delta$BIC (decision-theoretic, at
+$N_{\rm eff}$).} Because BIC differences are the conventional currency of
+model selection, and because galaxies contribute correlated groups of radial
+points, we estimated a galaxy-level cluster bootstrap (1{,}000 resamples,
+seed 2026) on the effective-sample-size-scaled BIC difference
+$\delta{\rm BIC}_{\rm eff}$ at $N_{\rm eff} = 171$ independent galaxies
+(\Cref{tab:sparc_bic_bootstrap}). Galaxy-level cluster bootstrap (1{,}000
+resamples) at $N_{\rm eff} = 171$ independent galaxies yields
+$\delta{\rm BIC}_{\rm eff} = +3.4$ vs.\ Simple MOND (2-param), 95\% CI
+$[-0.9, +7.0]$, formally inconclusive per Kass \& Rafferty---consistent with
+the out-of-sample CV gap ($\Delta$NMSE $= 0.008$, $z = 0.39$, $p = 0.69$). By
+contrast, ADCD decisively outperforms Standard MOND (2-param) with
+$\delta{\rm BIC}_{\rm eff} = -36.5$, CI $[-60.1, -17.9]$ ($z = -4.60$ in CV).
+We interpret the Simple MOND / RAR parity result not as a failure of ADCD, but
+as evidence that autonomous correction discovery can reach the predictive
+performance of interpolating functions refined by domain experts over
+decades---without access to those forms as candidates.
 
 \input{generated/tab_sparc_validation}
+\input{generated/tab_sparc_fitted}
 \input{generated/tab_sparc_bootstrap}
+\input{generated/tab_sparc_bic_bootstrap}
+
+\paragraph{Parameter stability.}
+The bootstrap parameter CIs in \Cref{tab:sparc_bootstrap} (50 galaxy-level
+resamples: $\hat\theta_0 = 2.24$, 95\% CI $[1.05, 4.56]$; $\hat\theta_1 = 0.27$,
+95\% CI $[0.07, 0.56]$) confirm both parameters are non-zero and the functional
+family is stably recovered. The wide $\hat\theta_0$ CI reflects a mild parameter
+degeneracy: in the deep-MOND regime the model depends on the two free
+parameters mainly through the product $\hat\theta_0\sqrt{\hat\theta_1}$, so
+per-fit point estimates of the prefactor vary substantially while the fitted
+curve (and hence the NMSE) is essentially invariant. The relevant stability
+signal is therefore the recovered functional family and the out-of-sample/CV
+NMSE, both of which are stable---not the absolute value of the prefactor. This
+degeneracy also explains why per-cut point estimates of $\hat\theta_0$ in the
+robustness analysis below move while the fitted curve and model ranking stay
+fixed.
 
 \paragraph{Robustness to quality cuts.}
 To ensure the result is not an artefact of galaxy selection, we re-ran the
@@ -664,14 +715,20 @@ move while the fitted curve and the relative ranking of models stay fixed.
 
 \paragraph{Scope of the claim.}
 We do \emph{not} claim that ADCD has resolved the modified-gravity / dark-matter
-question. The stacked relation deliberately averages out galaxy-to-galaxy
-diversity, and the absolute NMSE is dominated by intrinsic scatter. What the
-data do show, defensibly and repeatably, is that ADCD---starting only from the
-Newtonian baseline and the asymptotic constraint $\Delta\!\to\!0$---recovers a
-2-parameter interpolating function for the radial acceleration relation that is
-more parsimonious than, and competitive with or better than, the standard
-closed-form functions in the literature, with out-of-sample and bootstrap
-stability confirmed.
+question, nor that the discovered family is predictively superior to the
+best two-parameter MOND/RAR interpolating functions. The stacked relation
+deliberately averages out galaxy-to-galaxy diversity, and the absolute NMSE is
+dominated by intrinsic scatter. What the data do show, defensibly and
+repeatably, is a three-level result: ADCD---starting only from the Newtonian
+baseline and the asymptotic constraint $\Delta \to 0$---(i) decisively
+outperforms the fixed zero-parameter canonical forms in stacked NMSE,
+(ii) reaches statistical parity with the best two-parameter domain-expert
+interpolating families out-of-sample and under cluster bootstrap, and
+(iii) decisively outperforms the two-parameter Standard-MOND family. The
+scientific content of the result is the \emph{autonomous-discovery parity}: a
+two-parameter interpolating function recovered without knowledge of the
+candidate family lands within the confidence band of functions refined by the
+MOND/RAR community over decades.
 
 \section{Discussion and Ablation Studies}
 \label{sec:ablation-text}
@@ -775,6 +832,20 @@ numerically near-identical functions from finite, noisy samples.
 Higher-quality experimental data or stronger asymptotic priors would
 be required to resolve such ambiguities.
 
+\paragraph{Comparison with physics-constrained tabula rasa SR.}
+A natural extension is direct comparison with physics-constrained tabula rasa
+symbolic regression methods such as PhySO~\cite{tenachi2023physo}. ADCD's
+correction-first paradigm reduces the hypothesis space by conditioning on a
+known classical law, whereas PhySO operates tabula rasa with dimensional/unit
+constraints; the two approaches therefore address fundamentally different
+discovery scenarios (theory refinement vs.\ theory replacement). We leave
+systematic comparison across noise levels and classical-baseline assumptions
+to future work. We note that ADCD's headline contribution---the
+correction-first paradigm validated against fair tabula rasa baselines such as
+PySR~\cite{cranmer2020pysr} (Section~\ref{sec:results})---is orthogonal to the
+correction-first-vs-physics-constrained-tabula-rasa axis that a PhySO
+comparison would probe.
+
 \paragraph{Correction mode specification.}
 The public API supports \texttt{correction\_mode=auto} (the default in
 \texttt{discover\_correction}), which infers additive versus multiplicative
@@ -815,7 +886,7 @@ The author thanks AI coding assistants---Cursor IDE, Google DeepMind's Antigravi
 
 We have presented Anomaly-Driven Correction Discovery (ADCD), a physics-informed symbolic regression framework that discovers physical corrections rather than equations from scratch. By using statistical residual feature priors, physics-gated pre-optimization filters, traced L-BFGS-B parameter fitting, and Bayesian Information Criterion reranking, ADCD achieves a mean structural recovery rate of 82.8\% ($\pm$7.7\%) across five random seeds on a 9-anomaly benchmark suite, with peak performance of 94.4\% at the reference seed. On four physics-inspired real-world validation scenarios using synthetic-real hybrid data (JPL DE440, NIST, CODATA constants), ADCD achieves structural class recovery on all four; quantitative recovery (NMSE $< 10^{-4}$) holds for three scenarios, with full optimizer convergence on Hydrogen Lamb Shift and Muon $g$-2 (residual NMSE $< 10^{-5}$; see \Cref{sec:real-world} for threshold definition), while Blackbody remains structurally correct but numerically limited (NMSE $\approx 2.6 \times 10^{-2}$).
 
-The strongest evidence for the framework comes from its application to \emph{real observational data}: on the SPARC sample of 171 galactic rotation curves, ADCD---starting only from the Newtonian baseline and the asymptotic constraint that the correction vanishes in the high-acceleration limit---recovers a two-parameter interpolating function for the radial acceleration relation that reduces the stacked-data NMSE by 41\% relative to the standard McGaugh, Lelli \& Schombert form, with out-of-sample stability confirmed by galaxy-level cross-validation and bootstrapping. This demonstrates that correction-first symbolic regression, constrained by physics gates, can surface competitive and interpretable functional forms directly from real astrophysical archives. A multivariable extension (Buckingham-$\Pi$ dimensionless groups with sequential asymptotic checking) is reported honestly as an exploratory capability with open challenges, rather than a headline result. Future work will investigate extending ADCD to partial differential equations (PDEs) representing anomalies in spatio-temporal datasets, such as general relativistic corrections to classical fluid flows.
+The strongest evidence for the framework comes from its application to \emph{real observational data}: on the SPARC sample of 171 galactic rotation curves, ADCD---starting only from the Newtonian baseline and the asymptotic constraint that the correction vanishes in the high-acceleration limit---recovers a two-parameter interpolating function that decisively outperforms the fixed zero-parameter canonical MOND/RAR forms (41\% stacked-NMSE reduction) and, under fair galaxy-level cross-validation and a 1{,}000-resample cluster bootstrap, reaches statistical parity with the two-parameter refit Simple-MOND and McGaugh RAR forms ($\delta{\rm BIC}_{\rm eff}=+3.4$, 95\% CI brackets zero) while decisively beating two-parameter Standard MOND ($\delta{\rm BIC}_{\rm eff}=-36.5$). This demonstrates that correction-first symbolic regression, constrained by physics gates, can autonomously surface a functional form that lands within the confidence band of interpolating functions refined by domain experts over decades---directly from real astrophysical archives, without access to those forms as candidates. A multivariable extension (Buckingham-$\Pi$ dimensionless groups with sequential asymptotic checking) is reported honestly as an exploratory capability with open challenges, rather than a headline result. Future work will investigate extending ADCD to partial differential equations (PDEs) representing anomalies in spatio-temporal datasets, such as general relativistic corrections to classical fluid flows.
 
 \section*{Code Availability}
 The complete source code for the ADCD framework, along with all reproduction scripts and benchmarks, is open-source and publicly available at \url{https://github.com/apiprdt/PhysicsPaper}. The package is also published on the Python Package Index (PyPI) at \url{https://pypi.org/project/adcd/}.
