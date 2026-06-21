@@ -152,6 +152,37 @@ def build_arc_regimes(
     return regimes
 
 
+def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
+    """Compute lim_{variable -> limit_target}(candidate), robust to undetermined-sign parameters.
+
+    SymPy's ``sp.limit`` raises ``NotImplementedError`` for limits whose result
+    depends on the sign of a free parameter, e.g. ``lim_{r->oo} exp(-r/theta_1)``
+    is unresolved when ``theta_1`` is an unsigned symbol. This is the dominant
+    failure mode for exponential-family corrections at ``-> oo`` regimes (Yukawa,
+    screened Coulomb) and previously caused the ARC gate to reject ~70% of
+    candidates including the literal ground-truth form.
+
+    All ADCD fit parameters (``theta_i``) are positive scale parameters — the
+    JAX optimizer log-parameterizes them to enforce positivity — so we declare
+    every ``theta_*`` symbol positive and retry. If the limit still fails, the
+    caller treats the candidate as rejected (returns ``None``).
+    """
+    try:
+        return sp.limit(candidate, variable, limit_target)
+    except Exception:
+        pass
+    # Retry assuming every theta_* free symbol is strictly positive.
+    theta_syms = [s for s in candidate.free_symbols if str(s).startswith("theta_")]
+    if not theta_syms:
+        return None
+    try:
+        positive_map = {s: sp.Symbol(str(s), positive=True) for s in theta_syms}
+        pos_candidate = candidate.subs(positive_map)
+        return sp.limit(pos_candidate, variable, limit_target)
+    except Exception:
+        return None
+
+
 class ARCScorer:
     """
     Mesin utama Stage 1 Gatekeeper untuk menghitung bobot kelayakan
@@ -181,18 +212,14 @@ class ARCScorer:
         weighted_similarity_sum = 0.0
 
         for r in self.regimes:
-            try:
-                # Menggunakan mesin limit internal SymPy yang kokoh
-                evaluated_limit = sp.limit(candidate, r.variable, r.limit_target)
-                
-                # Hitung skor kedekatan fisis limit kandidat vs ground truth boundary
-                similarity = calculate_similarity(evaluated_limit, r.ground_truth_expr)
-                weighted_similarity_sum += r.weight * similarity
-                
-                logger.debug(f"Regime {r.variable}->{r.limit_target} | Limit: {evaluated_limit} | Sim: {similarity}")
-            except Exception as e:
+            evaluated_limit = _resolve_limit(candidate, r.variable, r.limit_target)
+            if evaluated_limit is None:
                 # Kasus kegagalan matematis kritis (seperti PoleError) langsung diberi penalti 0
-                logger.warning(f"Kegagalan komputasi limit pada variabel {r.variable}: {e}")
+                logger.warning(f"Kegagalan komputasi limit pada variabel {r.variable}")
                 continue
+            # Hitung skor kedekatan fisis limit kandidat vs ground truth boundary
+            similarity = calculate_similarity(evaluated_limit, r.ground_truth_expr)
+            weighted_similarity_sum += r.weight * similarity
+            logger.debug(f"Regime {r.variable}->{r.limit_target} | Limit: {evaluated_limit} | Sim: {similarity}")
 
         return weighted_similarity_sum / self.total_weight

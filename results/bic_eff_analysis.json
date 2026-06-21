@@ -1,0 +1,62 @@
+{
+  "N_galaxies": 171,
+  "N_points": 3342,
+  "mean_points_per_galaxy": 19.54385964912281,
+  "inflation_factor": 19.54385964912276,
+  "models": [
+    {
+      "name": "Simple MOND (2-param)",
+      "nmse": 0.3674392022869592,
+      "params": 2,
+      "fitted_theta": {
+        "theta_0": 0.4970196883776502,
+        "theta_1": 0.5476186510349252
+      },
+      "bic_standard": -3329.7730946985384,
+      "bic_effective": -160.92142999171676,
+      "delta_bic_std": 49.08669649296007,
+      "delta_bic_eff": 2.511617325043744,
+      "interpretation_eff": "Positive evidence [ADCD loses]"
+    },
+    {
+      "name": "RAR (McGaugh, 2-param)",
+      "nmse": 0.36748366392047577,
+      "params": 2,
+      "fitted_theta": {
+        "theta_0": 0.559795981103493,
+        "theta_1": 0.5788458970593577
+      },
+      "bic_standard": -3329.368723610834,
+      "bic_effective": -160.90073955006582,
+      "delta_bic_std": 48.6823254052556,
+      "delta_bic_eff": 2.4909268833928024,
+      "interpretation_eff": "Positive evidence [ADCD loses]"
+    },
+    {
+      "name": "ADCD discovered",
+      "nmse": 0.372875912348825,
+      "params": 2,
+      "fitted_theta": null,
+      "bic_standard": -3280.6863982055784,
+      "bic_effective": -158.40981266667302,
+      "delta_bic_std": 0.0,
+      "delta_bic_eff": 0.0,
+      "interpretation_eff": "Not worth mentioning evidence [ADCD wins]"
+    },
+    {
+      "name": "Standard MOND (2-param)",
+      "nmse": 0.4627590543751465,
+      "params": 2,
+      "fitted_theta": {
+        "theta_0": 9.342548581396202e-20,
+        "theta_1": 2.7718517354276388e-05
+      },
+      "bic_standard": -2558.945310742911,
+      "bic_effective": -121.4805110640051,
+      "delta_bic_std": -721.7410874626676,
+      "delta_bic_eff": -36.92930160266792,
+      "interpretation_eff": "Very Strong evidence [ADCD wins]"
+    }
+  ],
+  "reviewer_message": "BIC comparison with N=3342 treats 19.5 correlated within-galaxy measurements as independent observations, inflating delta-BIC by ~20x. At the correct galaxy-level scale (N_eff=171), delta-BIC_eff=2.51 (Positive evidence [ADCD loses]) -- effectively inconclusive."
+}

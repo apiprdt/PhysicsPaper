@@ -1,6 +1,6 @@
 import pytest
 import sympy as sp
-from adcd.arc_scorer import AsymptoticRegime, ARCScorer
+from adcd.arc_scorer import AsymptoticRegime, ARCScorer, _resolve_limit
 
 
 def test_classical_kinetic_energy():
@@ -82,3 +82,40 @@ def test_multiple_regimes_weighting():
     # Total nilai diharapkan = 1.0 / (2.0 + 1.0) = 0.33333...
     score = scorer.score(mixed_candidate)
     assert score == pytest.approx(1.0 / 3.0, abs=1e-5)
+
+
+def test_yukawa_decay_positive_theta_regression():
+    """
+    REGRESI A2: Famili eksponensial dengan parameter tak bertanda (Yukawa / screened Coulomb).
+
+    Sebelum perbaikan: ``sp.limit(exp(-r/theta_1), r, oo)`` memunculkan
+    ``NotImplementedError`` karena tanda ``theta_1`` tak tentu, sehingga gerbang
+    ARC menolak kandidat (termasuk literal ground-truth) dengan skor 0.0.
+    Seharusnya: peluruhan eksponensial terhadap parameter skala positif ``theta_i``
+    (dipaksakan positif oleh optimiser JAX via log-parameterisasi) wajib menuju 0
+    ketika ``r -> oo`` dan mendapat skor 1.0.
+    """
+    # Tingkat helper: limit eksplisit harus teratasi menjadi 0
+    r = sp.Symbol("r")
+    resolved = _resolve_limit(sp.exp(-r / sp.Symbol("theta_1")), r, sp.oo)
+    assert resolved == 0
+
+    regime = AsymptoticRegime(variable="r", limit_target=sp.oo, ground_truth_expr="0", weight=1.0)
+    scorer = ARCScorer(regimes=[regime])
+
+    # Kandidat sah: gembur (screened) Yukawa yang meluruh ke nol
+    assert scorer.score("exp(-r/theta_1)") == pytest.approx(1.0, abs=1e-5)
+    # Varian polinomial-eksponensial juga harus diterima
+    assert scorer.score("exp(-r/theta_2) / r**2") == pytest.approx(1.0, abs=1e-5)
+
+
+def test_yukawa_divergence_still_rejected():
+    """
+    REGRESI A2 (countercheck): koreksi yang benar-benar divergen harus tetap ditolak.
+
+    Memastikan asumsi theta positif hanya menyelamatkan kasus peluruhan, bukan
+    menutupi divergensi nyata: ``exp(+r/theta_1)`` tetap harus mendapat skor 0.0.
+    """
+    regime = AsymptoticRegime(variable="r", limit_target=sp.oo, ground_truth_expr="0", weight=1.0)
+    scorer = ARCScorer(regimes=[regime])
+    assert scorer.score("exp(r/theta_1)") == 0.0

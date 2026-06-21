@@ -29,16 +29,27 @@ NOISE_LEVELS = [0.0, 0.01, 0.05, 0.10]
 
 
 def _seed_rates(results):
-    """Map seed -> overall structural recovery rate (fraction in [0,1])."""
+    """Map seed -> overall structural recovery rate (fraction in [0,1]).
+
+    Only single-variable (SV) entries are counted. Multivariable scenarios
+    (names prefixed ``MV-``) use a separate pipeline and are reported
+    independently; including them here drags down the SV recovery rate
+    because every MV trial scores ``class_match = False`` by construction.
+    """
     rates = {}
     for r in results:
+        if r.get("scenario", "").startswith("MV-"):
+            continue
         rates.setdefault(r["seed"], []).append(1.0 if r["class_match"] else 0.0)
     return {s: float(np.mean(v)) for s, v in rates.items()}
 
 
 def _rate_at_noise(results, noise):
+    # Multivariable trials are excluded for the same reason as _seed_rates.
     sub = [1.0 if r["class_match"] else 0.0
-           for r in results if abs(r["noise"] - noise) < 1e-9]
+           for r in results
+           if abs(r["noise"] - noise) < 1e-9
+           and not r.get("scenario", "").startswith("MV-")]
     return sub
 
 
