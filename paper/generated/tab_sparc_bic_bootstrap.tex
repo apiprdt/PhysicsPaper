@@ -1,25 +1,21 @@
 \begin{table}[H]
 \centering\footnotesize
-\caption{Galaxy-level cluster bootstrap on the effective-sample-size-scaled BIC
-difference $\delta{\rm BIC}_{\rm eff}$ at $N_{\rm eff}=171$
-independent galaxies (1,000 usable resamples of 1,000,
-seed 2026). ADCD is the baseline; $\delta{\rm BIC}_{\rm eff}<0$ means ADCD wins.
-Per Kass \& Rafferty~\cite{kass1995bayes}, $|\delta|<2$ is weak,
+\caption{Galaxy-level cluster bootstrap on $\delta{\rm BIC}_{\rm eff}$ at
+$N_{\rm eff}=171$ (1{,}000 resamples, seed 2026).
+ADCD is the baseline; $\delta{\rm BIC}_{\rm eff}<0$ means ADCD wins.
+Per Kass \& Raftery~\cite{kass1995bayes}: $|\delta|<2$ weak,
 $2$--$6$ positive, $6$--$10$ strong, $>10$ very strong---\emph{but} if the
-95\% bootstrap CI brackets zero the result is formally inconclusive regardless
-of the point estimate. ADCD is statistically indistinguishable from the
-2-param Simple-MOND and McGaugh RAR forms (CI brackets zero) and decisively
-outperforms the 2-param Standard-MOND form (CI entirely below zero).}
+95\% CI brackets zero, the result is formally inconclusive.}
 \label{tab:sparc_bic_bootstrap}
-\begin{tabular}{l c c c l}
+\begin{tabularx}{\textwidth}{l c c c L}
 \toprule
-\textbf{Model (2-param)} & \textbf{BIC}$_{\rm eff}$ (95\% CI) &
+\textbf{Model (2-param)} & \textbf{BIC}$_{\rm eff}$ &
 $\delta{\rm BIC}_{\rm eff}$ & \textbf{95\% CI} & \textbf{Verdict} \\
 \midrule
-  Simple MOND (2-param) & --- & +3.4 & [-0.9, +7.0] & Inconclusive (CI brackets $0$) \\
-  RAR (McGaugh, 2-param) & --- & +3.4 & [-1.0, +7.0] & Inconclusive (CI brackets $0$) \\
-  \underline{ADCD discovered} & -159.1 $\pm$ [-194.0, -125.8] & --- & --- & (baseline) \\
-  Standard MOND (2-param) & --- & -36.5 & [-60.1, -17.9] & Very Strong evidence [ADCD wins] \\
+  Simple MOND & --- & $+3.4$ & $[-0.9, +7.0]$ & Inconclusive \\
+  RAR (McGaugh) & --- & $+3.4$ & $[-1.0, +7.0]$ & Inconclusive \\
+  \underline{ADCD discovered} & $-159.1 \pm [-194.0, -125.8]$ & --- & --- & (baseline) \\
+  Standard MOND & --- & $-36.5$ & $[-60.1, -17.9]$ & Very Strong [ADCD wins] \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}

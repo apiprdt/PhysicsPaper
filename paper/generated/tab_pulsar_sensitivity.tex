@@ -1,15 +1,15 @@
 \begin{table}[H]
-\centering
+\centering\footnotesize
 \caption{Binary Pulsar Sensitivity: structural recovery vs.\ formulation difficulty. v2.1 default uses the \texttt{P\_only} reduced-variable form.}
 \label{tab:pulsar_sensitivity}
-\begin{tabularx}{\textwidth}{l l l c c}
+\begin{tabularx}{\textwidth}{L l L c c}
 \toprule
-\textbf{Variant} & \textbf{Free Variables} & \textbf{Discovered $\Delta$} & \textbf{Class Match} & \textbf{NMSE} \\
+\textbf{Variant} & \textbf{Free Vars.} & \textbf{Discovered $\Delta$} & \textbf{Class} & \textbf{NMSE} \\
 \midrule
-\texttt{P\_only} & $P$ & $P^{- \theta_{1}} \cdot \theta_{0}$ & Yes & $3.94 \times 10^{-3}$ \\
-\texttt{P\_e} & $P$, $e$ & $\frac{e^{3} \cdot \theta_{0}}{P}$ & Yes & $2.52 \times 10^{-1}$ \\
-\texttt{P\_e\_M} & $P$, $e$, $M$ & $P^{- \theta_{1}} \cdot \theta_{0}$ & Yes & $4.81 \times 10^{-1}$ \\
-\texttt{full} & $P$, $M$, $a$, $e$ & $\theta_{0} \cdot \log\left(\theta_{1} + \frac{e}{P} \right)$ & No & $1.57 \times 10^{-2}$ \\
+\texttt{P\_only} & $P$ & $\theta_{0}\, P^{-\theta_{1}}$ & Yes & $3.94 \times 10^{-3}$ \\
+\texttt{P\_e} & $P$, $e$ & $\theta_{0}\, e^{3}/P$ & Yes & $2.52 \times 10^{-1}$ \\
+\texttt{P\_e\_M} & $P$, $e$, $M$ & $\theta_{0}\, P^{-\theta_{1}}$ & Yes & $4.81 \times 10^{-1}$ \\
+\texttt{full} & $P$, $M$, $a$, $e$ & $\theta_{0}\log(\theta_{1}+e/P)$ & No & $1.57 \times 10^{-2}$ \\
 \bottomrule
 \end{tabularx}
 \end{table}

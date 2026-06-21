@@ -2,16 +2,16 @@
 \centering
 \caption{PySR baseline configuration profiles. Primary comparison uses \texttt{fair} (near-default search budget). \texttt{fast} is legacy wall-clock-matched; \texttt{generous} is upper-bound ablation.}
 \label{tab:pysr_config}
-\small
-\begin{tabularx}{\textwidth}{l c c c c c c}
+\footnotesize
+\begin{tabular}{@{\extracolsep{\fill}}l c c c c c c@{}}
 \toprule
-\textbf{Profile} & \textbf{Iterations} & \textbf{Max Size} & \textbf{Timeout (s)} & \textbf{Populations} & \textbf{Pop.\ Size} & \textbf{Seed} \\
+\textbf{Profile} & \textbf{Iter.} & \textbf{Max Size} & \textbf{Timeout (s)} & \textbf{Pop.} & \textbf{Size} & \textbf{Seed} \\
 \midrule
 \texttt{fast} (legacy) & 15 & 15 & 25 & 8 & 20 & 42 \\
 \texttt{fair} (primary) & 100 & 30 & 60 & 8 & 20 & 42 \\
 \texttt{generous} & 200 & 40 & 120 & 8 & 20 & 42 \\
-\midrule
-\multicolumn{7}{l}{\textit{Shared: binary ops }$\{+,-,\times,\div\}$; unary ops $\{\exp,\sin,\cos,\log,\tanh,\sqrt\}$; parsimony $=0.0032$; deterministic $=$ True; same residual $y - y_{\mathrm{classical}}$ as ADCD.} \\
 \bottomrule
-\end{tabularx}
+\end{tabular}
+\vspace{2pt}
+{\footnotesize\textit{Shared: binary ops $\{+,-,\times,\div\}$; unary ops $\{\exp,\sin,\cos,\log,\tanh,\sqrt\}$; parsimony $=0.0032$; deterministic $=$ True; same residual as ADCD.}}
 \end{table}
