@@ -80,7 +80,10 @@ def _fmt_pct(x):
 def generate_latex(summary):
     """Emit a LaTeX table: per-seed recovery + aggregate mean/CI."""
     per_seed = summary["per_seed_rates"]
-    n_scenarios = summary["n_trials_per_seed"] // len(NOISE_LEVELS)
+    # Scenarios are derived from the SV-only trial count (the quantity the
+    # per-seed rate is computed over). Using the blended total that includes
+    # multivariable rows would yield the wrong scenario count.
+    n_scenarios = summary["n_trials_per_seed_sv"] // len(NOISE_LEVELS)
 
     lines = [
         r"\begin{table}[H]",
@@ -140,6 +143,13 @@ def main():
     seed_rates = _seed_rates(results)
     rate_values = list(seed_rates.values())
 
+    # SV-only trial count per seed. This is the quantity the per-seed rate is
+    # actually computed over (multivariable trials are excluded in _seed_rates),
+    # so it must be derived from SV rows only -- not the blended total.
+    sv_rows = [r for r in results if not r.get("scenario", "").startswith("MV-")]
+    sv_scenarios = sorted(set(r["scenario"] for r in sv_rows))
+    n_trials_per_seed_sv = len(sv_rows) // len(seeds_present) if seeds_present else 0
+
     rng = np.random.default_rng(args.seed)
     ci_lo, ci_hi = bootstrap_ci(rate_values, n_bootstrap=args.n_bootstrap, rng=rng)
 
@@ -157,6 +167,9 @@ def main():
         "n_seeds": len(seeds_present),
         "seeds": seeds_present,
         "n_trials_per_seed": len(results) // len(seeds_present),
+        "n_trials_per_seed_sv": n_trials_per_seed_sv,
+        "n_scenarios_sv": len(sv_scenarios),
+        "scenarios_sv": sv_scenarios,
         "per_seed_rates": seed_rates,
         "overall_mean": float(np.mean(rate_values)),
         "overall_std": float(np.std(rate_values, ddof=0)),

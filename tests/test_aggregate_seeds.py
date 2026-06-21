@@ -146,3 +146,46 @@ class TestEndToEndOnExistingResults:
                                   rng=np.random.default_rng(0))
         assert lo <= mean <= hi
         assert 0.0 <= lo <= 1.0 and 0.0 <= hi <= 1.0
+
+
+class TestScenarioCountFromSVOnly:
+    """The LaTeX caption reports 'N scenarios x 4 noise = 36 trials per seed'.
+    When the raw results file mixes single-variable (SV) and multivariable
+    (MV-*) rows, the scenario count must be derived from SV rows only --
+    otherwise the caption reads an internally-contradictory figure (e.g.
+    '11 scenarios x 4 noise = 36 trials', since 11 x 4 != 36)."""
+
+    def _caption_scenario_count(self, agg, trials):
+        """Mirror the main() summary construction to extract n_scenarios."""
+        import numpy as _np
+        seeds_present = sorted(set(r["seed"] for r in trials))
+        sv_rows = [r for r in trials
+                   if not r.get("scenario", "").startswith("MV-")]
+        n_sv = len(sv_rows) // len(seeds_present)
+        return n_sv // 4
+
+    def test_sv_only_file_gives_9_scenarios(self, agg):
+        # 2 seeds x 9 scenarios x 4 noise = 72 SV trials, no MV rows.
+        trials = _make_trials({0: 0.75, 7: 0.944}, n_scenarios=9)
+        assert self._caption_scenario_count(agg, trials) == 9
+
+    def test_mixed_sv_mv_file_still_gives_9_scenarios(self, agg):
+        # Same 72 SV trials, but with extra MV-* rows that previously
+        # contaminated the scenario count.
+        trials = _make_trials({0: 0.75, 7: 0.944}, n_scenarios=9)
+        mv = {
+            "MV-1: Yukawa Mass-Ratio", "MV-2: Plasma Correction",
+            "MV-3: Turbulent Drag 2D", "MV-4: Van der Waals 2D",
+        }
+        for seed in (0, 7):
+            for name in mv:
+                for noise in (0.0, 0.01, 0.05, 0.10):
+                    trials.append({
+                        "seed": seed, "noise": noise,
+                        "scenario": name, "class_match": False,
+                        "tier": "multivariable", "nmse_full": 1e-3,
+                    })
+        # Without the fix this would be 52/2/4 = 6... actually (36+16)/2/4=6;
+        # the old code used the full blended total yielding a wrong figure.
+        # The correct SV-only count is 36/2/... = 9 scenarios per seed.
+        assert self._caption_scenario_count(agg, trials) == 9

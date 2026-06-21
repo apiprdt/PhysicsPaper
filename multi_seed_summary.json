@@ -19,6 +19,19 @@
     99
   ],
   "n_trials_per_seed": 47,
+  "n_trials_per_seed_sv": 36,
+  "n_scenarios_sv": 9,
+  "scenarios_sv": [
+    "Anharmonic Spring",
+    "Mystery-A",
+    "Mystery-B",
+    "Mystery-C",
+    "Net Radiation",
+    "Nonlinear Drag",
+    "Relativistic KE",
+    "Screened Coulomb",
+    "Yukawa Gravity"
+  ],
   "per_seed_rates": {
     "0": 0.8611111111111112,
     "7": 0.75,
