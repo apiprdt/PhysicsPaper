@@ -1,0 +1,124 @@
+{
+  "n_points": 34,
+  "H0_fit": 68.48254230589706,
+  "Om_m0_fit": 0.29582622225941324,
+  "chi2_reduced": 0.5826265044559734,
+  "best_candidate": "Constant offset",
+  "best_bic": 5.048583699365601,
+  "null_bic": 5.048583699365601,
+  "delta_bic_vs_null": 0.0,
+  "verdict": "CONSTANT_WINS",
+  "candidates": [
+    {
+      "name": "Constant offset",
+      "formula": "theta_0",
+      "n_params": 1,
+      "chi2": 18.64388107190617,
+      "chi2_reduced": 0.5649660930880657,
+      "bic": 5.048583699365601,
+      "params": {
+        "theta_0": -0.01908186743798007
+      }
+    },
+    {
+      "name": "Power law",
+      "formula": "theta_0*z**theta_1",
+      "n_params": 2,
+      "chi2": 18.59795890857566,
+      "chi2_reduced": 0.5811862158929894,
+      "bic": 7.763980259240258,
+      "params": {
+        "theta_0": 0.4857817479070254,
+        "theta_1": 3.104588286062865
+      }
+    },
+    {
+      "name": "Rational",
+      "formula": "theta_0 / (1 + (z/theta_1)**2)",
+      "n_params": 2,
+      "chi2": 18.604389011762326,
+      "chi2_reduced": 0.5813871566175727,
+      "bic": 8.543068575248487,
+      "params": {
+        "theta_0": 1.0326204050427952,
+        "theta_1": 0.17568598200284455
+      }
+    },
+    {
+      "name": "Exponential decay",
+      "formula": "theta_0*exp(-theta_1*z)",
+      "n_params": 2,
+      "chi2": 18.590716917050912,
+      "chi2_reduced": 0.580959903657841,
+      "bic": 8.587919896798615,
+      "params": {
+        "theta_0": 1.9087142295642705,
+        "theta_1": 6.558065269519114
+      }
+    },
+    {
+      "name": "Linear",
+      "formula": "theta_0 + theta_1*z",
+      "n_params": 2,
+      "chi2": 18.64371389741337,
+      "chi2_reduced": 0.5826160592941678,
+      "bic": 8.627407845047491,
+      "params": {
+        "theta_0": 0.016004108886100238,
+        "theta_1": -0.06921014351305754
+      }
+    },
+    {
+      "name": "Log",
+      "formula": "theta_0*log(1+z) + theta_1",
+      "n_params": 2,
+      "chi2": 18.634845564804753,
+      "chi2_reduced": 0.5823389239001485,
+      "bic": 8.918986959511125,
+      "params": {
+        "theta_0": -0.7939125027991236,
+        "theta_1": 0.29389124773207714
+      }
+    },
+    {
+      "name": "Power + offset",
+      "formula": "theta_2 + theta_0*z**theta_1",
+      "n_params": 3,
+      "chi2": 18.58478762726181,
+      "chi2_reduced": 0.5995092782987681,
+      "bic": 11.277558937927616,
+      "params": {
+        "theta_0": 0.661026094944295,
+        "theta_1": 2.8860230591551046,
+        "theta_2": -0.1981848697328471
+      }
+    },
+    {
+      "name": "Quadratic",
+      "formula": "theta_0 + theta_1*z + theta_2*z**2",
+      "n_params": 3,
+      "chi2": 18.374897433147414,
+      "chi2_reduced": 0.592738626875723,
+      "bic": 11.60774568988634,
+      "params": {
+        "theta_0": 1.67774927440287,
+        "theta_1": -6.76474448260512,
+        "theta_2": 5.201951420003003
+      }
+    },
+    {
+      "name": "Exponential + offset",
+      "formula": "theta_2 + theta_0*exp(-theta_1*z)",
+      "n_params": 3,
+      "chi2": 18.54603723164824,
+      "chi2_reduced": 0.5982592655370399,
+      "bic": 12.62535236929027,
+      "params": {
+        "theta_0": 2.697795871805634,
+        "theta_1": 4.999594048731337,
+        "theta_2": -0.451355859377719
+      }
+    }
+  ],
+  "reviewer_message": "P3.5 RESULT \u2014 H(z) residual carries NO functional signal.\n  \u2022 Dataset   : Cosmic Chronometers, N=34 points, z \u2208 [0.070, 1.965].\n  \u2022 \u039bCDM baseline : H\u2080=68.48, \u03a9\u2098\u2080=0.2958, \u03c7\u00b2/dof=0.583.\n  \u2022 Best candidate : 'Constant offset' (BIC = 5.05);\n    null constant offset : BIC = 5.05.\n  \u2022 \u0394BIC vs null = +0.00 \u2192 constant offset is preferred.\n  \u2022 Conclusion : an INDEPENDENT observable (expansion rate) also\n    shows no ADCD-discoverable functional anomaly. Combined with\n    P3.3 + P3.4, this is strong evidence that ADCD does not surface\n    spurious functional corrections in real cosmological data."
+}
