@@ -56,9 +56,9 @@
 \begin{abstract}
 Traditional symbolic regression discovers equations from scratch, an approach that becomes computationally intractable and overfitting-prone on complex physical systems under observational noise. We present \textbf{Anomaly-Driven Correction Discovery (ADCD)}, a physics-informed symbolic regression framework that instead takes a known classical law and searches for the dimensionless correction term $\Delta$ that reconciles it with anomalous observations. ADCD cascades physical filters---AST complexity, dimensional homogeneity with a transcendental-argument guardrail, and asymptotic-regime consistency (ARC)---with a JAX-traced L-BFGS-B optimizer and Bayesian Information Criterion (BIC) reranking, enforcing physical plausibility \emph{before} numerical optimization and demonstrating robustness to experimental error.
 
-\textbf{Synthetic benchmark.} On 9 physical anomalies spanning textbook, cross-domain, and synthetic systems under noise up to 10\%, ADCD achieves a mean structural recovery of \textbf{82.8\% ($\pm$7.7\%) across five seeds}, with 94.4\% (34/36) at the reference seed=42 (disclosed explicitly as the highest-performing seed; the mean is the primary claim). At 5\% noise, ADCD reaches 88.9\% versus 11.1\% for PySR under a matched residual formulation---a 77.8 percentage-point gap that persists even when PySR's search budget is doubled. The same machinery recovers the correct structural class on 4/4 established real-world scenarios (Mercury perihelion, Lamb shift, muon $g-2$, blackbody) and fails safe on the misspecification benchmark.
+\textbf{Synthetic benchmark.} On 9 physical anomalies spanning textbook, cross-domain, and synthetic systems under noise up to 10\%, ADCD achieves a mean structural recovery of \textbf{80.4\% ($\pm$7.4\%) across sixteen seeds}, with 94.4\% (34/36) at the reference seed=42 (disclosed explicitly as the highest-performing seed; the mean is the primary claim). At 5\% noise, ADCD reaches 88.9\% versus 11.1\% for PySR under a matched residual formulation---a 77.8 percentage-point gap that persists even when PySR's search budget is doubled. The same machinery recovers the correct structural class on 4/4 established real-world scenarios (Mercury perihelion, Lamb shift, muon $g-2$, blackbody) and fails safe on the misspecification benchmark.
 
-\textbf{Real-world: SPARC (honest framing).} On the SPARC sample ($N_{\rm gal}=171$, $N_{\rm pts}=3342$), ADCD autonomously converges to a \emph{two-parameter member of the Simple MOND algebraic family} (Famaey \& Binney 2005), with a transition parameter $\hat\theta_1\approx 0.27$ versus the canonical $c=4.0$ (a factor of $\sim\!15$). The discovered form achieves a 41\% stacked-NMSE reduction over the fixed zero-parameter canonical MOND/RAR forms and, under fair galaxy-level cross-validation plus a 1{,}000-resample cluster bootstrap, reaches statistical parity with two-parameter domain-expert forms ($\Delta$NMSE$=0.008$, $z=0.39$; $\delta{\rm BIC}_{\rm eff}=+3.4$, 95\% CI brackets zero) while decisively beating two-parameter Standard MOND ($z=-4.60$). We claim autonomous rediscovery of this family from data, not a novel family.
+\textbf{Real-world: SPARC (honest framing).} On the SPARC sample ($N_{\rm gal}=171$, $N_{\rm pts}=3342$), ADCD autonomously converges to a \emph{two-parameter member of the Simple MOND algebraic family} (Famaey \& Binney 2005), with a transition parameter $\hat\theta_1\approx 0.27$ versus the canonical $c=4.0$ (a factor of $\sim\!15$). The discovered form achieves a 41\% stacked-NMSE reduction over the fixed zero-parameter canonical MOND/RAR forms and, under fair galaxy-level cross-validation plus a 1{,}000-resample cluster bootstrap, cannot be statistically distinguished from two-parameter domain-expert forms ($\Delta$NMSE$=0.008$, $z=0.39$; $\delta{\rm BIC}_{\rm eff}=+3.4$, 95\% CI brackets zero) while decisively beating two-parameter Standard MOND ($z=-4.60$). We claim autonomous rediscovery of this family from data, not a novel family.
 
 \textbf{Cosmological probes.} Extended to cosmological datasets---63 $f\sigma_8$ growth-rate measurements and 34 $H(z)$ cosmic-chronometer points---ADCD finds \emph{no} $z$-dependent functional correction beyond a constant amplitude rescaling in five independent tests (two observables, three homogeneous survey subsets). The best-fit amplitudes are consistent with the $S_8$ tension direction ($\sigma_{8,0}=0.7815$ vs.\ Planck $0.811$); the null result constrains but does not determine the physical origin of the tension.
 
@@ -345,7 +345,9 @@ Each scenario is evaluated under four noise levels: $\eta \in \{0\%, 1\%, 5\%, 1
 \end{itemize}
 
 \paragraph{Reproducibility and seed disclosure.}
-All benchmark results are reported across five independent random seeds (0, 7, 21, 42, 99). The \textbf{mean structural recovery rate is 82.8\%} ($\pm$7.7\%), with per-seed rates of 86.1\% (31/36, seed 0), 75.0\% (27/36, seed 7), 77.8\% (28/36, seed 21), 94.4\% (34/36, seed 42), and 80.6\% (29/36, seed 99). We disclose explicitly that seed=42, which we use as the \emph{reference seed} throughout this paper, \textbf{is the highest-performing seed} in this set. Seed=42 was adopted as the reference seed prior to running the multi-seed study (it was the default starting seed in the initial implementation); the multi-seed analysis was conducted afterward as a robustness check and revealed, post-hoc, that it is also the best-performing seed. We report 94.4\% (34/36) at seed=42 alongside the mean of 82.8\% for full transparency; the primary claim of the paper is the mean, not the peak. The 19.4 percentage-point spread (75.0\%--94.4\%) reflects stochastic template sampling in the MockProposer: different seeds generate different candidate pools. ``Deterministic'' in our context means \emph{reproducible given the same seed}, not identical across seeds. Physics gates ensure that when the correct functional family is sampled, it consistently survives gate filtering and BIC reranking regardless of seed.
+All benchmark results are reported across sixteen independent random seeds (0, 2, 5, 7, 13, 17, 21, 23, 31, 37, 41, 42, 53, 61, 67, 99). The \textbf{mean structural recovery rate is 80.4\%} ($\pm$7.4\% population standard deviation; 95\% bootstrap CI [76.7\%, 84.0\%] over 10{,}000 resamples of the per-seed rates); the full per-seed breakdown is given in \Cref{tab:multi_seed}. We disclose explicitly that seed=42, which we use as the \emph{reference seed} throughout this paper, \textbf{is the highest-performing seed} in this set. Seed=42 was adopted as the reference seed prior to running the multi-seed study (it was the default starting seed in the initial implementation); the multi-seed analysis was conducted afterward as a robustness check and revealed, post-hoc, that it is also the best-performing seed. We report 94.4\% (34/36) at seed=42 alongside the mean of 80.4\% for full transparency; the primary claim of the paper is the mean, not the peak. The 25.0 percentage-point spread (69.4\%--94.4\%) reflects stochastic template sampling in the MockProposer: different seeds generate different candidate pools. ``Deterministic'' in our context means \emph{reproducible given the same seed}, not identical across seeds. Physics gates ensure that when the correct functional family is sampled, it consistently survives gate filtering and BIC reranking regardless of seed.
+
+\input{generated/tab_multi_seed}
 
 \paragraph{Template overlap disclosure.}
 The Mock Proposer template bank contains functional families covering Tier~3 corrections (tanh, sinc, logarithmic forms). Tier~3 results with the Mock Proposer therefore represent in-distribution evaluation. Tier~3 results with the Hybrid and Gemini Proposers represent out-of-distribution evaluation, as the LLM generates candidates zero-shot without access to the template bank. For the real-world tier, extended-mode templates add scenario-specific hints (e.g.\ $\theta_0 \cdot (v/c)^2$ for Mercury); only Mercury has an \emph{exact} ground-truth template in this bank (\Cref{tab:template_leakage}). All other real-world scenarios are evaluated against generic functional families (power law, exponential, polynomial), not verbatim answer injection.
@@ -354,9 +356,9 @@ The Mock Proposer template bank contains functional families covering Tier~3 cor
 \label{sec:results}
 
 \paragraph{Evaluation regimes.}
-We report results under three explicitly separated evaluation regimes to avoid conflating template-assisted recovery with zero-shot discovery: (i)~\textbf{Primary (synthetic benchmark)}: Mock Proposer, five independent seeds (0, 7, 21, 42, 99), $9 \times 4 = 36$ trials per seed---the \textbf{primary claim} is mean structural recovery 82.8\% ($\pm$7.7\%); (ii)~\textbf{Supplementary (zero-shot upper bound)}: Hybrid Proposer at reference seed=42 only (33/36 = 91.7\%), reporting LLM-augmented discovery beyond the template bank; (iii)~\textbf{Real-world (physics-constant hybrid)}: Mock Proposer on four established scenarios using CODATA/NIST/JPL parameters---4/4 structural class match, with quantitative recovery (NMSE $< 10^{-4}$) on 3/4 (Blackbody limited to structural identification; see \Cref{tab:real_param_recovery}). Binary pulsar decay is reported separately as a controlled sensitivity study (\Cref{tab:pulsar_sensitivity}), not in the main recovery headline.
+We report results under three explicitly separated evaluation regimes to avoid conflating template-assisted recovery with zero-shot discovery: (i)~\textbf{Primary (synthetic benchmark)}: Mock Proposer, sixteen independent seeds (0, 2, 5, 7, 13, 17, 21, 23, 31, 37, 41, 42, 53, 61, 67, 99), $9 \times 4 = 36$ trials per seed---the \textbf{primary claim} is mean structural recovery 80.4\% ($\pm$7.4\%); (ii)~\textbf{Supplementary (zero-shot upper bound)}: Hybrid Proposer at reference seed=42 only (33/36 = 91.7\%), reporting LLM-augmented discovery beyond the template bank; (iii)~\textbf{Real-world (physics-constant hybrid)}: Mock Proposer on four established scenarios using CODATA/NIST/JPL parameters---4/4 structural class match, with quantitative recovery (NMSE $< 10^{-4}$) on 3/4 (Blackbody limited to structural identification; see \Cref{tab:real_param_recovery}). Binary pulsar decay is reported separately as a controlled sensitivity study (\Cref{tab:pulsar_sensitivity}), not in the main recovery headline.
 
-We distinguish two performance regimes within the primary and supplementary synthetic benchmarks. First, \textbf{template-assisted recovery} (Mock Proposer): ADCD achieves a mean of \textbf{82.8\%} ($\pm$7.7\%) structural class recovery across five seeds, with a peak of 94.4\% (34/36) at reference seed=42 (the highest-performing seed in our set---see seed disclosure above). Second, \textbf{genuine discovery capability} (Hybrid Proposer): ADCD achieves 91.7\% (33/36) structural recovery at seed=42 using zero-shot LLM-generated candidates merged with templates---demonstrating that the correction-first paradigm generalizes beyond pre-specified template families (reproduce via \texttt{run\_correction\_discovery.py --proposer hybrid}; frozen results in \texttt{hybrid\_seed42\_results.json}). Both seed=42 figures are provided as concrete upper-bound reference points; the mean of 82.8\% is the primary performance claim.
+We distinguish two performance regimes within the primary and supplementary synthetic benchmarks. First, \textbf{template-assisted recovery} (Mock Proposer): ADCD achieves a mean of \textbf{80.4\%} ($\pm$7.4\%) structural class recovery across sixteen seeds, with a peak of 94.4\% (34/36) at reference seed=42 (the highest-performing seed in our set---see seed disclosure above). Second, \textbf{genuine discovery capability} (Hybrid Proposer): ADCD achieves 91.7\% (33/36) structural recovery at seed=42 using zero-shot LLM-generated candidates merged with templates---demonstrating that the correction-first paradigm generalizes beyond pre-specified template families (reproduce via \texttt{run\_correction\_discovery.py --proposer hybrid}; frozen results in \texttt{hybrid\_seed42\_results.json}). Both seed=42 figures are provided as concrete upper-bound reference points; the mean of 80.4\% is the primary performance claim.
 
 The full benchmark results for the Mock Proposer are summarized in \Cref{tab:textbook}, \Cref{tab:cross_domain}, and \Cref{tab:synthetic}.
 
@@ -734,7 +736,7 @@ $[-0.9, +7.0]$, formally inconclusive per Kass \& Rafferty---consistent with
 the out-of-sample CV gap ($\Delta$NMSE $= 0.008$, $z = 0.39$, $p = 0.69$). By
 contrast, ADCD decisively outperforms Standard MOND (2-param) with
 $\delta{\rm BIC}_{\rm eff} = -36.5$, CI $[-60.1, -17.9]$ ($z = -4.60$ in CV).
-We interpret the Simple MOND / RAR parity result not as a failure of ADCD, but
+We interpret the Simple MOND / RAR indistinguishability result not as a failure of ADCD, but
 as evidence that autonomous correction discovery can reach the predictive
 performance of interpolating functions refined by domain experts over
 decades---without access to those forms as candidates.
@@ -850,7 +852,7 @@ dominated by intrinsic scatter. What the data do show, defensibly and
 repeatably, is a three-level result: ADCD---starting only from the Newtonian
 baseline and the asymptotic constraint $\Delta \to 0$---(i) decisively
 outperforms the fixed zero-parameter canonical forms in stacked NMSE,
-(ii) reaches statistical parity with the best two-parameter domain-expert
+(ii) cannot be statistically distinguished from the best two-parameter domain-expert
 interpolating families out-of-sample and under cluster bootstrap, and
 (iii) decisively outperforms the two-parameter Standard-MOND family. The
 scientific content of the result is the \emph{autonomous-discovery parity}: a
@@ -897,12 +899,14 @@ contamination: the 6 canonical BOSS DR12 (Alam+2017) consensus points, the
 $z\in[0.35,0.75]$.
 
 \paragraph{Expansion history $H(z)$.}
+\begin{sloppypar}
 As an independent observable, we use the 34-point cosmic-chronometer $H(z)$
 compilation ($z\in[0.070,1.965]$), which is model-independent and free of
 CMB/BAO/RSD systematics. The reference $\Lambda$CDM prediction is
-$H(z)=H_0\sqrt{\Omega_{m,0}(1+z)^3+\Omega_{\Lambda,0}}$ with $(H_0,\Omega_{m,0})$
+$H(z)=H_0\sqrt{\Omega_{m,0}(1+z)^3+\Omega_{\lambda,0}}$ with $(H_0,\Omega_{m,0})$
 as two nuisance amplitudes; we then run the same candidate library on
 $\Delta_H(z)=H_{\rm obs}-H_{\rm GR}$.
+\end{sloppypar}
 
 \paragraph{Result: no functional correction is detected.}
 \Cref{tab:cosmological_probes} summarises all five tests. In \emph{every} case
@@ -1066,19 +1070,26 @@ matrix~\cite{buckingham1914}), a \textbf{SequentialARCChecker} tests each
 limit variable independently, and a \textbf{ProductGrammar} proposes correction
 candidates as products of $\Pi$-group functions. On a four-scenario
 multivariable benchmark (\Cref{tab:mv_benchmark}), the extended Mock proposer
-recovers $3/4$ scenarios at 0\% noise and $2/4$ at 5\% noise; the
-ProductGrammar recovers $2/4$ at 0\% noise. These results are \emph{not}
-reported as a headline capability: two failure modes remain open. First,
-numerical ill-conditioning arises when reference constants span extreme scales
-(e.g.\ $n_0 \sim 10^{20}\,{\rm m}^{-3}$ in MV-2), making $\Pi$-group
-coefficient optimization unstable at 64-bit precision. Second, corrections
-whose functional form simultaneously mixes rational and power-law structure
-across variables (MV-4) are not yet recoverable. Importantly, both failure
-modes are \emph{correctness-preserving}: the pipeline never emits a confident
-spurious correction; it simply fails to converge. Logarithmic parameterization
-of $\Pi$-group coefficients and a richer unary operator set for the
-ProductGrammar are planned improvements before multivariable discovery is
-promoted from exploratory extension to a headline claim.
+recovers $3/4$ scenarios at 0\% and 1\% noise and $2/4$ at 5\% noise, while
+the ProductGrammar recovers $2/4$ at 0\% noise, degrading to $1/4$ at 1\%
+and $0/4$ at 5\%. These results are \emph{not} reported as a headline
+capability: the two proposers fail for disjoint reasons. The Mock proposer
+never recovers MV-1---a mass-ratio prefactor multiplying exponential radial
+decay, $\theta_0(m/M)e^{-r/r_0}$---because its template bank does not span
+this mixed prefactor/exponential class. The ProductGrammar, conversely, is
+defeated by numerical ill-conditioning whenever reference constants span
+extreme scales (e.g.\ $n_0 \sim 10^{20}\,{\rm m}^{-3}$ in MV-2), where
+$\Pi$-group coefficient optimization collapses to degenerate forms such as
+$10^{-20} n\,\theta_0$ at 64-bit precision, and by a spurious-exponential
+class mismatch on MV-4. Both proposers additionally lose MV-3 at 5\% noise
+to residual blow-up (NMSE$\approx 0.28$) despite retaining the correct
+structural class. Importantly, every failure is
+\emph{correctness-preserving}: no candidate that mismatched the structural
+class also cleared the NMSE gate, so the pipeline never reports a confident
+spurious correction---it simply fails to converge. Logarithmic
+parameterization of $\Pi$-group coefficients and a richer unary operator set
+for the ProductGrammar are planned improvements before multivariable
+discovery is promoted from exploratory extension to a headline claim.
 
 \begin{table}[H]
 \centering\footnotesize
@@ -1087,7 +1098,7 @@ Limitations).
 $\checkmark$~= NMSE~$<\!0.05$ \emph{and} correct structural class;
 $\times$~= fail.
 Mock~= Mock (extended) proposer; PG~= ProductGrammar.
-Variables: MV-1~$(m_1,m_2)$, MV-2~$(n,T)$, MV-3~$(\rho,v)$, MV-4~$(n,V)$.}
+Variables: MV-1~$(m,M,r)$, MV-2~$(n,T)$, MV-3~$(\rho,v)$, MV-4~$(n,V)$.}
 \label{tab:mv_benchmark}
 \begin{tabularx}{\textwidth}{L l c c c c c c}
 \toprule
@@ -1096,7 +1107,7 @@ Variables: MV-1~$(m_1,m_2)$, MV-2~$(n,T)$, MV-3~$(\rho,v)$, MV-4~$(n,V)$.}
 \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
 & & Mock & PG & Mock & PG & Mock & PG \\
 \midrule
-MV-1: Yukawa & $\theta_0\, e^{-m_2/m_1}$ & $\times$ & $\checkmark$ & $\times$ & $\times$ & $\times$ & $\times$ \\
+MV-1: Yukawa & $\theta_0\,(m/M)\,e^{-r/r_0}$ & $\times$ & $\checkmark$ & $\times$ & $\times$ & $\times$ & $\times$ \\
 MV-2: Plasma & $\theta_0\,(n/n_0)(T_0/T)^{1/2}$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ \\
 MV-3: Turbulent Drag & $\theta_0\,\rho\, v^2$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\times$ & $\times$ \\
 MV-4: Van der Waals & $\theta_0\,(n/n_0)^2/(V/V_0)^2$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ \\
@@ -1152,6 +1163,7 @@ Detection accuracy degrades when the classical baseline is near zero or when
 additive and relative residuals are statistically ambiguous.
 
 \paragraph{Amplitude vs.\ functional distinguishability (cosmological probes).}
+\begin{sloppypar}
 The \textsc{constant\_wins} verdicts in \Cref{sec:cosmological} are best read
 as quantitative upper bounds on the detectability of a functional growth
 correction, not as proofs that no correction exists. ADCD cannot detect a
@@ -1162,6 +1174,7 @@ $z$-dependent correction of small but non-zero amplitude would be statistically
 indistinguishable from the 1-parameter constant offset. Definitive
 detection/non-detection awaits $3$--$5\times$ improvements in $f\sigma_8$
 precision from DESI, Euclid, and Rubin/LSST.
+\end{sloppypar}
 
 \paragraph{Heterogeneous survey compilations.}
 The $f\sigma_8$ compilation of Alestas et al.~\cite{alestas2022fs8} aggregates
@@ -1228,8 +1241,8 @@ than wholesale theory replacement.
 
 \paragraph{Synthetic benchmark.}
 On a 9-anomaly suite across textbook, cross-domain, and synthetic systems under
-noise up to 10\%, ADCD achieves a mean structural recovery of 82.8\%
-($\pm$7.7\%) across five seeds (94.4\% at the reference seed=42, disclosed as
+noise up to 10\%, ADCD achieves a mean structural recovery of 80.4\%
+($\pm$7.4\%) across sixteen seeds (94.4\% at the reference seed=42, disclosed as
 the highest-performing seed). It outperforms PySR by 77.8 percentage points at
 5\% noise under matched residuals---a gap that does not close when PySR's budget
 is doubled---and fails safe on the misspecification benchmark. The same
@@ -1243,8 +1256,8 @@ a two-parameter member of the Simple-MOND algebraic family
 (Famaey \& Binney 2005) with transition parameter $\hat\theta_1\approx 0.27$
 versus the canonical $c=4.0$. The discovered form delivers a 41\% stacked-NMSE
 reduction over fixed zero-parameter canonical forms and, under fair galaxy-level
-cross-validation plus a 1{,}000-resample cluster bootstrap, reaches statistical
-parity with two-parameter domain-expert forms
+cross-validation plus a 1{,}000-resample cluster bootstrap, cannot be
+distinguished from two-parameter domain-expert forms
 ($\delta{\rm BIC}_{\rm eff}=+3.4$, 95\% CI brackets zero) while decisively
 beating two-parameter Standard MOND ($\delta{\rm BIC}_{\rm eff}=-36.5$). We
 frame this as autonomous rediscovery of a known family from real data---not the
