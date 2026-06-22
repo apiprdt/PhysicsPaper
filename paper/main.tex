@@ -256,6 +256,28 @@ The ADCD pipeline operates as a closed-loop physics-informed search. A high-leve
 \label{fig:architecture}
 \end{figure}
 
+\paragraph{Relation to Effective Field Theory.}
+ADCD is organized along the operating philosophy of Effective Field Theory
+(EFT)~\cite{weinberg1979eft,georgi1993eft,kaplan1995eft}, the dominant paradigm
+by which modern physics constructs corrections to known laws: starting from a
+known low-energy (classical) theory, one enumerates correction operators
+consistent with the symmetries and dimensional structure of the problem,
+filters them by their asymptotic behavior, and orders them by complexity so
+that the leading terms dominate. Each stage of the ADCD pipeline mirrors a
+step in this workflow---the dimensional gate corresponds to dimensional
+analysis of operators, the ARC gate ($\Delta\!\to\!0$ at the classical
+boundary) corresponds to the decoupling of heavier degrees of freedom in the
+low-energy limit, and the BIC penalty plays a role analogous to power
+counting by penalizing higher-complexity corrections. We emphasize that
+ADCD is \emph{not} a full EFT framework: it has no renormalization-group
+flow, no controlled error expansion in $E/\Lambda$, and no gauge-invariance
+constraints on operator enumeration. The contribution of ADCD is rather to
+\emph{automate} the correction-first philosophy of EFT for a class of
+data-driven problems---replacing the manual, insight-driven selection of
+candidate operators with a search over symbolic corrections screened by
+physics gates. In this sense ADCD is best read as a data-driven cousin of
+EFT construction rather than as an instance of it.
+
 \subsection{Problem Formulation and Residual Extraction}
 Let $y_{\text{classical}} = g(X; \phi)$ be a known classical physical law with variables $X$ and fixed constants $\phi$. Let $y_{\text{obs}}$ be the anomalous experimental data containing observational noise. We define the physical residual $\delta$ depending on the correction mode:
 \begin{itemize}
@@ -1398,6 +1420,21 @@ I.~Banik et al.,
 C.~Pittordis and W.~Sutherland,
 ``Wide Binaries from Gaia DR3: Premature Conclusions on MOND,''
 \textit{Monthly Notices of the Royal Astronomical Society}, vol. 518, no. 2, pp.~2720--2731, 2023.
+
+\bibitem{weinberg1979eft}
+S.~Weinberg,
+``Phenomenological Lagrangians,''
+\textit{Physica A: Statistical Mechanics and its Applications}, vol. 96, no.~1--2, pp.~327--340, 1979.
+
+\bibitem{georgi1993eft}
+H.~Georgi,
+``Effective Field Theory,''
+\textit{Annual Review of Nuclear and Particle Science}, vol. 43, pp.~209--252, 1993.
+
+\bibitem{kaplan1995eft}
+D.~B.~Kaplan,
+``Five Lectures on Effective Field Theory,''
+\textit{arXiv preprint} nucl-th/0510023, 1995 (revised 2005).
 
 \end{thebibliography}
 
