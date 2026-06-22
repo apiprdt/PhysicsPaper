@@ -312,10 +312,15 @@ def fig4_ablation(ablation):
     plt.close()
 
 
-def fig5_gate_funnel():
-    """Figure 5: Gate survival funnel from gate_telemetry.json."""
+def fig_gate_funnel():
+    """Diagnostic (not in paper): Stage-1 gate survival funnel from gate_telemetry.json.
+
+    Rendered for reproducibility/inspection only; not referenced by any figure
+    in main.tex. Named without a numeric prefix to avoid colliding with the
+    paper's numbered figures.
+    """
     if not os.path.exists("gate_telemetry.json"):
-        print("  gate_telemetry.json tidak ada — skip fig5")
+        print("  gate_telemetry.json tidak ada — skip fig_gate_funnel")
         return
     with open("gate_telemetry.json") as f:
         g = json.load(f)
@@ -339,16 +344,21 @@ def fig5_gate_funnel():
     ax.set_title("Stage 1 Gate Survival Funnel", fontweight="bold")
     ax.grid(True, alpha=0.15, axis="y")
     plt.tight_layout()
-    plt.savefig("paper/figures/fig5_gate_funnel.pdf", bbox_inches="tight")
-    plt.savefig("paper/figures/fig5_gate_funnel.png", bbox_inches="tight")
-    print("[OK] fig5_gate_funnel.pdf")
+    plt.savefig("paper/figures/fig_gate_funnel.pdf", bbox_inches="tight")
+    plt.savefig("paper/figures/fig_gate_funnel.png", bbox_inches="tight")
+    print("[OK] fig_gate_funnel.pdf")
     plt.close()
 
 
-def fig6_correction_scaling():
-    """Figure 6: Class match vs correction magnitude scale."""
+def fig_correction_scaling():
+    """Diagnostic (not in paper): class match vs correction-magnitude scale.
+
+    Rendered for reproducibility/inspection only; not referenced by any figure
+    in main.tex. Named without a numeric prefix to avoid colliding with the
+    paper's numbered figures.
+    """
     if not os.path.exists("correction_scaling_results.json"):
-        print("  correction_scaling_results.json tidak ada — skip fig6")
+        print("  correction_scaling_results.json tidak ada — skip fig_correction_scaling")
         return
     with open("correction_scaling_results.json") as f:
         data = json.load(f)
@@ -366,9 +376,9 @@ def fig6_correction_scaling():
     ax.set_title("Correction-First Regime Diagram", fontweight="bold")
     ax.grid(True, alpha=0.15)
     plt.tight_layout()
-    plt.savefig("paper/figures/fig6_correction_scaling.pdf", bbox_inches="tight")
-    plt.savefig("paper/figures/fig6_correction_scaling.png", bbox_inches="tight")
-    print("[OK] fig6_correction_scaling.pdf")
+    plt.savefig("paper/figures/fig_correction_scaling.pdf", bbox_inches="tight")
+    plt.savefig("paper/figures/fig_correction_scaling.png", bbox_inches="tight")
+    print("[OK] fig_correction_scaling.pdf")
     plt.close()
 
 
@@ -386,8 +396,8 @@ def main():
     fig2_nmse_heatmap(adcd)
     fig3_tier_bars(adcd)
     fig4_ablation(ablation)
-    fig5_gate_funnel()
-    fig6_correction_scaling()
+    fig_gate_funnel()
+    fig_correction_scaling()
     print("\n[OK] All figures in paper/figures/")
 
 

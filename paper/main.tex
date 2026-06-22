@@ -60,7 +60,7 @@ Traditional symbolic regression discovers equations from scratch, an approach th
 
 \textbf{Real-world: SPARC (honest framing).} On the SPARC sample ($N_{\rm gal}=171$, $N_{\rm pts}=3342$), ADCD autonomously converges to a \emph{two-parameter member of the Simple MOND algebraic family} (Famaey \& Binney 2005), with a transition parameter $\hat\theta_1\approx 0.27$ versus the canonical $c=4.0$ (a factor of $\sim\!15$). The discovered form achieves a 41\% stacked-NMSE reduction over the fixed zero-parameter canonical MOND/RAR forms and, under fair galaxy-level cross-validation plus a 1{,}000-resample cluster bootstrap, reaches statistical parity with two-parameter domain-expert forms ($\Delta$NMSE$=0.008$, $z=0.39$; $\delta{\rm BIC}_{\rm eff}=+3.4$, 95\% CI brackets zero) while decisively beating two-parameter Standard MOND ($z=-4.60$). We claim autonomous rediscovery of this family from data, not a novel family.
 
-\textbf{Cosmological probes.} Extended to cosmological datasets---63 $f\sigma_8$ growth-rate measurements and 34 $H(z)$ cosmic-chronometer points---ACCD finds \emph{no} $z$-dependent functional correction beyond a constant amplitude rescaling in five independent tests (two observables, three homogeneous survey subsets). The best-fit amplitudes are consistent with the $S_8$ tension direction ($\sigma_{8,0}=0.7815$ vs.\ Planck $0.811$); the null result constrains but does not determine the physical origin of the tension.
+\textbf{Cosmological probes.} Extended to cosmological datasets---63 $f\sigma_8$ growth-rate measurements and 34 $H(z)$ cosmic-chronometer points---ADCD finds \emph{no} $z$-dependent functional correction beyond a constant amplitude rescaling in five independent tests (two observables, three homogeneous survey subsets). The best-fit amplitudes are consistent with the $S_8$ tension direction ($\sigma_{8,0}=0.7815$ vs.\ Planck $0.811$); the null result constrains but does not determine the physical origin of the tension.
 
 \textbf{Structural dichotomy.} These results suggest a structural pattern---reported as an observation, not a proof: anomalies in individual gravitational systems (textbook, SPARC) exhibit functional corrections recoverable by ADCD, while large-scale cosmological tensions appear as amplitude offsets. Whether this reflects genuine physics or current survey-precision limits is an open question we explicitly flag. We disclose all template overlaps, report recovered forms, and document a multivariable extension as an exploratory capability rather than a headline claim.
 \end{abstract}
@@ -93,6 +93,16 @@ history ($H(z)$). Each class yields a qualitatively different outcome---function
 recovery, ambiguous cross-system transfer, and an amplitude-only null result
 respectively---revealing a structural pattern in how anomalies manifest across
 physical scales (\Cref{sec:dichotomy}).
+
+\paragraph{Unique contribution.}
+To our knowledge, ADCD is the first systematic framework capable of distinguishing
+\emph{functional} anomalies---which require $z$- or $r$-dependent corrections to
+known physical laws---from \emph{amplitude} anomalies---which manifest as a pure
+rescaling of constants---across multiple physical scales. Existing symbolic
+regression methods recover expressions but do not classify the \emph{kind} of
+anomaly a residual encodes; this distinction, surfaced here as the structural
+dichotomy of \Cref{sec:dichotomy}, is the organizing finding of the real-world
+validation.
 
 
 \section{Related Work}
