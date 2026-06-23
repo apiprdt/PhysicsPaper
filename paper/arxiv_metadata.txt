@@ -58,13 +58,13 @@ Submission checklist:
         - PySR fair comparison: 44.4/55.6/11.1/55.6% verified vs pysr_baseline_fair.json
         - Multi-seed mean: 80.4% +/- 7.4% verified vs reproducibility_results.json (16 seeds)
         - MLP NMSE: 8.56e-5 / 8.01e-3 verified vs mlp_baseline_results.json
-        - ADCD NMSE: 5.51e-12 / 4.56e-3 verified vs reproducibility_results.json
+        - ADCD NMSE: 2.88e-12 / 4.48e-3 verified vs reproducibility_results.json (seed 42 mean)
         - Ablation delta=44.5 pp (No_Gates: 4/9) verified vs ablation_results.json
   [x] OVERCLAIMS FIXED:
         - "guarantees" -> "strongly enforces" (abstract + metadata)
         - Ablation figure caption: removed false claim that individual
           gates have measurable accuracy impact (data shows delta=0
-          for each single-gate ablation; only No_Gates drops to 5/9)
+          for each single-gate ablation; only No_Gates drops to 4/9)
         - Discussion: removed fabricated "4.5x timing" figure;
           replaced with honest qualitative description
   [ ] Submit at https://zenodo.org (upload ZIP) — see docs/SUBMISSION_CHECKLIST_v2.1.3.md

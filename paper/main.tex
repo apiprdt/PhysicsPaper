@@ -447,6 +447,13 @@ Mystery-C & 0\% & $\frac{\ln(1 + x / \theta_1)}{x / \theta_1} - 1$ & $6.08 \time
     \item \textbf{Synthetic / Novel Recovery}: Crucially, the system scored \textbf{100\% (12/12) structural match rate} on the synthetic tier. Highly complicated novel formulas, such as the $\text{sinc}$ quantum boundary fluctuation and the logarithmic quotient stretching, were fully converged and structurally verified, showcasing the deep representation capabilities of combining statistical priors with LLM reasoning.
 \end{itemize}
 
+\Cref{fig:noise_robustness,fig:heatmap,fig:tier_bars} visualise these outcomes:
+the per-scenario noise--accuracy curve against PySR (\Cref{fig:noise_robustness}),
+the log-scale NMSE heatmap with structural-class verdicts across all
+scenarios and noise levels (\Cref{fig:heatmap}), and the tier-aggregated match
+rates that localise degradation to the Screened Coulomb scenario at $\geq 5\%$
+noise (\Cref{fig:tier_bars}).
+
 % --- Figure 1: Noise Robustness ---
 \begin{figure}[H]
 \centering
@@ -514,8 +521,8 @@ Mystery-C & 0\% & $\frac{\ln(1 + x / \theta_1)}{x / \theta_1} - 1$ & $6.08 \time
 
 \textbf{MLP Comparison.} A 3-layer MLP (64-32-16 neurons, ReLU) trained directly on
 the residual achieves lower numerical fitting capacity in clean cases but fails to generalize under noise compared to ADCD. 
-Specifically, ADCD achieves an average NMSE of $5.51 \times 10^{-12}$ at 0\% noise and $4.56 \times 10^{-3}$ at 5\% noise, 
-whereas the MLP achieves $8.56 \times 10^{-5}$ at 0\% noise and $8.01 \times 10^{-3}$ at 5\% noise. 
+Specifically, ADCD achieves an average NMSE of $2.88 \times 10^{-12}$ at 0\% noise and $4.48 \times 10^{-3}$ at 5\% noise (reference seed; \texttt{reproducibility\_results.json}), 
+whereas the MLP achieves $8.56 \times 10^{-5}$ at 0\% noise and $8.01 \times 10^{-3}$ at 5\% noise (\texttt{mlp\_baseline\_results.json}). 
 Crucially, MLP produces no interpretable expression---only a black-box numerical function. ADCD produces human-readable symbolic corrections 
 such as \texttt{theta\_0 * v**2 / c**2}, which a physicist can immediately validate against 
 domain theory. This interpretability gap is the core contribution of our framework.
@@ -669,7 +676,8 @@ reducing the NMSE by \textbf{41\%} relative to the McGaugh+16 RAR form
 (0.636). The absolute NMSE reflects intrinsic galaxy-to-galaxy scatter in the
 stacked relation rather than model misfit; the relevant comparison is
 \emph{relative}, where ADCD's 2-parameter function is the most parsimonious
-competitive fit among the four.
+competitive fit among the four. \Cref{fig:sparc_rar} plots the stacked data
+against all four interpolating functions and their residuals.
 
 \input{generated/tab_sparc_comparison}
 
@@ -909,7 +917,9 @@ $\Delta_H(z)=H_{\rm obs}-H_{\rm GR}$.
 \end{sloppypar}
 
 \paragraph{Result: no functional correction is detected.}
-\Cref{tab:cosmological_probes} summarises all five tests. In \emph{every} case
+\Cref{tab:cosmological_probes} summarises all five tests, and
+\Cref{fig:cosmological_probes} shows the $f\sigma_8$ and $H(z)$ residuals with
+the ADCD-selected constant-offset model. In \emph{every} case
 the verdict is \textsc{constant\_wins}: no $z$-dependent functional candidate
 beats the 1-parameter constant offset by the Kass--Raftery decisive threshold
 $\Delta{\rm BIC}<-10$. On the full $f\sigma_8$ compilation the best candidate
@@ -971,7 +981,7 @@ cosmological archives.
 Taken together, the galactic (SPARC) and cosmological ($f\sigma_8$, $H(z)$)
 results exhibit a qualitative pattern that we report as an \emph{observation},
 not a proven conclusion. \Cref{tab:dichotomy} summarises the outcomes across
-scales. Functional corrections---where ADCD recovers a $z$- or $r$-dependent
+scales, and \Cref{fig:dichotomy} contrasts the two regimes side by side. Functional corrections---where ADCD recovers a $z$- or $r$-dependent
 $\Delta$ that genuinely improves on the classical baseline---are found in
 individual gravitational systems: textbook orbital and force-law anomalies
 (synthetic), and galactic rotation curves (SPARC). Cosmological tensions, by
@@ -1474,7 +1484,9 @@ SPARC-discovered ADCD form $\nu_{\rm ADCD}(x) = \theta_0(\sqrt{1+\theta_1/x}-1)+
 with $\hat\theta_0 \approx 1.83$, $\hat\theta_1 \approx 0.262$ (the
 SPARC-fitted values, \emph{with no refitting to wide-binary data}), against
 the canonical Simple MOND, Standard MOND, and RAR forms, for a $1.5\,M_\odot$
-total-mass system across $s \in [7,30]$~kAU (the Hernandez/Chae anomaly zone).
+total-mass system across $s \in [7,30]$~kAU (the Hernandez/Chae anomaly zone);
+\Cref{fig:wide_binary} plots the resulting $\gamma_v(s)$ curves against
+Chae~\cite{chae2023wide}'s observed band.
 
 \paragraph{Result.}
 \Cref{tab:wide_binary} reports the predicted velocity boost and the
