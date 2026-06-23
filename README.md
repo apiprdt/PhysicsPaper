@@ -5,30 +5,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/adcd_discovery.gif" alt="ADCD discovery pipeline animation" width="92%">
-</p>
-
-<p align="center">
-  <a href="docs/adcd_discovery.mp4">▶ Download video (MP4)</a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/apiprdt/PhysicsPaper/actions/workflows/ci.yml"><img src="https://github.com/apiprdt/PhysicsPaper/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
-  <a href="https://pypi.org/project/adcd/"><img src="https://img.shields.io/badge/PyPI-2.2.1-teal" alt="PyPI Version"></a>
   <a href="https://doi.org/10.5281/zenodo.20534940"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20534940-blue" alt="DOI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
-  <a href="https://github.com/apiprdt/PhysicsPaper/actions"><img src="https://img.shields.io/badge/tests-116%20passing-brightgreen" alt="Tests Status"></a>
   <a href="https://pypi.org/project/adcd/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python Support"></a>
-</p>
-
-<p align="center">
-  <a href="https://apiprdt.github.io/PhysicsPaper/"><strong>📖 Documentation</strong></a>
-  &nbsp;·&nbsp;
-  <a href="#quick-start"><strong>⚡ Quick Start</strong></a>
-  &nbsp;·&nbsp;
-  <a href="#benchmark-results"><strong>📊 Benchmarks</strong></a>
-  &nbsp;·&nbsp;
-  <a href="https://colab.research.google.com/github/apiprdt/PhysicsPaper/blob/main/notebooks/adcd_demo.ipynb"><strong>▶ Run in Colab</strong></a>
 </p>
 
 > **Science rarely discovers from a blank slate — it corrects.**
@@ -82,7 +61,7 @@ import adcd
 
 # 1. Load a pre-defined benchmark scenario (e.g. Relativistic Kinetic Energy)
 scenarios = adcd.get_all_scenarios()
-scenario = scenarios[0] 
+scenario = scenarios[0]
 
 # 2. Run discovery in a single line!
 result = adcd.discover_correction(scenario, max_iterations=5, proposer="mock")
@@ -152,7 +131,7 @@ result.summary()
 
 ADCD outperforms PySR by **+77.8 percentage points** at 5% noise.
 
-### 3. Phase 2: Multivariable Benchmark (v2.2.1)
+### 3. Phase 2: Multivariable Benchmark
 
 | Scenario | Variables | ADCD Solved | Notes |
 |----------|-----------|:-----------:|-------|
@@ -178,7 +157,7 @@ Validation on historical anomalies using physical constants from JPL DE440, NIST
 ## 📁 Project Structure
 
 ```
-PhysicsPaper/
+adcd-v3.0.0/
 ├── src/adcd/                       # Installable package
 │   ├── __init__.py                 # Public API (fit, discover_correction)
 │   ├── anomaly_scenarios.py        # 9 standard + 3 blind + 4 multivariable scenarios
@@ -196,8 +175,10 @@ PhysicsPaper/
 │   ├── residual_factorizer_v2.py   # [Phase 2] Variance-decomposition separability
 │   ├── result.py                   # CorrectionResult object
 │   └── sequential_arc.py           # [Phase 2] Per-variable Sequential ARC checker
-├── tests/                          # 116 unit + integration tests
+├── tests/                          # Unit + integration tests
 ├── paper/                          # LaTeX source (main.tex) + figures
+├── data/                           # Input datasets (SPARC, cosmic chronometers, growth rate)
+├── scripts/                         # Table generation and verification scripts
 ├── run_correction_discovery.py     # Benchmark runner
 └── README.md                       # This file
 ```
@@ -215,7 +196,7 @@ If you use ADCD in your research, please cite:
                 Symbolic Regression for Evolutionary Scientific Discovery}},
   year      = {2026},
   publisher = {Zenodo},
-  version   = {2.2.1},
+  version   = {3.0.0},
   doi       = {10.5281/zenodo.20534940},
   url       = {https://doi.org/10.5281/zenodo.20534940}
 }
@@ -241,52 +222,11 @@ python scripts/verify_paper_claims.py
 python -m adcd.experiments.sparc_robustness
 ```
 
-The full test suite (116 tests) must pass before any release:
+The full test suite must pass before any release:
 
 ```bash
 pytest tests/ -q
 ```
-
-See [`docs/SUBMISSION_CHECKLIST_v2.1.3.md`](docs/SUBMISSION_CHECKLIST_v2.1.3.md) for the end-to-end release procedure.
-
----
-
-## 👥 AI Disclosure & Responsible Use
-
-Transparency matters. This section documents exactly how AI tools were used in the ADCD project, in line with emerging norms for AI-assisted scientific software.
-
-### Authoring assistance
-
-The source code, the accompanying paper, and this documentation were written with assistance from AI assistants (Google DeepMind's Antigravity, and earlier OpenAI/Claude-based coding tools). AI was used as a **pair-programming and writing aid**:
-
-- **Code generation & refactoring** — drafting modules, fixing lint errors, generating boilerplate, suggesting type hints.
-- **Prose editing** — improving clarity, grammar, and structure of the paper and docs.
-- **Debugging** — diagnosing stack traces, suggesting fixes for JAX/NumPy numerical issues.
-- **Code review** — catching edge cases, suggesting test coverage improvements.
-
-### AI as an *optional* discovery backend (not a co-author)
-
-ADCD supports an **LLM-based proposer** (`src/adcd/llm_proposer.py`), which can query a language model (Gemini or OpenAI) to suggest candidate correction templates. This is an **opt-in research feature**, not the default:
-
-- The default and headline benchmarks use the **`mock` proposer** (deterministic template library), **not** the LLM proposer.
-- When the LLM proposer is enabled, its suggestions are still passed through the full physics-gate pipeline (dimensional homogeneity, ARC, BIC). The AI **cannot** bypass physics validation — every candidate must satisfy the same constraints as any other template.
-- AI never runs experiments or computes final benchmark numbers. All quantitative results were generated, verified, and curated by the author.
-
-### What is *not* AI-generated
-
-To be explicit, the following are the **sole intellectual contribution of the author (Muhammad Afif Erdita)**:
-
-- The scientific idea — anomaly-driven *correction* discovery as opposed to blank-slate symbolic regression.
-- The physics-gate pipeline design (cascaded gates, ARC, BIC reranking, Occam's razor).
-- All experimental design decisions: scenario selection, noise levels, evaluation protocols, the PySR fair-profile comparison, the SPARC MOND validation protocol.
-- Selection and interpretation of real-world benchmarks (Mercury perihelion, Lamb Shift, Muon g-2, Blackbody).
-- All claims, conclusions, and limitations discussed in the paper.
-
-### Reproducibility safeguard
-
-Because AI tools can fabricate plausible-looking numbers, every benchmark figure reported in this README and in the paper is **regenerable from frozen scripts** (`run_correction_discovery.py`, `run_reproducibility.py`, `scripts/verify_paper_claims.py`). The `verify_paper_claims.py` guard fails loudly if any headline number drifts. **Nothing in the headline results was hand-typed from AI output.**
-
-If you spot any inaccuracy or have questions about AI use in this project, please open an issue.
 
 ---
 
