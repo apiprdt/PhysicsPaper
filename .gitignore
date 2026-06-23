@@ -102,3 +102,8 @@ CHANGELOG.md
 # MkDocs documentation site source
 mkdocs.yml
 docs/
+
+# Release notes (local working copies, not paper source)
+release_v*.md
+zenodo_v*.md
+RELEASE_NOTES*.md
