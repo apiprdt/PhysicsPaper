@@ -30,10 +30,15 @@ build/
 scratch/
 scratch_*
 baseline_pre_fix.json
+scratch_canary_*.py
 
 # Build and submission archives
 *.zip
+*.tar
 *.tar.gz
+
+# Log files (everywhere)
+*.log
 
 # Generated documentation site
 site/
@@ -50,3 +55,50 @@ nul
 # IDE / agent local state (never commit)
 .zcode/
 
+# Root-level scratch markdown (auto-generated)
+efficiency_table.md
+experiment_results.md
+
+# Intermediate experiment JSONs (root-level, not paper source)
+ablation_results.json
+blind_benchmark_results.json
+correction_scaling_results.json
+binary_pulsar_sensitivity.json
+hybrid_seed42_results.json
+misspecification_results.json
+mlp_baseline_results.json
+multivariable_benchmark_results.json
+oracle_ablation_results.json
+pysr_baseline_results.json
+pysr_baseline_fair.json
+pysr_baseline_generous.json
+real_data_results.json
+reproducibility_results.json
+multi_seed_summary.json
+timing_results.json
+gate_telemetry.json
+
+# Root-level non-package scripts (helper/scratch)
+benchmark_optimizer.py
+generate_extended_figures.py
+generate_figures.py
+pysr_profiles.py
+
+# Old arXiv bundle
+arxiv_bundle.tar
+
+# Results directory (intermediate analysis)
+results/
+
+# Paper PNG duplicates (LaTeX uses PDF)
+paper/figures/*.png
+
+# GitHub-specific files (not needed for paper source)
+.github/
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+CHANGELOG.md
+
+# MkDocs documentation site source
+mkdocs.yml
+docs/
