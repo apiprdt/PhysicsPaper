@@ -72,16 +72,22 @@ if repro_all:
 
 
 # --- 2. Multi-seed Reproducibility -------------------------------------------
+# IMPORTANT: the paper's headline mean (80.4% +/- 7.4%) is computed over the
+# nine single-variable (SV) scenarios only. Multivariable (MV-*) trials score
+# class_match=False by construction and would deflate the rate; they are
+# reported separately as the Phase 2 result. This matches the convention in
+# scripts/generate_seed_distribution.py and results/seed_distribution.json.
 section("Multi-seed Reproducibility")
 if repro_all:
+    sv = [r for r in repro_all if not r.get("scenario", "").startswith("MV-")]
     seed_rates = {}
-    for r in repro_all:
+    for r in sv:
         s = r.get("seed")
         seed_rates.setdefault(s, []).append(r["class_match"])
     rates = [sum(v) / len(v) * 100 for v in seed_rates.values()]
     mean_rate = sum(rates) / len(rates)
-    std_rate = statistics.stdev(rates)
-    print(f"  Seeds tested: {sorted(seed_rates.keys())}")
+    std_rate = statistics.pstdev(rates)  # population std (ddof=0), matches paper
+    print(f"  Seeds tested: {sorted(seed_rates.keys())}  (SV-only, {len(seed_rates)} seeds)")
     expected_by_seed = {0: 86.1, 7: 75.0, 21: 77.8, 42: 94.4, 99: 80.6}
     for seed in sorted(seed_rates.keys()):
         n_match = sum(seed_rates[seed])
@@ -93,10 +99,10 @@ if repro_all:
             flag = OK if ok_seed else FAIL
             print(f"  {flag} seed={seed}: {n_match}/{n_total} = {pct:.1f}%  (paper claims {exp:.1f}%)")
             all_ok &= ok_seed
-    passed = (abs(mean_rate - 82.8) < 1.5 and abs(std_rate - 7.7) < 1.0)
+    passed = (abs(mean_rate - 80.4) < 1.0 and abs(std_rate - 7.4) < 1.0)
     flag = OK if passed else FAIL
-    print(f"  {flag} Mean: {mean_rate:.1f}% +/- {std_rate:.1f}%"
-          f"  (paper claims 82.8% +/- 7.7%)")
+    print(f"  {flag} Mean (SV): {mean_rate:.1f}% +/- {std_rate:.1f}%"
+          f"  (paper claims 80.4% +/- 7.4%)")
     all_ok &= passed
 
 

@@ -31,6 +31,7 @@ scratch/
 scratch_*
 baseline_pre_fix.json
 scratch_canary_*.py
+*.tmp
 
 # Build and submission archives
 *.zip

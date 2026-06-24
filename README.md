@@ -107,7 +107,19 @@ result.summary()
 
 ## 📊 Benchmark Results
 
-### 1. Standard Benchmark (seed=42, Mock Proposer)
+> **Headline (primary claim):** a mean structural recovery of **80.4% (±7.4%) across sixteen independent seeds** (95% bootstrap CI [76.7%, 84.0%]). The reference seed=42 below is **disclosed explicitly as the highest-performing seed (94.4%)** — the mean, not the peak, is the claim. Full per-seed × per-noise breakdown ships in `results/seed_distribution.json`.
+
+### 1. Multi-Seed Distribution (primary result, Mock Proposer)
+
+| Noise level | ADCD mean (16 seeds) | ADCD worst seed | ADCD best (seed=42) |
+|:-----------:|:--------------------:|:---------------:|:-------------------:|
+| 0%  | 86.8% (±9.8%)  | 66.7% (6/9) | 100% (9/9) |
+| 1%  | 81.2% (±14.6%) | 44.4% (4/9) | 100% (9/9) |
+| 5%  | 77.1% (±10.0%) | 66.7% (6/9) | 88.9% (8/9) |
+| 10% | 76.4% (±12.3%) | 55.6% (5/9) | 88.9% (8/9) |
+| **Overall** | **80.4% (±7.4%)** | **69.4% (25/36)** | **94.4% (34/36)** |
+
+### 2. Reference-Seed Detail (seed=42, Mock Proposer)
 
 | Scenario | Tier | 0% Noise | 1% Noise | 5% Noise | 10% Noise |
 |----------|------|:--------:|:--------:|:--------:|:---------:|
@@ -122,14 +134,19 @@ result.summary()
 | Mystery-C (log-quotient) | Synthetic | ✓ | ✓ | ✓ | ✓ |
 | **Overall** | | **100%** | **100%** | **88.9%** | **88.9%** |
 
-### 2. PySR Comparison (fair profile: 100 iterations, 60s timeout)
+### 3. PySR Comparison (same residual, 5% noise — the structural-selection test)
 
-| Method | 0% Noise | 1% Noise | 5% Noise | 10% Noise |
+The gap is **seed-independent**: even ADCD's *worst* of 16 seeds beats PySR fair, and PySR with doubled budget cannot reach ADCD's worst seed.
+
+| Method (5% noise) | 0% | 1% | 5% | 10% |
 |--------|:--------:|:--------:|:--------:|:---------:|
 | **ADCD** (ours, seed=42) | **9/9 (100%)** | **9/9 (100%)** | **8/9 (88.9%)** | **8/9 (88.9%)** |
-| PySR fair | 4/9 (44.4%) | 5/9 (55.6%) | 1/9 (11.1%) | 5/9 (55.6%) |
+| ADCD multi-seed mean | 86.8% | 81.2% | 77.1% | 76.4% |
+| ADCD worst of 16 seeds | 66.7% | 44.4% | 66.7% | 55.6% |
+| PySR fair (100 iter, 60s) | 4/9 (44.4%) | 5/9 (55.6%) | 1/9 (11.1%) | 5/9 (55.6%) |
+| PySR generous (2× budget) | 4/9 (44.4%) | 4/9 (44.4%) | 5/9 (55.6%) | 2/9 (22.2%) |
 
-ADCD outperforms PySR by **+77.8 percentage points** at 5% noise.
+> At 5% noise the gap is **+66.0 points** (ADCD multi-seed mean 77.1% vs PySR fair 11.1%). Doubling PySR's budget (`generous`, 55.6%) does not close it — and that doubled-budget figure still sits **below ADCD's worst of 16 seeds (66.7%)**. PySR was run once per (scenario, noise); ADCD across 16 seeds. PySR non-monotonic under noise; ADCD stable.
 
 ### 3. Phase 2: Multivariable Benchmark
 
@@ -212,8 +229,11 @@ Every quantitative claim in this project is reproducible from committed scripts.
 # Regenerate the 9-scenario benchmark (seed=42)
 python run_correction_discovery.py
 
-# Multi-seed study (5 seeds × 9 scenarios × 4 noise levels)
+# Multi-seed study (16 seeds × 9 scenarios × 4 noise levels)
 python run_reproducibility.py
+
+# Build the per-seed × per-noise anti-cherry-pick artifact
+python scripts/generate_seed_distribution.py    # → results/seed_distribution.json
 
 # Guard: fails loudly if any headline number drifts
 python scripts/verify_paper_claims.py

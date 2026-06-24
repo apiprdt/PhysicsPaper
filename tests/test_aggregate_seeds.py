@@ -2,9 +2,11 @@
 Regression tests for the multi-seed bootstrap CI aggregator
 (scripts/aggregate_seeds.py).
 
-These tests pin the statistical behaviour of the headline "82.8% +/- ... (95% CI)"
-number reported in the paper, so a silent regression in the aggregation logic is
-caught before tables are regenerated.
+These tests pin the statistical behaviour of the headline
+"80.4% +/- 7.4% (95% CI [76.7%, 84.0%]) across sixteen seeds" number reported in
+the paper, so a silent regression in the aggregation logic is caught before
+tables are regenerated. The headline is computed over single-variable (SV)
+scenarios only; multivariable (MV-*) trials are excluded (see _seed_rates).
 
 The aggregator itself lives outside the package, so we import it via importlib
 from its script path (matching how scripts are exercised in CI).
@@ -113,13 +115,12 @@ class TestBootstrapCI:
 
 
 class TestEndToEndOnExistingResults:
-    """If reproducibility_results.json exists, the original 5-seed headline
-    number must match the paper-reported mean (82.8%) to guard against silent
-    regressions in the aggregation math. We restrict to the original 5 seeds
-    (0, 7, 21, 42, 99) so the test is stable while the 20-seed expansion is
-    still being appended to the same file."""
+    """If reproducibility_results.json exists, the 16-seed headline number must
+    match the paper-reported mean (80.4% +/- 7.4%) to guard against silent
+    regressions in the aggregation math. The headline is computed over the full
+    sixteen-seed set on single-variable (SV) scenarios only."""
 
-    ORIGINAL_SEEDS = [0, 7, 21, 42, 99]
+    EXPECTED_SEEDS = [0, 2, 5, 7, 13, 17, 21, 23, 31, 37, 41, 42, 53, 61, 67, 99]
 
     def test_headline_mean_matches_paper(self, agg):
         results_path = ROOT / "reproducibility_results.json"
@@ -127,20 +128,23 @@ class TestEndToEndOnExistingResults:
             pytest.skip("reproducibility_results.json not present")
 
         all_trials = json.loads(results_path.read_text())
-        trials = [r for r in all_trials if r.get("seed") in self.ORIGINAL_SEEDS]
-        # Each original seed must have the full 36-trial complement; otherwise
-        # the file is mid-rewrite and the test is inconclusive.
+        # Restrict to the headline seeds and let _seed_rates drop MV-* rows.
+        trials = [r for r in all_trials if r.get("seed") in self.EXPECTED_SEEDS]
+        # Each seed must have the full 36-trial SV complement; otherwise the
+        # file is mid-rewrite and the test is inconclusive.
         have = sorted(set(r["seed"] for r in trials))
-        if have != sorted(self.ORIGINAL_SEEDS):
-            pytest.skip("original 5-seed slice not fully present yet")
+        if have != sorted(self.EXPECTED_SEEDS):
+            pytest.skip("16-seed slice not fully present yet")
 
         rates = agg._seed_rates(trials)
-        # Paper: 86.1, 75.0, 77.8, 94.4, 80.6 -> mean 82.8%.
-        expected = [0.861, 0.750, 0.778, 0.944, 0.806]
-        for s, exp in zip(sorted(self.ORIGINAL_SEEDS), expected):
-            assert rates[s] == pytest.approx(exp, abs=2e-3), f"seed {s}"
         mean = float(np.mean(list(rates.values())))
-        assert mean == pytest.approx(0.828, abs=2e-3)
+        std = float(np.std(list(rates.values()), ddof=0))
+        # Paper headline: 80.4% +/- 7.4% across sixteen seeds.
+        assert mean == pytest.approx(0.804, abs=2e-3)
+        assert std == pytest.approx(0.074, abs=2e-3)
+        # seed=42 must be the highest-performing seed (disclosed in the paper).
+        assert max(rates, key=rates.get) == 42
+        assert rates[42] == pytest.approx(0.944, abs=2e-3)
 
         lo, hi = agg.bootstrap_ci(list(rates.values()), n_bootstrap=2000,
                                   rng=np.random.default_rng(0))
