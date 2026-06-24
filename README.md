@@ -5,6 +5,14 @@
 </p>
 
 <p align="center">
+  <img src="assets/adcd_discovery.gif" alt="ADCD discovery pipeline animation" width="92%">
+</p>
+
+<p align="center">
+  <a href="assets/adcd_discovery.mp4">▶ Download video (MP4)</a>
+</p>
+
+<p align="center">
   <a href="https://doi.org/10.5281/zenodo.20534940"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20534940-blue" alt="DOI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
   <a href="https://pypi.org/project/adcd/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python Support"></a>
