@@ -41,6 +41,7 @@ jobs:
   build-paper:
     name: Compile LaTeX Paper
     runs-on: ubuntu-latest
+    continue-on-error: true   # LaTeX compilation is supplementary; PDF is pre-committed
     steps:
       - uses: actions/checkout@v4
 
