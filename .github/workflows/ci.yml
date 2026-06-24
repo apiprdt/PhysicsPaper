@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test Suite (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install package (editable) + dev dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Lint with flake8
+        run: flake8 src/ tests/ --count --statistics
+
+      - name: Run tests with coverage
+        run: pytest --cov=adcd --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  build-paper:
+    name: Compile LaTeX Paper
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile main.tex (pass 1 + 2)
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: paper/main.tex
+          work_in_root_file_dir: true
+          extra_system_packages: "py-pygments"
+
+      - name: Upload compiled PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: ADCD-paper-${{ github.sha }}
+          path: paper/main.pdf
+          retention-days: 30

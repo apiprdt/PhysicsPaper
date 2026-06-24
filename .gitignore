@@ -94,8 +94,11 @@ results/
 # Paper PNG duplicates (LaTeX uses PDF)
 paper/figures/*.png
 
-# GitHub-specific files (not needed for paper source)
-.github/
+# GitHub community files (not needed for paper source bundle), but
+# keep CI + PyPI workflows tracked — they are required for the live
+# repo to run tests and publish releases. Ignore only the templates.
+.github/ISSUE_TEMPLATE/
+.github/PULL_REQUEST_TEMPLATE.md
 CONTRIBUTING.md
 CODE_OF_CONDUCT.md
 CHANGELOG.md
