@@ -86,18 +86,24 @@ Under noise, flexible wrong-class expressions can achieve lower NMSE than the tr
 \centering
 \begin{tikzpicture}[node distance=0.30cm,
   block/.style={rectangle,draw=black!60,rounded corners=2pt,fill=black!4,
-                text width=0.47\linewidth,inner sep=3pt,align=center,font=\scriptsize},
-  gate/.style={rectangle,draw=black!60,rounded corners=2pt,fill=black!8,
-               text width=0.96\linewidth,inner sep=3pt,align=center,font=\scriptsize},
-  line/.style={draw,-Latex,thick,gray!70!black}]
-\node[block] (s0) {\textbf{Stage 0:} law $g(X;\phi)$ + noisy $y_{\rm obs}$ $\Rightarrow$ residual $\delta$};
-\node[block,right=of s0] (prop) {\textbf{Proposer:} sample $\Delta(X;\theta)$ from dimensionless-ratio templates};
-\node[gate,below=of $(s0.south)!0.5!(prop.south)$] (g) {\textbf{Stage 1: physics gates} --- G1 AST complexity $\to$ G2 dimensional + transcendental guard $\to$ G3 ARC ($\Delta\!\to\!0$)};
-\node[block,below=of g] (opt) {\textbf{Stage 2:} JAX L-BFGS-B (NMSE) $\to$ BIC reranking $\to$ structural classification};
-\path[line] (s0) -- (prop); \path[line] (prop.south) -- (g.north); \path[line] (g) -- (opt);
-\path[line] (opt.east) -- ++(0.22,0) |- node[font=\tiny,gray,left,pos=0.75]{stuck} (prop.east);
+                text width=0.80\linewidth,inner sep=3pt,align=center,font=\scriptsize},
+  gate/.style={rectangle,draw=black!60,rounded corners=2pt,fill=black!10,
+               text width=0.80\linewidth,inner sep=3pt,align=center,font=\scriptsize},
+  line/.style={draw,-Latex,thick,gray!60!black},
+  fb/.style={draw,-Latex,thick,gray!50!black,dashed}]
+\node[block] (s0)   {\textbf{Stage 0:} known law $g(X;\phi)$ + noisy $y_{\rm obs}\;\Rightarrow\;$ residual $\delta$};
+\node[block,below=of s0]   (prop) {\textbf{Proposer:} sample candidate correction $\Delta(X;\theta)$ from dimensionless-ratio templates};
+\node[gate,below=of prop]  (g)   {\textbf{Stage 1 --- physics gates (before any fit):}\\
+   G1 AST complexity $\;\to\;$ G2 dimensional homogeneity + transcendental guard $\;\to\;$ G3 ARC ($\Delta\!\to\!0$)};
+\node[block,below=of g]    (opt) {\textbf{Stage 2:} JAX L-BFGS-B (min.\ NMSE) $\;\to\;$ BIC rerank $\;\to\;$ structural class};
+\path[line] (s0)   -- (prop);
+\path[line] (prop) -- (g);
+\path[line] (g)    -- (opt);
+% rejected candidates loop back to the proposer, routed clear of all boxes
+\path[fb] (g.east) -- ++(0.55,0) |- node[font=\tiny,gray,above,pos=0.25]{rejected}
+                                 node[font=\tiny,gray,below,pos=0.85]{re-sample} (prop.east);
 \end{tikzpicture}
-\caption{ADCD pipeline. Physics gates (G1--G3) screen candidates \emph{before} any parameter is fit.}
+\caption{ADCD pipeline. Physics gates (G1--G3) screen candidates \emph{before} any parameter is fit; rejected candidates are re-sampled.}
 \label{fig:pipeline}
 \end{figure}
 
