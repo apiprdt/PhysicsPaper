@@ -21,6 +21,17 @@ paper/*.fdb_latexmk
 paper/*.bbl
 paper/*.blg
 paper/*.run.xml
+# Also cover paper subdirectories (e.g. paper/workshop/)
+paper/**/*.aux
+paper/**/*.log
+paper/**/*.out
+paper/**/*.toc
+paper/**/*.synctex.gz
+paper/**/*.fls
+paper/**/*.fdb_latexmk
+paper/**/*.bbl
+paper/**/*.blg
+paper/**/*.run.xml
 *.egg-info/
 dist/
 build/

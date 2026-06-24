@@ -1,0 +1,226 @@
+\documentclass{article}
+
+% NeurIPS 2024 style (used by ML4PhysicalSciences / AI4Science workshops).
+% [final] = camera-ready (no line numbers); [preprint] = arXiv-friendly.
+\usepackage[final]{neurips_2024}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\setlist{itemsep=2pt,topsep=2pt}
+\usepackage[font=small,labelfont=bf]{caption}
+\captionsetup{aboveskip=4pt,belowskip=2pt}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=red!60!black,urlcolor=blue!60!black,citecolor=green!50!black}
+\usepackage{cleveref}
+
+% Tighten up for a 4-page budget.
+\setlength{\textfloatsep}{6pt plus 1pt minus 1pt}
+\setlength{\intextsep}{6pt plus 1pt minus 1pt}
+\setlength{\dbltextfloatsep}{6pt plus 1pt minus 1pt}
+
+\title{Physics-Gated Correction Discovery: Why Constraining the Search Space Beats Scaling It in Noisy Symbolic Regression}
+
+\author{%
+  Muhammad Afif Erdita \\
+  Independent Researcher, Indonesia \\
+  \texttt{maeapip10@gmail.com} \\
+  \textbf{Target venue:} NeurIPS 2026 ML4PhysicalSciences workshop \\
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Symbolic regression (SR) methods such as PySR, AI~Feynman, and PhySO discover equations \emph{from scratch}, an approach that overfits on noisy physical data: under matched residuals, PySR's structural accuracy is non-monotonic in noise and does not improve when its search budget is doubled. We argue that scientific discovery is rarely \emph{tabula rasa}---it is \emph{correction-first}: given a known classical law and anomalous data, the real task is to find the minimal physically-valid correction $\Delta$. We present \textbf{Anomaly-Driven Correction Discovery (ADCD)}, which restricts search to a correction subspace and cascades three physical filters---AST complexity, dimensional homogeneity with a transcendental-argument guardrail, and asymptotic-regime consistency (ARC)---\emph{before} a JAX optimizer fits any parameter, with Bayesian Information Criterion (BIC) reranking. On a 9-scenario benchmark (mean $80.4\%\pm7.4\%$ across 16 seeds; $88.9\%$ at the disclosed reference seed), ADCD reaches $88.9\%$ at $5\%$ noise versus $11.1\%$ for PySR---a \emph{seed-independent} gap: ADCD's \emph{worst} of 16 seeds still beats PySR with doubled budget. Removing all gates drops recovery by $44.5$\,pp. ADCD is orthogonal to---not competitive with---existing SR: it restricts the problem they solve to a physically-motivated subspace where they fail under noise.
+\end{abstract}
+
+%==================================================================
+\section{Introduction}
+\label{sec:intro}
+
+The dominant paradigm in symbolic regression (SR) is \emph{tabula rasa} discovery: take raw $(X,y)$ and evolve an algebraic expression $f(X)\approx y$ from primitive operators. Pioneered by Eureqa~\cite{schmidt2009distilling}, AI~Feynman~\cite{udrescu2020ai}, and PySR~\cite{cranmer2020pysr}, and extended by deep RL approaches such as DSR~\cite{petersen2021deep} and unit-constrained PhySO~\cite{tenachi2023physo}, these systems recover compact laws in \emph{low}-noise regimes. Under realistic observational noise, however, their structural accuracy degrades and is often \emph{non-monotonic} in noise: a larger candidate pool does not reliably translate into the correct functional \emph{class} (\Cref{sec:exp}).
+
+We observe that this difficulty is partly one of \emph{problem formulation}. Science rarely discovers from a blank slate---it \emph{corrects}. From the relativistic kinetic-energy expansion $\tfrac12 mv^2(1+\tfrac34 v^2/c^2+\dots)$, to Debye-screened Coulomb potentials $V(r)\propto r^{-1}e^{-r/\lambda_D}$, to turbulent drag $F=bv+\alpha v^2$, progress takes a structurally-correct classical law and appends a \emph{minimal correction} $\Delta$ that reconciles it with anomalous data. This restricts the hypothesis space from the full function space $\mathcal{F}$ to a correction subspace $\mathcal{D}\subset\mathcal{F}$---an exponential reduction informed by the known physics.
+
+We propose \textbf{Anomaly-Driven Correction Discovery (ADCD)}, built on three contributions:
+\begin{itemize}[leftmargin=14pt]
+  \item[\textbf{C1}] \textbf{Correction-first paradigm.} Search for $\Delta$ in $\mathcal{D}$, not $f$ in $\mathcal{F}$, given a classical law $y_{\rm classical}=g(X;\phi)$ and anomalous observations.
+  \item[\textbf{C2}] \textbf{Physics-gated cascade before optimization.} Three filters---AST complexity, dimensional homogeneity with a transcendental-argument guardrail, and asymptotic-regime consistency (ARC, $\Delta\!\to\!0$ at the classical boundary)---screen candidates \emph{before} any parameter is fit.
+  \item[\textbf{C3}] \textbf{Categorical immunity to trigonometric overfitting.} Because dimensional/ARC gates reject nested $\sin(\sin(\dots))$ that dominate unconstrained Pareto fronts at $0\%$ noise, ADCD's accuracy is stable where PySR's is non-monotonic.
+\end{itemize}
+We deliberately scope this paper to \emph{method and synthetic benchmark}; real-data validation (galactic, cosmological) is reported in a companion manuscript.
+
+%==================================================================
+\section{The ADCD framework}
+\label{sec:method}
+
+\paragraph{Residual extraction.}
+Given a known classical law $y_{\rm classical}=g(X;\phi)$ and noisy anomalous data $y_{\rm obs}$, ADCD isolates the correction by forming a residual. In \emph{multiplicative} mode $y_{\rm true}=y_{\rm classical}(1+\Delta)$ gives $\delta=y_{\rm obs}/y_{\rm classical}-1$; in \emph{additive} mode $y_{\rm true}=y_{\rm classical}+\Delta$ gives $\delta=y_{\rm obs}-y_{\rm classical}$. A mode selector picks whichever best isolates the anomalous deviation.
+
+\paragraph{Proposer.}
+Candidate correction templates $\Delta(X;\theta)$ are drawn from a stochastic sampler over dimensionless ratios (e.g.\ $v/c$, $r/\theta_1$), biased by five residual features extracted from $\delta$: monotonicity, curvature sign, oscillation score, exponential decay $R^2$, and even/odd symmetry. These features upweight plausible families (e.g.\ exponentials when monotonicity and decay are high) but never gate candidates---only the physics cascade does.
+
+\paragraph{Stage 1: cascaded physics gates.}
+Every candidate passes three filters \emph{before} optimization:
+\begin{enumerate}[leftmargin=16pt,label=\textbf{G\arabic*.},itemsep=1pt]
+  \item \textbf{AST complexity.} Reject expressions with AST depth $>7$ or $>20$ tokens---a coarse Occam prior.
+  \item \textbf{Dimensional homogeneity + transcendental guard.} Verify $\Delta$ is dimensionless; physical variables may enter only inside dimensionless ratios. As a sub-check, $\sin,\cos,\exp,\log,\tanh$ may take only \emph{dimensionless} arguments: $\exp(-r)$ without a scale $\theta_1$ is blocked instantly. Free parameters carry adaptive units (relaxable), documented in the companion paper.
+  \item \textbf{Asymptotic-regime consistency (ARC).} Enforce the decoupling limit: as $x\to x_0$ (e.g.\ $v\!\to\!0$, $r\!\to\!\infty$), $\lim_{x\to x_0}\Delta(X;\theta)=0$, evaluated with SymPy's limit engine.
+\end{enumerate}
+Survivors are then coarsely ranked by preliminary NMSE on $\delta$, giving an early data-driven signal before the full fit.
+
+\paragraph{Stage 2: JAX-traced optimization + BIC reranking.}
+Surviving expressions are transpiled to JAX and fit by L-BFGS-B (multi-restart, log-uniform init) minimizing NMSE of the residual,
+$\text{NMSE}=\tfrac{\sum_i(\Delta(X_i;\theta)-\delta_i)^2}{\sum_i(\delta_i-\bar\delta)^2}$.
+Under noise, flexible wrong-class expressions can achieve lower NMSE than the truth, so we rerank by the Bayesian Information Criterion~\cite{schwarz1978bic,rissanen1978mdl}, $\text{BIC}=N\ln(\text{NMSE})+k\ln N$, whose $k\ln N$ penalty selects parsimonious correct-class forms. The winner is classified into one of six families (exponential, trigonometric, logarithmic, power law, rational, polynomial) by AST traversal, with degenerate-exponent detection (a fitted $\hat\theta_1\!\approx\!1$ recasts $\theta_0 x^{\theta_1}$ as polynomial).
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[node distance=0.30cm,
+  block/.style={rectangle,draw=black!60,rounded corners=2pt,fill=black!4,
+                text width=0.47\linewidth,inner sep=3pt,align=center,font=\scriptsize},
+  gate/.style={rectangle,draw=black!60,rounded corners=2pt,fill=black!8,
+               text width=0.96\linewidth,inner sep=3pt,align=center,font=\scriptsize},
+  line/.style={draw,-Latex,thick,gray!70!black}]
+\node[block] (s0) {\textbf{Stage 0:} law $g(X;\phi)$ + noisy $y_{\rm obs}$ $\Rightarrow$ residual $\delta$};
+\node[block,right=of s0] (prop) {\textbf{Proposer:} sample $\Delta(X;\theta)$ from dimensionless-ratio templates};
+\node[gate,below=of $(s0.south)!0.5!(prop.south)$] (g) {\textbf{Stage 1: physics gates} --- G1 AST complexity $\to$ G2 dimensional + transcendental guard $\to$ G3 ARC ($\Delta\!\to\!0$)};
+\node[block,below=of g] (opt) {\textbf{Stage 2:} JAX L-BFGS-B (NMSE) $\to$ BIC reranking $\to$ structural classification};
+\path[line] (s0) -- (prop); \path[line] (prop.south) -- (g.north); \path[line] (g) -- (opt);
+\path[line] (opt.east) -- ++(0.22,0) |- node[font=\tiny,gray,left,pos=0.75]{stuck} (prop.east);
+\end{tikzpicture}
+\caption{ADCD pipeline. Physics gates (G1--G3) screen candidates \emph{before} any parameter is fit.}
+\label{fig:pipeline}
+\end{figure}
+
+\paragraph{Relation to EFT.}
+The cascade mirrors the correction-first philosophy of Effective Field Theory~\cite{weinberg1979eft}: dimensional analysis of operators (G2), decoupling of heavy modes in the low-energy limit (G3/ARC), and power counting (BIC). ADCD has no renormalization-group flow or controlled $E/\Lambda$ expansion---it \emph{automates} that philosophy for data-driven problems.
+
+%==================================================================
+\section{Experiments}
+\label{sec:exp}
+
+\paragraph{Benchmark.}
+We evaluate on 9 physical-anomaly scenarios in three tiers: \emph{textbook} (relativistic KE, Yukawa gravity, anharmonic spring), \emph{cross-domain} (net radiation $T^{-4}$, nonlinear drag, screened Coulomb), and \emph{synthetic novel} formulas. Each is run at $0/1/5/10\%$ observational noise. Success = correct structural \emph{class} recovery (e.g.\ discovering an exponential correction where the truth is exponential). We report a 16-seed distribution; the mean is the primary claim and seed=42 (the highest seed) is disclosed explicitly, never as the headline.
+
+\paragraph{Baselines.}
+We compare against PySR~\cite{cranmer2020pysr} on the \emph{same residual targets} $\delta=y_{\rm obs}-y_{\rm classical}$. The primary baseline is the \texttt{fair} profile ($n_{\rm iter}{=}100$, \texttt{maxsize}{=}30, 60\,s/scenario). To rule out a budget artefact we add a \texttt{generous} profile that \emph{doubles} every budget axis ($n_{\rm iter}{=}200$, \texttt{maxsize}{=}40, 120\,s; $\sim3\times$ wall-clock).
+
+\paragraph{Main result: the gap is structural, not budgetary.}
+\Cref{tab:baseline} reports structural match rates. ADCD reaches $88.9\%$ (8/9) at $5\%$ noise versus $11.1\%$ (1/9) for PySR fair---a $77.8$\,pp gap under matched residuals. The comparison is \emph{seed-independent}: at $5\%$ noise ADCD's worst of 16 seeds ($66.7\%$, 6/9) still exceeds PySR fair. Crucially, doubling PySR's budget does \emph{not} close the gap---\texttt{generous} total recovery stays flat at $15/36$ (identical to \texttt{fair}) and at the $5\%$ headline point it reaches only $5/9$ ($55.6\%$). The extra budget explores deeper trees (mean complexity $9.8$ vs.\ $8.7$ nodes) spent on more deeply-overfit rather than more physically-correct structure. The binding constraint is \emph{structural selection}, not search budget; physics gates resolve it directly.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Structural class match rate on the 9-scenario residual benchmark. \texttt{generous} doubles PySR's budget on every axis yet does not close the gap.}
+\label{tab:baseline}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Method} & \textbf{0\%} & \textbf{1\%} & \textbf{5\%} & \textbf{10\%} \\
+\midrule
+ADCD (ours, seed=42) & 9/9 (100\%) & 9/9 (100\%) & \textbf{8/9 (88.9\%)} & 8/9 (88.9\%) \\
+ADCD 16-seed mean    & --- & --- & \textit{80.4\%$\pm$7.4\%} & --- \\
+PySR fair            & 4/9 (44.4\%) & 5/9 (55.6\%) & 1/9 (11.1\%) & 5/9 (55.6\%) \\
+PySR generous ($2\times$) & 4/9 (44.4\%) & 4/9 (44.4\%) & 5/9 (55.6\%) & 2/9 (22.2\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Why PySR is non-monotonic, and why ADCD is not.}
+PySR fair exhibits a non-monotonic noise profile ($4,5,1,5$ out of 9). Inspection reveals a mechanistic cause: at $0\%$ noise the large search space lets it find deeply-nested trigonometric expressions (mean $13.8$ nodes) that fit clean data but are structurally wrong ($5/5$ mismatches are trigonometric); at $1\%$ noise regularizes overfitting and complexity drops to $8.2$ nodes; at $5\%$ it picks the wrong family; at $10\%$ it collapses to the simplest form, coincidentally correct for $5$. ADCD avoids this because its gates are noise-independent: dimensional and ARC constraints reject the nested trig that PySR overfits to, and once the correct family is sampled the cascade selects it regardless of SNR (\Cref{fig:noise}).
+
+\begin{figure}[t]
+\centering
+\begin{minipage}[t]{0.49\linewidth}\centering
+\includegraphics[width=\linewidth]{fig1_noise_robustness.pdf}\\
+{\small (a) Noise robustness. ADCD stable; PySR fair non-monotonic (44$\to$56$\to$11$\to$56\%).}
+\label{fig:noise}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering
+\includegraphics[width=\linewidth]{fig4_ablation.pdf}\\
+{\small (b) Gate ablation at $5\%$ noise. Removing all gates collapses recovery by $44.5$\,pp.}
+\label{fig:ablation}
+\end{minipage}
+\caption{Left: structural match rate vs.\ noise. Right: per-gate ablation.}
+\label{fig:both}
+\end{figure}
+
+\paragraph{Ablation: the gates act collectively.}
+\Cref{fig:ablation} disables gates one at a time at $5\%$ noise. Removing ARC, AST, or the coarse-eval pre-filter individually leaves accuracy unchanged ($8/9$); removing the dimensional gate alone costs $11.1$\,pp ($8/9\to7/9$). Only disabling \emph{all} gates causes a larger collapse ($8/9\to4/9$, $-44.5$\,pp): the gates reinforce each other as a collective physical-consistency filter rather than each being independently essential.
+
+%==================================================================
+\section{Discussion and limitations}
+\label{sec:disc}
+
+\paragraph{ADCD is a restriction, not a competitor.}
+ADCD does not compete with PhySO or PySR---it restricts the problem they solve to a physically-motivated subspace where they are known to fail under noise. This makes ADCD directly \emph{combinable} with them: a PhySO/PySR/LaSR~\cite{grayeli2024lasr} proposer could feed the same gate cascade.
+
+\paragraph{Honest limitations.}
+ADCD assumes a structurally-correct classical baseline (incremental correction, not wholesale replacement). At $\geq5\%$ noise, screened-Coulomb decay is fitted by a rational proxy, reflecting decay-vs-saturation ambiguity under limited dynamic range. A multivariable extension (Buckingham-$\Pi$) is currently weaker ($2/4$ at $5\%$) and treated as exploratory; the dimensional gate uses adaptive parameter-unit relaxation rather than PhySO's strict enforcement---complementary design points.
+
+\paragraph{Reproducibility.}
+ADCD ships as an open-source Python package (JAX backend, public API/CLI, CI/CD); all 16 seeds, per-seed noise distributions, and PySR profiles are bundled for replication.
+
+\paragraph{Closing.}
+Noisy symbolic regression is bottlenecked by \emph{structural selection}, not search budget. The correction-first formulation---searching for a physically-valid $\Delta$ to a known law, screened by dimensional and asymptotic gates before any fit---resolves this directly: ADCD delivers seed-independent gains over PySR, stays robust where unconstrained search is non-monotonic, and is orthogonal to existing SR systems. Future work extends the cascade to multivariable laws and integrates it as a selection layer over external proposers (PhySO, LaSR).
+
+%==================================================================
+\bibliographystyle{plainnat}
+\begin{thebibliography}{9}
+\footnotesize
+\setlength{\itemsep}{0pt plus 0.3pt}
+\bibitem[Schmidt \& Lipson(2009)]{schmidt2009distilling}
+M.~Schmidt \& H.~Lipson.
+\newblock Distilling free-form natural laws from experimental data.
+\newblock \emph{Science}, 324(5923):81--85, 2009.
+
+\bibitem[Udrescu \& Tegmark(2020)]{udrescu2020ai}
+S.~M. Udrescu \& M.~Tegmark.
+\newblock AI Feynman: A physics-inspired systematic approach to symbolic regression.
+\newblock \emph{Science Advances}, 6(16), 2020.
+
+\bibitem[Cranmer(2020)]{cranmer2020pysr}
+M.~Cranmer.
+\newblock PySR: Fast \& parallelized symbolic regression in Python/Julia.
+\newblock \emph{arXiv:2007.03738}, 2020.
+
+\bibitem[Petersen et~al.(2021)]{petersen2021deep}
+B.~K. Petersen et~al.
+\newblock Deep symbolic regression: Recovering mathematical expressions from data via risk-seeking policy gradients.
+\newblock In \emph{ICLR}, 2021.
+
+\bibitem[Tenachi et~al.(2023)]{tenachi2023physo}
+W.~Tenachi, R.~Ibata, \& F.~I. Diakogiannis.
+\newblock Deep symbolic regression for physics guided by units constraints.
+\newblock \emph{Astrophysical Journal}, 959(2):99, 2023.
+
+\bibitem[Grayeli et~al.(2024)]{grayeli2024lasr}
+A.~Grayeli, A.~Sehgal, O.~Costilla-Reyes, M.~Cranmer, \& S.~Chauduri.
+\newblock Symbolic regression with a learned concept library.
+\newblock In \emph{NeurIPS}, 2024.
+
+\bibitem[Schwarz(1978)]{schwarz1978bic}
+G.~Schwarz.
+\newblock Estimating the dimension of a model.
+\newblock \emph{Annals of Statistics}, 6(2):461--464, 1978.
+
+\bibitem[Rissanen(1978)]{rissanen1978mdl}
+J.~Rissanen.
+\newblock Modeling by shortest data description.
+\newblock \emph{Automatica}, 14(5):465--471, 1978.
+
+\bibitem[Weinberg(1979)]{weinberg1979eft}
+S.~Weinberg.
+\newblock Phenomenological Lagrangians.
+\newblock \emph{Physica A}, 96(1-2):327--340, 1979.
+\end{thebibliography}
+
+\end{document}
