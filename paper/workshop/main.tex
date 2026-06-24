@@ -100,8 +100,7 @@ Under noise, flexible wrong-class expressions can achieve lower NMSE than the tr
 \path[line] (prop) -- (g);
 \path[line] (g)    -- (opt);
 % rejected candidates loop back to the proposer, routed clear of all boxes
-\path[fb] (g.east) -- ++(0.55,0) |- node[font=\tiny,gray,above,pos=0.25]{rejected}
-                                 node[font=\tiny,gray,below,pos=0.85]{re-sample} (prop.east);
+\path[fb] (g.east) -- ++(0.55,0) |- node[font=\tiny,gray,right,pos=0.5]{rejected} (prop.east);
 \end{tikzpicture}
 \caption{ADCD pipeline. Physics gates (G1--G3) screen candidates \emph{before} any parameter is fit; rejected candidates are re-sampled.}
 \label{fig:pipeline}
