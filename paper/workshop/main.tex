@@ -21,6 +21,7 @@
 \usepackage{enumitem}
 \setlist{itemsep=2pt,topsep=2pt}
 \usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subcaption}
 \captionsetup{aboveskip=4pt,belowskip=2pt}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,calc}
@@ -150,16 +151,16 @@ PySR fair exhibits a non-monotonic noise profile ($4,5,1,5$ out of 9). At $0\%$ 
 
 \begin{figure}[t]
 \centering
-\begin{minipage}[t]{0.49\linewidth}\centering
-\includegraphics[width=\linewidth]{fig1_noise_robustness.pdf}\\
-{\small (a) Noise robustness. ADCD stable; PySR fair non-monotonic (44$\to$56$\to$11$\to$56\%).}
+\begin{subfigure}[t]{0.49\linewidth}\centering
+\includegraphics[width=\linewidth]{fig1_noise_robustness.pdf}
+\caption{Noise robustness. ADCD stable; PySR fair non-monotonic (44$\to$56$\to$11$\to$56\%).}
 \label{fig:noise}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.49\linewidth}\centering
-\includegraphics[width=\linewidth]{fig4_ablation.pdf}\\
-{\small (b) Gate ablation at $5\%$ noise. Removing all gates collapses recovery by $44.5$\,pp.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\linewidth}\centering
+\includegraphics[width=\linewidth]{fig4_ablation.pdf}
+\caption{Gate ablation at $5\%$ noise. Removing all gates collapses recovery by $44.5$\,pp.}
 \label{fig:ablation}
-\end{minipage}
+\end{subfigure}
 \caption{Left: structural match rate vs.\ noise. Right: per-gate ablation.}
 \label{fig:both}
 \end{figure}
