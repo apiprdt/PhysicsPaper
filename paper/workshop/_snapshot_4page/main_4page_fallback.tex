@@ -25,8 +25,6 @@
 \captionsetup{aboveskip=4pt,belowskip=2pt}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,calc}
-\usepackage{pgfplots}
-\pgfplotsset{compat=1.18}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true,linkcolor=red!60!black,urlcolor=blue!60!black,citecolor=green!50!black}
 \usepackage{cleveref}
@@ -66,22 +64,6 @@ We propose \textbf{Anomaly-Driven Correction Discovery (ADCD)}, built on three c
   \item[\textbf{C3}] \textbf{Categorical immunity to trigonometric overfitting.} Because dimensional/ARC gates reject nested $\sin(\sin(\dots))$ that dominate unconstrained Pareto fronts at $0\%$ noise, ADCD's accuracy is stable where PySR's is non-monotonic.
 \end{itemize}
 We deliberately scope this paper to \emph{method and synthetic benchmark}; real-data validation (galactic, cosmological) is reported in a companion manuscript.
-
-%==================================================================
-\section{Related work}
-\label{sec:related}
-
-\paragraph{Tabula rasa symbolic regression.}
-Modern SR discovers an expression $f(X)\!\approx\!y$ from a blank slate. Eureqa~\cite{schmidt2009distilling} pioneered genetic search over expression trees; AI~Feynman~\cite{udrescu2020ai} added physics-inspired unit filtering and progressive complexity; PySR~\cite{cranmer2020pysr} scaled genetic SR with Pareto-front selection; DSR~\cite{petersen2021deep} replaced the search with risk-seeking reinforcement learning. All share a common goal---recovering the \emph{full} law---and a common failure: under realistic noise their structural accuracy degrades and is often \emph{non-monotonic} in noise, because a larger candidate pool rewards overfit structure rather than the correct functional class. ADCD departs by searching only the correction subspace $\mathcal{D}\!\subset\!\mathcal{F}$ to a \emph{known} law, an exponential restriction of the hypothesis space informed by prior physics.
-
-\paragraph{Unit-constrained SR.}
-PhySO~\cite{tenachi2023physo} enforces strict dimensional homogeneity throughout training, recovering full equations from data with strong results in clean regimes. Its constraints operate \emph{during} optimization; ADCD's physics gates screen candidates \emph{before} any fit, and it relaxes parameter units adaptively rather than enforcing them strictly. The two are complementary design points: ADCD could take a PhySO-style proposer and feed it through its gate cascade, combining strict-unit generation with pre-fit asymptotic and complexity filtering.
-
-\paragraph{LLM- and concept-library-driven SR.}
-LaSR~\cite{grayeli2024lasr} uses a learned concept library, prompted by a large language model, to improve the \emph{generation} of candidate expressions, but applies no physics filtering before fitting. ADCD is orthogonal: its gate cascade can act as a selection layer on top of any proposer---genetic, RL, or LLM-driven---subjecting generated templates to the same dimensional, asymptotic, and complexity constraints regardless of how they were proposed.
-
-\paragraph{Physics embedded in the model vs.\ the search space.}
-A separate line of work embeds physical structure in the \emph{model or training procedure} itself: physics-informed neural networks~\cite{raissi2019pinn} encode governing PDEs into the loss, Hamiltonian neural networks~\cite{greydanus2019hnn} constrain dynamics to a conserved Hamiltonian, and SINDy~\cite{champion2019sindy} sparse-regresses dynamical-system coefficients. ADCD occupies an orthogonal axis: rather than baking physics into a learned model, it restricts the symbolic \emph{search space} via interpretable, pre-fit gates that any downstream optimizer---JAX or otherwise---then operates within.
 
 %==================================================================
 \section{The ADCD framework}
@@ -164,44 +146,6 @@ PySR generous ($2\times$) & 4/9 (44.4\%) & 4/9 (44.4\%) & 5/9 (55.6\%) & 2/9 (22
 \end{tabular}
 \end{table}
 
-The seed-independence of this gap is structural, not artefactual. \Cref{fig:seeds} bins ADCD's per-seed recovery at the $5\%$ headline noise level: the entire 16-seed distribution sits between $66.7\%$ and $88.9\%$, \emph{entirely above} PySR's best result even under doubled budget ($55.6\%$, \texttt{generous}). ADCD's worst seed exceeds PySR's best by $11.1$\,pp without exception---the gap cannot be attributed to a favourable seed choice.
-
-\begin{figure}[t]
-\centering
-\begin{tikzpicture}
-\begin{axis}[
-  width=0.78\linewidth, height=4.0cm,
-  ybar, bar width=20pt,
-  xlabel={Recovery rate at $5\%$ noise (\%)},
-  ylabel={\# seeds},
-  ymin=0, ymax=8.2,
-  xtick={66.7,77.8,88.9},
-  xticklabels={66.7,77.8,88.9},
-  ytick={0,2,4,6,8},
-  enlarge x limits=0.28,
-  axis lines=left,
-  tick style={black, semithick},
-  every axis label/.style={font=\footnotesize},
-  tick label style={font=\scriptsize},
-  legend style={font=\scriptsize, at={(0.98,0.97)}, anchor=north east,
-                draw=black!40, fill=white, fill opacity=0.92, row sep=-1pt},
-  legend cell align=left,
-]
-% ADCD per-seed counts at 5% noise: 66.7%->7, 77.8%->3, 88.9%->6 (16 seeds)
-\addplot[fill=black!15, draw=black!50, thick] coordinates {
-  (66.7,7) (77.8,3) (88.9,6)
-};
-% PySR reference lines
-\draw[red!70!black, very thick, dashed] (axis cs:11.1,0) -- (axis cs:11.1,8.2);
-\draw[red!70!black, thick, dotted]      (axis cs:55.6,0) -- (axis cs:55.6,8.2);
-\draw[black!60, thin, dash dot]         (axis cs:77.1,0) -- (axis cs:77.1,8.2);
-\legend{ADCD (16 seeds),PySR fair 11.1\%,PySR generous 55.6\%,ADCD mean 77.1\%}
-\end{axis}
-\end{tikzpicture}
-\caption{Seed-independence of the ADCD--PySR gap at $5\%$ noise. Every one of ADCD's 16 seeds (bars) recovers at least $66.7\%$, above PySR's best result even under doubled budget ($55.6\%$, dotted).}
-\label{fig:seeds}
-\end{figure}
-
 \paragraph{Why PySR is non-monotonic, and why ADCD is not.}
 PySR fair exhibits a non-monotonic noise profile ($4,5,1,5$ out of 9). At $0\%$ noise the large search space produces deeply-nested trigonometric expressions (mean $13.8$ nodes) that fit clean data but are structurally wrong ($5/5$ mismatches are trigonometric); at $1\%$ noise regularization drops complexity to $8.2$ nodes; at $5\%$ it picks the wrong family entirely; at $10\%$ it collapses to the simplest form. ADCD avoids this because its gates are noise-independent: dimensional and ARC constraints reject the nested trig that PySR overfits to, and once the correct family is sampled the cascade selects it regardless of SNR (\Cref{fig:noise}).
 
@@ -247,7 +191,7 @@ Noisy symbolic regression is bottlenecked by \emph{structural selection}, not se
 
 %==================================================================
 \bibliographystyle{plainnat}
-\begin{thebibliography}{12}
+\begin{thebibliography}{9}
 \scriptsize
 \setlength{\itemsep}{0pt}
 \bibitem[Schmidt \& Lipson(2009)]{schmidt2009distilling}
@@ -294,21 +238,6 @@ J.~Rissanen.
 S.~Weinberg.
 \newblock Phenomenological Lagrangians.
 \newblock \emph{Physica A}, 96(1-2):327--340, 1979.
-
-\bibitem[Raissi et~al.(2019)]{raissi2019pinn}
-M.~Raissi, P.~Perdikaris, \& G.~E. Karniadakis.
-\newblock Physics-informed neural networks: A deep-learning framework for solving forward and inverse problems involving nonlinear partial differential equations.
-\newblock \emph{Journal of Computational Physics}, 378:686--707, 2019.
-
-\bibitem[Greydanus et~al.(2019)]{greydanus2019hnn}
-S.~Greydanus, M.~Dzamba, \& J.~Yosinski.
-\newblock Hamiltonian neural networks.
-\newblock In \emph{NeurIPS}, 2019.
-
-\bibitem[Champion et~al.(2019)]{champion2019sindy}
-K.~Champion, B.~Lusch, J.~N. Kutz, \& S.~L. Brunton.
-\newblock Data-driven discovery of coordinates and governing equations.
-\newblock \emph{Proceedings of the National Academy of Sciences}, 116(45):22445--22451, 2019.
 \end{thebibliography}
 
 \end{document}
