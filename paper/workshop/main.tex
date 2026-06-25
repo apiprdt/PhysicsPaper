@@ -184,14 +184,16 @@ ADCD ships as an open-source Python package (JAX backend, public API/CLI, CI/CD)
 \paragraph{Fail-safe behavior.}
 On a 6-case misspecification benchmark, ADCD fails safe---it fails to converge rather than producing confident spurious corrections---a property absent from tabula rasa SR.
 
+\paragraph{AI disclosure.} Code implementation and manuscript drafting were assisted by large language models under a human-in-the-loop workflow. All scientific hypotheses, experimental designs, analysis, and conclusions were conceived and verified solely by the human author, who remains fully responsible for the work.
+
 \paragraph{Closing.}
 Noisy symbolic regression is bottlenecked by \emph{structural selection}, not search budget. The correction-first formulation---searching for a physically-valid $\Delta$ to a known law, screened by dimensional and asymptotic gates before any fit---resolves this directly: ADCD delivers seed-independent gains over PySR, stays robust where unconstrained search is non-monotonic, and is orthogonal to existing SR systems. Future work extends the cascade to multivariable laws and integrates it as a selection layer over external proposers (PhySO, LaSR).
 
 %==================================================================
 \bibliographystyle{plainnat}
 \begin{thebibliography}{9}
-\footnotesize
-\setlength{\itemsep}{0pt plus 0.3pt}
+\scriptsize
+\setlength{\itemsep}{0pt}
 \bibitem[Schmidt \& Lipson(2009)]{schmidt2009distilling}
 M.~Schmidt \& H.~Lipson.
 \newblock Distilling free-form natural laws from experimental data.
