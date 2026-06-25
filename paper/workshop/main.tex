@@ -2,7 +2,14 @@
 
 % NeurIPS 2024 style (used by ML4PhysicalSciences / AI4Science workshops).
 % [final] = camera-ready (no line numbers); [preprint] = arXiv-friendly.
-\usepackage[final]{neurips_2024}
+\usepackage[preprint]{neurips_2024}
+
+% Override footer for ML4PhysicalSciences workshop, NeurIPS 2026.
+\makeatletter
+\renewcommand{\@noticestring}{%
+  Workshop on Machine Learning for the Physical Sciences, NeurIPS 2026.%
+}
+\makeatother
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -31,15 +38,14 @@
 \author{%
   Muhammad Afif Erdita \\
   Independent Researcher, Indonesia \\
-  \texttt{maeapip10@gmail.com} \\
-  \textbf{Target venue:} NeurIPS 2026 ML4PhysicalSciences workshop \\
+  \texttt{maeapip10@gmail.com}
 }
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Symbolic regression (SR) methods such as PySR, AI~Feynman, and PhySO discover equations \emph{from scratch}, an approach that overfits on noisy physical data: under matched residuals, PySR's structural accuracy is non-monotonic in noise and does not improve when its search budget is doubled. We argue that scientific discovery is rarely \emph{tabula rasa}---it is \emph{correction-first}: given a known classical law and anomalous data, the real task is to find the minimal physically-valid correction $\Delta$. We present \textbf{Anomaly-Driven Correction Discovery (ADCD)}, which restricts search to a correction subspace and cascades three physical filters---AST complexity, dimensional homogeneity with a transcendental-argument guardrail, and asymptotic-regime consistency (ARC)---\emph{before} a JAX optimizer fits any parameter, with Bayesian Information Criterion (BIC) reranking. On a 9-scenario benchmark (mean $80.4\%\pm7.4\%$ across 16 seeds; $88.9\%$ at the disclosed reference seed), ADCD reaches $88.9\%$ at $5\%$ noise versus $11.1\%$ for PySR---a \emph{seed-independent} gap: ADCD's \emph{worst} of 16 seeds still beats PySR with doubled budget. Removing all gates drops recovery by $44.5$\,pp. ADCD is orthogonal to---not competitive with---existing SR: it restricts the problem they solve to a physically-motivated subspace where they fail under noise.
+Symbolic regression (SR) methods such as PySR, AI~Feynman, and PhySO discover equations \emph{from scratch}, an approach that overfits on noisy physical data: under matched residuals, PySR's structural accuracy is non-monotonic in noise and does not improve when its search budget is doubled. We argue that scientific discovery is rarely \emph{tabula rasa}---it is \emph{correction-first}: given a known classical law and anomalous data, the real task is to find the minimal physically-valid correction $\Delta$. We present \textbf{Anomaly-Driven Correction Discovery (ADCD)}, which restricts search to a correction subspace and cascades three physical filters---AST complexity, dimensional homogeneity with a transcendental-argument guardrail, and asymptotic-regime consistency (ARC)---\emph{before} a JAX optimizer fits any parameter, with Bayesian Information Criterion (BIC) reranking. On a 9-scenario benchmark (overall mean $80.4\%\pm7.4\%$ across 16 seeds and all noise levels; $88.9\%$ at the disclosed reference seed), ADCD reaches $88.9\%$ at $5\%$ noise versus $11.1\%$ for PySR---a \emph{seed-independent} gap: ADCD's \emph{worst} of 16 seeds still beats PySR with doubled budget. Removing all gates drops recovery by $44.5$\,pp. ADCD is orthogonal to---not competitive with---existing SR: it restricts the problem they solve to a physically-motivated subspace where they fail under noise.
 \end{abstract}
 
 %==================================================================
@@ -132,7 +138,7 @@ We compare against PySR~\cite{cranmer2020pysr} on the \emph{same residual target
 \textbf{Method} & \textbf{0\%} & \textbf{1\%} & \textbf{5\%} & \textbf{10\%} \\
 \midrule
 ADCD (ours, seed=42) & 9/9 (100\%) & 9/9 (100\%) & \textbf{8/9 (88.9\%)} & 8/9 (88.9\%) \\
-ADCD 16-seed mean    & --- & --- & \textit{80.4\%$\pm$7.4\%} & --- \\
+ADCD 16-seed mean    & 86.8\% & 81.3\% & \textit{77.1\%$\pm$10.0\%} & 76.4\% \\
 PySR fair            & 4/9 (44.4\%) & 5/9 (55.6\%) & 1/9 (11.1\%) & 5/9 (55.6\%) \\
 PySR generous ($2\times$) & 4/9 (44.4\%) & 4/9 (44.4\%) & 5/9 (55.6\%) & 2/9 (22.2\%) \\
 \bottomrule
@@ -159,7 +165,7 @@ PySR fair exhibits a non-monotonic noise profile ($4,5,1,5$ out of 9). At $0\%$ 
 \end{figure}
 
 \paragraph{Ablation: the gates act collectively.}
-\Cref{fig:ablation} disables gates one at a time at $5\%$ noise. Removing ARC, AST, or the coarse-eval pre-filter individually leaves accuracy unchanged ($8/9$); removing the dimensional gate alone costs $11.1$\,pp ($8/9\to7/9$). The dimensional gate is the most critical single filter because violations of dimensional homogeneity---e.g.\ $\exp(-r)$ with $r$ in metres---are the most common failure mode in unconstrained SR, while ARC violations are rarer but produce unphysical extrapolation. Only disabling \emph{all} gates causes a larger collapse ($8/9\to4/9$, $-44.5$\,pp): the gates reinforce each other as a collective physical-consistency filter rather than each being independently essential.
+\Cref{fig:ablation} shows the result of disabling gates one at a time at $5\%$ noise. Removing ARC, AST, or the coarse-eval pre-filter individually leaves accuracy unchanged ($8/9$); removing the dimensional gate alone costs $11.1$\,pp ($8/9\to7/9$). The dimensional gate is the most critical single filter because violations of dimensional homogeneity---e.g.\ $\exp(-r)$ with $r$ in metres---are the most common failure mode in unconstrained SR, while ARC violations are rarer but produce unphysical extrapolation. Only disabling \emph{all} gates causes a larger collapse ($8/9\to4/9$, $-44.5$\,pp): the gates reinforce each other as a collective physical-consistency filter rather than each being independently essential.
 
 %==================================================================
 \section{Discussion and limitations}
