@@ -122,3 +122,7 @@ docs/
 release_v*.md
 zenodo_v*.md
 RELEASE_NOTES*.md
+
+# Internal strategy/submission notes
+ARXIV_ENDORSERS_AND_SUBMISSION.md
+PAPER_POSITIONING_STRATEGY.md
