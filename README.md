@@ -144,7 +144,7 @@ result.summary()
 
 ### 3. PySR Comparison (same residual, 5% noise — the structural-selection test)
 
-The gap is **seed-independent**: even ADCD's *worst* of 16 seeds beats PySR fair, and PySR with doubled budget cannot reach ADCD's worst seed.
+The gap is **seed-independent**: even ADCD's *worst* of 16 seeds exceeds PySR fair, and PySR with doubled budget cannot reach ADCD's worst seed.
 
 | Method (5% noise) | 0% | 1% | 5% | 10% |
 |--------|:--------:|:--------:|:--------:|:---------:|
