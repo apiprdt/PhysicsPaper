@@ -48,23 +48,25 @@
 \maketitle
 
 \begin{abstract}
-Symbolic regression (SR) methods such as PySR, AI~Feynman, and PhySO discover equations \emph{from scratch}, an approach that is sensitive to noisy physical data: under matched residuals, PySR's structural accuracy is non-monotonic in noise and does not improve when its search budget is doubled. We argue that scientific discovery is rarely \emph{tabula rasa}---it is \emph{correction-first}: given a known classical law and anomalous data, the real task is to find the minimal physically-valid correction $\Delta$. We present \textbf{Anomaly-Driven Correction Discovery (ADCD)}, which restricts search to a correction subspace and cascades three physical filters---AST complexity, dimensional homogeneity with a transcendental-argument guardrail, and asymptotic-regime consistency (ARC)---\emph{before} a JAX optimizer fits any parameter, with Bayesian Information Criterion (BIC) reranking. On a 9-scenario benchmark (overall mean $80.4\%\pm7.4\%$ across 16 seeds and all noise levels; $88.9\%$ at the disclosed reference seed), ADCD reaches $88.9\%$ at $5\%$ noise versus $11.1\%$ for PySR---a \emph{seed-independent} gap: ADCD's \emph{worst} of 16 seeds still exceeds PySR with doubled budget. Removing all gates drops recovery by $44.5$\,pp. ADCD is orthogonal to---not competitive with---existing SR: it restricts the problem they solve to a physically-motivated subspace where unconstrained search is least reliable under noise.
+Symbolic regression (SR) methods such as PySR, AI~Feynman, and PhySO discover equations \emph{from scratch}, an approach that is sensitive to noisy physical data: under matched residuals, PySR's structural accuracy is non-monotonic in noise and does not improve when its search budget is doubled. We argue that scientific discovery is rarely \emph{tabula rasa}; it is \emph{correction-first}. Given a known classical law and anomalous data, the real task is to find the minimal physically-valid correction $\Delta$. We present \textbf{Anomaly-Driven Correction Discovery (ADCD)}, which restricts search to a correction subspace and cascades three physical filters (AST complexity, dimensional homogeneity with a transcendental-argument guardrail, and asymptotic-regime consistency [ARC]) \emph{before} a JAX optimizer fits any parameter, with Bayesian Information Criterion (BIC) reranking. On a 9-scenario benchmark (overall mean $80.4\%\pm7.4\%$ across 16 seeds and all noise levels; $88.9\%$ at the disclosed reference seed), ADCD reaches $88.9\%$ at $5\%$ noise versus $11.1\%$ for PySR, a \emph{seed-independent} gap: ADCD's \emph{worst} of 16 seeds still exceeds PySR with doubled budget. Removing all gates drops recovery by $44.5$\,pp. ADCD is orthogonal to, not competitive with, existing SR: it restricts the problem they solve to a physically-motivated subspace where unconstrained search is least reliable under noise.
 \end{abstract}
+
 
 %==================================================================
 \section{Introduction}
 \label{sec:intro}
 
-When a physical law breaks down under extreme conditions, the scientific question is not ``what is the correct law?''---it is ``what is the \emph{minimal correction} to the known law?'' The dominant paradigm in symbolic regression (SR) answers a different question: it discovers $f(X)\approx y$ from a blank slate, an approach that---as we show---degrades under realistic noise. Pioneered by Eureqa~\cite{schmidt2009distilling}, AI~Feynman~\cite{udrescu2020ai}, and PySR~\cite{cranmer2020pysr}, and extended by deep RL approaches such as DSR~\cite{petersen2021deep} and unit-constrained PhySO~\cite{tenachi2023physo}, these systems recover compact laws in \emph{low}-noise regimes. Under realistic observational noise, however, their structural accuracy degrades and is often \emph{non-monotonic} in noise: a larger candidate pool does not reliably translate into the correct functional \emph{class} (\Cref{sec:exp}).
+When a physical law breaks down under extreme conditions, the scientific question is not ``what is the correct law?'' Instead, it is ``what is the \emph{minimal correction} to the known law?'' The dominant paradigm in symbolic regression (SR) answers a different question: it discovers $f(X)\approx y$ from a blank slate, an approach that, as we show, degrades under realistic noise. Pioneered by Eureqa~\cite{schmidt2009distilling}, AI~Feynman~\cite{udrescu2020ai}, and PySR~\cite{cranmer2020pysr}, and extended by deep RL approaches such as DSR~\cite{petersen2021deep} and unit-constrained PhySO~\cite{tenachi2023physo}, these systems recover compact laws in \emph{low}-noise regimes. Under realistic observational noise, however, their structural accuracy degrades and is often \emph{non-monotonic} in noise: a larger candidate pool does not reliably translate into the correct functional \emph{class} (\Cref{sec:exp}).
 
-We observe that this difficulty is partly one of \emph{problem formulation}. Science rarely discovers from a blank slate---it \emph{corrects}. From the relativistic kinetic-energy expansion $\tfrac12 mv^2(1+\tfrac34 v^2/c^2+\dots)$, to Debye-screened Coulomb potentials $V(r)\propto r^{-1}e^{-r/\lambda_D}$, to turbulent drag $F=bv+\alpha v^2$, progress takes a structurally-correct classical law and appends a \emph{minimal correction} $\Delta$ that reconciles it with anomalous data. This restricts the hypothesis space from the full function space $\mathcal{F}$ to a correction subspace $\mathcal{D}\subset\mathcal{F}$---an exponential reduction informed by the known physics.
+This difficulty stems in part from a limitation in \emph{problem formulation}. Science rarely discovers from a blank slate; it \emph{corrects}. From the relativistic kinetic-energy expansion $\tfrac12 mv^2(1+\tfrac34 v^2/c^2+\dots)$, to Debye-screened Coulomb potentials $V(r)\propto r^{-1}e^{-r/\lambda_D}$, to turbulent drag $F=bv+\alpha v^2$, progress takes a structurally-correct classical law and appends a \emph{minimal correction} $\Delta$ that reconciles it with anomalous data. This restricts the hypothesis space from the full function space $\mathcal{F}$ to a correction subspace $\mathcal{D}\subset\mathcal{F}$, an exponential reduction informed by the known physics.
 
-We propose \textbf{Anomaly-Driven Correction Discovery (ADCD)}, built on three contributions:
+The proposed \textbf{Anomaly-Driven Correction Discovery (ADCD)} framework is built on three contributions:
 \begin{itemize}[leftmargin=14pt]
   \item[\textbf{C1}] \textbf{Correction-first paradigm.} Search for $\Delta$ in $\mathcal{D}$, not $f$ in $\mathcal{F}$, given a classical law $y_{\rm classical}=g(X;\phi)$ and anomalous observations.
-  \item[\textbf{C2}] \textbf{Physics-gated cascade before optimization.} Three filters---AST complexity, dimensional homogeneity with a transcendental-argument guardrail, and asymptotic-regime consistency (ARC, $\Delta\!\to\!0$ at the classical boundary)---screen candidates \emph{before} any parameter is fit.
+  \item[\textbf{C2}] \textbf{Physics-gated cascade before optimization.} Three physical consistency filters spanning complexity, units, and asymptotic behavior (ARC, $\Delta\!\to\!0$ at the classical boundary) screen candidates \emph{before} any parameter is fit.
   \item[\textbf{C3}] \textbf{Stability where unconstrained search is not.} Because the correction-first regime never enters the universal-approximator regime that produces nested $\sin(\sin(\dots))$ at $0\%$ noise, ADCD's structural accuracy is monotonic in noise where tabula rasa search is non-monotonic.
 \end{itemize}
+
 We deliberately scope this paper to \emph{method and synthetic benchmark}; real-data validation (galactic, cosmological) is reported in a companion manuscript.
 
 %==================================================================
@@ -72,16 +74,17 @@ We deliberately scope this paper to \emph{method and synthetic benchmark}; real-
 \label{sec:related}
 
 \paragraph{Tabula rasa symbolic regression.}
-Modern SR discovers an expression $f(X)\!\approx\!y$ from a blank slate. Eureqa~\cite{schmidt2009distilling} pioneered genetic search over expression trees; AI~Feynman~\cite{udrescu2020ai} added physics-inspired unit filtering and progressive complexity; PySR~\cite{cranmer2020pysr} scaled genetic SR with Pareto-front selection; DSR~\cite{petersen2021deep} replaced the search with risk-seeking reinforcement learning. All share a common goal---recovering the \emph{full} law---and a common limitation: under realistic noise their structural accuracy degrades and is often \emph{non-monotonic} in noise, because a larger candidate pool rewards overfit structure rather than the correct functional class. ADCD departs by searching only the correction subspace $\mathcal{D}\!\subset\!\mathcal{F}$ to a \emph{known} law, an exponential restriction of the hypothesis space informed by prior physics.
+Modern SR discovers an expression $f(X)\!\approx\!y$ from a blank slate. Eureqa~\cite{schmidt2009distilling} pioneered genetic search over expression trees; AI~Feynman~\cite{udrescu2020ai} added physics-inspired unit filtering and progressive complexity; PySR~\cite{cranmer2020pysr} scaled genetic SR with Pareto-front selection; DSR~\cite{petersen2021deep} replaced the search with risk-seeking reinforcement learning. All share a common goal of recovering the \emph{full} law. However, they also share a common limitation: under realistic noise their structural accuracy degrades and is often \emph{non-monotonic} in noise, because a larger candidate pool rewards overfit structure rather than the correct functional class. ADCD departs by searching only the correction subspace $\mathcal{D}\!\subset\!\mathcal{F}$ to a \emph{known} law, an exponential restriction of the hypothesis space informed by prior physics.
 
 \paragraph{Unit-constrained SR.}
 PhySO~\cite{tenachi2023physo} enforces strict dimensional homogeneity throughout training, recovering full equations from data with strong results in clean regimes. Its constraints operate \emph{during} optimization; ADCD's physics gates screen candidates \emph{before} any fit, and it relaxes parameter units adaptively rather than enforcing them strictly. The two are complementary design points: ADCD could take a PhySO-style proposer and feed it through its gate cascade, combining strict-unit generation with pre-fit asymptotic and complexity filtering.
 
 \paragraph{LLM- and concept-library-driven SR.}
-LaSR~\cite{grayeli2024lasr} uses a learned concept library, prompted by a large language model, to improve the \emph{generation} of candidate expressions, but applies no physics filtering before fitting. ADCD is orthogonal: its gate cascade can act as a selection layer on top of any proposer---genetic, RL, or LLM-driven---subjecting generated templates to the same dimensional, asymptotic, and complexity constraints regardless of how they were proposed.
+LaSR~\cite{grayeli2024lasr} uses a learned concept library, prompted by a large language model, to improve the \emph{generation} of candidate expressions, but applies no physics filtering before fitting. ADCD is orthogonal: its gate cascade can act as a selection layer on top of any proposer (genetic, RL, or LLM-driven), subjecting generated templates to the same dimensional, asymptotic, and complexity constraints regardless of how they were proposed.
 
 \paragraph{Physics embedded in the model vs.\ the search space.}
-A separate line of work embeds physical structure in the \emph{model or training procedure} itself: physics-informed neural networks~\cite{raissi2019pinn} encode governing PDEs into the loss, Hamiltonian neural networks~\cite{greydanus2019hnn} constrain dynamics to a conserved Hamiltonian, and SINDy~\cite{champion2019sindy} sparse-regresses dynamical-system coefficients. ADCD occupies an orthogonal axis: rather than baking physics into a learned model, it restricts the symbolic \emph{search space} via interpretable, pre-fit gates that any downstream optimizer---JAX or otherwise---then operates within.
+A separate line of work embeds physical structure in the \emph{model or training procedure} itself: physics-informed neural networks~\cite{raissi2019pinn} encode governing PDEs into the loss, Hamiltonian neural networks~\cite{greydanus2019hnn} constrain dynamics to a conserved Hamiltonian, and SINDy~\cite{champion2019sindy} sparse-regresses dynamical-system coefficients. ADCD occupies an orthogonal axis: rather than baking physics into a learned model, it restricts the symbolic \emph{search space} via interpretable, pre-fit gates that any downstream optimizer, JAX or otherwise, then operates within.
+
 
 %==================================================================
 \section{The ADCD framework}
@@ -91,12 +94,12 @@ A separate line of work embeds physical structure in the \emph{model or training
 Given a known classical law $y_{\rm classical}=g(X;\phi)$ and noisy anomalous data $y_{\rm obs}$, ADCD isolates the correction by forming a residual. In \emph{multiplicative} mode $y_{\rm true}=y_{\rm classical}(1+\Delta)$ gives $\delta=y_{\rm obs}/y_{\rm classical}-1$; in \emph{additive} mode $y_{\rm true}=y_{\rm classical}+\Delta$ gives $\delta=y_{\rm obs}-y_{\rm classical}$. A mode selector picks whichever best isolates the anomalous deviation.
 
 \paragraph{Proposer.}
-Candidate correction templates $\Delta(X;\theta)$ are drawn from a stochastic sampler over dimensionless ratios, biased by residual features (monotonicity, curvature, oscillation, exponential decay $R^2$, symmetry) that upweight plausible families but never gate candidates---only the physics cascade does.
+Candidate correction templates $\Delta(X;\theta)$ are drawn from a stochastic sampler over dimensionless ratios, biased by residual features (monotonicity, curvature, oscillation, exponential decay $R^2$, symmetry) that upweight plausible families but never gate candidates; only the physics cascade does.
 
 \paragraph{Stage 1: cascaded physics gates.}
-Every candidate passes three filters \emph{before} optimization:
+Every candidate passes three physical filters (AST complexity, dimensional homogeneity with a transcendental-argument guardrail, and asymptotic-regime consistency [ARC]) \emph{before} optimization:
 \begin{enumerate}[leftmargin=16pt,label=\textbf{G\arabic*.},itemsep=1pt]
-  \item \textbf{AST complexity.} Reject expressions with AST depth $>7$ or $>20$ tokens---a coarse Occam prior.
+  \item \textbf{AST complexity.} Reject expressions with AST depth $>7$ or $>20$ tokens, representing a coarse Occam prior.
   \item \textbf{Dimensional homogeneity + transcendental guard.} Verify $\Delta$ is dimensionless; physical variables may enter only inside dimensionless ratios. As a sub-check, $\sin,\cos,\exp,\log,\tanh$ may take only \emph{dimensionless} arguments: $\exp(-r)$ without a scale $\theta_1$ is blocked instantly. Free parameters carry adaptive units (relaxable), documented in the companion paper.
   \item \textbf{Asymptotic-regime consistency (ARC).} Enforce the decoupling limit: as $x\to x_0$ (e.g.\ $v\!\to\!0$, $r\!\to\!\infty$), $\lim_{x\to x_0}\Delta(X;\theta)=0$, evaluated with SymPy's limit engine.
 \end{enumerate}
@@ -118,7 +121,7 @@ Under noise, flexible wrong-class expressions can achieve lower NMSE than the tr
   fb/.style={draw,-Latex,thick,gray!50!black,dashed}]
 \node[block] (s0)   {\textbf{Stage 0:} known law $g(X;\phi)$ + noisy $y_{\rm obs}\;\Rightarrow\;$ residual $\delta$};
 \node[block,below=of s0]   (prop) {\textbf{Proposer:} sample candidate correction $\Delta(X;\theta)$ from dimensionless-ratio templates};
-\node[gate,below=of prop]  (g)   {\textbf{Stage 1 --- physics gates (before any fit):}\\
+\node[gate,below=of prop]  (g)   {\textbf{Stage 1: physics gates (before any fit):}\\
    G1 AST complexity $\;\to\;$ G2 dimensional homogeneity + transcendental guard $\;\to\;$ G3 ARC ($\Delta\!\to\!0$)};
 \node[block,below=of g]    (opt) {\textbf{Stage 2:} JAX L-BFGS-B (min.\ NMSE) $\;\to\;$ BIC rerank $\;\to\;$ structural class};
 \path[line] (s0)   -- (prop);
@@ -131,8 +134,9 @@ Under noise, flexible wrong-class expressions can achieve lower NMSE than the tr
 \label{fig:pipeline}
 \end{figure}
 
+
 \paragraph{Relation to EFT.}
-The cascade mirrors the correction-first philosophy of Effective Field Theory~\cite{weinberg1979eft}: dimensional analysis of operators (G2), decoupling of heavy modes in the low-energy limit (G3/ARC), and power counting (BIC). ADCD has no renormalization-group flow or controlled $E/\Lambda$ expansion---it \emph{automates} that philosophy for data-driven problems.
+The cascade mirrors the correction-first philosophy of Effective Field Theory~\cite{weinberg1979eft}: dimensional analysis of operators (G2), decoupling of heavy modes in the low-energy limit (G3/ARC), and power counting (BIC). ADCD has no renormalization-group flow or controlled $E/\Lambda$ expansion; instead, it \emph{automates} that philosophy for data-driven problems.
 
 %==================================================================
 \section{Experiments}
@@ -145,7 +149,7 @@ We evaluate on 9 physical-anomaly scenarios in three tiers: \emph{textbook} (rel
 We compare against PySR~\cite{cranmer2020pysr} on the \emph{same residual targets} $\delta=y_{\rm obs}-y_{\rm classical}$. The primary baseline is the \texttt{fair} profile ($n_{\rm iter}{=}100$, \texttt{maxsize}{=}30, 60\,s/scenario). To rule out a budget artefact we add a \texttt{generous} profile that \emph{doubles} every budget axis ($n_{\rm iter}{=}200$, \texttt{maxsize}{=}40, 120\,s; $\sim3\times$ wall-clock).
 
 \paragraph{Main result: the gap is structural, not budgetary.}
-\Cref{tab:baseline} reports structural match rates. ADCD reaches $88.9\%$ (8/9) at $5\%$ noise versus $11.1\%$ (1/9) for PySR fair---a $77.8$\,pp gap under matched residuals. The comparison is \emph{seed-independent}: at $5\%$ noise ADCD's worst of 16 seeds ($66.7\%$, 6/9; cf.\ the per-seed distribution in our bundled artefacts) still exceeds PySR fair. Crucially, doubling PySR's budget does \emph{not} close the gap---\texttt{generous} total recovery stays flat at $15/36$ (identical to \texttt{fair}) and at the $5\%$ headline point it reaches only $5/9$ ($55.6\%$). The extra budget explores deeper trees (mean complexity $9.8$ vs.\ $8.7$ nodes) spent on more deeply-overfit rather than more physically-correct structure. The binding constraint is \emph{structural selection}, not search budget; physics gates resolve it directly.
+\Cref{tab:baseline} reports structural match rates. ADCD reaches $88.9\%$ (8/9) at $5\%$ noise versus $11.1\%$ (1/9) for PySR fair, representing a $77.8$\,pp gap under matched residuals. The comparison is \emph{seed-independent}: at $5\%$ noise ADCD's worst of 16 seeds ($66.7\%$, 6/9; cf.\ the per-seed distribution in our bundled artefacts) still exceeds PySR fair. Doubling PySR's budget does \emph{not} close the gap; \texttt{generous} total recovery stays flat at $15/36$ (identical to \texttt{fair}) and at the $5\%$ headline point it reaches only $5/9$ ($55.6\%$). The extra budget explores deeper trees (mean complexity $9.8$ vs.\ $8.7$ nodes) spent on more deeply-overfit rather than more physically-correct structure. The binding constraint is \emph{structural selection}, not search budget; physics gates resolve it directly.
 
 \begin{table}[t]
 \centering
@@ -164,7 +168,7 @@ PySR generous ($2\times$) & 4/9 (44.4\%) & 4/9 (44.4\%) & 5/9 (55.6\%) & 2/9 (22
 \end{tabular}
 \end{table}
 
-The seed-independence of this gap is structural, not artefactual. \Cref{fig:seeds} bins ADCD's per-seed recovery at the $5\%$ headline noise level: the entire 16-seed distribution sits between $66.7\%$ and $88.9\%$, \emph{entirely above} PySR's best result even under doubled budget ($55.6\%$, \texttt{generous}). ADCD's worst seed exceeds PySR's best by $11.1$\,pp without exception---the gap cannot be attributed to a favourable seed choice.
+The seed-independence of this gap is structural, not artefactual. \Cref{fig:seeds} bins ADCD's per-seed recovery at the $5\%$ headline noise level: the entire 16-seed distribution sits between $66.7\%$ and $88.9\%$, \emph{entirely above} PySR's best result even under doubled budget ($55.6\%$, \texttt{generous}). ADCD's worst seed exceeds PySR's best by $11.1$\,pp; the gap cannot be attributed to a favourable seed choice.
 
 \begin{figure}[t]
 \centering
@@ -198,7 +202,7 @@ The seed-independence of this gap is structural, not artefactual. \Cref{fig:seed
 \legend{ADCD (16 seeds),PySR fair 11.1\%,PySR generous 55.6\%,ADCD mean 77.1\%}
 \end{axis}
 \end{tikzpicture}
-\caption{Seed-independence of the ADCD--PySR gap at $5\%$ noise. Every one of ADCD's 16 seeds (bars) recovers at least $66.7\%$, above PySR's best result even under doubled budget ($55.6\%$, dotted).}
+\caption{Seed-independence of the ADCD-PySR gap at $5\%$ noise. Every one of ADCD's 16 seeds (bars) recovers at least $66.7\%$, above PySR's best result even under doubled budget ($55.6\%$, dotted).}
 \label{fig:seeds}
 \end{figure}
 
@@ -222,14 +226,14 @@ PySR fair exhibits a non-monotonic noise profile ($4,5,1,5$ out of 9). At $0\%$ 
 \end{figure}
 
 \paragraph{Ablation: the gates act collectively.}
-\Cref{fig:ablation} shows the result of disabling gates one at a time at $5\%$ noise. Removing ARC, AST, or the coarse-eval pre-filter individually leaves accuracy unchanged ($8/9$); removing the dimensional gate alone costs $11.1$\,pp ($8/9\to7/9$). The dimensional gate is the most critical single filter because violations of dimensional homogeneity---e.g.\ $\exp(-r)$ with $r$ in metres---are the most common failure mode in unconstrained SR, while ARC violations are rarer but produce unphysical extrapolation. Only disabling \emph{all} gates causes a larger collapse ($8/9\to4/9$, $-44.5$\,pp): the gates reinforce each other as a collective physical-consistency filter rather than each being independently essential.
+\Cref{fig:ablation} shows the result of disabling gates one at a time at $5\%$ noise. Removing ARC, AST, or the coarse-eval pre-filter individually leaves accuracy unchanged ($8/9$); removing the dimensional gate alone costs $11.1$\,pp ($8/9\to7/9$). The dimensional gate is the most critical single filter because violations of dimensional homogeneity, such as $\exp(-r)$ with $r$ in metres, are the most common failure mode in unconstrained SR, while ARC violations are rarer but produce unphysical extrapolation. Only disabling \emph{all} gates causes a larger collapse ($8/9\to4/9$, $-44.5$\,pp): the gates reinforce each other as a collective physical-consistency filter rather than each being independently essential.
 
 %==================================================================
 \section{Discussion and limitations}
 \label{sec:disc}
 
 \paragraph{ADCD is a restriction, not a competitor.}
-ADCD does not compete with PhySO or PySR---it restricts the problem they solve to a physically-motivated subspace where unconstrained search is least reliable under noise. This makes ADCD directly \emph{combinable} with them: a PhySO/PySR/LaSR~\cite{grayeli2024lasr} proposer could feed the same gate cascade.
+ADCD does not compete with PhySO or PySR; it restricts the problem they solve to a physically-motivated subspace where unconstrained search is least reliable under noise. This makes ADCD directly \emph{combinable} with them: a PhySO/PySR/LaSR~\cite{grayeli2024lasr} proposer could feed the same gate cascade.
 
 \paragraph{Honest limitations.}
 ADCD assumes a structurally-correct classical baseline (incremental correction, not wholesale replacement). At $\geq5\%$ noise, screened-Coulomb decay is fitted by a rational proxy, reflecting decay-vs-saturation ambiguity under limited dynamic range. A multivariable extension (Buckingham-$\Pi$) is currently weaker ($2/4$ at $5\%$) and treated as exploratory; the dimensional gate uses adaptive parameter-unit relaxation rather than PhySO's strict enforcement---complementary design points.
@@ -238,12 +242,12 @@ ADCD assumes a structurally-correct classical baseline (incremental correction, 
 ADCD ships as an open-source Python package (JAX backend, public API/CLI, CI/CD); all 16 seeds, per-seed noise distributions, and PySR profiles are bundled for replication.
 
 \paragraph{Fail-safe behavior.}
-On a 6-case misspecification benchmark, ADCD fails safe---it fails to converge rather than producing confident spurious corrections---a property absent from tabula rasa SR.
+On a 6-case misspecification benchmark, ADCD fails safe: it fails to converge rather than producing confident spurious corrections, a property absent from tabula rasa SR.
 
 \paragraph{AI disclosure.} Code implementation and manuscript preparation were assisted by large language models under a human-in-the-loop workflow. All scientific hypotheses, experimental designs, analysis, and conclusions were conceived and verified solely by the human author, who remains fully responsible for the work.
 
 \paragraph{Closing.}
-Noisy symbolic regression is bottlenecked by \emph{structural selection}, not search budget. The correction-first formulation---searching for a physically-valid $\Delta$ to a known law, screened by dimensional and asymptotic gates before any fit---resolves this directly: ADCD delivers seed-independent gains over PySR, stays robust where unconstrained search is non-monotonic, and is orthogonal to existing SR systems. Future work extends the cascade to multivariable laws and integrates it as a selection layer over external proposers (PhySO, LaSR).
+Noisy symbolic regression is bottlenecked by \emph{structural selection}, not search budget. The correction-first formulation, which searches for a physically-valid $\Delta$ to a known law screened by dimensional and asymptotic gates before any fit, resolves this directly: ADCD delivers seed-independent gains over PySR, stays robust where unconstrained search is non-monotonic, and is orthogonal to existing SR systems. Future work extends the cascade to multivariable laws and integrates it as a selection layer over external proposers (PhySO, LaSR).
 
 %==================================================================
 \bibliographystyle{plainnat}

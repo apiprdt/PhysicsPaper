@@ -26,6 +26,9 @@ class ResidualFeatures:
     leading_exponent: Optional[float] = None
     ras_suggested_class: Optional[str] = None
     ras_fit_quality: Optional[float] = None
+    shapiro_stat: Optional[float] = None
+    shapiro_p: Optional[float] = None
+    likely_gaussian: Optional[bool] = None
 
 def analyze_residual(x: np.ndarray, residual: np.ndarray, classical_limit_val: Optional[float] = None) -> ResidualFeatures:
     """
@@ -137,6 +140,14 @@ def analyze_residual(x: np.ndarray, residual: np.ndarray, classical_limit_val: O
         ras_suggested_class = ras.get("suggested_class")
         ras_fit_quality = ras.get("fit_quality")
 
+    # 6. Shapiro-Wilk normality check
+    try:
+        shapiro_stat, shapiro_p = stats.shapiro(residual)
+        likely_gaussian = bool(shapiro_p > 0.05)
+    except Exception:
+        logger.debug("Shapiro-Wilk normality test failed", exc_info=True)
+        shapiro_stat, shapiro_p, likely_gaussian = None, None, None
+
     return ResidualFeatures(
         monotonicity=monotonicity,
         curvature_sign=curvature_sign,
@@ -145,7 +156,10 @@ def analyze_residual(x: np.ndarray, residual: np.ndarray, classical_limit_val: O
         symmetry=symmetry,
         leading_exponent=leading_exponent,
         ras_suggested_class=ras_suggested_class,
-        ras_fit_quality=ras_fit_quality
+        ras_fit_quality=ras_fit_quality,
+        shapiro_stat=shapiro_stat,
+        shapiro_p=shapiro_p,
+        likely_gaussian=likely_gaussian
     )
 
 def compute_ras(x_vals: np.ndarray, delta_vals: np.ndarray, 

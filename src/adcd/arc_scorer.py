@@ -153,34 +153,62 @@ def build_arc_regimes(
 
 
 def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
-    """Compute lim_{variable -> limit_target}(candidate), robust to undetermined-sign parameters.
-
-    SymPy's ``sp.limit`` raises ``NotImplementedError`` for limits whose result
-    depends on the sign of a free parameter, e.g. ``lim_{r->oo} exp(-r/theta_1)``
-    is unresolved when ``theta_1`` is an unsigned symbol. This is the dominant
-    failure mode for exponential-family corrections at ``-> oo`` regimes (Yukawa,
-    screened Coulomb) and previously caused the ARC gate to reject ~70% of
-    candidates including the literal ground-truth form.
-
-    All ADCD fit parameters (``theta_i``) are positive scale parameters — the
-    JAX optimizer log-parameterizes them to enforce positivity — so we declare
-    every ``theta_*`` symbol positive and retry. If the limit still fails, the
-    caller treats the candidate as rejected (returns ``None``).
+    """Compute lim_{variable -> limit_target}(candidate), robust to undetermined-sign parameters
+    and featuring a Laurent series fallback for singular/divergent expressions.
     """
+    # 1. Try standard limit first
     try:
-        return sp.limit(candidate, variable, limit_target)
+        res = sp.limit(candidate, variable, limit_target, dir='+')
+        if res is not None and res not in (sp.oo, -sp.oo, sp.zoo):
+            return res
     except Exception:
-        pass
-    # Retry assuming every theta_* free symbol is strictly positive.
+        res = None
+
+    # 2. Retry standard limit assuming free parameters are strictly positive
     theta_syms = [s for s in candidate.free_symbols if str(s).startswith("theta_")]
-    if not theta_syms:
-        return None
+    if theta_syms:
+        try:
+            positive_map = {s: sp.Symbol(str(s), positive=True) for s in theta_syms}
+            pos_candidate = candidate.subs(positive_map)
+            res_pos = sp.limit(pos_candidate, variable, limit_target, dir='+')
+            if res_pos is not None and res_pos not in (sp.oo, -sp.oo, sp.zoo):
+                return res_pos
+        except Exception:
+            pass
+
+    # 3. Laurent Series Fallback (G3-L)
     try:
-        positive_map = {s: sp.Symbol(str(s), positive=True) for s in theta_syms}
-        pos_candidate = candidate.subs(positive_map)
-        return sp.limit(pos_candidate, variable, limit_target)
-    except Exception:
-        return None
+        eps = sp.symbols('_arc_eps', positive=True)
+        # Shift target to approach 0+
+        if limit_target == sp.oo:
+            shifted = candidate.subs(variable, 1/eps)
+        elif limit_target == -sp.oo:
+            shifted = candidate.subs(variable, -1/eps)
+        else:
+            shifted = candidate.subs(variable, limit_target - eps)
+            
+        # Declare theta positive for series expansion to avoid sign branch errors
+        if theta_syms:
+            positive_map = {s: sp.Symbol(str(s), positive=True) for s in theta_syms}
+            shifted = shifted.subs(positive_map)
+
+        series_expr = sp.series(shifted, eps, 0, 2)
+        leading = series_expr.as_leading_term(eps)
+        
+        # Check pole order (observability/logging)
+        denom_leading = sp.denom(leading)
+        if eps in denom_leading.free_symbols:
+            pole_order = sp.degree(denom_leading, eps)
+            logger.info(f"Laurent fallback active: detected divergent pole of order {pole_order} for {candidate}")
+        
+        # Evaluate limit of leading term as eps -> 0+
+        resolved_val = sp.limit(leading, eps, 0, dir='+')
+        return resolved_val
+    except Exception as e:
+        logger.debug(f"Laurent series fallback failed: {e}")
+
+    return res
+
 
 
 class ARCScorer:

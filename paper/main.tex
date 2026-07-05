@@ -444,7 +444,7 @@ Mystery-C & 0\% & $\frac{\ln(1 + x / \theta_1)}{x / \theta_1} - 1$ & $6.08 \time
 \begin{itemize}
     \item \textbf{Textbook Tier Recovery}: The system recovered the correct structural class for all three textbook scenarios across all noise levels. Relativistic KE, Yukawa Gravity, and Anharmonic Spring all achieved \textbf{100\% structural class recovery}. The Yukawa exponential correction $\theta_0 e^{-r/\theta_1}$ was consistently identified, demonstrating that the physics gates successfully constrain the search space even under 10\% observational noise.
     \item \textbf{Cross-Domain Recovery}: Net Radiation achieved perfect structural class recovery across all noise levels, correctly retaining the inverse fourth-power power law $\Delta \propto T^{-4}$. Nonlinear Drag was also recovered at all noise levels. Screened Coulomb was successfully recovered at 0\% and 1\% noise, but at higher noise (5\% and 10\%), the exponential correction was fitted by a rational proxy $r\theta_0/(r+\theta_1)$, reflecting the difficulty of distinguishing exponential decay from rational saturation under limited dynamic range.
-    \item \textbf{Synthetic / Novel Recovery}: Crucially, the system scored \textbf{100\% (12/12) structural match rate} on the synthetic tier. Highly complicated novel formulas, such as the $\text{sinc}$ quantum boundary fluctuation and the logarithmic quotient stretching, were fully converged and structurally verified, showcasing the deep representation capabilities of combining statistical priors with LLM reasoning.
+    \item \textbf{Synthetic / Novel Recovery}: The system scored \textbf{100\% (12/12) structural match rate} on the synthetic tier. Highly complicated novel formulas, such as the $\text{sinc}$ quantum boundary fluctuation and the logarithmic quotient stretching, were fully converged and structurally verified, demonstrating that statistical priors and LLM reasoning combine effectively to cover complex functional families.
 \end{itemize}
 
 \Cref{fig:noise_robustness,fig:heatmap,fig:tier_bars} visualise these outcomes:
@@ -523,7 +523,7 @@ noise (\Cref{fig:tier_bars}).
 the residual achieves lower numerical fitting capacity in clean cases but fails to generalize under noise compared to ADCD. 
 Specifically, ADCD achieves an average NMSE of $2.88 \times 10^{-12}$ at 0\% noise and $4.48 \times 10^{-3}$ at 5\% noise (reference seed; \texttt{reproducibility\_results.json}), 
 whereas the MLP achieves $8.56 \times 10^{-5}$ at 0\% noise and $8.01 \times 10^{-3}$ at 5\% noise (\texttt{mlp\_baseline\_results.json}). 
-Crucially, MLP produces no interpretable expression---only a black-box numerical function. ADCD produces human-readable symbolic corrections 
+MLP, however, produces no interpretable expression---only a black-box numerical function. ADCD produces human-readable symbolic corrections 
 such as \texttt{theta\_0 * v**2 / c**2}, which a physicist can immediately validate against 
 domain theory. This interpretability gap is the core contribution of our framework.
 
@@ -578,7 +578,7 @@ To address whether the v2.1 benchmark was simplified, we re-ran discovery as fre
 
 \subsection{System Misspecification and Fail-Safe Behavior}
 
-A crucial design requirement for automated scientific discovery is that the discovery pipeline must not yield confident false physical corrections when the underlying baseline theory is structurally wrong (misspecified). To test this, we evaluated ADCD under two distinct tiers of misspecification:
+A core design requirement for automated scientific discovery is that the discovery pipeline must not yield confident false physical corrections when the underlying baseline theory is structurally wrong (misspecified). To test this, we evaluated ADCD under two distinct tiers of misspecification:
 
 \textbf{Tier 1: Extreme Misspecifications (Noise = 1.0\%)}. Using the Relativistic KE anomaly as the ground truth, we tested three corrupted baselines:
 \begin{itemize}
@@ -969,7 +969,7 @@ The current data cannot distinguish these interpretations. The
 upper bound} on the detectability of a functional growth correction in the
 present compilation, not as a proof of correction absence. Future surveys
 (DESI full release, Euclid, Rubin/LSST) with $3$--$5\times$ improvement in
-$f\sigma_8$ precision will provide a definitive test. Crucially, the result
+$f\sigma_8$ precision will provide a definitive test. The result
 also demonstrates that ADCD does not surface spurious functional corrections
 when none is supported by the data---the fail-safe property established on the
 synthetic misspecification benchmark (\Cref{sec:results}) carries over to real
@@ -1269,9 +1269,7 @@ reduction over fixed zero-parameter canonical forms and, under fair galaxy-level
 cross-validation plus a 1{,}000-resample cluster bootstrap, cannot be
 distinguished from two-parameter domain-expert forms
 ($\delta{\rm BIC}_{\rm eff}=+3.4$, 95\% CI brackets zero) while decisively
-beating two-parameter Standard MOND ($\delta{\rm BIC}_{\rm eff}=-36.5$). We
-frame this as autonomous rediscovery of a known family from real data---not the
-discovery of a novel family.
+beating two-parameter Standard MOND ($\delta{\rm BIC}_{\rm eff}=-36.5$). This is autonomous rediscovery of a known family from real data---not the discovery of a novel family.
 
 \paragraph{Wide-binary cross-validation.}
 An exploratory cross-system test (Appendix~\ref{app:wide-binary}) finds that the
@@ -1298,10 +1296,9 @@ benchmark to real cosmological archives.
 Across scales, a qualitative pattern emerges: functional corrections are
 recoverable in individual gravitational systems (textbook anomalies, SPARC),
 while cosmological tensions manifest as amplitude offsets with no detected
-functional structure. This pattern is \emph{consistent with}---but does not
-prove---a structural dichotomy between functional and amplitude anomaly classes.
-Whether it reflects genuine physics or current survey-precision limits is an
-open, testable question.
+functional structure. Whether this reflects a genuine dichotomy between anomaly
+classes, or simply the anomalies we happened to test, remains an open and
+testable question; we do not claim it as a proven conclusion.
 
 \paragraph{Future work.}
 Three directions follow directly from the present results. First, the

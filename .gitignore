@@ -126,3 +126,13 @@ RELEASE_NOTES*.md
 # Internal strategy/submission notes
 ARXIV_ENDORSERS_AND_SUBMISSION.md
 PAPER_POSITIONING_STRATEGY.md
+
+# Internal planning/upgrade/writing plans (AI-assisted, not for public history)
+ADCD_Upgrade_Plan.md
+ADCD_Upgrade_Plan_v2.md
+ADCD_Writing_Humanization_Plan.md
+ADCD_Master_Learning_Guide.md
+
+# Zenodo/release description drafts (local only)
+zenodo_v*.md
+release_v*.md
