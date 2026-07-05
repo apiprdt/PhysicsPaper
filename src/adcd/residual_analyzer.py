@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 import scipy.stats as stats
+from scipy.optimize import curve_fit
 from dataclasses import dataclass
 from typing import Optional
 
@@ -26,6 +27,7 @@ class ResidualFeatures:
     leading_exponent: Optional[float] = None
     ras_suggested_class: Optional[str] = None
     ras_fit_quality: Optional[float] = None
+    ras_gamma_std: Optional[float] = None  # std error of exponent from nonlinear fit covariance
     shapiro_stat: Optional[float] = None
     shapiro_p: Optional[float] = None
     likely_gaussian: Optional[bool] = None
@@ -134,11 +136,13 @@ def analyze_residual(x: np.ndarray, residual: np.ndarray, classical_limit_val: O
     leading_exponent = None
     ras_suggested_class = None
     ras_fit_quality = None
+    ras_gamma_std = None
     if classical_limit_val is not None:
         ras = compute_ras(x, residual, classical_limit_val)
         leading_exponent = ras.get("leading_exponent")
         ras_suggested_class = ras.get("suggested_class")
         ras_fit_quality = ras.get("fit_quality")
+        ras_gamma_std = ras.get("gamma_std")
 
     # 6. Shapiro-Wilk normality check
     try:
@@ -157,66 +161,94 @@ def analyze_residual(x: np.ndarray, residual: np.ndarray, classical_limit_val: O
         leading_exponent=leading_exponent,
         ras_suggested_class=ras_suggested_class,
         ras_fit_quality=ras_fit_quality,
+        ras_gamma_std=ras_gamma_std,
         shapiro_stat=shapiro_stat,
         shapiro_p=shapiro_p,
         likely_gaussian=likely_gaussian
     )
 
-def compute_ras(x_vals: np.ndarray, delta_vals: np.ndarray, 
+def compute_ras(x_vals: np.ndarray, delta_vals: np.ndarray,
                 limit_val: float) -> dict:
     """
-    Residual Asymptotic Signature: estimates leading-order behavior
-    of residual as x -> classical limit.
-    
+    Residual Asymptotic Signature: estimates leading-order power-law behavior
+    of the residual as x -> classical limit.
+
+    Uses nonlinear least squares (scipy.optimize.curve_fit) to fit
+    delta ~ A * |x - limit_val|^gamma directly, avoiding the systematic bias
+    introduced by log-linearisation when an additive noise floor is present.
+    For steep exponents (gamma ~ 4) the old log-log regression underestimated
+    gamma by ~49%; the nonlinear fit reduces this to <2% (see ADCD_Upgrade_Plan_v2.md §3).
+
     Returns:
         {
-          "leading_exponent": float,  # n in delta ~ (x-x0)^n
-          "leading_coeff": float,     # C
-          "fit_quality": float,       # R^2 of log-log fit
-          "suggested_class": str,     # "polynomial", "power_law", "exponential"
+          "leading_exponent": float or None,  # gamma in delta ~ A*(x-x0)^gamma
+          "leading_coeff":   float or None,   # amplitude A
+          "fit_quality":     float,            # R^2 of nonlinear fit on original scale
+          "gamma_std":       float or None,    # 1-sigma uncertainty from covariance matrix
+          "suggested_class": str,              # "polynomial", "power_law", or "exponential"
         }
     """
-    # Take points nearest to classical limit (bottom 20%)
+    _UNKNOWN = {
+        "leading_exponent": None, "leading_coeff": None,
+        "fit_quality": 0.0, "gamma_std": None, "suggested_class": "unknown"
+    }
+
+    # --- 1. Select the 20% of points closest to the classical limit ---
     dist_to_limit = np.abs(x_vals - limit_val)
     thresh = np.percentile(dist_to_limit, 20)
     mask = dist_to_limit <= thresh
-    
-    d_near = np.abs(delta_vals[mask])
-    
-    # Filter zeros and invalid
-    valid = (d_near > 1e-15) & (dist_to_limit[mask] > 1e-10)
+
+    x_near = dist_to_limit[mask]          # distance to limit (always >= 0)
+    d_near = np.abs(delta_vals[mask])     # absolute residual near limit
+
+    # --- 2. Keep only well-defined points ---
+    valid = (d_near > 1e-15) & (x_near > 1e-10)
     if valid.sum() < 5:
-        return {"leading_exponent": None, "leading_coeff": None, "fit_quality": 0.0, 
-                "suggested_class": "unknown"}
-    
-    log_dist = np.log(dist_to_limit[mask][valid])
-    log_delta = np.log(d_near[valid])
-    
+        return _UNKNOWN
+
+    x_fit = x_near[valid]
+    y_fit = d_near[valid]
+
+    # --- 3. Nonlinear least-squares: delta = A * dist^gamma ---
+    def _power_law(dist, A, gamma):
+        return A * dist ** gamma
+
     try:
-        # Linear regression in log-log space
-        coeffs = np.polyfit(log_dist, log_delta, 1)
-        n_estimate = coeffs[0]
-        residuals = log_delta - np.polyval(coeffs, log_dist)
-        ss_res = np.sum(residuals**2)
-        ss_tot = np.sum((log_delta - log_delta.mean())**2)
-        r2 = 1 - ss_res/ss_tot if ss_tot > 0 else 0.0
-        
-        # Classify
+        popt, pcov = curve_fit(
+            _power_law, x_fit, y_fit,
+            p0=[float(np.median(y_fit)), 2.0],
+            bounds=([1e-12, 0.1], [1e6, 10.0]),
+            maxfev=5000,
+        )
+        A_est, gamma_est = float(popt[0]), float(popt[1])
+
+        # Uncertainty from diagonal of covariance matrix
+        gamma_std = float(np.sqrt(pcov[1, 1])) if np.isfinite(pcov[1, 1]) else None
+
+        # R^2 on the original (non-log) scale
+        y_pred = _power_law(x_fit, A_est, gamma_est)
+        ss_res = np.sum((y_fit - y_pred) ** 2)
+        ss_tot = np.sum((y_fit - y_fit.mean()) ** 2)
+        r2 = float(1.0 - ss_res / ss_tot) if ss_tot > 0 else 0.0
+
+        # --- 4. Classify by exponent ---
         if r2 < 0.5:
-            suggested = "exponential"  # poor power-law fit -> likely exp
-        elif abs(n_estimate - round(n_estimate)) < 0.15:
-            suggested = "polynomial"   # integer exponent
+            suggested = "exponential"      # poor power-law fit -> likely exp
+        elif abs(gamma_est - round(gamma_est)) < 0.15:
+            suggested = "polynomial"        # near-integer exponent
         else:
-            suggested = "power_law"    # non-integer exponent
-            
+            suggested = "power_law"         # fractional exponent
+
         return {
-            "leading_exponent": float(n_estimate),
-            "leading_coeff": float(np.exp(coeffs[1])),
-            "fit_quality": float(r2),
-            "suggested_class": suggested,
+            "leading_exponent": gamma_est,
+            "leading_coeff":    A_est,
+            "fit_quality":      r2,
+            "gamma_std":        gamma_std,
+            "suggested_class":  suggested,
         }
-    except Exception:
-        logger.debug("RAS log-log fit failed, returning unknown", exc_info=True)
-        return {"leading_exponent": None, "leading_coeff": None, "fit_quality": 0.0,
-                "suggested_class": "unknown"}
+
+    except (RuntimeError, ValueError):
+        # curve_fit failed to converge — fall back gracefully, do NOT guess
+        logger.debug("RAS nonlinear fit failed to converge, returning unknown", exc_info=True)
+        return _UNKNOWN
 
