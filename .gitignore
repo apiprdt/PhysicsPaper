@@ -139,3 +139,6 @@ release_v*.md
 
 # Translated documents (local learning only)
 indo/
+
+# Diagnostic results (local execution only)
+ras_fase0_results.json
