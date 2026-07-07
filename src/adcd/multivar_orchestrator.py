@@ -215,7 +215,7 @@ def _build_mv_pipeline(scenario: AnomalyScenario, seed: int = 42) -> tuple:
 
     scorer = SequentialARCScorer(limit_vars, limit_dirs, SequentialARCChecker(seed=seed))
     pipeline = Stage1Pipeline(validator, checker, scorer)
-    optimizer = JAXOptimizer()
+    optimizer = JAXOptimizer(log_param=True)
     proposer = ProductGrammarProposer(scenario, seed=seed)
     return pipeline, optimizer, proposer
 
