@@ -70,9 +70,11 @@ class JAXOptimizer:
         beta       : float = 1.0,
         n_steps    : int   = 500,  # Kept for API compatibility, not used by L-BFGS directly
         lr         : float = 0.05, # Kept for API compatibility
+        log_param  : bool  = False, # Log-parameterization to handle extreme scales safely
     ):
         self.n_restarts = n_restarts
         self.beta       = beta
+        self.log_param  = log_param
 
     def optimize(
         self,
@@ -370,33 +372,66 @@ class JAXOptimizer:
             inits.append(init)
 
         for init in inits:
-            # Scale L-BFGS-B parameters by their initial value (init_scale)
-            # so the optimizer always operates on variables of order 1.0.
-            # This completely avoids gradient underflow/early termination.
-            init_scale = np.where(np.abs(init) > 1e-30, init, 1.0)
+            if self.log_param:
+                # Log-parameterization:
+                # theta_i = sign_i * exp(u_i) for values with non-trivial magnitudes.
+                # This operates the optimizer in log-space, preventing gradient collapse
+                # on extremely small (e.g. 1e-15) or large variables.
+                signs = np.sign(init)
+                signs = np.where(signs == 0, 1.0, signs)
+                is_log = np.abs(init) > 1e-30
+                u_init = np.where(is_log, np.log(np.maximum(np.abs(init), 1e-30)), init)
 
-            def scipy_obj_scaled(u_np):
-                theta_np = u_np * init_scale
-                v, g = val_and_grad_jit(jnp.array(theta_np))
-                v_np, g_np = np.array(v), np.array(g)
-                
-                if not np.isfinite(v_np) or not np.all(np.isfinite(g_np)):
-                    return 1e10, np.zeros_like(u_np)
-                
-                # Gradient w.r.t u: g_u = g_theta * init_scale
-                g_u_np = g_np * init_scale
-                return v_np, g_u_np
+                def scipy_obj_scaled(u_np):
+                    theta_np = np.where(is_log, signs * np.exp(u_np), u_np)
+                    v, g = val_and_grad_jit(jnp.array(theta_np))
+                    v_np, g_np = np.array(v), np.array(g)
+                    
+                    if not np.isfinite(v_np) or not np.all(np.isfinite(g_np)):
+                        return 1e10, np.zeros_like(u_np)
+                    
+                    # Gradient w.r.t u:
+                    # For log-params: dL/du = dL/dtheta * dtheta/du = g * sign * exp(u) = g * theta
+                    g_u_np = np.where(is_log, g_np * theta_np, g_np)
+                    return v_np, g_u_np
 
-            u_init = np.ones_like(init)
-            res = minimize(
-                scipy_obj_scaled,
-                u_init,
-                method="L-BFGS-B",
-                jac=True,
-                options={"maxiter": 150, "ftol": 1e-7}
-            )
-            
-            opt_theta = res.x * init_scale
+                res = minimize(
+                    scipy_obj_scaled,
+                    u_init,
+                    method="L-BFGS-B",
+                    jac=True,
+                    options={"maxiter": 150, "ftol": 1e-7}
+                )
+                opt_theta = np.where(is_log, signs * np.exp(res.x), res.x)
+            else:
+                # Scale L-BFGS-B parameters by their initial value (init_scale)
+                # so the optimizer always operates on variables of order 1.0.
+                # This completely avoids gradient underflow/early termination.
+                init_scale = np.where(np.abs(init) > 1e-30, init, 1.0)
+
+                def scipy_obj_scaled(u_np):
+                    theta_np = u_np * init_scale
+                    v, g = val_and_grad_jit(jnp.array(theta_np))
+                    v_np, g_np = np.array(v), np.array(g)
+                    
+                    if not np.isfinite(v_np) or not np.all(np.isfinite(g_np)):
+                        return 1e10, np.zeros_like(u_np)
+                    
+                    # Gradient w.r.t u: g_u = g_theta * init_scale
+                    g_u_np = g_np * init_scale
+                    return v_np, g_u_np
+
+                u_init = np.ones_like(init)
+                res = minimize(
+                    scipy_obj_scaled,
+                    u_init,
+                    method="L-BFGS-B",
+                    jac=True,
+                    options={"maxiter": 150, "ftol": 1e-7}
+                )
+                
+                opt_theta = res.x * init_scale
+
             if res.fun < best_nmse and np.isfinite(res.fun):
                 best_nmse  = float(res.fun)
                 best_theta = opt_theta

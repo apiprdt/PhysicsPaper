@@ -247,3 +247,25 @@ class TestEarlyStopAndEfficiency:
         assert result.nmse < 1e-4, f"NMSE too high: {result.nmse}"
         assert abs(result.theta.get("theta_0", 0) - 3.0) < 0.05, \
             f"theta_0 recovery: {result.theta}"
+
+
+class TestLogParameterization:
+    """Verify log-parameterization works and resolves extreme scale issues."""
+
+    def test_log_param_recovery(self):
+        """Recover parameters at extremely small scales (e.g. 1e-15) safely with log_param=True."""
+        rng = np.random.RandomState(42)
+        x = rng.uniform(1.0, 10.0, 50)
+        true_theta = 1.35e-15
+        y = true_theta * (x ** 2)
+
+        # Standard optimizer may struggle or collapse to theta=0 depending on normalization,
+        # but log_param=True optimization should recover it cleanly.
+        opt = JAXOptimizer(n_restarts=5, log_param=True)
+        result = opt.optimize("theta_0 * x**2", {"x": x}, y, ["x"])
+
+        assert result.error is None
+        assert result.nmse < 1e-5, f"NMSE too high: {result.nmse}"
+        recovered_theta = result.theta["theta_0"]
+        rel_err = abs(recovered_theta - true_theta) / true_theta
+        assert rel_err < 0.05, f"Log-parameterization recovery error: {rel_err:.4f} (got {recovered_theta:.4e})"

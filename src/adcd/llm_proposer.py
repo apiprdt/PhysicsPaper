@@ -72,6 +72,12 @@ class MockProposer(BaseProposer):
             "theta_0 * {v1} * {v2} / ({v1} + {v2})",
             "theta_0 * {v1} * {v2} / (theta_1 * {v1} + theta_2 * {v2})"
         ]
+        if self.extended:
+            self._templates.extend([
+                "theta_0 * ({v1} / {v2}) * exp(-{v3} / theta_1)",
+                "theta_0 * {v1} * exp(-{v2} / theta_1)",
+                "theta_0 * ({v1} / {v2}) * exp(-{v3} / theta_1) - 1.0"
+            ])
 
     def propose(self, context: ProposalContext) -> List[str]:
         rng = np.random.RandomState(self.seed + context.iteration)
