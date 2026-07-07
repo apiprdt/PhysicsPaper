@@ -9,7 +9,7 @@ by performing a joint non-linear fit in the linear physical space rather than lo
 
 import numpy as np
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from scipy.optimize import minimize
 
 logger = logging.getLogger(__name__)

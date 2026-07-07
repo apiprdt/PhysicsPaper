@@ -14,7 +14,6 @@ Tests cover:
 """
 
 import numpy as np
-import pytest
 from adcd.naae import estimate_exponent_naae
 from adcd.residual_analyzer import compute_ras
 

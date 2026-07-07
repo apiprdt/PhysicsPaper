@@ -16,7 +16,6 @@ Reference: Peters (1964) Phys. Rev. 136, B1224 (2.5PN gravitational radiation de
 """
 
 import numpy as np
-import pytest
 from scipy.optimize import minimize
 
 # PSR B1913+16 physical constants

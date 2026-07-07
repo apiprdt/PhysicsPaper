@@ -12,7 +12,6 @@ Covers:
 """
 
 import numpy as np
-import pytest
 from unittest.mock import MagicMock
 from adcd.llm_proposer import (
     GeminiProposer,
@@ -29,7 +28,6 @@ def _make_context(residual_data=None, leading_exponent=None, target_name="y"):
         rf = MagicMock()
         rf.leading_exponent = leading_exponent
 
-    rng = np.random.RandomState(42)
     if residual_data is None:
         residual_data = None  # explicitly absent
 
