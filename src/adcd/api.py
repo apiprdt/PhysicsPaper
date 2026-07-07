@@ -81,6 +81,7 @@ def fit(
     verbose: bool = True,
     seed: int = 42,
     scenario_name: str = "Custom Dataset Run",
+    log_param: bool = False,
 ) -> ADCDResult:
     """
     Fit a physical correction term to an observed anomaly dataset.
@@ -102,6 +103,7 @@ def fit(
         verbose: Print progress logs during optimization
         seed: Random seed for repeatability
         scenario_name: Label for this run (used in logging and result metadata)
+        log_param: Log-parameterization to handle extreme physical scales safely (default: False)
 
     Returns:
         ADCDResult wrapping the discovery outcomes and visualization helpers.
@@ -184,7 +186,7 @@ def fit(
     regimes = build_arc_regimes(limit_var_str, limit_dir_str)
     scorer = ARCScorer(regimes=regimes)
     pipeline = Stage1Pipeline(validator, checker, scorer)
-    optimizer = JAXOptimizer()
+    optimizer = JAXOptimizer(log_param=log_param)
     
     orchestrator = CorrectionOrchestrator(
         proposer=proposer_obj,

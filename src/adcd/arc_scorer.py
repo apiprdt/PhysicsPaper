@@ -199,7 +199,7 @@ def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
         denom_leading = sp.denom(leading)
         if eps in denom_leading.free_symbols:
             pole_order = sp.degree(denom_leading, eps)
-            logger.info(f"Laurent fallback active: detected divergent pole of order {pole_order} for {candidate}")
+            logger.debug(f"Laurent fallback active: detected divergent pole of order {pole_order} for {candidate}")
         
         # Evaluate limit of leading term as eps -> 0+
         resolved_val = sp.limit(leading, eps, 0, dir='+')
