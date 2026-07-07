@@ -368,14 +368,21 @@ class CorrectionOrchestrator:
             history.append(iter_res)
 
             if self.verbose:
-                print(f"[Iter {iteration}/{self.max_iterations}] Proposed: {n_proposed} | Stage 1: {n_survived} | Residual NMSE: {best_nmse_residual:.6f} | BIC: {best_bic:.2f} | Full NMSE: {best_nmse_full:.6f} | stuck: {stuck_count}")
+                nmse_str = f"{best_nmse_residual:.2e}" if best_nmse_residual < float('inf') else "  inf  "
+                bic_str = f"{best_bic:.1f}" if best_bic < float('inf') else "  inf  "
+                bar_done = int((iteration + 1) / self.max_iterations * 20)
+                bar = "#" * bar_done + "." * (20 - bar_done)
+                print(f"  [{bar}] Iter {iteration + 1}/{self.max_iterations}  "
+                      f"Candidates: {n_proposed:>3} proposed / {n_survived:>2} passed gates  "
+                      f"NMSE: {nmse_str}  BIC: {bic_str}")
 
             # Early convergence check
             if best_nmse_residual < self.convergence_nmse:
                 best_n_params = len([k for k in best_theta.keys() if k.startswith("theta_")])
                 if best_n_params <= 1:
                     if self.verbose:
-                        print(f"[CONVERGED] Converged at iteration {iteration} (Residual NMSE={best_nmse_residual:.2e} < {self.convergence_nmse:.2e} with simple model)")
+                        print(f"\n  \u2714  Converged at iteration {iteration + 1}  "
+                              f"(NMSE = {best_nmse_residual:.2e} < threshold {self.convergence_nmse:.2e})")
                     break
 
         total_time = time.time() - start_time
@@ -410,7 +417,7 @@ class CorrectionOrchestrator:
                         y_classical=y_classical,
                         noise_level=noise_level,
                     )
-                    logger.info(f"[Phase3] {ident_report.summary}")
+                    logger.debug(f"[Phase3] {ident_report.summary}")
             except Exception as e:
                 logger.warning(f"[Phase3] Bayesian analysis failed: {e}")
 

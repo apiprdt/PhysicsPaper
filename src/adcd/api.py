@@ -1,4 +1,6 @@
 import os
+import warnings
+import logging
 import numpy as np
 from typing import Dict, Tuple, Optional
 
@@ -196,8 +198,20 @@ def fit(
         verbose=verbose
     )
     
-    search_result = orchestrator.search_correction(scenario, seed=seed)
-    
+    # Suppress JAX backend informational noise (TPU unavailable on Windows, etc.)
+    # and NumPy RuntimeWarnings from divergent candidate evaluation — these are
+    # expected during screening and should never surface to the researcher's terminal.
+    jax_logger = logging.getLogger("jax")
+    prev_jax_level = jax_logger.level
+    jax_logger.setLevel(logging.ERROR)
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+        search_result = orchestrator.search_correction(scenario, seed=seed)
+
+    # Restore JAX log level after search
+    jax_logger.setLevel(prev_jax_level)
+
     return ADCDResult(
         search_result=search_result,
         scenario=scenario,

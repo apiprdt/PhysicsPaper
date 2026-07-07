@@ -73,16 +73,26 @@ class ADCDResult:
         
         lines.extend([
             "Metrics:",
-            f"  Residual NMSE:   {self.best_nmse_residual:.6e}",
-            f"  Full Model NMSE: {self.best_nmse_full:.6e}",
-            f"  BIC Score:       {self.search_result.evaluation.bic:.2f}" if self.search_result.evaluation else "  BIC Score:       N/A",
+            f"  Residual NMSE:    {self.best_nmse_residual:.6e}",
+            f"  Full Model NMSE:  {self.best_nmse_full:.6e}",
+            f"  BIC Score:        {self.search_result.evaluation.bic:.2f}" if self.search_result.evaluation else "  BIC Score:        N/A",
             "Search Statistics:",
-            f"  Iterations:      {len(self.search_result.history)}",
-            f"  Total proposed:  {self.search_result.total_candidates_proposed}",
-            f"  Survived Stage 1:{self.search_result.total_candidates_survived_stage1}",
-            f"  Execution time:  {self.search_result.total_time_seconds:.2f} seconds",
-            "=================================================="
+            f"  Iterations:       {len(self.search_result.history)}",
+            f"  Total proposed:   {self.search_result.total_candidates_proposed}",
+            f"  Passed gates:     {self.search_result.total_candidates_survived_stage1}",
+            f"  Execution time:   {self.search_result.total_time_seconds:.2f} seconds",
         ])
+        if not self.converged:
+            lines.extend([
+                "--------------------------------------------------",
+                "Note: The search did not converge to a clean correction within the",
+                "given iterations. The best candidate above is still physically valid",
+                "(passed all gates) but may not be unique. To improve results:",
+                "  - Increase max_iterations (e.g. max_iterations=10)",
+                "  - Add more data points or vary the input range",
+                "  - Check that limit_direction matches the physical regime",
+            ])
+        lines.append("==================================================")
         return "\n".join(lines)
 
     def export_latex(self) -> str:
