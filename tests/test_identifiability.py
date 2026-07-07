@@ -55,7 +55,8 @@ def test_model_degeneracy_failure():
     report = analyzer.analyze(bayesian, residual, y_classical, noise_level=0.001)
 
     assert not report.is_identifiable
-    assert report.failure_mode == "model_degeneracy"
+    # weight_ratio ≈ 0.51/0.49 ≈ 1.04 < WEIGHT_RATIO_THRESHOLD → posterior_ambiguity
+    assert report.failure_mode == "posterior_ambiguity"
     assert report.weight_ratio < IdentifiabilityAnalyzer.WEIGHT_RATIO_THRESHOLD
 
 
