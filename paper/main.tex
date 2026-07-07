@@ -263,7 +263,11 @@ by which modern physics constructs corrections to known laws: starting from a
 known low-energy (classical) theory, one enumerates correction operators
 consistent with the symmetries and dimensional structure of the problem,
 filters them by their asymptotic behavior, and orders them by complexity so
-that the leading terms dominate. Each stage of the ADCD pipeline mirrors a
+that the leading terms dominate. Under this perspective, the benchmark scenarios
+evaluated in this work (e.g., Relativistic KE, Net Radiation) correspond to
+recovering the leading-order correction operator directly from data, in the same
+sense that an EFT practitioner identifies the dominant correction term at the
+next order of the theory expansion. Each stage of the ADCD pipeline mirrors a
 step in this workflow---the dimensional gate corresponds to dimensional
 analysis of operators, the ARC gate ($\Delta\!\to\!0$ at the classical
 boundary) corresponds to the decoupling of heavier degrees of freedom in the
@@ -1065,6 +1069,9 @@ An instructive property of unconstrained symbolic regression emerges at 0\% nois
 
 \paragraph{Correction-first scope limitation.}
 ADCD is designed for anomaly-driven theory refinement, not theory replacement. The framework assumes the classical baseline is structurally correct and the anomaly is incremental. When the baseline theory is fundamentally wrong, the correction term may become arbitrarily complex, at which point the correction-first search offers no advantage over tabula rasa symbolic regression.
+
+\paragraph{Multi-scale and hierarchical baselines.}
+A natural extension of the EFT-inspired correction discovery is to search for sub-leading correction operators by subtracting a known leading-order correction from the baseline before running the symbolic search. However, this hierarchical baseline approach introduces a fundamental information-theoretic constraint: once the dominant correction is absorbed into the baseline, the remaining sub-leading signal is typically orders of magnitude smaller than the observational noise floor. The signal-to-noise ratio of the residual can therefore drop below the threshold of identifiability even at noise levels where the leading-order search succeeds, causing the optimizer to converge to degenerate solutions rather than physically meaningful sub-leading terms. This constraint implies that hierarchical multi-scale search is better suited for open-ended real-world exploration where the leading-order correction is already established from independent evidence (e.g., post-Newtonian corrections to orbital mechanics), rather than for benchmark validation where the target correction constitutes the primary discoverable effect.
 
 \paragraph{Numerical scale sensitivity.}
 Sub-nano-scale residuals (binary pulsar $|dP/dt| \sim 10^{-15}$\,s/s) exposed a scale-adaptive NMSE bug in early experiments: a fixed variance floor ($\varepsilon = 10^{-10}$) in the JAX optimizer caused degenerate $\theta \to 0$ solutions to appear optimal. We corrected this with scale-adaptive denominators in both the optimizer and the post-hoc evaluator (\texttt{metrics.py}), and re-rank Stage~2 candidates using validated NMSE rather than optimizer-internal scores. Remaining challenges include blackbody UV fitting (NMSE $\approx 0.026$) and binary pulsar exponent recovery ($\theta_1 = 1.57$ vs.\ true $5/3$); logarithmic parameterization of prefactors would further improve extreme-scale scenarios.
