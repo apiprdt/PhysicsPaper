@@ -114,3 +114,45 @@ def test_summary_contains_snr():
     analyzer = IdentifiabilityAnalyzer()
     report = analyzer.analyze(bayesian, residual, y_classical, noise_level=0.01)
     assert "SNR" in report.summary
+
+
+def test_parameter_uncertainty_and_degeneracy():
+    """Verify numeric covariance calculation and degenerate parameters detection."""
+    # Synthesize data for y = theta_0 * x + theta_1 * x
+    # Since both terms are linear in x, theta_0 and theta_1 are perfectly degenerate.
+    rng = np.random.RandomState(42)
+    x = rng.uniform(1.0, 5.0, 100)
+    y_classical = np.zeros(100)
+    # Target value: 2.0 * x (split as theta_0=1.0 and theta_1=1.0)
+    residual = 2.0 * x + 0.01 * rng.randn(100)
+    
+    # Mock BayesianCorrectionOutput with a candidate having theta_0 and theta_1
+    cand = MagicMock()
+    cand.expr_str = "theta_0 * x + theta_1 * x"
+    cand.theta = {"theta_0": 1.0, "theta_1": 1.0}
+    
+    bayesian = MagicMock()
+    bayesian.posterior_weights = [1.0]
+    bayesian.candidates = [cand]
+    
+    analyzer = IdentifiabilityAnalyzer()
+    report = analyzer.analyze(
+        bayesian,
+        residual=residual,
+        y_classical=y_classical,
+        noise_level=0.01,
+        X_data={"x": x},
+        data_vars=["x"],
+    )
+    
+    # Report should have parameter uncertainties calculated
+    assert report.parameter_uncertainties is not None
+    assert "theta_0" in report.parameter_uncertainties
+    assert "theta_1" in report.parameter_uncertainties
+    
+    # Perfect degeneracy should be detected
+    assert report.degenerate_parameter_pairs is not None
+    assert len(report.degenerate_parameter_pairs) > 0
+    assert ("theta_0", "theta_1") in report.degenerate_parameter_pairs or ("theta_1", "theta_0") in report.degenerate_parameter_pairs
+    assert report.failure_mode == "model_degeneracy"
+    assert "Warning: Degenerate parameter pairs detected" in report.summary

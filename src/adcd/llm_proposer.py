@@ -353,8 +353,24 @@ class AnthropicProposer(BaseProposer):
             f"{prompt}"
         )
 
-    def get_prompt_template(self, context: ProposalContext) -> str:
-        return "Stub prompt"
+def _build_rich_context_strings(context: ProposalContext) -> Tuple[str, str]:
+    """Helper to calculate percentile residual statistics and leading exponent scaling hint."""
+    percentile_str = "None"
+    if context.residual_data is not None and len(context.residual_data) > 0:
+        res_abs = np.abs(context.residual_data)
+        p5 = np.percentile(res_abs, 5)
+        p25 = np.percentile(res_abs, 25)
+        p50 = np.percentile(res_abs, 50)
+        p75 = np.percentile(res_abs, 75)
+        p95 = np.percentile(res_abs, 95)
+        percentile_str = f"5th: {p5:.2e}, 25th: {p25:.2e}, 50th: {p50:.2e}, 75th: {p75:.2e}, 95th: {p95:.2e}"
+
+    exponent_hint_str = ""
+    if context.residual_features and hasattr(context.residual_features, 'leading_exponent'):
+        le = context.residual_features.leading_exponent
+        if le is not None:
+            exponent_hint_str = f"\n- Leading scaling exponent hint: approximately {le:.2f} (consider proposing corrections that follow this asymptotic power scaling)."
+    return percentile_str, exponent_hint_str
 
 
 class GeminiProposer(BaseProposer):
@@ -415,6 +431,7 @@ class GeminiProposer(BaseProposer):
 
     def get_prompt_template(self, context: ProposalContext) -> str:
         mode, mode_desc = self._select_mode(context.iteration, context.stuck_count)
+        percentile_str, exponent_hint_str = _build_rich_context_strings(context)
         
         hints_str = "\n".join([f"- {h}" for h in context.structural_hints]) if context.structural_hints else "None"
         prev_best_str = ""
@@ -442,6 +459,7 @@ PHYSICAL CONTEXT:
 - Classical law: {context.classical_expr}
 - Observed anomaly: {context.anomaly_description}
 - Variables with units: {units_str}
+- Absolute residual magnitude percentiles: {percentile_str}{exponent_hint_str}
 - Known limits that MUST be satisfied:
 {limits_str}
 
@@ -965,6 +983,7 @@ class CorrectionGeminiProposer(BaseProposer):
 
     def get_prompt_template(self, context: ProposalContext) -> str:
         mode, mode_desc = self._select_mode(context.iteration, context.stuck_count)
+        percentile_str, exponent_hint_str = _build_rich_context_strings(context)
         
         units_str = ", ".join([f"'{k}' ({v})" for k, v in context.variables_with_units.items()]) if context.variables_with_units else "None"
 
@@ -974,6 +993,7 @@ Search Mode: {mode.upper()} ({mode_desc})
 KNOWN CLASSICAL LAW: {context.classical_expr}
 Observed Anomaly: {context.anomaly_description}
 Variables with Units: {units_str}
+Absolute residual magnitude percentiles: {percentile_str}{exponent_hint_str}
 
 YOUR TASK: Propose exactly {context.n_candidates} dimensionless correction terms Δ such that:
     y_true ≈ y_classical × (1 + Δ)     [multiplicative correction]
