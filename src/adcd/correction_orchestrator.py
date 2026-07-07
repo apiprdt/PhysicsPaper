@@ -66,7 +66,7 @@ class CorrectionOrchestrator:
         self.max_iterations = max_iterations
         self.top_k = top_k
         self.convergence_nmse = convergence_nmse
-        self.verbose = verbose
+        self.verbose = bool(verbose) if not isinstance(verbose, str) else (verbose == "debug" or verbose.lower() == "true")
 
         # Ensure "dimensionless" is in the pipeline's checker registry
         if "dimensionless" not in self.pipeline.checker.registry:

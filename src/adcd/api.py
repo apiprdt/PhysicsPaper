@@ -2,7 +2,7 @@ import os
 import warnings
 import logging
 import numpy as np
-from typing import Dict, Tuple, Optional
+from typing import Dict, Tuple, Optional, Union
 
 from adcd.anomaly_scenarios import AnomalyScenario
 from adcd.llm_proposer import (
@@ -80,7 +80,7 @@ def fit(
     max_iterations: int = 5,
     proposer: str = "mock",
     api_key: Optional[str] = None,
-    verbose: bool = True,
+    verbose: Union[bool, str] = True,
     seed: int = 42,
     scenario_name: str = "Custom Dataset Run",
     log_param: bool = False,
@@ -198,19 +198,26 @@ def fit(
         verbose=verbose
     )
     
-    # Suppress JAX backend informational noise (TPU unavailable on Windows, etc.)
-    # and NumPy RuntimeWarnings from divergent candidate evaluation — these are
-    # expected during screening and should never surface to the researcher's terminal.
-    jax_logger = logging.getLogger("jax")
-    prev_jax_level = jax_logger.level
-    jax_logger.setLevel(logging.ERROR)
-
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=RuntimeWarning)
+    # Dual-mode UI mitigation:
+    # If the researcher is running in a computational/debugging environment (verbose="debug" or
+    # global logger level is DEBUG), we bypass warning and log suppression to allow raw telemetry.
+    is_debug_mode = (verbose == "debug" or logging.getLogger().getEffectiveLevel() <= logging.DEBUG)
+    
+    if is_debug_mode:
+        # Debug mode: do not catch/suppress warnings, let compiler/JAX log output flow
         search_result = orchestrator.search_correction(scenario, seed=seed)
+    else:
+        # Standard mode: suppress JAX compile details and NumPy overflow warnings in math evaluation
+        jax_logger = logging.getLogger("jax")
+        prev_jax_level = jax_logger.level
+        jax_logger.setLevel(logging.ERROR)
 
-    # Restore JAX log level after search
-    jax_logger.setLevel(prev_jax_level)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=RuntimeWarning)
+            search_result = orchestrator.search_correction(scenario, seed=seed)
+
+        # Restore JAX log level after search
+        jax_logger.setLevel(prev_jax_level)
 
     return ADCDResult(
         search_result=search_result,
@@ -228,7 +235,7 @@ def discover_correction(
     proposer: str = "mock",
     correction_mode: str = "auto",
     api_key: Optional[str] = None,
-    verbose: bool = True,
+    verbose: Union[bool, str] = True,
     seed: int = 42,
 ) -> ADCDResult:
     """
