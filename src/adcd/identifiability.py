@@ -37,7 +37,7 @@ class IdentifiabilityReport:
         degenerate_parameter_pairs: Optional list of highly correlated parameter name pairs
     """
     is_identifiable: bool
-    failure_mode: Optional[str]
+    failure_mode: Optional[str]  # None | "undetectable_magnitude" | "low_snr" | "posterior_ambiguity" | "parameter_degeneracy"
     snr: float
     weight_ratio: float
     relative_magnitude: float
@@ -130,14 +130,22 @@ class IdentifiabilityAnalyzer:
                                     degenerate_parameter_pairs.append((p_names[i], p_names[j]))
 
         # --- 5. Diagnose failure mode (ordered by severity) ---
+        # Each failure mode is distinct: posterior ambiguity (conflicting candidates)
+        # and parameter degeneracy (correlated free params within ONE candidate) are
+        # separate scientific diagnoses and must not be conflated by a single OR.
         failure_mode: Optional[str] = None
 
         if relative_magnitude < self.MAGNITUDE_THRESHOLD:
             failure_mode = "undetectable_magnitude"
         elif snr < self.SNR_THRESHOLD:
             failure_mode = "low_snr"
-        elif weight_ratio < self.WEIGHT_RATIO_THRESHOLD or len(degenerate_parameter_pairs) > 0:
-            failure_mode = "model_degeneracy"
+        elif weight_ratio < self.WEIGHT_RATIO_THRESHOLD:
+            # Posterior is split across multiple competing functional forms.
+            failure_mode = "posterior_ambiguity"
+        elif len(degenerate_parameter_pairs) > 0:
+            # Single best candidate dominates, but its parameters are not individually
+            # identifiable (linearly dependent). SNR is sufficient but model is over-parameterized.
+            failure_mode = "parameter_degeneracy"
 
         is_identifiable = failure_mode is None
 
@@ -199,14 +207,23 @@ class IdentifiabilityAnalyzer:
         try:
             theta_vals = np.array([theta_opt[p] for p in p_names], dtype=float)
             y_pred = predict(theta_vals)
-            
-            eps = 1e-6
+            # Guard against lambdified expressions returning scalars (e.g. constant expressions).
+            # Broadcast scalar predictions to match n_points to prevent shape mismatch in Jacobian.
+            if np.ndim(y_pred) == 0 or len(np.atleast_1d(y_pred)) == 1:
+                y_pred = np.full(n_points, float(np.squeeze(y_pred)))
+
+            # Use adaptive finite-difference step size based on machine epsilon.
+            # Optimal step for central-difference is eps_mach^(1/2) ~ 1.5e-8,
+            # NOT 1e-6 which causes truncation error dominance for small parameters.
+            _EPS_MACH = np.sqrt(np.finfo(float).eps)  # ~1.49e-8
             J = np.zeros((n_points, n_params))
             for j in range(n_params):
                 theta_eps = theta_vals.copy()
-                step = eps * max(abs(theta_vals[j]), 1.0)
+                step = _EPS_MACH * max(abs(theta_vals[j]), 1.0)
                 theta_eps[j] += step
                 y_pred_eps = predict(theta_eps)
+                if np.ndim(y_pred_eps) == 0 or len(np.atleast_1d(y_pred_eps)) == 1:
+                    y_pred_eps = np.full(n_points, float(np.squeeze(y_pred_eps)))
                 J[:, j] = (y_pred_eps - y_pred) / step
                 
             JTJ = J.T @ J
@@ -250,12 +267,20 @@ class IdentifiabilityAnalyzer:
                 f"(correction magnitude {relative_magnitude:.2e} relative to classical). "
                 f"More precise measurements needed."
             )
-        elif failure_mode == "model_degeneracy":
+        elif failure_mode == "posterior_ambiguity":
             wr_str = f"{weight_ratio:.1f}" if np.isfinite(weight_ratio) else "inf"
             return (
-                f"Model degeneracy: posterior weight ratio={wr_str} < "
-                f"{self.WEIGHT_RATIO_THRESHOLD} (ambiguous between top candidates). "
-                f"SNR={snr:.2f} is sufficient but data cannot distinguish functional forms."
+                f"Posterior ambiguity: weight ratio={wr_str} < "
+                f"{self.WEIGHT_RATIO_THRESHOLD} (data cannot distinguish competing functional forms). "
+                f"SNR={snr:.2f} is sufficient; more diverse data geometry is needed."
             )
+        elif failure_mode == "parameter_degeneracy":
+            return (
+                f"Parameter degeneracy: best candidate dominates posterior (weight_ratio={weight_ratio:.1f}) "
+                f"but contains linearly dependent parameters. Model is over-parameterized for available data."
+            )
+        # Legacy alias for backward compatibility with any code checking failure_mode == "model_degeneracy"
+        elif failure_mode == "model_degeneracy":
+            return "Model degeneracy: ambiguous candidate ranking or correlated parameters."
         else:
             return "Unknown identifiability status."

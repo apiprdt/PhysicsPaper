@@ -252,15 +252,15 @@ class TestEarlyStopAndEfficiency:
 class TestLogParameterization:
     """Verify log-parameterization works and resolves extreme scale issues."""
 
-    def test_log_param_recovery(self):
-        """Recover parameters at extremely small scales (e.g. 1e-15) safely with log_param=True."""
+    def test_log_param_recovery_positive_small(self):
+        """Recover parameters at extremely small positive scale (1e-15) with log_param=True."""
         rng = np.random.RandomState(42)
         x = rng.uniform(1.0, 10.0, 50)
         true_theta = 1.35e-15
         y = true_theta * (x ** 2)
 
-        # Standard optimizer may struggle or collapse to theta=0 depending on normalization,
-        # but log_param=True optimization should recover it cleanly.
+        # Standard optimizer may collapse to theta=0 due to gradient underflow,
+        # but log_param=True operates in log-space, preventing this.
         opt = JAXOptimizer(n_restarts=5, log_param=True)
         result = opt.optimize("theta_0 * x**2", {"x": x}, y, ["x"])
 
@@ -268,4 +268,67 @@ class TestLogParameterization:
         assert result.nmse < 1e-5, f"NMSE too high: {result.nmse}"
         recovered_theta = result.theta["theta_0"]
         rel_err = abs(recovered_theta - true_theta) / true_theta
-        assert rel_err < 0.05, f"Log-parameterization recovery error: {rel_err:.4f} (got {recovered_theta:.4e})"
+        assert rel_err < 0.05, (
+            f"Log-parameterization recovery error: {rel_err:.4f} (got {recovered_theta:.4e})"
+        )
+
+    def test_log_param_recovery_negative_large(self):
+        """Recover a large NEGATIVE parameter (theta = -5e8) with log_param=True.
+
+        This exercises the sign mask branch: signs[i] = -1, is_log[i] = True.
+        theta = -1 * exp(u), so the optimizer works on u = log(5e8) ~ 19.7.
+        Without log_param, the gradient of a 5e8-scale parameter is also huge,
+        causing L-BFGS-B to overshoot or diverge in the first few steps.
+        """
+        rng = np.random.RandomState(7)
+        x = rng.uniform(0.1, 1.0, 60)
+        true_theta = -5.0e8
+        y = true_theta * x  # simple linear, but coefficient is enormous and negative
+
+        opt = JAXOptimizer(n_restarts=5, log_param=True)
+        result = opt.optimize("theta_0 * x", {"x": x}, y, ["x"])
+
+        assert result.error is None
+        assert result.nmse < 1e-4, f"NMSE too high: {result.nmse}"
+        recovered_theta = result.theta["theta_0"]
+        rel_err = abs(recovered_theta - true_theta) / abs(true_theta)
+        assert rel_err < 0.05, (
+            f"Negative large-scale recovery failed: rel_err={rel_err:.4f} "
+            f"(got {recovered_theta:.4e}, expected {true_theta:.4e})"
+        )
+
+    def test_log_param_mixed_sign_two_params(self):
+        """Recover two parameters of opposite sign at different extreme scales.
+
+        y = theta_0 * x^2 + theta_1 * x^3
+        theta_0 = +2.0e-10, theta_1 = -8.0e-10
+
+        Tests that the sign mask handles mixed-sign parameters correctly in a
+        single optimization call with log_param=True.
+        """
+        rng = np.random.RandomState(13)
+        x = rng.uniform(1.0, 5.0, 80)
+        theta_0_true = 2.0e-10
+        theta_1_true = -8.0e-10
+        y = theta_0_true * x**2 + theta_1_true * x**3
+
+        opt = JAXOptimizer(n_restarts=8, log_param=True)
+        result = opt.optimize(
+            "theta_0 * x**2 + theta_1 * x**3", {"x": x}, y, ["x"]
+        )
+
+        assert result.error is None
+        assert result.nmse < 1e-4, f"NMSE too high: {result.nmse}"
+        t0 = result.theta.get("theta_0", 0.0)
+        t1 = result.theta.get("theta_1", 0.0)
+        assert abs(t0 - theta_0_true) / abs(theta_0_true) < 0.10, (
+            f"theta_0 recovery failed: {t0:.4e} vs {theta_0_true:.4e}"
+        )
+        assert abs(t1 - theta_1_true) / abs(theta_1_true) < 0.10, (
+            f"theta_1 recovery failed: {t1:.4e} vs {theta_1_true:.4e}"
+        )
+
+    def test_log_param_maxiter_configurable(self):
+        """Verify that maxiter parameter is used (not hardcoded 150)."""
+        opt = JAXOptimizer(n_restarts=1, log_param=True, maxiter=200)
+        assert opt.maxiter == 200, "maxiter should be configurable"

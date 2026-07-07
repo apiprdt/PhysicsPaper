@@ -44,12 +44,18 @@ def estimate_exponent_naae(
     if n_points < 4:
         return {"leading_exponent": None, "prefactor": None, "fit_quality": 0.0, "degenerate": False}
         
-    # Standardize limit direction mask to only fit data close to the classical limit boundary.
-    # We select the 60% of data points closest to the limit to ensure reasonable SNR.
+    # Select data near the classical limit boundary using a percentile threshold.
+    # This is robust to non-uniform (e.g. log-spaced or clustered) x distributions,
+    # unlike the previously hard-coded 60% index slice.
+    abs_x = np.abs(x)
     if limit_direction == "0":
-        idx = np.argsort(np.abs(x))[:int(n_points * 0.6)]
-    else: # "oo"
-        idx = np.argsort(np.abs(x))[int(n_points * 0.4):]
+        # Select points where |x| <= 60th percentile of |x| (closest to the zero limit)
+        threshold = np.percentile(abs_x, 60)
+        idx = np.where(abs_x <= threshold)[0]
+    else:  # "oo"
+        # Select points where |x| >= 40th percentile of |x| (closest to the infinity limit)
+        threshold = np.percentile(abs_x, 40)
+        idx = np.where(abs_x >= threshold)[0]
         
     x_fit = x[idx]
     y_fit = y[idx]
@@ -88,15 +94,20 @@ def estimate_exponent_naae(
     # Estimate scaling of A from delta_fit mean
     mean_delta = np.mean(np.abs(delta_fit))
     a_scales = [mean_delta, -mean_delta, 1.0, -1.0]
-    gamma_guesses = [-3.0, -2.0, -1.0, 0.5, 1.0, 2.0, 3.0, 4.0]
-    
+    # Extended gamma guesses covering physically motivated scalings:
+    # -4 (inverse quartic), -7/3 (GW Peters), -2, -1, 0.5, 1, 2, 3, 4 (Stefan-Boltzmann), 5
+    gamma_guesses = [-4.0, -7.0/3.0, -2.0, -1.0, -0.5, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0]
+
     initial_guesses = []
     for a_s in a_scales:
         for g_g in gamma_guesses:
             initial_guesses.append((a_s, g_g))
-            
-    # Bounded L-BFGS-B to keep parameters within physical regimes
-    bounds = [(-1e5, 1e5), (-6.0, 6.0)]
+
+    # Extended bounds to cover T^4 (Stefan-Boltzmann), 5PN relativistic scaling,
+    # and cosmological power laws up to gamma = ±8.
+    # Prefactor bound is data-driven: ±1000 * max(|delta|) to avoid constraint saturation.
+    max_delta = max(np.max(np.abs(delta_fit)), 1.0)
+    bounds = [(-1000.0 * max_delta, 1000.0 * max_delta), (-8.0, 8.0)]
     
     for guess in initial_guesses:
         res = minimize(loss_fn, np.array(guess), method="L-BFGS-B", bounds=bounds, options={"maxiter": 100})

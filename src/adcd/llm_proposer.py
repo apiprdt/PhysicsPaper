@@ -354,22 +354,41 @@ class AnthropicProposer(BaseProposer):
         )
 
 def _build_rich_context_strings(context: ProposalContext) -> Tuple[str, str]:
-    """Helper to calculate percentile residual statistics and leading exponent scaling hint."""
+    """Compute residual percentile statistics and asymptotic scaling hint for LLM prompt injection.
+
+    Returns:
+        percentile_str: Human-readable string of absolute residual percentiles (5th–95th).
+                        Always includes the target variable's implicit units context.
+        exponent_hint_str: A standalone bullet string with the leading scaling exponent hint,
+                           or an empty string if no exponent data is available.
+                           Format is consistent regardless of presence: either empty or a
+                           fully-formed "- Key: value" bullet, NOT a newline-prefixed fragment.
+    """
     percentile_str = "None"
     if context.residual_data is not None and len(context.residual_data) > 0:
         res_abs = np.abs(context.residual_data)
-        p5 = np.percentile(res_abs, 5)
+        p5  = np.percentile(res_abs, 5)
         p25 = np.percentile(res_abs, 25)
         p50 = np.percentile(res_abs, 50)
         p75 = np.percentile(res_abs, 75)
         p95 = np.percentile(res_abs, 95)
-        percentile_str = f"5th: {p5:.2e}, 25th: {p25:.2e}, 50th: {p50:.2e}, 75th: {p75:.2e}, 95th: {p95:.2e}"
+        # Include target name for unit context so LLM can interpret magnitude correctly.
+        unit_ctx = f" [{context.target_name} units]" if context.target_name else ""
+        percentile_str = (
+            f"5th: {p5:.2e}, 25th: {p25:.2e}, 50th: {p50:.2e}, "
+            f"75th: {p75:.2e}, 95th: {p95:.2e}{unit_ctx}"
+        )
 
+    # Exponent hint is formatted as a self-contained bullet so callers can
+    # safely insert it anywhere in the prompt without structural side-effects.
     exponent_hint_str = ""
     if context.residual_features and hasattr(context.residual_features, 'leading_exponent'):
         le = context.residual_features.leading_exponent
         if le is not None:
-            exponent_hint_str = f"\n- Leading scaling exponent hint: approximately {le:.2f} (consider proposing corrections that follow this asymptotic power scaling)."
+            exponent_hint_str = (
+                f"- Leading scaling exponent hint: ~{le:.2f} "
+                f"(NAAE-estimated; propose corrections following this asymptotic power law)."
+            )
     return percentile_str, exponent_hint_str
 
 
@@ -459,8 +478,8 @@ PHYSICAL CONTEXT:
 - Classical law: {context.classical_expr}
 - Observed anomaly: {context.anomaly_description}
 - Variables with units: {units_str}
-- Absolute residual magnitude percentiles: {percentile_str}{exponent_hint_str}
-- Known limits that MUST be satisfied:
+- Absolute residual magnitude percentiles: {percentile_str}
+{('- ' + exponent_hint_str) if exponent_hint_str else ''}- Known limits that MUST be satisfied:
 {limits_str}
 
 HARD CONSTRAINTS (violation = immediate rejection):
@@ -993,7 +1012,8 @@ Search Mode: {mode.upper()} ({mode_desc})
 KNOWN CLASSICAL LAW: {context.classical_expr}
 Observed Anomaly: {context.anomaly_description}
 Variables with Units: {units_str}
-Absolute residual magnitude percentiles: {percentile_str}{exponent_hint_str}
+Absolute residual magnitude percentiles: {percentile_str}
+{exponent_hint_str + chr(10) if exponent_hint_str else ''}
 
 YOUR TASK: Propose exactly {context.n_candidates} dimensionless correction terms Δ such that:
     y_true ≈ y_classical × (1 + Δ)     [multiplicative correction]

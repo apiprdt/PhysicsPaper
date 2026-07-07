@@ -154,5 +154,5 @@ def test_parameter_uncertainty_and_degeneracy():
     assert report.degenerate_parameter_pairs is not None
     assert len(report.degenerate_parameter_pairs) > 0
     assert ("theta_0", "theta_1") in report.degenerate_parameter_pairs or ("theta_1", "theta_0") in report.degenerate_parameter_pairs
-    assert report.failure_mode == "model_degeneracy"
-    assert "Warning: Degenerate parameter pairs detected" in report.summary
+    assert report.failure_mode == "parameter_degeneracy"
+    assert "Parameter degeneracy" in report.summary or "Degenerate parameter pairs" in report.summary

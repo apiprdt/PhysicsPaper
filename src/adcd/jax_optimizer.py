@@ -71,10 +71,12 @@ class JAXOptimizer:
         n_steps    : int   = 500,  # Kept for API compatibility, not used by L-BFGS directly
         lr         : float = 0.05, # Kept for API compatibility
         log_param  : bool  = False, # Log-parameterization to handle extreme scales safely
+        maxiter    : int   = 150,  # L-BFGS-B maximum iterations per restart
     ):
         self.n_restarts = n_restarts
         self.beta       = beta
         self.log_param  = log_param
+        self.maxiter    = maxiter
 
     def optimize(
         self,
@@ -373,12 +375,18 @@ class JAXOptimizer:
 
         for init in inits:
             if self.log_param:
-                # Log-parameterization:
-                # theta_i = sign_i * exp(u_i) for values with non-trivial magnitudes.
-                # This operates the optimizer in log-space, preventing gradient collapse
-                # on extremely small (e.g. 1e-15) or large variables.
+                # Log-parameterization: theta_i = sign_i * exp(u_i).
+                # Two separate masks are maintained:
+                #   signs[i]: the sign of init[i], frozen throughout optimization so that
+                #             exp(u_i) > 0 always, and theta_i = sign * exp(u) recovers
+                #             the correct sign at decode time.
+                #   is_log[i]: True iff |init[i]| > 1e-30, i.e., the parameter has
+                #              non-trivial magnitude worth log-compressing. For exact zeros,
+                #              u_i = 0 and theta_i = u_i (linear passthrough) to avoid
+                #              log(0) domain errors. This is safe because theta_i = 0
+                #              has no magnitude to compress.
                 signs = np.sign(init)
-                signs = np.where(signs == 0, 1.0, signs)
+                signs = np.where(signs == 0, 1.0, signs)  # prevent sign=0 for zero inits
                 is_log = np.abs(init) > 1e-30
                 u_init = np.where(is_log, np.log(np.maximum(np.abs(init), 1e-30)), init)
 
@@ -400,7 +408,7 @@ class JAXOptimizer:
                     u_init,
                     method="L-BFGS-B",
                     jac=True,
-                    options={"maxiter": 150, "ftol": 1e-7}
+                    options={"maxiter": self.maxiter, "ftol": 1e-7}
                 )
                 opt_theta = np.where(is_log, signs * np.exp(res.x), res.x)
             else:
@@ -427,7 +435,7 @@ class JAXOptimizer:
                     u_init,
                     method="L-BFGS-B",
                     jac=True,
-                    options={"maxiter": 150, "ftol": 1e-7}
+                    options={"maxiter": self.maxiter, "ftol": 1e-7}
                 )
                 
                 opt_theta = res.x * init_scale
