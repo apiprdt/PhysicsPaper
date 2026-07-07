@@ -118,7 +118,7 @@ class TestNAAEVsRAS:
             correction_type="additive", limit_direction="oo",
         )
         res_ras = compute_ras(
-            x_vals=x, delta_vals=delta_true + noise, limit_val=float("inf"),
+            x_vals=x, delta_vals=delta_true + noise, limit_val=1e9,
         )
 
         naae_exp = res_naae["leading_exponent"]
