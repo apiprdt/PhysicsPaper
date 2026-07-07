@@ -105,11 +105,21 @@ result = adcd.fit(
     y_classical=y_classical,
     limit_variable="x",
     limit_direction="0",
-    correction_mode="additive"
+    correction_mode="additive",
+    log_param=True,       # Enable for numerical stability at extreme scales
+    verbose=True          # Use verbose="debug" for compiler/warning logging
 )
 
-result.summary()
+# Print the formatted scientific summary table
+print(result.summary())
 ```
+
+### 3. Dual-Mode Telemetry & Execution Control
+
+ADCD provides dual-mode output control to suit both application scientists and developers:
+
+- **Scientist Mode (`verbose=True`, Default)**: Suppresses compile logs (JAX/TPU warnings) and math warnings (NumPy overflows from divergent functions during screening). Outputs a clean, real-time progress bar and a final clean summary table.
+- **Developer Mode (`verbose="debug"`)**: Bypasses all suppressions. Directs all raw compiler info, mathematical warning stack traces, and physical gate metrics (e.g., Laurent series pole orders) straight to the console for complete diagnostics.
 
 ---
 
