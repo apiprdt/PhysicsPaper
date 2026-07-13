@@ -172,18 +172,9 @@ class Stage1Pipeline:
                 continue
 
             is_dim_ok = True
-            if target_dimension_key is not None and target_dimension_key != "dimensionless":
-                if has_params:
-                    try:
-                        self.checker._get_dim_vector(expr)
-                        is_dim_ok = True
-                    except TypeError:
-                        is_dim_ok = False
-                else:
-                    is_dim_ok = self.checker.verify(expr, target_dimension_key)
-            else:
+            if target_dimension_key is not None:
                 is_dim_ok = self.checker.verify(expr, target_dimension_key)
-
+            
             if not is_dim_ok:
                 if stats is not None:
                     stats.dim_reject += 1
