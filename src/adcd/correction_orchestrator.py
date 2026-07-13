@@ -120,6 +120,12 @@ class CorrectionOrchestrator:
         # 1. Generate anomalous data and compute residual
         X, y_obs, y_classical, residual = scenario.generate_data(noise_level=noise_level, seed=seed)
         
+        # Systematically inject classical constants as constant arrays into X
+        # to prevent JAXOptimizer from crashing on free reference symbols (e.g. n_ref, V_ref, G)
+        for c_name, c_val in scenario.classical_constants.items():
+            if c_name not in X:
+                X[c_name] = np.full_like(y_obs, c_val)
+        
         # 1b. Analyze residual for physical feature prior weights
         from adcd.residual_analyzer import analyze_residual
         primary_var_name = scenario.classical_limit_variable

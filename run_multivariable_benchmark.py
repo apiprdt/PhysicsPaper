@@ -65,7 +65,7 @@ def main():
                     scorer = ARCScorer(regimes=regimes)
                     
                     pipeline = Stage1Pipeline(validator, checker, scorer)
-                    optimizer = JAXOptimizer()
+                    optimizer = JAXOptimizer()  # Reverted to default linear scale optimization
                     proposer = CorrectionMockProposer(seed=SEED, extended=True)
                     
                     orchestrator = CorrectionOrchestrator(

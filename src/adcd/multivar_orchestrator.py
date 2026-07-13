@@ -99,27 +99,30 @@ class ProductGrammarProposer(BaseProposer):
                 for v2 in vars_avail:
                     if v1 == v2:
                         continue
-                    r1 = refs.get(f"{v1}_ref", refs.get(f"{v1}_0", 1.0))
-                    r2 = refs.get(f"{v2}_ref", refs.get(f"{v2}_0", 1.0))
+                    # Resolve symbol names for constants instead of float values to preserve dimensional units
+                    r1_str = f"{v1}_ref" if f"{v1}_ref" in refs else (f"{v1}_0" if f"{v1}_0" in refs else "1.0")
+                    r2_str = f"{v2}_ref" if f"{v2}_ref" in refs else (f"{v2}_0" if f"{v2}_0" in refs else "1.0")
+                    
                     extra.extend(
                         [
-                            f"theta_0 * ({v1}/{r1}) * exp(-{v2}/{r2})",
-                            f"theta_0 * ({v1}/{r1})**2 * ({v2}/{r2})",
-                            f"theta_0 * ({v1}/{r1}) * ({v2}/{r2})",
-                            f"theta_0 * ({v1}/{r1})**2 / ({v2}/{r2})**2",
-                            f"theta_0 * ({v1}/{r1}) * ({r2}/{v2})**0.5",
+                            f"theta_0 * ({v1}/{r1_str}) * exp(-{v2}/{r2_str})",
+                            f"theta_0 * ({v1}/{r1_str})**2 * ({v2}/{r2_str})",
+                            f"theta_0 * ({v1}/{r1_str}) * ({v2}/{r2_str})",
+                            f"theta_0 * ({v1}/{r1_str})**2 / ({v2}/{r2_str})**2",
+                            f"theta_0 * ({v1}/{r1_str}) * ({r2_str}/{v2})**0.5",
                         ]
                     )
 
         seen: set[str] = set()
         merged: List[str] = []
-        for cand in candidates + extra:
+        for cand in extra + candidates:
             if cand not in seen:
                 seen.add(cand)
                 merged.append(cand)
                 self.sources[cand] = "grammar"
 
-        return merged[:context.n_candidates]
+        # Expand pool to allow Stage 1 pipeline to screen candidates thoroughly
+        return merged[:250]
 
 
 class MultivariableOrchestrator:

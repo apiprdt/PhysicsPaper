@@ -27,6 +27,7 @@ class ProductGrammar:
         "theta_0 * R / (1 + R/theta_1)",
         "theta_0 * tanh(R/theta_1)**2",
         "theta_0 * sin(R/theta_1)",
+        "theta_0 * R / (theta_1 - R)",  # Singularity/pole limit -> 0
     ]
 
     ARC_SAFE_UNARIES_INF = [
@@ -34,6 +35,7 @@ class ProductGrammar:
         "theta_0 * (theta_1/R)",
         "theta_0 * (theta_1/R)**2",
         "theta_0 * (theta_1/R)**theta_2",
+        "theta_0 / (R - theta_1)",       # Singularity/pole limit -> oo (e.g. Van der Waals)
     ]
 
     def _get_primary_var(self, pi_group: sp.Expr, limit_specs: Sequence[Tuple[str, str]]) -> str:
@@ -94,10 +96,26 @@ class ProductGrammar:
 
         for (pi1, templates1), (pi2, templates2) in combinations(per_group, 2):
             for t1, t2 in product(templates1[:5], templates2[:5]):
+                # Instantiate t1
                 f_expr = self._instantiate_template(t1, pi1)
-                g_expr = self._instantiate_template(t2, pi2)
+                
+                # Count unique theta symbols in f_expr to offset t2 parameters
+                theta_symbols_f = {s for s in f_expr.free_symbols if str(s).startswith("theta_")}
+                offset = len(theta_symbols_f)
+                
+                # Re-index theta parameters in t2 to prevent collision
+                t2_reindexed = t2
+                # We replace from highest index down to lowest to prevent substring collision (e.g. theta_1 before theta_0)
+                for i in range(10, -1, -1):
+                    t2_reindexed = t2_reindexed.replace(f"theta_{i}", f"theta_{i+offset}")
+                
+                # Instantiate reindexed t2
+                g_expr = self._instantiate_template(t2_reindexed, pi2)
+                
+                # Combine parameters independently
                 product_expr = sp.simplify(f_expr * g_expr)
                 expr_str = str(product_expr)
+                
                 if expr_str in products:
                     continue
                 if verify_arc and checker is not None:
@@ -120,6 +138,29 @@ def pi_groups_for_scenario(scenario) -> List[sp.Expr]:
     engine.register_from_scenario(scenario)
     groups = engine.compute_pi_groups()
     
+    # Guarantee that each free variable has a dimensionless ratio against its reference constant
+    constants = scenario.classical_constants or {}
+    for var in scenario.classical_variables:
+        var_sym = sp.Symbol(var)
+        # Search for a matching reference constant
+        ref_const = None
+        for suffix in ["_ref", "_0", "_val"]:
+            possible_ref = f"{var}{suffix}"
+            if possible_ref in constants:
+                ref_const = possible_ref
+                break
+        
+        if ref_const:
+            ratio = var_sym / sp.Symbol(ref_const)
+            # Add to groups if no equivalent group exists
+            exists = False
+            for g in groups:
+                if sp.simplify(g - ratio) == 0 or sp.simplify(g - 1/ratio) == 0:
+                    exists = True
+                    break
+            if not exists:
+                groups.append(ratio)
+                
     limit_specs = limit_specs_from_scenario(scenario)
     oriented_groups = []
     
