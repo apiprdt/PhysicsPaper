@@ -239,7 +239,7 @@ ADCD does not compete with PhySO or PySR; it restricts the problem they solve to
 ADCD assumes a structurally-correct classical baseline (incremental correction, not wholesale replacement). At $\geq5\%$ noise, screened-Coulomb decay is fitted by a rational proxy, reflecting decay-vs-saturation ambiguity under limited dynamic range. A multivariable extension (Buckingham-$\Pi$) is currently weaker ($2/4$ at $5\%$) and treated as exploratory; the dimensional gate uses adaptive parameter-unit relaxation rather than PhySO's strict enforcement---complementary design points.
 
 \paragraph{Reproducibility.}
-ADCD ships as an open-source Python package (JAX backend, public API/CLI, CI/CD); all 16 seeds, per-seed noise distributions, and PySR profiles are bundled for replication.
+ADCD ships as an open-source Python package (JAX backend, public API/CLI, CI/CD); all 16 seeds, per-seed noise distributions, and PySR profiles are bundled for replication. Unlike GPU-intensive SR frameworks (PhySO, DSO), ADCD completes full discovery runs in seconds to minutes on a standard consumer-grade CPU, requiring no HPC infrastructure---making reproducibility tractable for any research group.
 
 \paragraph{Fail-safe behavior.}
 On a 6-case misspecification benchmark, ADCD fails safe: it fails to converge rather than producing confident spurious corrections, a property absent from tabula rasa SR.

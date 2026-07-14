@@ -1314,6 +1314,19 @@ Third, the framework should be extended to partial differential equations
 representing anomalies in spatio-temporal datasets, such as general-relativistic
 corrections to classical fluid flows.
 
+\paragraph{Computational accessibility.}
+Unlike neural-guided or reinforcement-learning-based symbolic regression
+frameworks (e.g., PhySO~\cite{tenachi2023physo}, DSO~\cite{petersen2021deep})
+that require multi-hour training on dedicated GPU clusters, ADCD completes
+dimensional screening and parameter optimisation within seconds to minutes on a
+standard consumer-grade CPU. The physics-gate cascade (Stage~1) eliminates the
+vast majority of candidate expressions before any numerical fitting occurs,
+bypassing the computational bottleneck of high-dimensional neural search.
+This resource-light architecture makes physics-constrained symbolic regression
+accessible on personal laptops without high-performance computing dependencies,
+democratising anomaly-driven theory refinement for research groups without
+institutional HPC access.
+
 \section*{Code Availability}
 The complete source code for the ADCD framework, along with all reproduction scripts and benchmarks, is open-source and publicly available at \url{https://github.com/apiprdt/PhysicsPaper}. The package is also published on the Python Package Index (PyPI) at \url{https://pypi.org/project/adcd/}.
 
