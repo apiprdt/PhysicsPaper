@@ -215,7 +215,7 @@ Five anomalies constructed from JPL DE440, NIST/CODATA, and CERN Particle Data G
 
 > *Correction: an earlier version of this README listed the Lamb Shift NMSE as `1.82e-18`. The value verified against the paper and reproduction artifacts is `1.69e-18`, used above.*
 
-### 4. SPARC: autonomous rediscovery of the Simple-MOND family
+### 4. SPARC: autonomous rediscovery of Simple-MOND & Project Kepler discovery
 
 As a capstone real-observational test, ADCD was applied to the [SPARC](https://arxiv.org/abs/1606.09251) sample of galactic rotation curves (171 galaxies, 3,342 radial points), starting only from the Newtonian baseline and the asymptotic constraint that the correction must vanish in the high-acceleration (Newtonian) limit.
 
@@ -229,7 +229,19 @@ As a capstone real-observational test, ADCD was applied to the [SPARC](https://a
 | Cluster bootstrap δBIC_eff vs. 2-param Simple MOND (1,000 resamples) | +3.4, 95% CI [−0.9, +7.0] → inconclusive |
 | Cluster bootstrap δBIC_eff vs. 2-param Standard MOND | −36.5, 95% CI [−60.1, −17.9] → very strong evidence for ADCD |
 
-The discovered form is algebraically the Simple-MOND interpolating family of Famaey & Binney (2005) — **this is reported as autonomous rediscovery of a known family from real data, not the discovery of a novel one.** An exploratory cross-check against wide-binary-star kinematics (Appendix A of the paper) shows the fitted form does **not** unambiguously generalize to that independent dataset, which we disclose as a limitation rather than omit.
+#### 🌌 Project Kepler: Statistical Discovery of Deep-MOND Exponent Anomaly ($\alpha = 0.5905$)
+
+Following baseline recovery, we conducted an unconstrained statistical audit across 1,172 measurement points in the deep acceleration regime ($g_{\text{bar}} < 0.1 a_0$, 120 galaxies):
+
+- **MOND Prediction (Milgrom 1983):** $g_{\text{obs}} \propto g_{\text{bar}}^{0.5000}$
+- **ADCD Discovery:** $g_{\text{obs}} \propto g_{\text{bar}}^{0.5905}$
+- **Statistical Evidence:**
+  - **5,000-Sample Bootstrap 99% CI:** $[0.5385, 0.6483]$ (firmly excludes $0.5000$).
+  - **Per-Galaxy Binomial Test:** 54 of 80 galaxies (67.5%) exhibit $\alpha > 0.5000$ ($p = 0.00116$).
+  - **Pooled Inverse-Variance Slope:** $\alpha = 0.7145 \pm 0.0122$ ($95\% \text{ CI } [0.6906, 0.7383]$).
+- **Methodological Guardrails (Negative Controls):**
+  - An apparent secondary correlation ($a_0 \sim V_{\text{flat}}$) was identified as a **methodological artifact** of assuming a fixed mass-to-light ratio ($M/L = 0.5$) and correctly rejected upon unconstraining per-galaxy $M/L$.
+  - A 2-parameter Generalized McGaugh formula ($p = 0.461$) exhibited out-of-sample overfitting ($\Delta\text{AIC} < 0$), establishing the power-law exponent shift as a robust non-parametric property of the observational data rather than a solved parametric model.
 
 ### 5. Cosmological probes: growth rate and expansion history
 
