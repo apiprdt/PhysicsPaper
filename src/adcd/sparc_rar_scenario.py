@@ -16,7 +16,7 @@ The ADCD GrammarProposer will:
  4. Optimize theta_k freely -> discovers a0 from data without any prior
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, Tuple
 import numpy as np
 import pandas as pd

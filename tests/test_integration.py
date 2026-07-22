@@ -93,7 +93,7 @@ def test_orchestrator_end_to_end_kinetic_energy():
     
     # Configure Dimensional Checker registry (inject theta variables dynamically as dimensionless)
     checker = DimensionalChecker()
-    for i in range(10):
+    for i in range(100):
         checker.registry[f"theta_{i}"] = [0, 0, 0]
     checker.locals = {s: sp.Symbol(s) for s in checker.registry}
     
@@ -112,7 +112,7 @@ def test_orchestrator_end_to_end_kinetic_energy():
         pipeline=pipeline,
         optimizer=optimizer,
         max_iterations=3,
-        top_k=5,
+        top_k=10,
         convergence_nmse=1e-5,
         verbose=True
     )

@@ -55,6 +55,8 @@ class MockProposer(BaseProposer):
         self.seed = seed
         self.extended = extended
         self._templates = [
+            "theta_0 * {v1} * {v2}**2",
+            "theta_0 * {v2} * {v1}**2",
             "theta_0 * {v1} * {v2}**theta_1",
             "theta_0 * {v1} / {v2}**theta_1",
             "theta_0 * {v1}**theta_1",
@@ -147,6 +149,10 @@ class MockProposer(BaseProposer):
             for i, v1 in enumerate(phys_vars):
                 for v2 in phys_vars[i+1:]:
                     injected.append(f"theta_0 * {v1} * {v2}")
+                    injected.append(f"theta_0 * {v1} * {v2}**2")
+                    injected.append(f"theta_0 * {v2} * {v1}**2")
+                    injected.append(f"theta_0 * {v1} * {v2}**theta_1")
+                    injected.append(f"theta_0 * {v2} * {v1}**theta_1")
                     injected.append(f"theta_0 * {v1}**2 * sin(theta_1 * {v2})")
                     injected.append(f"theta_0 * {v2}**2 * sin(theta_1 * {v1})")
             # 3-variable product
