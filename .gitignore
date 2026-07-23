@@ -116,7 +116,9 @@ CHANGELOG.md
 
 # MkDocs documentation site source
 mkdocs.yml
-docs/
+docs/*
+!docs/adcd_extended_grammar_plan.md
+!adcd_extended_grammar_plan.md
 
 # Release notes (local working copies, not paper source)
 release_v*.md
