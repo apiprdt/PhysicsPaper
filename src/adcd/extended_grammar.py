@@ -9,6 +9,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Dict, List, Optional
+import logging
+from adcd.llm_proposer import BaseProposer, ProposalContext
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -21,7 +25,7 @@ class FunctionalPattern:
     domain: str  # e.g., "gaussian_velocity", "cylindrical_wave", "phase_saturation"
 
 
-class ExtendedGrammarProposer:
+class ExtendedGrammarProposer(BaseProposer):
     """Proposes candidates using an extended physical grammar.
 
     Each template pattern is paired with an explicit physical justification.
@@ -95,5 +99,31 @@ class ExtendedGrammarProposer:
 
         return candidates
 
+    def propose(self, context: ProposalContext) -> List[str]:
+        """BaseProposer interface implementation for SROrchestrator integration."""
+        cands = self.propose_candidates(context.variable_names)
+        return [c["expr"] for c in cands]
+
     def get_pattern_count(self) -> int:
         return len(self.patterns)
+
+
+class MultiProposer(BaseProposer):
+    """Combines candidate pools from multiple proposers (Manual, Buckingham-Extended, LLM) in parallel."""
+
+    def __init__(self, proposers: List[BaseProposer]) -> None:
+        self.proposers = proposers
+
+    def propose(self, context: ProposalContext) -> List[str]:
+        combined: List[str] = []
+        seen: set = set()
+        for p in self.proposers:
+            try:
+                cands = p.propose(context)
+                for cand in cands:
+                    if cand not in seen:
+                        seen.add(cand)
+                        combined.append(cand)
+            except Exception as e:
+                logger.warning(f"Proposer {p} failed during multi-propose: {e}")
+        return combined

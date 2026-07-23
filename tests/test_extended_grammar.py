@@ -18,3 +18,16 @@ def test_extended_grammar_candidate_generation():
         assert "justification" in cand
         assert "domain" in cand
         assert len(cand["justification"]) > 10
+
+
+def test_multi_proposer_integration():
+    from adcd.llm_proposer import MockProposer, ProposalContext
+    from adcd.extended_grammar import MultiProposer
+
+    multi = MultiProposer([MockProposer(), ExtendedGrammarProposer()])
+    ctx = ProposalContext(variable_names=["r"], target_name="y", data_statistics={})
+    cands = multi.propose(ctx)
+    assert len(cands) > 6
+    # Verify candidates contain expressions from both MockProposer and ExtendedGrammarProposer
+    joined = " ".join(cands)
+    assert "erf" in joined or "exp" in joined
