@@ -63,6 +63,18 @@ def test_best_expr_is_lowest_bic():
     assert out.best_expr == "expr_best"
 
 
+def test_extended_bic_penalty():
+    """Verify that passing n_candidates applies Extended BIC penalty correctly."""
+    candidates = [("a", -100.0), ("b", -95.0)]
+    reranker = BayesianReranker()
+    out_normal = reranker.rank(candidates)
+    out_penalty = reranker.rank(candidates, n_candidates=100)
+    # Relative weights remain consistent, but raw scores are adjusted by 2*ln(M)
+    assert abs(sum(out_penalty.posterior_weights) - 1.0) < 1e-10
+    assert out_normal.best_expr == out_penalty.best_expr
+
+
+
 def test_pruning_removes_low_weight():
     """Candidates with weight < threshold_ratio * max_weight are pruned."""
     # delta_BIC = 300 -> exp(-150) << threshold, will be pruned

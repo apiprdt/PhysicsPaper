@@ -40,7 +40,7 @@ class ExtendedGrammarProposer(BaseProposer):
         ),
         FunctionalPattern(
             name="J0",
-            template_str="theta_0 * besselj(0, theta_1 * {var})",
+            template_str="theta_0 * jn(0, theta_1 * {var})",
             physical_justification="Cylindrical symmetry / Bessel wave scattering / disk oscillation mode",
             domain="cylindrical_wave",
         ),
@@ -100,8 +100,24 @@ class ExtendedGrammarProposer(BaseProposer):
         return candidates
 
     def propose(self, context: ProposalContext) -> List[str]:
-        """BaseProposer interface implementation for SROrchestrator integration."""
-        cands = self.propose_candidates(context.variable_names)
+        """BaseProposer interface implementation for SROrchestrator integration.
+
+        Integrates Buckingham-Pi dimensionless groups if dimensional information is present.
+        """
+        target_vars = list(context.variable_names)
+        if hasattr(context, "dimension_matrix") and hasattr(context, "units_map") and context.dimension_matrix is not None:
+            try:
+                from adcd.buckingham_pi import BuckinghamPiEngine
+                engine = BuckinghamPiEngine()
+                for var, dims in getattr(context, "units_map", {}).items():
+                    engine.register_variable(var, dims)
+                pi_groups = engine.compute_pi_groups()
+                if pi_groups:
+                    target_vars.extend([str(pi) for pi in pi_groups])
+            except Exception as e:
+                logger.warning(f"Buckingham-Pi extraction failed in ExtendedGrammarProposer: {e}")
+
+        cands = self.propose_candidates(variables=target_vars)
         return [c["expr"] for c in cands]
 
     def get_pattern_count(self) -> int:

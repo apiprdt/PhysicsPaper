@@ -195,7 +195,7 @@ def _evaluate_delta_array(
         if not free_syms:
             return np.full(n_points, float(expr))
 
-        fn = sp.lambdify(free_syms, expr, modules=["numpy"])
+        fn = sp.lambdify(free_syms, expr, modules=["scipy", "numpy"])
         args = []
         for sym in free_syms:
             name = str(sym)

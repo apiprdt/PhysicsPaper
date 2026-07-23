@@ -10,7 +10,7 @@ already computed by the pipeline.
 """
 
 from dataclasses import dataclass
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 import numpy as np
 
 
@@ -79,6 +79,7 @@ class BayesianReranker:
     def rank(
         self,
         candidates_with_bic: List[Tuple[str, float]],
+        n_candidates: Optional[int] = None,
     ) -> BayesianCorrectionOutput:
         """
         Convert BIC scores to posterior weights.
@@ -86,6 +87,8 @@ class BayesianReranker:
         Args:
             candidates_with_bic: List of (expr_str, bic_score) tuples.
                                   Lower BIC = better fit.
+            n_candidates: Optional active pool size M. If provided, applies
+                          Extended BIC model selection penalty 2*ln(M).
 
         Returns:
             BayesianCorrectionOutput with full posterior distribution.
@@ -95,6 +98,10 @@ class BayesianReranker:
         """
         if not candidates_with_bic:
             raise ValueError("No candidates provided to BayesianReranker")
+
+        if n_candidates is not None and n_candidates > 1:
+            penalty = float(2.0 * np.log(n_candidates))
+            candidates_with_bic = [(expr, score + penalty) for expr, score in candidates_with_bic]
 
         # Sort by BIC ascending (lower BIC = better)
         sorted_cands = sorted(candidates_with_bic, key=lambda x: x[1])
