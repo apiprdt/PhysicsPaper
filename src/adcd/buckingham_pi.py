@@ -45,30 +45,41 @@ class BuckinghamPiEngine:
         """
         Compute independent dimensionless Pi groups.
 
-        Uses exact rational nullspace (SymPy) for clean ratio forms like m/M.
+        Uses exact rational nullspace (SymPy) for clean ratio forms like m/M,
+        with LCM multiplier clearing to prevent exponent truncation.
         """
         if len(self.registry) < 2:
             return []
 
-        names = list(self.registry.keys())
-        dim_matrix = np.array([self.registry[n] for n in names]).T
+        # Filter out purely dimensionless variables ([0,0,0]) from matrix
+        dim_names = [n for n, dim in self.registry.items() if np.any(np.array(dim) != 0)]
+        if len(dim_names) < 2:
+            return self._simple_same_dimension_ratios(list(self.registry.keys()))
+
+        dim_matrix = np.array([self.registry[n] for n in dim_names]).T
         k, n = dim_matrix.shape
 
-        if k >= n:
-            return self._simple_same_dimension_ratios(names)
+        from sympy import Matrix, lcm, Rational
 
-        from sympy import Matrix
-
-        null_vectors = Matrix(dim_matrix.tolist()).nullspace()
-        syms = {name: sp.Symbol(name) for name in names}
+        int_matrix = [[int(x) for x in row] for row in dim_matrix]
+        null_vectors = Matrix(int_matrix).nullspace()
+        syms = {name: sp.Symbol(name) for name in self.registry.keys()}
         pi_groups: List[sp.Expr] = []
 
         for vec in null_vectors:
+            # Find LCM of denominators to make exponents exact integers
+            lcm_denom = 1
+            for exp in vec:
+                if isinstance(exp, Rational):
+                    lcm_denom = lcm(lcm_denom, exp.q)
+            
             factors = []
-            for name, exp in zip(names, vec):
+            for name, exp in zip(dim_names, vec):
                 if exp == 0:
                     continue
-                factors.append(syms[name] ** int(exp))
+                int_exp = int(exp * lcm_denom)
+                if int_exp != 0:
+                    factors.append(syms[name] ** int_exp)
             if not factors:
                 continue
             pi_expr = sp.simplify(sp.Mul(*factors))
@@ -77,7 +88,7 @@ class BuckinghamPiEngine:
                 pi_groups.append(pi_expr)
 
         if not pi_groups:
-            pi_groups = self._simple_same_dimension_ratios(names)
+            pi_groups = self._simple_same_dimension_ratios(list(self.registry.keys()))
 
         return pi_groups
 

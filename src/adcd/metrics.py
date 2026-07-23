@@ -164,6 +164,18 @@ def bic_score(nmse: float, n_params: int, n_points: int) -> float:
     return float(-2 * log_likelihood + n_params * np.log(n_points))
 
 
+def extended_bic_score(nmse: float, n_params: int, n_points: int, n_candidates: int = 1) -> float:
+    """Computes Extended BIC score with model selection penalty 2*ln(M).
+
+    BIC_ext = N * ln(NMSE) + k * ln(N) + 2 * ln(M)
+    where M = n_candidates evaluated in the active candidate pool.
+    When n_candidates = 1, reduces identically to standard BIC score.
+    """
+    base_bic = bic_score(nmse, n_params, n_points)
+    m_penalty = float(2.0 * np.log(max(1, n_candidates)))
+    return base_bic + m_penalty
+
+
 def _evaluate_delta_array(
     expr_str: str,
     X: Dict[str, np.ndarray],
