@@ -1,0 +1,103 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Supplementary Appendix: ADCD},
+}
+
+\title{\textbf{Supplementary Appendix: Anomaly-Driven Correction Discovery (ADCD)}}
+\author{Muhammad Afif Erdita}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+
+\appendix
+
+\section{Extended Cross-Validation: Wide-Binary Stars}
+\label{app:wide-binary}
+
+This appendix reports an exploratory cross-system test of the SPARC-discovered
+interpolating function. It is placed in the supplementary material,
+rather than the main results, because the underlying wide-binary dataset is the
+subject of an unresolved observational controversy (Chae vs.\ Banik et al.). We present it as exploratory
+cross-validation, not as a definitive validation of the SPARC-discovered form.
+
+\paragraph{Setup.}
+Wide-binary stars (separations $10^3$--$10^4$~AU) probe gravity in a
+low-acceleration regime ($g_N \lesssim a_0$) analogous to the outer parts of
+galaxies. The classical baseline is Newtonian two-body gravity; the predicted
+velocity boost under a MOND-type interpolating function $\nu(x)$ is
+$\gamma_v \equiv v_{\rm obs}/v_{\rm Newtonian} = \sqrt{\nu(x)}$, where
+$x = g_N/a_0$ depends on separation and total mass. We evaluate the
+SPARC-discovered ADCD form $\nu_{\rm ADCD}(x) = \theta_0(\sqrt{1+\theta_1/x}-1)+1$
+with $\hat\theta_0 \approx 1.83$, $\hat\theta_1 \approx 0.262$ (the
+SPARC-fitted values, \emph{with no refitting to wide-binary data}), against
+the canonical Simple MOND, Standard MOND, and RAR forms, for a $1.5\,M_\odot$
+total-mass system across $s \in [7,30]$~kAU;
+\Cref{fig:wide_binary} plots the resulting $\gamma_v(s)$ curves against
+Chae's observed band.
+
+\paragraph{Result.}
+\Cref{tab:wide_binary} reports the predicted velocity boost and the
+$\sigma$-distance from Chae's observed $\gamma_v = 1.20 \pm 0.06$.
+Three observations emerge:
+\begin{enumerate}
+    \item \emph{Simple MOND and RAR dramatically overshoot} the observed boost
+    at $s>15$~kAU, reaching $5$--$13\sigma$ discrepancies at $s=30$~kAU.
+    \item The SPARC-discovered ADCD form ($c\approx 0.27$) is \emph{more
+    consistent} with observations at $s=10$--$15$~kAU than Simple/RAR, but
+    itself diverges ($+8.4\sigma$) at $s=30$~kAU.
+    \item \emph{No single interpolating function simultaneously optimizes both
+    datasets.} The SPARC-optimized form with $c\approx 0.27$ does not
+    unambiguously generalize to wide-binary kinematics.
+\end{enumerate}
+
+\input{generated/tab_wide_binary}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig_wide_binary.pdf}
+\caption{Wide-binary predicted velocity boost $\gamma_v=\sqrt{\nu(x)}$ versus
+separation $s$ (lower axis) and dimensionless acceleration $x=g_N/a_0$ (upper
+axis), for the SPARC-discovered ADCD form ($c\approx 0.27$, no refit) versus
+Simple MOND, Standard MOND, and RAR. The shaded band is Chae's
+observed $\gamma_v=1.20\pm0.06$.}
+\label{fig:wide_binary}
+\end{figure}
+
+\paragraph{Caveats.}
+The wide-binary anomaly itself remains controversial (Banik et al.\ 2024 vs.\ Chae 2023). We report the
+cross-validation to document the generalization behaviour of the SPARC-discovered
+form and disclose honestly that it does \emph{not} transfer unambiguously to an independent stellar-kinematic dataset.
+
+\section{Granular Robustness and Secondary Tables}
+\label{app:secondary_tables}
+
+\input{generated/tab_multi_seed}
+\input{generated/tab_sparc_robustness}
+\input{generated/tab_sparc_fitted}
+\input{generated/tab_template_leakage}
+\input{generated/tab_pulsar_sensitivity}
+
+\end{document}

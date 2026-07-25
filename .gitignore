@@ -21,6 +21,7 @@ paper/*.fdb_latexmk
 paper/*.bbl
 paper/*.blg
 paper/*.run.xml
+paper/*.txt
 # Also cover paper subdirectories (e.g. paper/workshop/)
 paper/**/*.aux
 paper/**/*.log
@@ -105,9 +106,7 @@ results/
 # Paper PNG duplicates (LaTeX uses PDF)
 paper/figures/*.png
 
-# GitHub community files (not needed for paper source bundle), but
-# keep CI + PyPI workflows tracked — they are required for the live
-# repo to run tests and publish releases. Ignore only the templates.
+# GitHub community files (not needed for paper source bundle)
 .github/ISSUE_TEMPLATE/
 .github/PULL_REQUEST_TEMPLATE.md
 CONTRIBUTING.md

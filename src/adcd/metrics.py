@@ -207,6 +207,11 @@ def _evaluate_delta_array(
         return np.zeros(n_points)
 
 
+# PERINGATAN UNTUK EDITOR MANA PUN (manusia atau AI):
+# JANGAN PERNAH meng-OR nmse_full ke dalam kriteria class_match.
+# nmse_full nyaris selalu kecil pada correction-first karena baseline
+# mendominasi — ini membuatnya jalan pintas palsu untuk PASS.
+# Lihat ADCD_Metric_Integrity_Hardening_Plan.md Bagian 1 untuk histori lengkap.
 def evaluate_correction(
     discovered_expr_str: str,
     scenario,
@@ -239,7 +244,6 @@ def evaluate_correction(
     # 2. Structural classification
     true_cls = scenario.correction_class
     disc_cls = classify_structure(discovered_expr, theta_fit)
-    class_match = (true_cls == disc_cls)
 
     # 3. AST Levenshtein Distance
     seq_disc = get_ast_tokens(discovered_expr)
@@ -272,12 +276,27 @@ def evaluate_correction(
     mse_full = np.mean((y_recon - y_obs) ** 2)
     nmse_full = _nmse(mse_full, y_obs)
 
+    # --------------------------------------------------------------------------------------
+    # CRITICAL METRIC HARDENING (Audit v3 - Physically Viable Threshold):
+    # Kriteria PRIMER untuk class_match/"discovery": HANYA nmse_res yang menentukan (< 0.20).
+    # Ini SATU-SATUNYA metrik yang mengisolasi kualitas koreksi itu sendiri (variance explained >= 80%),
+    # terpisah dari seberapa besar baseline sudah mendominasi data. HANYA nmse_res, ZERO OR-logic!
+    # --------------------------------------------------------------------------------------
+    RESIDUAL_NMSE_THRESHOLD = 0.20
+    is_genuinely_good_fit = bool(nmse_res < RESIDUAL_NMSE_THRESHOLD)
+
+    class_match = bool(
+        (true_cls == disc_cls)
+        and is_genuinely_good_fit
+        and bool(discovered_expr_str.strip())
+    )
+
+    # nmse_full TETAP dihitung dan dilaporkan sebagai kolom diagnostik TERPISAH.
+    # ATURAN KERAS: nmse_full TIDAK PERNAH dipakai untuk meng-OR atau menggantikan
+    # kriteria class_match, dalam bentuk apa pun, di file manapun.
+    diagnostic_full_reconstruction_ok = bool(nmse_full < RESIDUAL_NMSE_THRESHOLD)
+
     # 5. Parameter recovery error
-    # Match fitted thetas to scenario correction_constants
-    # Note: Because the naming index might differ (e.g. theta_0 fit maps to theta_0 true), 
-    # we map them in ascending order of their names:
-    # Sorted true thetas: e.g. ["theta_0", "theta_1"]
-    # Sorted fit thetas: e.g. ["theta_0", "theta_1"]
     sorted_true_keys = sorted(scenario.correction_constants.keys())
     sorted_fit_keys = sorted([k for k in theta_fit.keys() if k.startswith("theta_")])
     
@@ -288,7 +307,6 @@ def evaluate_correction(
             true_v = scenario.correction_constants[true_k]
             fit_v = theta_fit[fit_k]
             
-            # Compute percentage absolute difference
             if abs(true_v) > 1e-15:
                 err = abs(fit_v - true_v) / abs(true_v)
             else:

@@ -57,6 +57,11 @@ def run_scenario_benchmark(scenario: AnomalyScenario, noise_level: float, max_it
             raise ValueError("GEMINI_API_KEY environment variable is required for Hybrid proposer.")
         from adcd.llm_proposer import HybridCorrectionProposer
         proposer = HybridCorrectionProposer(api_key=api_key, seed=42)
+    elif proposer_type in ("extended", "extended_grammar"):
+        from adcd.extended_grammar import ExtendedGrammarProposer, MultiProposer
+        base_mock = CorrectionMockProposer(seed=seed, extended=extended)
+        ext_prop = ExtendedGrammarProposer()
+        proposer = MultiProposer([base_mock, ext_prop])
     else:
         raise ValueError(f"Unknown proposer type: {proposer_type}")
     

@@ -53,3 +53,28 @@ def test_evaluate_delta_array_matches_manual():
     )
     assert np.all(delta > 0)
     assert np.all(np.isfinite(delta))
+
+
+def test_no_full_nmse_backdoor():
+    """
+    Pengaman permanen — mencegah regresi celah OR-logic yang ditemukan
+    di audit v3 (2026). Residual NMSE buruk TIDAK BOLEH lolos class_match
+    hanya karena Full NMSE kecil.
+    """
+    scenario = get_real_scenarios()[0]
+    X, y_obs, y_classical, _ = scenario.generate_data()
+    
+    # Pass a dummy expression with terrible residual fit (nmse_res = 1.0)
+    ev = evaluate_correction(
+        "theta_0 * vc2",
+        scenario,
+        X,
+        y_obs,
+        y_classical,
+        {"theta_0": 0.0}, # theta_0 = 0 -> zero prediction -> nmse_res = 1.0
+    )
+    assert ev.nmse_residual >= 0.99
+    assert ev.class_match is False, (
+        "REGRESI TERDETEKSI: nmse_res >= 0.10 tetap lolos class_match. "
+        "Cek apakah 'and' di is_genuinely_good_fit tertukar kembali jadi 'or'."
+    )

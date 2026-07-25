@@ -122,3 +122,27 @@ class BuckinghamPiEngine:
             ratios.append(pi / theta)
             ratios.append(pi * theta)
         return ratios
+
+    def verify_pi_group_values(self, pi_expr: sp.Expr, X: Dict[str, np.ndarray]) -> bool:
+        """
+        PENGAMAN WAJIB (Plan 2D v3): Verifikasi rentang nilai Pi-group
+        masuk akal (order-unity / maksum 10^6 dynamic range).
+        Returns True if range is valid, otherwise raises ValueError.
+        """
+        free_syms = [str(s) for s in pi_expr.free_symbols if str(s) in X]
+        if not free_syms:
+            return True
+            
+        fn = sp.lambdify([sp.Symbol(s) for s in free_syms], pi_expr, modules=["numpy"])
+        pi_vals = np.asarray(fn(*[X[s] for s in free_syms]), dtype=float)
+        
+        log_vals = np.log10(np.abs(pi_vals) + 1e-300)
+        log_range = float(np.max(log_vals) - np.min(log_vals))
+        
+        if log_range > 6.0 or float(np.max(np.abs(log_vals))) > 15.0:
+            raise ValueError(
+                f"Pi-group '{pi_expr}' rentangnya tidak wajar (log10 range={np.min(log_vals):.1f} "
+                f"hingga {np.max(log_vals):.1f}). Kemungkinan konstanta referensi salah pilih "
+                f"atau reduksi dimensi gagal. JANGAN lanjut ke optimizer sebelum ini diperbaiki."
+            )
+        return True

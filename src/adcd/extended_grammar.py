@@ -68,6 +68,18 @@ class ExtendedGrammarProposer(BaseProposer):
             physical_justification="Logarithmic potential / NFW dark matter halo density profile",
             domain="halo_density",
         ),
+        FunctionalPattern(
+            name="composite_poly_exp",
+            template_str="theta_0 * {var} * exp(-theta_1 * {var})",
+            physical_justification="Composite polynomial-exponential damping / Wien-style energy density peak",
+            domain="composite_damping",
+        ),
+        FunctionalPattern(
+            name="composite_rational",
+            template_str="theta_0 * ({var} / (theta_1 + {var}))",
+            physical_justification="Rational saturation profile / Langmuir adsorption & Michaelis-Menten kinetics",
+            domain="rational_saturation",
+        ),
     ]
 
     def __init__(self, patterns: Optional[List[FunctionalPattern]] = None) -> None:

@@ -203,9 +203,27 @@ def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
         
         # Evaluate limit of leading term as eps -> 0+
         resolved_val = sp.limit(leading, eps, 0, dir='+')
-        return resolved_val
+        if resolved_val is not None and resolved_val not in (sp.oo, -sp.oo, sp.zoo):
+            return resolved_val
     except Exception as e:
         logger.debug(f"Laurent series fallback failed: {e}")
+
+    # 4. High-Precision Numerical Fallback (for complex transcendental functions like atan/tanh/erf)
+    try:
+        theta_map = {s: 1.0 for s in candidate.free_symbols if str(s).startswith("theta_")}
+        eval_expr = candidate.subs(theta_map)
+        
+        if limit_target == sp.oo:
+            val_near = float(eval_expr.subs(variable, 1e6).evalf())
+        elif limit_target == -sp.oo:
+            val_near = float(eval_expr.subs(variable, -1e6).evalf())
+        else:
+            val_near = float(eval_expr.subs(variable, float(limit_target) + 1e-6).evalf())
+            
+        if np.isfinite(val_near):
+            return sp.Float(round(val_near, 6))
+    except Exception:
+        pass
 
     return res
 

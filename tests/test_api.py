@@ -146,37 +146,41 @@ def test_api_key_validation():
             os.environ["GEMINI_API_KEY"] = old_key
 
 
-def test_plot_residuals_no_crash():
-    """Verify that plot_residuals generates matplotlib plot without raising errors."""
-    import matplotlib
-    matplotlib.use('Agg')  # headless backend for tests
+def test_plot_residuals_no_crash(tmp_path):
+    """Test plot_residuals() visualization method."""
+    from adcd.anomaly_scenarios import get_all_scenarios
+    from adcd.correction_orchestrator import CorrectionSearchResult
+    from adcd.result import ADCDResult
+
+    scenario = get_all_scenarios()[0]
+    X, y_obs, y_classical, residual = scenario.generate_data(n_points=30, seed=42)
     
-    x = np.linspace(1.0, 5.0, 20)
-    X = {"x": x}
-    y_classical = x
-    y_obs = x + 0.2 * x**2
+    search_res = CorrectionSearchResult(
+        best_expr="0.75 * (v / c)**2",
+        best_nmse_residual=0.01,
+        best_nmse_full=0.001,
+        best_theta={"theta_0": 0.75},
+        history=[],
+        total_candidates_proposed=10,
+        total_candidates_survived_stage1=5,
+        total_time_seconds=0.5,
+        converged=True
+    )
     
-    result = adcd.fit(
+    result = ADCDResult(
+        search_result=search_res,
+        scenario=scenario,
         X=X,
         y_obs=y_obs,
-        y_classical=y_classical,
-        max_iterations=1,
-        proposer="mock",
-        verbose=False,
+        y_classical=y_classical
     )
     
     # Simply verify calling it doesn't crash
     result.plot_residuals()
     
-    import tempfile
-    tmp_dir = tempfile.gettempdir()
-    tmp_path = os.path.join(tmp_dir, "test_residual_plot.png")
-    try:
-        result.plot_residuals(save_path=tmp_path)
-        assert os.path.exists(tmp_path)
-    finally:
-        if os.path.exists(tmp_path):
-            os.remove(tmp_path)
+    out_file = str(tmp_path / "test_residual_plot.png")
+    result.plot_residuals(save_path=out_file)
+    assert os.path.exists(out_file)
 
 
 def test_fit_multivar():
