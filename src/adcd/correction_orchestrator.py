@@ -161,7 +161,10 @@ class CorrectionOrchestrator:
         if scenario.correction_type == "multiplicative":
             target_dim_key = "dimensionless"
         else:
-            target_dim_key = scenario.classical_expr
+            limit_var = scenario.classical_limit_variable
+            target_dim_key = scenario.variables_with_units.get(limit_var, "dimensionless")
+            if target_dim_key not in self.pipeline.checker.registry and target_dim_key != "dimensionless":
+                target_dim_key = "dimensionless"
             
         # Global search state tracking
         best_expr: str = ""

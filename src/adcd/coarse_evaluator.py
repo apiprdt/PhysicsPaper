@@ -53,6 +53,10 @@ class CoarseEvaluator:
             elif name in self.constants:
                 # Broadcast constant value to match the data shape
                 args.append(np.full(self.data_shape, self.constants[name]))
+            elif name.startswith("theta_"):
+                # Parameter symbol: substitute default 1.0 for coarse evaluation
+                args.append(np.full(self.data_shape, 1.0))
+                has_params = True
             else:
                 # Unknown variable/constant in expression -> hard failure
                 return float('inf'), float('inf')

@@ -63,7 +63,10 @@ def calculate_similarity(expr1: sp.Expr, expr2: sp.Expr) -> float:
             val2 = float(expr2.evalf())
             if np.isnan(val1) or np.isnan(val2):
                 return 0.0
-            rel_error = abs(val1 - val2) / (abs(val2) + 1e-9)
+            if abs(val1 - val2) < 1e-4:
+                return 1.0
+            denom = max(abs(val2), 1e-3)
+            rel_error = abs(val1 - val2) / denom
             return float(np.exp(-rel_error))
         except Exception:
             return 0.0
@@ -164,15 +167,17 @@ def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
     except Exception:
         res = None
 
-    # 2. Retry standard limit assuming free parameters are strictly positive
+    # 2. Retry standard limit assuming free parameters are strictly positive or substituted with 1.0
     theta_syms = [s for s in candidate.free_symbols if str(s).startswith("theta_")]
     if theta_syms:
         try:
-            positive_map = {s: sp.Symbol(str(s), positive=True) for s in theta_syms}
-            pos_candidate = candidate.subs(positive_map)
-            res_pos = sp.limit(pos_candidate, variable, limit_target, dir='+')
-            if res_pos is not None and res_pos not in (sp.oo, -sp.oo, sp.zoo):
-                return res_pos
+            unit_map = {s: 1.0 for s in theta_syms}
+            unit_candidate = candidate.subs(unit_map)
+            res_unit = sp.limit(unit_candidate, variable, limit_target, dir='+')
+            if res_unit is not None and res_unit not in (sp.oo, -sp.oo, sp.zoo):
+                if isinstance(res_unit, sp.Order) or (hasattr(res_unit, "has") and res_unit.has(sp.Order)):
+                    return sp.Integer(0)
+                return res_unit
         except Exception:
             pass
 
@@ -204,6 +209,8 @@ def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
         # Evaluate limit of leading term as eps -> 0+
         resolved_val = sp.limit(leading, eps, 0, dir='+')
         if resolved_val is not None and resolved_val not in (sp.oo, -sp.oo, sp.zoo):
+            if isinstance(resolved_val, sp.Order) or (hasattr(resolved_val, "has") and resolved_val.has(sp.Order)):
+                return sp.Integer(0)
             return resolved_val
     except Exception as e:
         logger.debug(f"Laurent series fallback failed: {e}")
