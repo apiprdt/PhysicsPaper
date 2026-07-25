@@ -22,13 +22,13 @@
 
 ## 📌 Overview
 
-**ADCD (Anomaly-Driven Correction Discovery)** is a physics-informed symbolic regression framework designed for theory refinement rather than unconstrained tabula rasa discovery. By starting from a known classical baseline law $y_{\text{classical}}$, ADCD targets the dimensionless correction term $\Delta$ ($y = y_{\text{classical}}(1+\Delta)$ or $y = y_{\text{classical}} + \Delta$).
+**ADCD (Anomaly-Driven Correction Discovery)** is a physics-informed symbolic regression framework designed for theory refinement rather than unconstrained tabula rasa discovery. By starting from a known classical baseline law `y_classical`, ADCD targets the dimensionless correction term `Δ` (`y = y_classical * (1 + Δ)` or `y = y_classical + Δ`).
 
 ### Core Claims of the Paper:
-1. **Primary Benchmark Performance**: Achieves a mean structural recovery rate of **80.4% ($\pm$7.4%)** across 16 independent seeds on a 9-scenario $\times$ 4-noise-level synthetic benchmark (outperforming unconstrained PySR by 77.8 percentage points at 5% noise).
-2. **SPARC Real Astrophysical Discovery**: Autonomously rediscovers a 2-parameter member of the **Simple MOND** algebraic family on 171 galaxy rotation curves ($N=3,342$, stacked $\text{NMSE}=0.3729$, statistically matching domain-expert forms under galaxy-level cross-validation and cluster bootstrap).
+1. **Primary Benchmark Performance**: Achieves a mean structural recovery rate of **80.4% (± 7.4%)** across 16 independent seeds on a 9-scenario × 4-noise-level synthetic benchmark (outperforming unconstrained PySR by 77.8 percentage points at 5% noise).
+2. **SPARC Real Astrophysical Discovery**: Autonomously rediscovers a 2-parameter member of the **Simple MOND** algebraic family on 171 galaxy rotation curves (N = 3,342, stacked NMSE = 0.3729, statistically matching domain-expert forms under galaxy-level cross-validation and cluster bootstrap).
 3. **Execution Speed**: Completes full-pipeline search and optimization in **4.2s – 4.9s** per run on consumer-grade dual-core CPUs without requiring GPUs.
-4. **Fail-Safe & Cosmological Null**: Demonstrates a **0.0% false positive rate** under baseline misspecifications, and establishes a `constant_wins` amplitude-rescaling null result on cosmological $f\sigma_8(z)$ and $H(z)$ probes.
+4. **Fail-Safe & Cosmological Null**: Demonstrates a **0.0% false positive rate** under baseline misspecifications, and establishes a `constant_wins` amplitude-rescaling null result on cosmological fσ₈(z) and H(z) probes.
 
 ---
 
