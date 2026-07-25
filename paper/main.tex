@@ -106,6 +106,8 @@ Symbolic regression for physics has evolved along two primary axes: tabula rasa 
 \end{tabularx}
 \end{table}
 
+Physical unit priors have recently emerged as a highly effective inductive bias for symbolic equation discovery, most prominently pioneered by Tenachi et al. (2023)~\cite{tenachi2023physo} in the \textsc{PhySO} framework, which enforces dimensional consistency in situ during deep reinforcement learning expression generation. ADCD builds upon and complements this physical unit paradigm: while \textsc{PhySO} tackles full tabula rasa equation discovery via RL-guided token search, ADCD focuses specifically on automated \emph{anomaly-driven correction discovery} $\Delta(X; \theta)$ around established laws, augmenting dimensional guardrails with Asymptotic Regime Consistency (ARC) limit constraints ($\lim \Delta \to 0$) to isolate physical corrections in seconds on standard CPU hardware.
+
 
 
 \section{The ADCD Framework}
@@ -216,7 +218,14 @@ To bias the proposer towards the correct mathematical families, ADCD detrends an
 These features form a structural prior that upweights specific template families (e.g. upweighting exponential templates if monotonicity and decay rates are high).
 
 \subsection{Cascaded Physics Gates (Stage 1)}
-To enforce physical laws on discovered candidates, proposed correction formulas $\Delta(X; \theta)$ are passed through three cascading screening filters:
+To enforce physical laws on discovered candidates, proposed correction formulas $\Delta(X; \theta)$ are passed through three cascading screening filters (\Cref{fig:adcd_cascaded_gates}):
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig_adcd_cascaded_gates.pdf}
+\caption{Empirical Candidate Screening Funnel across ADCD's 3-stage physics gates. Building upon physical unit priors pioneered by Tenachi et al. (2023)~\cite{tenachi2023physo}, ADCD combines AST complexity bounds, dimensional unit guardrails, and ARC asymptotic limit constraints to systematically prune unphysical mathematical candidates prior to non-linear parameter optimization.}
+\label{fig:adcd_cascaded_gates}
+\end{figure}
 \begin{enumerate}
     \item \textbf{AST Complexity Gate}: Rejects algebraic expressions with a SymPy Abstract Syntax Tree (AST) depth exceeding $7$ or total tokens exceeding $20$. This acts as a coarse complexity regularizer.
     \item \textbf{Dimensional Homogeneity and Transcendental Guardrail}: Verifies that the correction term $\Delta$ is strictly dimensionless. Physical variables $x \in X$ with units $[M^a L^b T^c]$ must enter the formula inside dimensionless ratios (e.g., $v/c$, $r/\theta_1$, or $T/\theta_0$). As a sub-check, transcendental functions ($\sin, \cos, \exp, \log, \tanh$) can only accept mathematically dimensionless arguments; any expression containing a dimensioned argument (e.g., $\exp(-r)$ without a scaling length $\theta_1$) is instantly blocked.
