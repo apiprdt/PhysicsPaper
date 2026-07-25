@@ -141,9 +141,10 @@ def run_fase0():
                 "gamma_true":     gamma_true,
                 "mean_error_pct": float(np.mean(errs)),
                 "max_error_pct":  float(np.max(errs)),
-                "n_failed":       sum(1 for r in records
-                                     if r["scenario"] == scenario.name
-                                     and r["gamma_est"] is None),
+                "n_failed": sum(
+                    1 for r in records
+                    if r["scenario"] == scenario.name and r["gamma_est"] is None
+                ),
                 "n_total":        len(NOISE_LEVELS) * len(SEEDS),
             }
 

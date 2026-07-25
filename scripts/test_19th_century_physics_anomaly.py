@@ -21,11 +21,7 @@ Scenarios Tested:
 """
 
 import numpy as np
-import pandas as pd
-import jax
-import jax.numpy as jnp
-from adcd import fit, discover_correction, get_all_scenarios
-from adcd.anomaly_scenarios import AnomalyScenario
+from adcd import fit
 
 def run_stokes_cunningham_discovery():
     print("=" * 75)

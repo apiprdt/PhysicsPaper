@@ -44,28 +44,28 @@ def _class_match_rate(results, noise=None, tier=None):
 
 
 def _aggregate_gate_stats(results):
-  totals = {
-      "input_count": 0,
-      "parse_fail": 0,
-      "ast_reject": 0,
-      "dim_reject": 0,
-      "transcendental_reject": 0,
-      "arc_reject": 0,
-      "coarse_reject": 0,
-      "output_count": 0,
-      "proposed": 0,
-      "survived_stage1": 0,
-      "optimized": 0,
-  }
-  for r in results:
-      gs = r.get("gate_stats") or {}
-      for k in ("input_count", "parse_fail", "ast_reject", "dim_reject",
-                "transcendental_reject", "arc_reject", "coarse_reject", "output_count"):
-          totals[k] += gs.get(k, 0)
-      totals["proposed"] += r.get("total_candidates_proposed", 0)
-      totals["survived_stage1"] += r.get("total_candidates_survived_stage1", 0)
-      totals["optimized"] += r.get("total_candidates_optimized", 0)
-  return totals
+    totals = {
+        "input_count": 0,
+        "parse_fail": 0,
+        "ast_reject": 0,
+        "dim_reject": 0,
+        "transcendental_reject": 0,
+        "arc_reject": 0,
+        "coarse_reject": 0,
+        "output_count": 0,
+        "proposed": 0,
+        "survived_stage1": 0,
+        "optimized": 0,
+    }
+    for r in results:
+        gs = r.get("gate_stats") or {}
+        for k in ("input_count", "parse_fail", "ast_reject", "dim_reject",
+                  "transcendental_reject", "arc_reject", "coarse_reject", "output_count"):
+            totals[k] += gs.get(k, 0)
+        totals["proposed"] += r.get("total_candidates_proposed", 0)
+        totals["survived_stage1"] += r.get("total_candidates_survived_stage1", 0)
+        totals["optimized"] += r.get("total_candidates_optimized", 0)
+    return totals
 
 
 def generate():

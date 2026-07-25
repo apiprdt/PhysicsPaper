@@ -294,7 +294,6 @@ def evaluate_correction(
     # nmse_full TETAP dihitung dan dilaporkan sebagai kolom diagnostik TERPISAH.
     # ATURAN KERAS: nmse_full TIDAK PERNAH dipakai untuk meng-OR atau menggantikan
     # kriteria class_match, dalam bentuk apa pun, di file manapun.
-    diagnostic_full_reconstruction_ok = bool(nmse_full < RESIDUAL_NMSE_THRESHOLD)
 
     # 5. Parameter recovery error
     sorted_true_keys = sorted(scenario.correction_constants.keys())

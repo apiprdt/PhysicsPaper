@@ -145,9 +145,9 @@ if real:
         print(f"  {flag} {label:<14}: {actual}/{n_total}  (paper claims {expected}/{n_total})")
         all_ok &= passed
 
-    print(f"\n  Per-scenario breakdown:")
+    print("\n  Per-scenario breakdown:")
     for r in established:
-        conv_flag   = "conv:Y " if r["nmse_residual"] < CONVERGENCE_NMSE  else "conv:N "
+        conv_flag = "conv:Y " if r["nmse_residual"] < CONVERGENCE_NMSE else "conv:N "
         quant_flag  = "quant:Y" if r["nmse_full"]     < QUANTITATIVE_NMSE else "quant:N"
         struct_flag = "struct:Y" if r["class_match"] else "struct:N"
         print(f"    {r['scenario'].replace('Real: ', ''):<25} "

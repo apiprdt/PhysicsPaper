@@ -22,7 +22,6 @@ Usage:
 import argparse
 import shutil
 import subprocess
-import sys
 import tempfile
 import warnings
 from pathlib import Path

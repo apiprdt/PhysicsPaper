@@ -11,7 +11,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 import numpy as np
-import sympy as sp
 
 from adcd.extended_grammar import ExtendedGrammarProposer
 from adcd.metrics import extended_bic_score

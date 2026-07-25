@@ -9,7 +9,6 @@ from pathlib import Path
 # Ensure project src is on PYTHONPATH
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-import numpy as np
 from adcd.experiments.sparc_data import load_sparc_stack
 from adcd.experiments.sparc_stacking import plot_sparc_results
 
