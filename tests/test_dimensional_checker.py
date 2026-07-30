@@ -41,25 +41,26 @@ def test_ast_bloat_control():
     bloated_formula = "0.5 * m * v**2 + m * v**3 / c - m * v**4 / c**2 + r / t"
     assert validator.verify(bloated_formula) is False
 
-def test_dynamic_thresholding():
-    validator = ASTValidator(max_depth=1, max_tokens=1)  # Strict limits
-    
-    # 0.5 * m * v**2 fails under strict limits
-    assert validator.verify("0.5 * m * v**2") is False
-    
-    # Dynamically set threshold based on Kinetic Energy target + 5 tokens, + 2 depth
-    # N_target = 7 tokens, D_target = 3 depth -> Max Tokens = 12, Max Depth = 5
-    validator.set_threshold_relative_to("0.5 * m * v**2", delta_tokens=5, delta_depth=2)
-    
-    # Now it passes!
-    assert validator.verify("0.5 * m * v**2") is True
-    
-    # A slightly larger but acceptable candidate passes
-    assert validator.verify("0.5 * m * v**2 + m") is True
-    
-    # A bloated formula still fails
+def test_static_thresholding():
+    """
+    Verify that ASTValidator correctly enforces complexity limits set at
+    construction time.  (Dynamic threshold-from-oracle was removed — see
+    dimensional_checker.py for rationale.)
+    """
+    # Strict limits: kinetic energy formula must fail
+    validator_strict = ASTValidator(max_depth=1, max_tokens=1)
+    assert validator_strict.verify("0.5 * m * v**2") is False
+
+    # Generous limits set at construction: kinetic energy must pass
+    validator_generous = ASTValidator(max_depth=5, max_tokens=12)
+    assert validator_generous.verify("0.5 * m * v**2") is True
+
+    # A slightly larger but acceptable candidate passes under generous limits
+    assert validator_generous.verify("0.5 * m * v**2 + m") is True
+
+    # A bloated formula fails even under generous limits
     bloated_formula = "0.5 * m * v**2 + m * v**3 / c - m * v**4 / c**2 + r / t"
-    assert validator.verify(bloated_formula) is False
+    assert validator_generous.verify(bloated_formula) is False
 
 
 def test_validate_transcendental_args():

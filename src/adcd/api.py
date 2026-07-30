@@ -35,10 +35,12 @@ class CustomAnomalyScenario:
         limit_direction: str,
         variables_with_units: Optional[Dict[str, str]] = None,
         name: str = "Custom Dataset Run",
+        domain: str = "custom",
+        tier: str = "custom",
     ):
         self.name = name
-        self.tier = "custom"
-        self.domain = "custom"
+        self.tier = tier
+        self.domain = domain
         self.classical_expr = classical_expr
         self.classical_variables = list(X.keys())
         self.classical_constants = {}
@@ -84,6 +86,8 @@ def fit(
     seed: int = 42,
     scenario_name: str = "Custom Dataset Run",
     log_param: bool = False,
+    domain: str = "custom",
+    tier: str = "custom",
 ) -> ADCDResult:
     """
     Fit a physical correction term to an observed anomaly dataset.
@@ -163,6 +167,8 @@ def fit(
         limit_direction=limit_dir_str,
         variables_with_units=variables_with_units,
         name=scenario_name,
+        domain=domain,
+        tier=tier,
     )
     
     # 5. Build proposer
@@ -256,8 +262,8 @@ def discover_correction(
     """
     # Generate scenario data
     X, y_obs, y_classical, _ = scenario.generate_data(noise_level=noise_level, seed=seed)
-    
-    # Route directly to fit()
+
+    # Route directly to fit(), preserving the real scenario's domain metadata
     return fit(
         X=X,
         y_obs=y_obs,
@@ -273,4 +279,6 @@ def discover_correction(
         verbose=verbose,
         seed=seed,
         scenario_name=scenario.name,
+        domain=getattr(scenario, 'domain', 'custom'),
+        tier=getattr(scenario, 'tier', 'custom'),
     )

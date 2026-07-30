@@ -8,8 +8,10 @@ version = "3.0.0"
 description = "Anomaly-Driven Correction Discovery: Physics-Constrained Symbolic Regression for Evolutionary Scientific Discovery"
 readme = "README.md"
 license = { text = "MIT" }
+# NOTE FOR REVIEWERS: author metadata is omitted for double-blind review.
+# It will be restored upon acceptance.
 authors = [
-    { name = "Muhammad Afif Erdita", email = "maeapip10@gmail.com" }
+    { name = "Anonymous Author", email = "anonymous@review.invalid" }
 ]
 keywords = ["symbolic regression", "physics", "machine learning", "scientific discovery", "JAX"]
 classifiers = [
@@ -51,11 +53,10 @@ benchmark = [
 ]
 all = ["adcd[dev,llm,benchmark]"]
 
-[project.urls]
-Homepage = "https://zenodo.org/records/20534940"
-Repository = "https://github.com/apiprdt/PhysicsPaper"
-"Bug Tracker" = "https://github.com/apiprdt/PhysicsPaper/issues"
-DOI = "https://doi.org/10.5281/zenodo.20534940"
+# NOTE: URLs below are omitted for double-blind review and will be restored upon acceptance.
+# Homepage = "https://zenodo.org/records/XXXX"
+# Repository = "https://github.com/ANONYMOUS/ADCD"
+# DOI = "https://doi.org/10.5281/zenodo.XXXX"
 
 [project.scripts]
 adcd = "adcd.cli:main"

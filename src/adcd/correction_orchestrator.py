@@ -377,21 +377,31 @@ class CorrectionOrchestrator:
             history.append(iter_res)
 
             if self.verbose:
-                nmse_str = f"{best_nmse_residual:.2e}" if best_nmse_residual < float('inf') else "  inf  "
-                bic_str = f"{best_bic:.1f}" if best_bic < float('inf') else "  inf  "
+                nmse_str = f"{best_nmse_residual:.2e}" if best_nmse_residual < float('inf') else "inf"
+                bic_str  = f"{best_bic:.1f}"           if best_bic < float('inf')            else "inf"
                 bar_done = int((iteration + 1) / self.max_iterations * 20)
-                bar = "#" * bar_done + "." * (20 - bar_done)
-                print(f"  [{bar}] Iter {iteration + 1}/{self.max_iterations}  "
-                      f"Candidates: {n_proposed:>3} proposed / {n_survived:>2} passed gates  "
-                      f"NMSE: {nmse_str}  BIC: {bic_str}")
+                bar      = "#" * bar_done + "." * (20 - bar_done)
+                expr_display = best_expr if len(best_expr) <= 32 else best_expr[:29] + "..."
+                gate_pct = f"{n_survived/n_proposed*100:.0f}%" if n_proposed else "n/a"
+                print(
+                    f"  [{bar}] Iter {iteration+1}/{self.max_iterations}"
+                    f"  |  {n_proposed} proposed -> {n_survived} passed ({gate_pct})"
+                    f"  |  NMSE: {nmse_str}  BIC: {bic_str}"
+                    f"  |  best: {expr_display}"
+                )
 
             # Early convergence check
             if best_nmse_residual < self.convergence_nmse:
                 best_n_params = len([k for k in best_theta.keys() if k.startswith("theta_")])
                 if best_n_params <= 1:
                     if self.verbose:
-                        print(f"\n  \u2714  Converged at iteration {iteration + 1}  "
-                              f"(NMSE = {best_nmse_residual:.2e} < threshold {self.convergence_nmse:.2e})")
+                        from adcd.display import fit_quality, r_squared
+                        ql, _ = fit_quality(best_nmse_residual)
+                        r2 = r_squared(best_nmse_residual) * 100
+                        print(
+                            f"\n  [CONVERGED] Iteration {iteration+1}  "
+                            f"|  NMSE = {best_nmse_residual:.2e}  |  R^2 = {r2:.1f}%  |  Quality: {ql}"
+                        )
                     break
 
         total_time = time.time() - start_time

@@ -290,20 +290,7 @@ class ASTValidator:
         except Exception:
             return False
 
-    def set_threshold_relative_to(self, target_expr: Union[str, sp.Expr], delta_tokens: int = 5, delta_depth: int = 2):
-        """
-        Dynamically adjusts the complexity bounds based on a target ground-truth formula.
-        
-        Args:
-            target_expr: The target reference expression.
-            delta_tokens: Token slack to add to the target count.
-            delta_depth: Depth slack to add to the target depth.
-        """
-        try:
-            expr = sp.sympify(target_expr, locals=self.locals) if isinstance(target_expr, str) else target_expr
-            depth = self._get_depth(expr)
-            tokens = len(list(sp.preorder_traversal(expr)))
-            self.max_depth = depth + delta_depth
-            self.max_tokens = tokens + delta_tokens
-        except Exception:
-            pass
+    # NOTE: set_threshold_relative_to() was removed.
+    # Dynamically adjusting complexity bounds from a ground-truth formula
+    # constitutes oracle leakage: the evaluator sees the answer before scoring.
+    # Use the static max_depth / max_tokens constructor arguments instead.

@@ -4,8 +4,6 @@ ADCD — Anomaly-Driven Correction Discovery
 A physics-constrained symbolic regression framework that discovers
 physical correction terms rather than learning equations from scratch.
 
-DOI: 10.5281/zenodo.20534940
-
 Quick Start
 -----------
 >>> import adcd
@@ -15,8 +13,6 @@ Quick Start
 """
 
 __version__ = "3.0.0"
-__author__ = "Muhammad Afif Erdita"
-__email__ = "maeapip10@gmail.com"
 __license__ = "MIT"
 
 # High-level API entries

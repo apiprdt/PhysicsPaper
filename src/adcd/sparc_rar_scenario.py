@@ -9,6 +9,15 @@ Baseline (classical model): Newtonian gravity  =>  g_obs = g_bar
 Anomaly:                     g_obs >> g_bar systematically at low accelerations
 Discovery target:            additive correction delta(g_bar) = g_obs - g_bar
 
+Data Source
+-----------
+SPARC galaxy rotation-curve data (Lelli et al. 2016, AJ 152 157).
+Download the cleaned CSV from:
+  https://zenodo.org/records/20640107  (file: kepler_sparc_clean_v2.csv)
+or set the environment variable ADCD_SPARC_DATA to its local path:
+  export ADCD_SPARC_DATA=/your/path/kepler_sparc_clean_v2.csv
+Default relative path: data/sparc/kepler_sparc_clean_v2.csv
+
 The ADCD GrammarProposer will:
  1. Receive g_bar as a variable with acceleration dimension [m/s^2]
  2. Automatically build the dimensionless ratio  g_bar / theta_k  (theta_k ~ a0)
@@ -16,12 +25,18 @@ The ADCD GrammarProposer will:
  4. Optimize theta_k freely -> discovers a0 from data without any prior
 """
 
-from dataclasses import dataclass
+import os
+from dataclasses import dataclass, field
 from typing import Dict, Tuple
 import numpy as np
 import pandas as pd
 
 from adcd.anomaly_scenarios import AnomalyScenario
+
+_DEFAULT_SPARC_PATH = os.environ.get(
+    "ADCD_SPARC_DATA",
+    os.path.join("data", "sparc", "kepler_sparc_clean_v2.csv"),
+)
 
 
 @dataclass
@@ -31,8 +46,12 @@ class SPARCRARScenario(AnomalyScenario):
 
     Overrides generate_data() to load real SPARC data from the v2 pipeline
     (SI units, proper error budget).
+
+    Set the ADCD_SPARC_DATA environment variable to point to the CSV file,
+    or place it at data/sparc/kepler_sparc_clean_v2.csv relative to the
+    working directory. Download instructions are in the module docstring.
     """
-    data_path: str = r"E:\InternalResearch\data\kepler\kepler_sparc_clean_v2.csv"
+    data_path: str = field(default_factory=lambda: _DEFAULT_SPARC_PATH)
     split: str = "train"
 
     def generate_data(
@@ -69,11 +88,19 @@ class SPARCRARScenario(AnomalyScenario):
 
 
 def build_sparc_rar_scenario(
-    data_path: str = r"E:\InternalResearch\data\kepler\kepler_sparc_clean_v2.csv",
+    data_path: str = None,
     split: str = "train",
 ) -> SPARCRARScenario:
     """
     Construct a fully specified SPARCRARScenario ready for CorrectionOrchestrator.
+
+    Parameters
+    ----------
+    data_path : str, optional
+        Path to the SPARC CSV file. If None, uses ADCD_SPARC_DATA env var or
+        the default relative path data/sparc/kepler_sparc_clean_v2.csv.
+    split : str
+        Dataset split to use ('train' or 'test').
 
     Physics framing
     ---------------
@@ -82,6 +109,8 @@ def build_sparc_rar_scenario(
     - Anomaly regime: g_bar << a0 ~ 1.2e-10 m/s^2  =>  correction ~ sqrt(a0 * g_bar)
     - Correction class: power_law at small x  (MOND asymptote: delta ~ sqrt(a0 * g_bar))
     """
+    if data_path is None:
+        data_path = _DEFAULT_SPARC_PATH
     return SPARCRARScenario(
         # Required AnomalyScenario fields
         name="Real: SPARC Galaxy RAR",
