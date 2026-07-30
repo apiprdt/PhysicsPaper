@@ -43,7 +43,7 @@ Symbolic regression (SR) frameworks such as PySR, AI~Feynman, and PhySO discover
 \section{Introduction}
 \label{sec:intro}
 
-When a classical physical law fails under extreme conditions, the precise scientific question is: ``what is the \emph{minimal correction} to the established law?'' The dominant SR paradigm instead answers a different, harder question: discovering $f(X) \approx y$ from a blank slate. Pioneered by Eureqa~\cite{schmidt2009distilling}, AI~Feynman~\cite{udrescu2020ai}, and PySR~\cite{cranmer2020pysr}, and extended by deep RL approaches such as DSR~\cite{petersen2021deep} and unit-constrained PhySO~\cite{tenachi2023physo}, these systems perform well in low-noise synthetic regimes. Under realistic noise, however, structural recovery collapses. Critically, this collapse is \emph{non-monotonic}: in several scenarios, PySR recovers more correct classes at $10\%$ noise than at $5\%$, indicating that its search is not calibrated to noise level.
+When a classical physical law fails under extreme conditions, the precise scientific question is: ``what is the \emph{minimal correction} to the established law?'' The dominant SR paradigm instead answers a different, harder question: discovering $f(X) \approx y$ from a blank slate. Pioneered by Eureqa~\cite{schmidt2009distilling}, AI~Feynman~\cite{udrescu2020ai}, and PySR~\cite{cranmer2023pysr}, and extended by deep RL approaches such as DSR~\cite{petersen2021deep} and unit-constrained PhySO~\cite{tenachi2023physo}, these systems perform well in low-noise synthetic regimes. Under realistic noise, however, structural recovery collapses. Critically, this collapse is \emph{non-monotonic}: in several scenarios, PySR recovers more correct classes at $10\%$ noise than at $5\%$, indicating that its search is not calibrated to noise level.
 
 This fragility stems from a mismatch in problem formulation. Scientific progress rarely starts from a blank slate; it \emph{corrects} existing models. Relativistic kinetic energy appends $+\frac{3}{4}mv^4/c^2$ to the Newtonian baseline; Debye screening multiplies the Coulomb potential by $e^{-r/\lambda_D}$; MOND modifies Newtonian gravity via a dimensionless interpolating function $\nu(g_{\text{bar}}/a_0)$. In each case, a trusted classical baseline is known, and the discovery task is identifying the minimal physically valid correction $\Delta$.
 
@@ -70,7 +70,7 @@ SR for physical sciences spans \emph{tabula rasa} equation discovery and domain-
 \textbf{Framework} & \textbf{Problem Formulation} & \textbf{Physical Screening} & \textbf{Compute Requirement} & \textbf{Noise Monotonicity} \\
 \midrule
 AI Feynman~\cite{udrescu2020ai} & Tabula rasa ($f(X) \approx y$) & Dimensional / Symmetry & Multi-core CPU / GPU & Non-monotonic \\
-PySR~\cite{cranmer2020pysr} & Tabula rasa ($f(X) \approx y$) & User-defined constraints & Julia multi-core CPU & Non-monotonic \\
+PySR~\cite{cranmer2023pysr} & Tabula rasa ($f(X) \approx y$) & User-defined constraints & Julia multi-core CPU & Non-monotonic \\
 PhySO~\cite{tenachi2023physo} & Tabula rasa ($f(X) \approx y$) & Dimensional Analysis & Deep RL (GPU required) & Moderate \\
 \textbf{ADCD (Ours)} & \textbf{Correction-first ($f_{\text{base}} + \Delta$)} & \textbf{AST + Dim + ARC Limits} & \textbf{Single-core CPU, no GPU} & \textbf{Monotonic} \\
 \bottomrule
@@ -222,10 +222,10 @@ S.~L. Brunton, J.~L. Proctor, and J.~N. Kutz.
 \newblock Discovering governing equations from data by sparse identification of nonlinear dynamical systems.
 \newblock {\em Proceedings of the National Academy of Sciences}, 113(15):3932--3937, 2016.
 
-\bibitem{cranmer2020pysr}
+\bibitem{cranmer2023pysr}
 M.~Cranmer.
-\newblock PySR: Fast \& parallelized symbolic regression in Python/Julia.
-\newblock {\em arXiv preprint arXiv:2009.08295}, 2020.
+\newblock Interpretable machine learning for science with PySR and SymbolicRegression.jl.
+\newblock {\em arXiv preprint arXiv:2305.01582}, 2023.
 
 \bibitem{cranmer2020lagrangian}
 M.~Cranmer, A.~Sanchez-Gonzalez, P.~Battaglia, R.~Xu, K.~Cranmer, D.~Spergel, and S.~Ho.
