@@ -9,9 +9,7 @@ Design principles:
   - One unified output — smart ordering, not two separate calls
 """
 
-import math
-import textwrap
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
 
 # ─────────────────────────────────────────────────────────────────────────────

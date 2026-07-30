@@ -378,9 +378,9 @@ class CorrectionOrchestrator:
 
             if self.verbose:
                 nmse_str = f"{best_nmse_residual:.2e}" if best_nmse_residual < float('inf') else "inf"
-                bic_str  = f"{best_bic:.1f}"           if best_bic < float('inf')            else "inf"
+                bic_str = f"{best_bic:.1f}" if best_bic < float('inf') else "inf"
                 bar_done = int((iteration + 1) / self.max_iterations * 20)
-                bar      = "#" * bar_done + "." * (20 - bar_done)
+                bar = "#" * bar_done + "." * (20 - bar_done)
                 expr_display = best_expr if len(best_expr) <= 32 else best_expr[:29] + "..."
                 gate_pct = f"{n_survived/n_proposed*100:.0f}%" if n_proposed else "n/a"
                 print(

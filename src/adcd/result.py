@@ -7,7 +7,7 @@ from adcd.correction_orchestrator import CorrectionSearchResult
 from adcd.display import (
     r_squared, fit_quality, r2_bar, pretty_expr, latex_expr,
     format_gate_funnel, html_r2_bar, html_badge,
-    _top, _bottom, _thick_hline, _hline, _row, _empty, BOX_WIDTH,
+    _top, _bottom, _thick_hline, _hline, _row, BOX_WIDTH,
 )
 
 
@@ -109,7 +109,6 @@ class ADCDResult:
         W = BOX_WIDTH
         ev = self.search_result.evaluation
         ql, ql_sym = fit_quality(self.best_nmse_residual)
-        r2_pct = self.r_squared * 100
         bar = r2_bar(self.best_nmse_residual)
         n_iter = len(self.search_result.history)
         status = "CONVERGED" if self.converged else "NOT CONVERGED"
@@ -117,7 +116,7 @@ class ADCDResult:
 
         lines = []
         lines.append(_top(W))
-        lines.append(_row(f"ADCD  ·  Correction Discovery Results", W))
+        lines.append(_row("ADCD  ·  Correction Discovery Results", W))
         lines.append(_thick_hline(W))
 
         # ── Scenario info ────────────────────────────────────────────────────
@@ -353,7 +352,6 @@ class ADCDResult:
         )
 
         # Right: theory comparison
-        y_obs_sorted = self.y_obs[sort_idx]
         y_classical_sorted = self.y_classical[sort_idx]
         if self.scenario.correction_type == "multiplicative":
             y_corrected = y_classical_sorted * (1.0 + pred_correction)
