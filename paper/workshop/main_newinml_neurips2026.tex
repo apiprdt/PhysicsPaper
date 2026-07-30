@@ -198,11 +198,11 @@ To test ADCD on raw, unprocessed observational data, we applied it to the SPARC 
 \nu_{\text{ADCD}}(x) = \theta_0\!\left(\sqrt{1 + \frac{\theta_1}{x}} - 1\right) + 1, \quad x = \frac{g_{\text{bar}}}{a_0}
 \label{eq:nu_adcd}
 \end{equation}
-with best-fit parameters $\hat{\theta}_0 \approx 1.83$ and $\hat{\theta}_1 \approx 0.26$ (bootstrap 95\% CI: $\theta_0 \in [1.05,\,4.56]$, $\theta_1 \in [0.07,\,0.56]$). The wide confidence interval on $\theta_0$ reflects genuine parameter degeneracy in the stacked SPARC sample and is reported here transparently.
+with bootstrap-mean parameters $\hat{\theta}_0 \approx 2.24$ and $\hat{\theta}_1 \approx 0.27$ (bootstrap 95\% CI: $\theta_0 \in [1.05,\,4.56]$, $\theta_1 \in [0.07,\,0.56]$; single-fit point estimate: $\hat{\theta}_0 = 1.83$, see full technical report). The wide confidence interval on $\theta_0$ reflects genuine parameter degeneracy in the stacked SPARC sample and is reported here transparently.
 
 Algebraically, $\nu_{\text{ADCD}}(x) = (1-\theta_0) + \theta_0\sqrt{1+\theta_1/x}$ belongs to the parametric family of Simple MOND~\cite{famaey2005simple}. The recovered $\hat{\theta}_1 \approx 0.26$ differs from the canonical transition parameter ($c=4.0$), suggesting a delayed Newtonian-to-MOND crossover in the stacked sample. This is a physically interpretable finding that merits further investigation with individual-galaxy fits.
 
-\textbf{Predictive performance.} The framework achieves in-sample NMSE $= 0.373$ and leave-one-out cross-validated NMSE $= 0.386$, outperforming zero-parameter Simple MOND (CV-NMSE $= 0.673$) and the Radial Acceleration Relation (RAR; CV-NMSE $= 0.660$). This improvement is achieved without injecting any prior knowledge of MOND physics into the search grammar.
+\textbf{Predictive performance.} The framework achieves in-sample NMSE $= 0.373$ and leave-one-out cross-validated NMSE $= 0.386$, outperforming zero-parameter Simple MOND (CV-NMSE $= 0.673$) and the Radial Acceleration Relation (RAR; CV-NMSE $= 0.660$), though statistically indistinguishable from parameter-matched two-parameter refits of these forms (Simple MOND 2-param CV-NMSE $= 0.377$, $z = +0.39$, $p = 0.70$; see full technical report). This improvement over the zero-parameter baselines is achieved without injecting any prior knowledge of MOND physics into the search grammar.
 
 %==================================================================
 \section*{AI Assistance and Declarations}
@@ -273,9 +273,9 @@ M.~Schmidt and H.~Lipson.
 \newblock {\em Science}, 324(5923):81--85, 2009.
 
 \bibitem{tenachi2023physo}
-W.~Tenachi, E.~Ibata, and F.~Hammer.
-\newblock Physical Symbolic Optimization for recovering mathematical expressions from data.
-\newblock {\em Astrophysical Journal Supplement Series}, 2023.
+W.~Tenachi, R.~Ibata, and F.~I. Diakogiannis.
+\newblock Deep symbolic regression for physics guided by units constraints: Toward the automated discovery of physical laws.
+\newblock {\em The Astrophysical Journal}, 959(2):99, 2023.
 
 \bibitem{udrescu2020ai}
 S.~M. Udrescu and M.~Tegmark.
