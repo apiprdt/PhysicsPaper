@@ -8,30 +8,45 @@ def test_discover_correction_scenario():
     scenarios = adcd.get_all_scenarios()
     # Let's pick Relativistic KE
     relativistic_ke = [s for s in scenarios if s.name == "Relativistic KE"][0]
-    
+
     # Run with 1 iteration to keep it fast
     result = adcd.discover_correction(relativistic_ke, max_iterations=1, proposer="mock", seed=42)
-    
+
     assert isinstance(result, adcd.ADCDResult)
     assert isinstance(result.best_expr, str)
     assert isinstance(result.best_theta, dict)
     assert len(result.residual) == 200
-    
+
     # Verify helper methods do not raise errors
     summary_text = result.summary()
-    assert "ADCD DISCOVERY RUN SUMMARY" in summary_text
+    # New header format (updated from "ADCD DISCOVERY RUN SUMMARY")
+    assert "ADCD" in summary_text
+    assert "Correction Discovery Results" in summary_text
     assert "Relativistic KE" in summary_text
-    
+    assert "FIT QUALITY" in summary_text
+    assert "PIPELINE STATISTICS" in summary_text
+
+    # New properties
+    assert 0.0 <= result.r_squared <= 1.0
+    assert result.fit_quality_label in ("Excellent", "Good", "Acceptable", "Poor (below threshold)")
+
+    # brief mode must not raise and must contain key fields
+    brief_text = result.summary(brief=True)
+    assert "Relativistic KE" in brief_text
+    assert "FIT QUALITY" in brief_text
+    assert "PIPELINE STATISTICS" not in brief_text  # developer stats hidden in brief
+
     latex_text = result.export_latex()
     assert "\\Delta" in latex_text
-    
+
     # Test candidates display does not crash (returns None in non-Jupyter context)
     result.show_candidates(top_k=3)  # must not raise
-    
+
     # repr_html
     html_repr = result._repr_html_()
-    assert "ADCD Correction Discovery Results" in html_repr
+    assert "ADCD" in html_repr
     assert "Relativistic KE" in html_repr
+
 
 
 def test_fit_custom_additive():
