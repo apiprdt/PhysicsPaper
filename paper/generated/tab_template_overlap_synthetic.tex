@@ -16,12 +16,12 @@
 \multicolumn{5}{l}{\textit{Tier 1 --- Textbook}} \\
 Relativistic KE      & $\theta_0 (v/c)^2$                              & Yes & Yes & \texttt{polynomial}    \\
 Yukawa Gravity       & $\theta_0 e^{-r/\theta_1}$                      & Yes & Yes & \texttt{exponential}   \\
-Anharmonic Spring    & $\theta_0 x^4$                                  & No  & Yes & \texttt{polynomial}    \\
+Anharmonic Spring    & $\theta_0 x^4$                                  & Yes & Yes & \texttt{polynomial}    \\
 \midrule
 \multicolumn{5}{l}{\textit{Tier 2 --- Cross-Domain}} \\
 Screened Coulomb     & $e^{-r/\theta_0} - 1$                           & Yes & Yes & \texttt{exponential}   \\
 Net Radiation        & $-(\theta_0/T)^4$                               & Yes & Yes & \texttt{power\_law}    \\
-Nonlinear Drag       & $\theta_0 v^2$                                  & No  & Yes & \texttt{polynomial}    \\
+Nonlinear Drag       & $\theta_0 v^2$                                  & Yes & Yes & \texttt{polynomial}    \\
 \midrule
 \multicolumn{5}{l}{\textit{Tier 3 --- Synthetic / Novel}} \\
 Mystery-A            & $-\tanh(\theta_0/r)^2$                          & Yes & Yes & \texttt{trigonometric} \\
@@ -32,9 +32,8 @@ Mystery-C            & $\ln(1+x/\theta_0)/(x/\theta_0) - 1$           & Yes & Ye
 \smallskip
 \raggedright
 \textit{Notes.} Templates use placeholder \{v1\} for the single scenario variable and \{c1\} for fixed physical
-constants; variable substitution is performed at proposal time.  ``Verbatim'' is assessed after this substitution.
+constants; variable substitution is performed at proposal time. ``Verbatim'' is assessed after this substitution.
 The complete template bank (34 templates) and the weighted-sampling code are in
 \texttt{src/adcd/llm\_proposer.py} (\texttt{CorrectionMockProposer.\_templates}).
-Anharmonic Spring and Nonlinear Drag do not appear verbatim because the bank stores power-law templates with a free
-exponent $\theta_2$ rather than hardcoded integer exponents; both functional families are covered.
+Explicit integer power-law templates ($\theta_0 v_1^2, \theta_0 v_1^4$) are present in the bank alongside free-exponent templates ($\theta_0 (v_1/\theta_1)^{\theta_2}$), providing verbatim coverage for Anharmonic Spring and Nonlinear Drag.
 \end{table}
