@@ -12,10 +12,12 @@ Add back:
 ```python
 __author__ = "Muhammad Afif Erdita"
 __email__  = "maeapip10@gmail.com"
+__orcid__  = "0009-0004-7597-5221"
 ```
 And add to module docstring:
 ```
 DOI: 10.5281/zenodo.20534940
+ORCID: https://orcid.org/0009-0004-7597-5221
 ```
 
 ### `pyproject.toml`
@@ -30,10 +32,11 @@ Homepage   = "https://zenodo.org/records/20534940"
 Repository = "https://github.com/apiprdt/PhysicsPaper"
 "Bug Tracker" = "https://github.com/apiprdt/PhysicsPaper/issues"
 DOI        = "https://doi.org/10.5281/zenodo.20534940"
+ORCID      = "https://orcid.org/0009-0004-7597-5221"
 ```
 
 ### `paper/main.tex`
-- Line ~47: restore `\author{Muhammad Afif Erdita \\ ...}` block
+- Line ~47: restore `\author{Muhammad Afif Erdita \orcidlink{0009-0004-7597-5221} \\ ...}` block
 - Line ~700: restore GitHub URL in Code Availability section
 
 ### `paper/supplementary.tex`
