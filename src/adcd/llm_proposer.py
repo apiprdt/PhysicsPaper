@@ -3,6 +3,7 @@ import logging
 import json
 import urllib.request
 import urllib.error
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from typing import Dict, List, Tuple, Optional, Any
@@ -544,13 +545,13 @@ class OpenAICompatibleProposer(BaseProposer):
     Generates candidate equations using any OpenAI-compatible API (DeepSeek, Groq, OpenRouter, etc.).
     Uses standard library urllib for zero-dependency execution.
     """
-    def __init__(self, api_key: str, base_url: str, model_name: str):
+    def __init__(self, api_key: str, base_url: str, model_name: str, strip_context: bool = False):
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
         self.model_name = model_name
+        self.strip_context = strip_context
 
     def _select_mode(self, iteration: int, stuck_count: int) -> Tuple[str, str]:
-        # Same mode selection as Gemini
         g = GeminiProposer("")
         return g._select_mode(iteration, stuck_count)
 
@@ -563,7 +564,8 @@ class OpenAICompatibleProposer(BaseProposer):
         
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}"
+            "Authorization": f"Bearer {self.api_key}",
+            "User-Agent": "Mozilla/5.0"
         }
         payload = {
             "model": self.model_name,
@@ -574,25 +576,31 @@ class OpenAICompatibleProposer(BaseProposer):
             "temperature": 0.2
         }
         
-        try:
-            req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
-            with urllib.request.urlopen(req, timeout=10) as response:
-                res_data = json.loads(response.read().decode("utf-8"))
+        for attempt in range(5):
+            try:
+                req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    res_data = json.loads(response.read().decode("utf-8"))
+                    
+                text = res_data["choices"][0]["message"]["content"]
+                return self._parse_response(text, context.n_candidates)
                 
-            text = res_data["choices"][0]["message"]["content"]
-            return self._parse_response(text, context.n_candidates)
-            
-        except urllib.error.HTTPError as e:
-            err_msg = e.read().decode("utf-8")
-            logger.error(f"OpenAI-Compatible API Error: {e.code} - {err_msg}")
-            raise RuntimeError(f"API Call failed with code {e.code}: {err_msg}")
-        except Exception as e:
-            logger.error(f"Failed to connect to API: {e}")
-            raise e
+            except urllib.error.HTTPError as e:
+                err_msg = e.read().decode("utf-8")
+                if e.code == 429 and attempt < 4:
+                    time.sleep(2.5 * (attempt + 1))
+                    continue
+                logger.error(f"OpenAI-Compatible API Error: {e.code} - {err_msg}")
+                raise RuntimeError(f"API Call failed with code {e.code}: {err_msg}")
+            except Exception as e:
+                if attempt < 4:
+                    time.sleep(2.0)
+                    continue
+                logger.error(f"Failed to connect to API: {e}")
+                raise e
 
     def get_prompt_template(self, context: ProposalContext) -> str:
-        # Reuses the exact same prompt structure as Gemini
-        g = GeminiProposer("")
+        g = CorrectionGeminiProposer(api_key="dummy", strip_context=self.strip_context)
         return g.get_prompt_template(context)
 
     def _parse_response(self, text: str, n_candidates: int) -> List[str]:
@@ -600,11 +608,15 @@ class OpenAICompatibleProposer(BaseProposer):
         return g._parse_response(text, n_candidates)
 
 
+
 class CorrectionMockProposer(BaseProposer):
     """Proposes dimensionless correction terms Δ(x; θ) for physical anomalies."""
-    def __init__(self, seed: int = 42, extended: bool = False):
+    def __init__(self, seed: int = 42, extended: bool = False,
+                 exclude_families: list = None, n_oversample: int = None):
         self.seed = seed
         self.extended = extended
+        self.exclude_families = exclude_families or []
+        self._n_oversample = n_oversample  # None = default (2x template bank)
         self._templates = [
             # Power-law family
             "theta_0 * ({v1} / theta_1)**2",
@@ -701,6 +713,14 @@ class CorrectionMockProposer(BaseProposer):
                 "theta_0 * log(1.0 + {v1} / theta_1) / ({v1} / theta_1)"
             ]
         }
+        
+        # Apply family exclusion (for held-out/class-isolated benchmark)
+        if self.exclude_families:
+            for fam in self.exclude_families:
+                if fam in self.families:
+                    excluded_templates = set(self.families[fam])
+                    self.families[fam] = []
+                    self._templates = [t for t in self._templates if t not in excluded_templates]
         
         if extended:
             self._extend_templates()
@@ -895,7 +915,8 @@ class CorrectionMockProposer(BaseProposer):
         mix_weights /= np.sum(mix_weights)
         
         # Stochastic template bank — full 2× oversample (restored; B4 must not replace this)
-        n_templates_to_process = len(self._templates) * 2
+        # Grammar scaling: use injected n_oversample if provided, else default 2x bank
+        n_templates_to_process = self._n_oversample if self._n_oversample is not None else len(self._templates) * 2
         chosen_templates = rng.choice(temps, size=n_templates_to_process, p=mix_weights, replace=True)
 
         for template in chosen_templates:
@@ -962,9 +983,10 @@ class CorrectionMockProposer(BaseProposer):
 
 class CorrectionGeminiProposer(BaseProposer):
     """Generates candidate physical correction terms Δ using Google Gemini API."""
-    def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash"):
+    def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash", strip_context: bool = False):
         self.api_key = api_key
         self.model_name = model_name
+        self.strip_context = strip_context
 
     def _select_mode(self, iteration: int, stuck_count: int) -> Tuple[str, str]:
         g = GeminiProposer("")
@@ -1010,13 +1032,22 @@ class CorrectionGeminiProposer(BaseProposer):
         mode, mode_desc = self._select_mode(context.iteration, context.stuck_count)
         percentile_str, exponent_hint_str = _build_rich_context_strings(context)
         
-        units_str = ", ".join([f"'{k}' ({v})" for k, v in context.variables_with_units.items()]) if context.variables_with_units else "None"
+        if self.strip_context:
+            classical_expr_str = "y_classical = f(x1)"
+            anomaly_desc = "None (generic mathematical dataset)"
+            units_str = "None (dimensionless variables x1, x2)"
+            limit_cond = "x1 -> 0"
+        else:
+            classical_expr_str = context.classical_expr
+            anomaly_desc = context.anomaly_description
+            units_str = ", ".join([f"'{k}' ({v})" for k, v in context.variables_with_units.items()]) if context.variables_with_units else "None"
+            limit_cond = context.classical_limit_condition or "classical limit"
 
         return f"""You are a theoretical physicist discovering mathematical corrections to classical laws.
 Search Mode: {mode.upper()} ({mode_desc})
 
-KNOWN CLASSICAL LAW: {context.classical_expr}
-Observed Anomaly: {context.anomaly_description}
+KNOWN CLASSICAL LAW: {classical_expr_str}
+Observed Anomaly: {anomaly_desc}
 Variables with Units: {units_str}
 Absolute residual magnitude percentiles: {percentile_str}
 {exponent_hint_str + chr(10) if exponent_hint_str else ''}
@@ -1028,7 +1059,7 @@ YOUR TASK: Propose exactly {context.n_candidates} dimensionless correction terms
 
 HARD CONSTRAINTS (violation = immediate rejection):
 1. Δ MUST be dimensionless when using ratios like (v/c), (r/λ), (x/x₀)
-2. Reduced Limit check: As {context.classical_limit_condition or 'classical limit'} is reached, Δ must approach 0.
+2. Reduced Limit check: As {limit_cond} is reached, Δ must approach 0.
 3. Use 'theta_0', 'theta_1', 'theta_2', ... for free parameter symbols (which fit constants).
 4. Maximum complexity: {context.max_nodes} AST nodes.
 
@@ -1037,11 +1068,12 @@ HARD CONSTRAINTS (violation = immediate rejection):
 
 class HybridCorrectionProposer(BaseProposer):
     """Combines Mock templates, Grammar-based candidates, and LLM-generated candidates."""
-    def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash", seed: int = 42):
+    def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash", seed: int = 42, strip_context: bool = False):
         from adcd.grammar_proposer import GrammarProposer
         self.mock = CorrectionMockProposer(seed=seed)
         self.grammar = GrammarProposer(seed=seed)
-        self.gemini = CorrectionGeminiProposer(api_key=api_key, model_name=model_name)
+        self.strip_context = strip_context
+        self.gemini = CorrectionGeminiProposer(api_key=api_key, model_name=model_name, strip_context=self.strip_context)
         self.sources = {}
 
     def propose(self, context: ProposalContext) -> List[str]:

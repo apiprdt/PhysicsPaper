@@ -178,23 +178,34 @@ class Stage1Pipeline:
             if not is_dim_ok:
                 if stats is not None:
                     stats.dim_reject += 1
+                print(f"[DEBUG] Rejected by Dim: {raw_cand}")
                 continue
 
             if not validate_transcendental_args(expr, self.checker):
                 if stats is not None:
                     stats.transcendental_reject += 1
+                print(f"[DEBUG] Rejected by Trans: {raw_cand}")
                 continue
 
             try:
                 arc_score = float(self.scorer.score(expr, constants=constants))
-            except Exception:
+            except Exception as e:
                 if stats is not None:
                     stats.arc_reject += 1
+                print(f"[DEBUG] Rejected by ARC Exception ({e}): {raw_cand}")
                 continue
+                
             if arc_score <= 0.0:
-                if stats is not None:
-                    stats.arc_reject += 1
-                continue
+                if has_params:
+                    # By-pass ARC rejection for unparameterized templates (theta_i = 1.0).
+                    # Singularities often require exact opposing signs (e.g. 2 and -2) to cancel.
+                    # This will be rigorously checked again AFTER Stage 2 optimization.
+                    arc_score = 1.0
+                else:
+                    if stats is not None:
+                        stats.arc_reject += 1
+                    print(f"[DEBUG] Rejected by ARC Score <= 0: {raw_cand}")
+                    continue
 
             mse = 0.0
             nmse = 0.0
@@ -203,6 +214,7 @@ class Stage1Pipeline:
                 if np.isinf(mse):
                     if stats is not None:
                         stats.coarse_reject += 1
+                    print(f"[DEBUG] Rejected by Coarse MSE (inf): {raw_cand}")
                     continue
 
             combined_score = arc_score * float(np.exp(-beta * nmse))

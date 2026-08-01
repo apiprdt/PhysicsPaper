@@ -34,6 +34,8 @@ class CustomAnomalyScenario:
         limit_variable: str,
         limit_direction: str,
         variables_with_units: Optional[Dict[str, str]] = None,
+        classical_constants: Optional[Dict[str, float]] = None,
+        correction_constants: Optional[Dict[str, float]] = None,
         name: str = "Custom Dataset Run",
         domain: str = "custom",
         tier: str = "custom",
@@ -43,10 +45,10 @@ class CustomAnomalyScenario:
         self.domain = domain
         self.classical_expr = classical_expr
         self.classical_variables = list(X.keys())
-        self.classical_constants = {}
+        self.classical_constants = classical_constants or {}
         self.correction_type = correction_type
         self.correction_expr = "Unknown"
-        self.correction_constants = {}
+        self.correction_constants = correction_constants or {}
         self.anomaly_regime = "custom"
         self.variables_with_units = variables_with_units or {k: "dimensionless" for k in X.keys()}
         self.classical_limit_variable = limit_variable
@@ -88,6 +90,7 @@ def fit(
     log_param: bool = False,
     domain: str = "custom",
     tier: str = "custom",
+    **kwargs
 ) -> ADCDResult:
     """
     Fit a physical correction term to an observed anomaly dataset.
@@ -166,13 +169,19 @@ def fit(
         limit_variable=limit_var_str,
         limit_direction=limit_dir_str,
         variables_with_units=variables_with_units,
+        classical_constants=kwargs.get('classical_constants', None),
+        correction_constants=kwargs.get('correction_constants', None),
         name=scenario_name,
         domain=domain,
         tier=tier,
     )
     
     # 5. Build proposer
-    if proposer == "mock":
+    from adcd.llm_proposer import BaseProposer
+    if isinstance(proposer, BaseProposer):
+        # Accept pre-configured proposer instance directly (used by experiments)
+        proposer_obj = proposer
+    elif proposer == "mock":
         proposer_obj = CorrectionMockProposer(seed=seed)
     elif proposer == "gemini":
         key = api_key or os.environ.get("GEMINI_API_KEY")
@@ -281,4 +290,6 @@ def discover_correction(
         scenario_name=scenario.name,
         domain=getattr(scenario, 'domain', 'custom'),
         tier=getattr(scenario, 'tier', 'custom'),
+        classical_constants=getattr(scenario, 'classical_constants', {}),
+        correction_constants=getattr(scenario, 'correction_constants', {}),
     )

@@ -143,3 +143,6 @@ indo/
 
 # Diagnostic results (local execution only)
 ras_fase0_results.json
+
+# All code dump (local only)
+allcode.txt
