@@ -143,6 +143,7 @@ class JAXOptimizer:
             # Pre-flight check
             test_theta = jnp.ones(len(theta_symbols), dtype=jnp.float64)
             if not self._is_finite(jax_fn, test_theta, X_jax, y_jax):
+                print(f"[JAXOptimizer] Failed _is_finite for {expr_str}")
                 return self._fail_result(expr_str, len(theta_symbols), "Non-finite output at test theta")
 
             scale = 1.0
@@ -189,8 +190,10 @@ class JAXOptimizer:
             )
 
         except Exception as e:
-            logger.warning(f"Optimization failed for '{expr_str}': {e}")
-            return self._fail_result(expr_str, 0, str(e))
+            import traceback
+            traceback.print_exc()
+            logger.warning(f"Optimization failed with exception for '{expr_str}': {e}")
+            return self._fail_result(expr_str, len(theta_symbols) if theta_symbols else 0, str(e))
 
     def optimize_batch(
         self,
@@ -240,13 +243,13 @@ class JAXOptimizer:
         return expr, theta_symbols
 
     def _build_jax_fn(self, expr: sp.Expr, theta_symbols: List[sp.Symbol], data_vars: List[str]):
-        clean_vars = [v for v in data_vars if not v.startswith("theta_")]
-        data_syms  = [sp.Symbol(v) for v in clean_vars]
-        all_syms   = data_syms + theta_symbols
+        # Extract all actual free symbols from the expression that are not theta
+        data_syms = sorted([s for s in expr.free_symbols if not str(s).startswith("theta_")], key=lambda s: str(s))
+        all_syms = data_syms + theta_symbols
         raw_fn = sp.lambdify(all_syms, expr, jnp)
 
         def jax_fn(theta: jnp.ndarray, X: Dict[str, jnp.ndarray]) -> jnp.ndarray:
-            data_vals  = [X[v] for v in clean_vars]
+            data_vals  = [X[str(sym)] for sym in data_syms]
             theta_vals = [theta[i] for i in range(len(theta_symbols))]
             return raw_fn(*data_vals, *theta_vals)
 
@@ -337,11 +340,15 @@ class JAXOptimizer:
     def _is_finite(self, jax_fn, theta, X_jax, y_jax) -> bool:
         try:
             y_pred = jax_fn(theta, X_jax)
-            return bool(
+            is_valid = bool(
                 jnp.all(jnp.isfinite(y_pred)) and
                 jnp.all(jnp.abs(y_pred) < OVERFLOW_THRESHOLD)
             )
-        except Exception:
+            if not is_valid:
+                print(f"[JAXOptimizer] _is_finite failed. y_pred max: {jnp.max(y_pred)}, min: {jnp.min(y_pred)}, any nan: {jnp.any(jnp.isnan(y_pred))}")
+            return is_valid
+        except Exception as e:
+            print(f"[JAXOptimizer] _is_finite exception: {e}")
             return False
 
     def _multi_start_lbfgs(
@@ -452,10 +459,12 @@ class JAXOptimizer:
         self, expr_str: str, expr: sp.Expr, X: Dict[str, np.ndarray], y_obs: np.ndarray, data_vars: List[str]
     ) -> OptimizationResult:
         try:
-            clean_vars = [v for v in data_vars if not v.startswith("theta_")]
-            data_syms  = [sp.Symbol(v) for v in clean_vars]
+            data_syms = sorted([s for s in expr.free_symbols if not str(s).startswith("theta_")], key=lambda s: str(s))
             f = sp.lambdify(data_syms, expr, np)
-            y_pred = f(*[X[v] for v in clean_vars])
+            y_pred = f(*[X[str(sym)] for sym in data_syms])
+
+            if not isinstance(y_pred, np.ndarray):
+                y_pred = np.full(y_obs.shape, float(y_pred))
 
             if not np.all(np.isfinite(y_pred)):
                 return self._fail_result(expr_str, 0, "Non-finite output")

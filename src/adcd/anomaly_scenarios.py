@@ -30,7 +30,7 @@ class AnomalyScenario:
     # Structural classification (for evaluation)
     correction_class: str             # "exponential" | "power_law" | "rational" | "trigonometric" | "polynomial" | "logarithmic"
 
-    def generate_data(self, n_points: int = 200, noise_level: float = 0.0, seed: int = 42) -> Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
+    def generate_data(self, n_points: int = 200, noise_level: float = 0.0, seed: int = 42, v_max_over_c: float = None) -> Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
         """
         Generates variables X, classical prediction y_classical, 
         noisy observation y_obs, and the corresponding residual.
@@ -41,8 +41,23 @@ class AnomalyScenario:
         # 1. Generate domain-specific variables in the anomaly-sensitive regime
         if self.name == "Relativistic KE" or self.name.startswith("Subtle Misspecification"):
             c = self.classical_constants["c"]
+            v_max = v_max_over_c * c if v_max_over_c is not None else 0.85 * c
             X["m"] = rng.uniform(0.5, 10.0, size=n_points)
-            X["v"] = rng.uniform(0.1 * c, 0.85 * c, size=n_points)
+            X["v"] = rng.uniform(0.1 * c, v_max, size=n_points)
+
+        elif self.name == "Time Dilation":
+            c = self.classical_constants.get("c", 1.0)
+            v_max = v_max_over_c * c if v_max_over_c is not None else 0.99 * c
+            X["t_0"] = rng.uniform(1.0, 10.0, size=n_points)
+            X["v"] = rng.uniform(0.1 * c, v_max, size=n_points)
+
+        elif self.name == "Entropy Expansion":
+            V_i = rng.uniform(1.0, 10.0, size=n_points)
+            dV = rng.uniform(1.0, 100.0, size=n_points) * V_i
+            S_i = rng.uniform(10.0, 20.0, size=n_points)
+            X["V_i"] = V_i
+            X["dV"] = dV
+            X["S_i"] = S_i
             
         elif self.name == "Yukawa Gravity":
             X["m"] = rng.uniform(1.0, 10.0, size=n_points)
@@ -94,8 +109,9 @@ class AnomalyScenario:
 
         elif self.name == "Blind-4: Relativistic Pendulum":
             c = self.classical_constants["c"]
+            v_max = v_max_over_c * c if v_max_over_c is not None else 0.85 * c
             X["m"] = rng.uniform(0.5, 10.0, size=n_points)
-            X["v"] = rng.uniform(0.1 * c, 0.85 * c, size=n_points)
+            X["v"] = rng.uniform(0.1 * c, v_max, size=n_points)
 
         elif self.name == "Blind-5: Clausius-Mossotti Field" or self.name == "Blind-7: Casimir Vacuum":
             X["m"] = rng.uniform(1.0, 10.0, size=n_points)
@@ -148,6 +164,8 @@ class AnomalyScenario:
         # 2. Evaluate classical law
         local_dict = {**X, **self.classical_constants}
         y_classical = eval(self.classical_expr, {"np": np, "sp": sp}, local_dict)
+        if np.isscalar(y_classical):
+            y_classical = np.full(n_points, y_classical)
         
         # 3. Evaluate ground-truth correction
         local_corr_dict = {**X, **self.classical_constants, **self.correction_constants}
@@ -197,12 +215,96 @@ class AnomalyScenario:
             
         return X, y_obs, y_classical, residual
 
+def generate_time_dilation_data(seed: int = 42, v_max_over_c: float = 0.3, noise_level: float = 0.00) -> Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
+    rng = np.random.RandomState(seed)
+    N = 100
+    c = 1.0
+    v = rng.uniform(0.1 * c, v_max_over_c * c, size=N)
+    t_0 = rng.uniform(1.0, 10.0, size=N)
+
+    X = {'v': v, 't_0': t_0}
+
+    y_classical = t_0
+    
+    # Ground truth is D_sqrt_inv(- (v/c)**2 )
+    delta_true = 1.0 / np.sqrt(1.0 - (v/c)**2) - 1.0
+    
+    y_true = y_classical * (1.0 + delta_true)
+    
+    if noise_level > 0.0:
+        noise = rng.normal(0, noise_level, size=N)
+        y_obs = y_true * (1.0 + noise)
+    else:
+        y_obs = y_true.copy()
+        
+    residual = y_obs / y_classical - 1.0
+    return X, y_obs, y_classical, residual
+
+def generate_entropy_expansion_data(seed: int = 42, v_max_over_c: float = None, noise_level: float = 0.00) -> Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
+    rng = np.random.RandomState(seed)
+    N = 100
+    
+    # Generate positive volumes
+    V_i = rng.uniform(1.0, 10.0, size=N)
+    dV = rng.uniform(1.0, 100.0, size=N) * V_i
+    
+    S_i = 15.0 # Treated as constant
+    nR = 8.314 # Treated as constant
+
+    X = {'V_i': V_i, 'dV': dV}
+    y_classical = np.full(N, S_i)
+    
+    # Ground truth is D_log(dV/V_i)
+    delta_true = (nR / S_i) * np.log(1.0 + dV / V_i)
+    y_true = y_classical * (1.0 + delta_true)
+    
+    if noise_level > 0.0:
+        noise = rng.normal(0, noise_level, size=N)
+        y_obs = y_true * (1.0 + noise)
+    else:
+        y_obs = y_true.copy()
+        
+    residual = y_obs / y_classical - 1.0
+    return X, y_obs, y_classical, residual
+    
 def get_all_scenarios() -> List[AnomalyScenario]:
     """Returns standard scenarios plus multivariable Phase 2 scenarios."""
     return [
+        AnomalyScenario(
+            name="Entropy Expansion",
+            tier="textbook",
+            domain="thermodynamics",
+            classical_expr="S_i",
+            classical_variables=["V_i", "dV"],
+            classical_constants={"nR": 8.314, "S_i": 15.0},
+            correction_type="multiplicative",
+            correction_expr="(nR/S_i) * log(1.0 + dV/V_i)",
+            correction_constants={},
+            anomaly_regime="large volume expansion",
+            variables_with_units={"V_i": "m^3", "dV": "m^3"},
+            classical_limit_variable="dV",
+            classical_limit_direction="-> 0",
+            correction_class="logarithmic"
+        ),
         # =========================================================================
-        # TIER 1: Textbook Corrections (LLM seen these)
+        # TIER 2: Multivariable & Phase 2 Scenarios
         # =========================================================================
+        AnomalyScenario(
+            name="Time Dilation",
+            tier="textbook",
+            domain="relativistic mechanics",
+            classical_expr="t_0",
+            classical_variables=["t_0", "v"],
+            classical_constants={"c": 1.0},
+            correction_type="multiplicative",
+            correction_expr="1.0 / sqrt(1.0 - (v / c)**2) - 1.0",
+            correction_constants={},
+            anomaly_regime="high speeds v approaching c",
+            variables_with_units={"t_0": "s", "v": "m/s", "c": "m/s"},
+            classical_limit_variable="v",
+            classical_limit_direction="0",
+            correction_class="asymptotic_pole",
+        ),
         AnomalyScenario(
             name="Relativistic KE",
             tier="textbook",
@@ -431,13 +533,13 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             classical_variables=["m", "v"],
             classical_constants={"c": 3.0e8},
             correction_type="multiplicative",
-            correction_expr="theta_0 * (v / c)**2 / (1.0 - (v / c)**2)",
-            correction_constants={"theta_0": 0.5},
+            correction_expr="2.0 * (c/v)**2 * (1.0 / sqrt(1.0 - (v/c)**2) - 1.0) - 1.0",
+            correction_constants={},
             anomaly_regime="high speeds approaching c",
             variables_with_units={"m": "kg", "v": "m/s", "c": "m/s"},
             classical_limit_variable="v",
             classical_limit_direction="0",
-            correction_class="rational"
+            correction_class="asymptotic_sqrt"
         ),
         AnomalyScenario(
             name="Blind-5: Clausius-Mossotti Field",
