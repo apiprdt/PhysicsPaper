@@ -1,5 +1,3 @@
-import sys
-import json
 from adcd.run_adcd_v3_validation import run_full_protocol
 
 if __name__ == "__main__":

@@ -6,7 +6,6 @@ Applies PhysicsGateCascade post-filtering on PySR candidate equations.
 
 import logging
 from typing import Any, Dict, List, Optional
-import sympy as sp
 
 from adcd.gate_cascade import PhysicsGateCascade, GateResult
 

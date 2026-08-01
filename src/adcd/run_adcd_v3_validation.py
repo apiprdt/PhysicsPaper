@@ -21,10 +21,7 @@ audit pass, but any local edits since then could have changed them. If a
 signature mismatch is found, fix it here rather than routing around the
 validation protocol.
 """
-
-import sys
 import json
-import time
 from dataclasses import dataclass, asdict
 from typing import List, Optional
 
@@ -39,7 +36,6 @@ from adcd.dimensional_checker import ASTValidator, DimensionalChecker
 from adcd.arc_scorer import ARCScorer, build_arc_regimes
 from adcd.jax_optimizer import JAXOptimizer
 from adcd.correction_orchestrator import CorrectionOrchestrator
-from adcd.metrics import classify_structure, bic_score
 from adcd.anomaly_scenarios import get_all_scenarios
 
 from asymptotic_dictionary_proposer_v3 import (
@@ -57,7 +53,7 @@ from asymptotic_dictionary_proposer_v3 import (
 class ValidationResult:
     scenario_name: str
     check_name: str          # "positive_control" | "ablation_control" |
-                              # "determinism_check" | "budget_disclosure"
+    # "determinism_check" | "budget_disclosure"
     passed: bool
     detail: str
     search_space_size: int

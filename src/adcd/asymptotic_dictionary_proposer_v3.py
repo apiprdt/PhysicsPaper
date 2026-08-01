@@ -103,20 +103,20 @@ PRIMITIVE_REGISTRY: Dict[str, Primitive] = {
             * (1.0 + np.sqrt(np.clip(1.0 - u, 1e-9, None)))
         ),
         string_template="({u} / (sqrt(1.0 - {u}) * (1.0 + sqrt(1.0 - {u}))))",
-        domain_note="u in [0, 1); numerically stable at u->0 by construction "
+        domain_note=("u in [0, 1); numerically stable at u->0 by construction "
                      "(rationalized numerator). Verify equivalence to the "
                      "naive 1/sqrt(1-u)-1 form via sp.simplify before trusting "
-                     "any future edit to this primitive.",
+                     "any future edit to this primitive."),
     ),
     "D_rat": Primitive(
         name="D_rat",
         token_cost=4,
         numpy_form=lambda u: u / np.clip(1.0 - u, 1e-9, None),
         string_template="({u} / (1.0 - {u}))",
-        domain_note="u != 1; rationalized form (numerator is the small "
+        domain_note=("u != 1; rationalized form (numerator is the small "
                      "quantity directly), consistent with D_lor's fix. "
                      "Verified algebraically equivalent to 1/(1-u)-1 via "
-                     "sp.simplify at module load time.",
+                     "sp.simplify at module load time."),
     ),
     "D_exp": Primitive(
         name="D_exp",
@@ -149,8 +149,8 @@ PRIMITIVE_REGISTRY: Dict[str, Primitive] = {
 @dataclass
 class GrammarBudget:
     max_depth: int = 3
-    max_tokens: int = 25          # slightly higher than v2 since regularized
-                                   # forms cost 2 extra tokens (the "-1.0")
+    max_tokens: int = 25          # slightly higher than v2 since regularized forms
+    # cost 2 extra tokens (the "-1.0")
     max_primitives_used: int = 2
 
 

@@ -15,6 +15,6 @@ if __name__ == "__main__":
             ground_truth_primitive="D_log",
             seed=42
         )
-    except Exception as e:
+    except Exception:
         import traceback
         traceback.print_exc()
