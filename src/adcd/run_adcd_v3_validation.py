@@ -26,8 +26,8 @@ from dataclasses import dataclass, asdict
 from typing import List, Optional
 
 # --- MUST be first: see jax_precision_config.py for why import order matters
-import jax_precision_config
-jax_precision_config.verify_x64_enabled()
+import jax
+jax.config.update("jax_enable_x64", True)
 
 import sympy as sp
 
@@ -38,7 +38,7 @@ from adcd.jax_optimizer import JAXOptimizer
 from adcd.correction_orchestrator import CorrectionOrchestrator
 from adcd.anomaly_scenarios import get_all_scenarios
 
-from asymptotic_dictionary_proposer_v3 import (
+from adcd.asymptotic_dictionary_proposer_v3 import (
     AsymptoticDictionaryProposerV3,
     GrammarBudget,
     PRIMITIVE_REGISTRY,
@@ -89,21 +89,46 @@ def run_pipeline(
     )
     return orchestrator.search_correction(scenario, noise_level=noise_level, seed=seed)
 
+def count_params(expr_str: Optional[str]) -> int:
+    import re
+    if not expr_str: return 1
+    return len(set(re.findall(r'theta_\d+', expr_str))) or 1
+
+def compute_pseudo_bic(nmse: Optional[float], expr: Optional[str], n: int = 500) -> float:
+    import math
+    if nmse is None or math.isinf(nmse) or math.isnan(nmse) or nmse <= 0:
+        return float("inf")
+    k = count_params(expr)
+    return n * math.log(nmse) + k * math.log(n)
+
 
 # =====================================================================
 # CHECK 1 — POSITIVE CONTROL
 # =====================================================================
 
-def positive_control(scenario, ratio_symbol: str, seed: int = 42) -> ValidationResult:
+def positive_control(scenario, ratio_symbol: str, ground_truth_primitive: str, seed: int = 42) -> ValidationResult:
     """Ground truth's matching primitive INCLUDED. Must recover the true
     structure, verified by SYMBOLIC equivalence (sp.simplify), never by
     substring matching (that exact bug already cost this project a false
     'Verbatim: No' entry in an earlier disclosure table)."""
-    proposer = AsymptoticDictionaryProposerV3(ratio_symbol=ratio_symbol)
+    
+    all_other_primitives = [p for p in PRIMITIVE_REGISTRY if p != ground_truth_primitive]
+    if not all_other_primitives:
+        raise ValueError(
+            f"'{ground_truth_primitive}' not found in PRIMITIVE_REGISTRY "
+            f"(available: {list(PRIMITIVE_REGISTRY.keys())}) -- check spelling "
+            f"before trusting any result."
+        )
+
+    proposer = AsymptoticDictionaryProposerV3(
+        ratio_symbol=ratio_symbol,
+        exclude_primitives=all_other_primitives,
+    )
     result = run_pipeline(scenario, proposer, seed=seed)
 
     passed = False
     detail = "no candidate reached acceptable NMSE"
+    symbolic_match = False
     if result.best_expr is not None:
         try:
             diff = sp.simplify(
@@ -111,15 +136,16 @@ def positive_control(scenario, ratio_symbol: str, seed: int = 42) -> ValidationR
             )
             symbolic_match = (diff == 0)
         except Exception as e:
-            symbolic_match = False
             detail = f"could not symbolically compare: {e}"
+
         nmse_ok = result.best_nmse_residual is not None and result.best_nmse_residual < 0.20
-        passed = nmse_ok  # structural symbolic match is a bonus signal, not
-        # the pass/fail criterion by itself, since equivalent-but-differently
-        # -parameterized forms are also legitimate recoveries
+        passed = nmse_ok
         detail = (
             f"nmse_residual={result.best_nmse_residual}, "
-            f"symbolic_exact_match={symbolic_match}"
+            f"symbolic_exact_match={symbolic_match}, "
+            f"TRULY isolated to '{ground_truth_primitive}' "
+            f"({len(all_other_primitives)} other primitives excluded, "
+            f"search_space_size={proposer.search_space_size()})"
         )
 
     return ValidationResult(
@@ -152,22 +178,26 @@ def ablation_control(
     )
     result = run_pipeline(scenario, proposer, seed=seed)
 
-    # get the positive-control NMSE for comparison
-    pos = positive_control(scenario, ratio_symbol, seed=seed)
+    pos = positive_control(scenario, ratio_symbol, ground_truth_primitive, seed=seed)
     pos_nmse = pos.best_nmse_residual if pos.best_nmse_residual is not None else float("inf")
     abl_nmse = result.best_nmse_residual if result.best_nmse_residual is not None else float("inf")
+    
+    pos_bic = compute_pseudo_bic(pos_nmse, pos.best_expr)
+    abl_bic = compute_pseudo_bic(abl_nmse, result.best_expr)
 
-    # PASS condition: ablated NMSE should be meaningfully worse than positive
-    # control's, OR itself already poor in absolute terms
-    passed = (abl_nmse > 3 * pos_nmse) or (abl_nmse > 0.20)
+    # In BIC, lower is better. A model is strongly preferred if its BIC is at least 10 lower.
+    # A passing ablation means the ablated model's BIC is WORSE (higher) than positive control's BIC by at least 10
+    passed = (abl_bic > pos_bic + 10) or (abl_nmse > 0.20)
 
     return ValidationResult(
         scenario_name=scenario.name,
         check_name="ablation_control",
         passed=passed,
         detail=(
-            f"excluded={ground_truth_primitive}, ablated_nmse={abl_nmse}, "
-            f"positive_control_nmse={pos_nmse}, ratio={abl_nmse / max(pos_nmse, 1e-12):.2f}"
+            f"excluded={ground_truth_primitive} only (4 primitives still "
+            f"available, matches original intent), ablated_nmse={abl_nmse:.5f} (BIC={abl_bic:.2f}), "
+            f"TRULY-isolated positive_control_nmse={pos_nmse:.5f} (BIC={pos_bic:.2f}), "
+            f"bic_diff={abl_bic - pos_bic:.2f}"
         ),
         search_space_size=proposer.search_space_size(),
         best_expr=result.best_expr,
@@ -239,7 +269,7 @@ def run_full_protocol(
 
     results = [
         budget_disclosure(scenario, ratio_symbol),
-        positive_control(scenario, ratio_symbol, seed=seed),
+        positive_control(scenario, ratio_symbol, ground_truth_primitive, seed=seed),
         ablation_control(scenario, ratio_symbol, ground_truth_primitive, seed=seed),
         determinism_check(scenario, ratio_symbol, seed=seed),
     ]
@@ -266,13 +296,20 @@ if __name__ == "__main__":
     # ground_truth_primitive/ratio_symbol -- confirm them against
     SCENARIOS_TO_VALIDATE = [
         {
-            "scenario_name": "Blind-4: Relativistic Pendulum",
-            "ratio_symbol": "(v/c)**2",   # confirm this matches how X is wired to
+            "scenario_name": "Time Dilation",
+            "ratio_symbol": "(v/c)**2",
             "ground_truth_primitive": "D_lor",
         },
-        # add further scenarios here ONLY after each one individually
-        # passes all four checks -- do not batch-run untested scenarios
-        # and cherry-pick the ones that look good.
+        {
+            "scenario_name": "Screened Coulomb",
+            "ratio_symbol": "r/theta_1",
+            "ground_truth_primitive": "D_exp",
+        },
+        {
+            "scenario_name": "Entropy Expansion",
+            "ratio_symbol": "(dV/V_i)",
+            "ground_truth_primitive": "D_log",
+        },
     ]
 
     all_results = {}

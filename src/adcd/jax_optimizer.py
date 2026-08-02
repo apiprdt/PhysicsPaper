@@ -274,7 +274,8 @@ class JAXOptimizer:
         def loss(theta: jnp.ndarray) -> jnp.ndarray:
             y_pred = jax_fn(theta, X_jax)
             mse    = jnp.mean((y_pred - y_jax) ** 2)
-            return mse / denom
+            nmse   = mse / denom
+            return jnp.where(jnp.isfinite(nmse), nmse, 1e9)
 
         return loss
 
@@ -295,13 +296,15 @@ class JAXOptimizer:
                 delta   = jax_fn(theta, X_jax)
                 y_recon = y_classical_jax * (1.0 + delta)
                 mse     = jnp.mean((y_recon - y_full_jax) ** 2)
-                return mse / denom_full
+                nmse    = mse / denom_full
+                return jnp.where(jnp.isfinite(nmse), nmse, 1e9)
         else:  # additive
             def loss(theta: jnp.ndarray) -> jnp.ndarray:
                 delta   = jax_fn(theta, X_jax)
                 y_recon = y_classical_jax + delta
                 mse     = jnp.mean((y_recon - y_full_jax) ** 2)
-                return mse / denom_full
+                nmse    = mse / denom_full
+                return jnp.where(jnp.isfinite(nmse), nmse, 1e9)
 
         return loss
 

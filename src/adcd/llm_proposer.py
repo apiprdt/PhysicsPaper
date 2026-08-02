@@ -441,7 +441,7 @@ class GeminiProposer(BaseProposer):
         
         try:
             req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
-            with urllib.request.urlopen(req, timeout=10) as response:
+            with urllib.request.urlopen(req, timeout=60) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
                 
             text = res_data["candidates"][0]["content"]["parts"][0]["text"]
@@ -579,7 +579,7 @@ class OpenAICompatibleProposer(BaseProposer):
         for attempt in range(5):
             try:
                 req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
-                with urllib.request.urlopen(req, timeout=10) as response:
+                with urllib.request.urlopen(req, timeout=60) as response:
                     res_data = json.loads(response.read().decode("utf-8"))
                     
                 text = res_data["choices"][0]["message"]["content"]
@@ -1013,7 +1013,7 @@ class CorrectionGeminiProposer(BaseProposer):
         
         try:
             req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
-            with urllib.request.urlopen(req, timeout=10) as response:
+            with urllib.request.urlopen(req, timeout=60) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
                 
             text = res_data["candidates"][0]["content"]["parts"][0]["text"]
@@ -1069,9 +1069,9 @@ HARD CONSTRAINTS (violation = immediate rejection):
 class HybridCorrectionProposer(BaseProposer):
     """Combines Mock templates, Grammar-based candidates, and LLM-generated candidates."""
     def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash", seed: int = 42, strip_context: bool = False):
-        from adcd.grammar_proposer import GrammarProposer
+        # from adcd.grammar_proposer import GrammarProposer
         self.mock = CorrectionMockProposer(seed=seed)
-        self.grammar = GrammarProposer(seed=seed)
+        # self.grammar = GrammarProposer(seed=seed)
         self.strip_context = strip_context
         self.gemini = CorrectionGeminiProposer(api_key=api_key, model_name=model_name, strip_context=self.strip_context)
         self.sources = {}

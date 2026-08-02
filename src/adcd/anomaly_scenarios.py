@@ -53,8 +53,9 @@ class AnomalyScenario:
 
         elif self.name == "Entropy Expansion":
             V_i = rng.uniform(1.0, 10.0, size=n_points)
-            dV = rng.uniform(1.0, 100.0, size=n_points) * V_i
-            S_i = rng.uniform(10.0, 20.0, size=n_points)
+            u_max = v_max_over_c if v_max_over_c is not None else 100.0
+            dV = rng.uniform(0.1, u_max, size=n_points) * V_i
+            S_i = np.full_like(V_i, 15.0)
             X["V_i"] = V_i
             X["dV"] = dV
             X["S_i"] = S_i
@@ -105,7 +106,8 @@ class AnomalyScenario:
             
         elif self.name == "Blind-3: Wien Displacement" or self.name == "Blind-8: Composite Blackbody":
             X["T"] = rng.uniform(1000.0, 6000.0, size=n_points)
-            X["f"] = rng.uniform(1e12, 1e14, size=n_points)
+            f_max = v_max_over_c * 1e15 if v_max_over_c is not None else 1e14
+            X["f"] = rng.uniform(1e12, f_max, size=n_points)
 
         elif self.name == "Blind-4: Relativistic Pendulum":
             c = self.classical_constants["c"]
@@ -246,7 +248,8 @@ def generate_entropy_expansion_data(seed: int = 42, v_max_over_c: float = None, 
     
     # Generate positive volumes
     V_i = rng.uniform(1.0, 10.0, size=N)
-    dV = rng.uniform(1.0, 100.0, size=N) * V_i
+    u_max = v_max_over_c if v_max_over_c is not None else 100.0
+    dV = rng.uniform(0.1, u_max, size=N) * V_i
     
     S_i = 15.0 # Treated as constant
     nR = 8.314 # Treated as constant
@@ -303,7 +306,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             variables_with_units={"t_0": "s", "v": "m/s", "c": "m/s"},
             classical_limit_variable="v",
             classical_limit_direction="0",
-            correction_class="asymptotic_pole",
+            correction_class="rational"
         ),
         AnomalyScenario(
             name="Relativistic KE",
@@ -539,7 +542,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             variables_with_units={"m": "kg", "v": "m/s", "c": "m/s"},
             classical_limit_variable="v",
             classical_limit_direction="0",
-            correction_class="asymptotic_sqrt"
+            correction_class="rational"
         ),
         AnomalyScenario(
             name="Blind-5: Clausius-Mossotti Field",
@@ -675,7 +678,7 @@ def get_mv_scenarios() -> List[AnomalyScenario]:
             variables_with_units={"v": "m/s", "rho": "kg/m^3"},
             classical_limit_variable="v,rho",
             classical_limit_direction="0,0",
-            correction_class="polynomial",
+            correction_class="power_law",
         ),
         AnomalyScenario(
             name="MV-4: Van der Waals 2D",
