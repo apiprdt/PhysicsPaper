@@ -50,7 +50,7 @@ class ResidualFeatures:
     decay_rate: float          # [0,1]; strength of |residual| falloff with x
     monotonicity: float        # [-1,1]; Spearman rank correlation (x, residual)
     oscillation_score: float   # [0,1]; permutation-calibrated evidence of
-                                # genuine curvature reversal beyond pure noise
+    # genuine curvature reversal beyond pure noise
     symmetry: float            # [-1,1]; +1 ~ even function of x, -1 ~ odd
     leading_exponent: float    # robust log-log slope d(log|r|)/d(log|x|)
 

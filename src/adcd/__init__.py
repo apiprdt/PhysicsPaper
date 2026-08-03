@@ -1,1 +1,1 @@
-import adcd.jax_precision_config
+import adcd.jax_precision_config  # noqa: F401

@@ -42,7 +42,7 @@ silently truncated by `zip`.
 import itertools
 import sympy as sp
 import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Union, Optional, Tuple
 
 
@@ -58,7 +58,7 @@ class CorrectionEvaluation:
     bic: float
     # NEW: honesty flags for the parameter-error numbers above.
     parameter_match_structural: bool = False   # True only if a symbolic-exact
-                                                # permutation was found
+    # permutation was found
     parameter_count_mismatch: bool = False     # True if #true_params != #fit_params
 
 
@@ -218,14 +218,11 @@ def match_parameters(
     # expressions to check it against.
     if discovered_expr is not None and true_expr is not None and n <= 6:
         for perm in itertools.permutations(fit_keys, n):
-            subs_map = {sp.Symbol(fk): fit_params[fk] for fk in perm}
             # Also need to map true theta symbol names -> perm's fit symbol
             # names to compare structurally: substitute the TRUE expr's
             # theta_i with the same VALUE the perm assigns, and compare
             # against discovered_expr with fit values substituted directly.
             try:
-                disc_val = discovered_expr.subs({sp.Symbol(fk): fit_params[fk] for fk in fit_keys})
-                true_val = true_expr.subs({sp.Symbol(tk): true_params[tk] for tk in true_keys})
                 # Structural check is on the SYMBOLIC form with matched roles,
                 # not on plugged-in numbers (numbers would trivially differ by
                 # fit error) -- so instead verify role correspondence via

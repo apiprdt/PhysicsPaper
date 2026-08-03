@@ -66,8 +66,8 @@ def build_pure_grammar_orchestrator(
     checker = DimensionalChecker()
     validator = ASTValidator(max_depth=7, max_tokens=25)
     regimes = build_arc_regimes()  # generic "vanish at classical limit" regime,
-                                    # identical machinery for every scenario --
-                                    # see arc_scorer.py fix notes.
+    # identical machinery for every scenario --
+    # see arc_scorer.py fix notes.
     scorer = ARCScorer(regimes=regimes)
     pipeline = Stage1Pipeline(validator=validator, checker=checker, scorer=scorer)
 

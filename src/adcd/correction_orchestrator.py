@@ -318,8 +318,8 @@ class CorrectionOrchestrator:
                     best_bic, best_nmse_residual, best_expr = iter_best_bic, iter_best_nmse, iter_best_expr
                     best_theta = iter_opt_res.theta
                     best_arc_reverified = True  # reaching here means it either
-                                                 # wasn't deferred, or it WAS
-                                                 # deferred and passed re-verify
+                    # wasn't deferred, or it WAS
+                    # deferred and passed re-verify
                     used_extreme_scale_restart = getattr(iter_opt_res, "extreme_scale_restart", False)
 
                 iter_feedback = [(r[0], r[5]) for r in stage2_results_with_bic if np.isfinite(r[2])]
