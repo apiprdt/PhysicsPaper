@@ -231,29 +231,28 @@ class CorrectionOrchestrator:
             n_proposed = len(proposed_candidates)
             total_candidates_proposed += n_proposed
 
-            subbed_candidates, orig_by_subbed, candidate_sources = [], {}, {}
+            stage1_candidates = []
+            candidate_sources = {}
             for cand in proposed_candidates:
-                sub_expr = self._substitute_thetas(cand, 1.0)
-                has_params = (sub_expr != cand)
-                subbed_candidates.append((sub_expr, has_params))
-                orig_by_subbed.setdefault(sub_expr, []).append(cand)
+                has_params = "theta_" in cand
+                stage1_candidates.append((cand, has_params))
                 if hasattr(self.proposer, "sources") and cand in self.proposer.sources:
-                    candidate_sources[sub_expr] = self.proposer.sources[cand]
+                    candidate_sources[cand] = self.proposer.sources[cand]
 
             # pipeline.execute() now returns 5-tuples: (cand, combined_score,
             # mse, arc_score, deferred_arc) -- see pipeline_fixed.py.
             stage1_results = self.pipeline.execute(
-                subbed_candidates, target_dim_key, X, residual,
+                stage1_candidates, target_dim_key, X, residual,
                 constants=scenario.classical_constants, stats=gate_stats,
                 candidate_sources=candidate_sources,
             )
 
             seen_sub_exprs, reconstructed_results = set(), []
-            for sub_expr, combined_score, mse, arc_score, deferred_arc in stage1_results:
-                if sub_expr in orig_by_subbed and sub_expr not in seen_sub_exprs:
+            for cand, combined_score, mse, arc_score, deferred_arc in stage1_results:
+                sub_expr = self._substitute_thetas(cand, 1.0)
+                if sub_expr not in seen_sub_exprs:
                     seen_sub_exprs.add(sub_expr)
-                    orig_cand = orig_by_subbed[sub_expr][0]
-                    reconstructed_results.append((orig_cand, combined_score, mse, arc_score, deferred_arc))
+                    reconstructed_results.append((cand, combined_score, mse, arc_score, deferred_arc))
 
             n_survived = len(reconstructed_results)
             total_candidates_survived_stage1 += n_survived
