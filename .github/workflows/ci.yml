@@ -29,14 +29,11 @@ jobs:
       - name: Lint with flake8
         run: flake8 src/ --count --statistics
 
-      - name: Run tests with coverage
-        run: pytest src/adcd --cov=adcd --cov-report=xml --cov-report=term-missing
+      - name: Run Validation Suite
+        env:
+          PYTHONPATH: src
+        run: python src/adcd/run_adcd_v3_validation.py
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: false
 
   build-paper:
     name: Compile LaTeX Paper
