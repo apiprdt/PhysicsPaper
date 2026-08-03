@@ -1,70 +1,103 @@
+"""
+metrics.py (AUDIT-HARDENED)
+=============================
+FIX LOG:
+
+BUG FOUND (metric-rigor bug): parameter recovery error was computed as
+
+    sorted_true_keys = sorted(scenario.correction_constants.keys())
+    sorted_fit_keys  = sorted([k for k in theta_fit if k.startswith("theta_")])
+    for i, true_k in enumerate(sorted_true_keys):
+        fit_k = sorted_fit_keys[i]                      # <-- positional pairing
+        err = abs(theta_fit[fit_k] - true_v) / abs(true_v)
+
+This pairs the i-th ALPHABETICALLY-SORTED true parameter name with the i-th
+alphabetically-sorted DISCOVERED parameter name. Nothing guarantees these
+play the same physical role. Ground-truth scenarios and discovered
+candidates assign theta indices independently (by template-slot order for
+the discovered side, by however the scenario author wrote the ground-truth
+string for the true side). A discovered expression that is an ALGEBRAICALLY
+CORRECT rediscovery of the physics, just written with a different variable
+ordering (e.g. true = "theta_0 * (v/c)**2" vs discovered = "(v/theta_1)**2 *
+theta_0" where here theta_0 plays the role of the ORIGINAL denominator scale,
+not the coefficient) will silently produce a huge, meaningless "parameter
+error" -- or worse, a small one that is coincidentally close for the wrong
+reason. Either way, the number reported is not measuring what it claims to.
+
+FIX: `match_parameters()` below tries every permutation of the discovered
+theta symbols against the true theta symbols (fine for the ~1-4 parameter
+regime this project uses -- factorial cost is trivial there) and reports
+the assignment that minimizes total relative error, exactly like solving a
+small assignment problem. When the discovered expression is available, it
+ALSO attempts a symbolic verification: does `sp.simplify(discovered.subs(perm)
+- true_expr) == 0` for some permutation? If yes, that permutation is
+EXACT and is used with a flag `structural_match=True`. If no permutation
+gives exact structural equality, the numerically-best permutation is used
+but flagged `structural_match=False` -- "heuristic pairing, not a
+confirmed correspondence" -- so nobody over-trusts a number that is only a
+best guess. Mismatched parameter counts are reported explicitly rather than
+silently truncated by `zip`.
+"""
+
+import itertools
 import sympy as sp
 import numpy as np
-from dataclasses import dataclass
-from typing import Dict, List, Union, Optional
+from dataclasses import dataclass, field
+from typing import Dict, List, Union, Optional, Tuple
+
 
 @dataclass
 class CorrectionEvaluation:
-    nmse_residual: float               # NMSE of Δ_discovered vs residual data
-    nmse_full: float                   # NMSE of reconstructed y vs y_obs
-    true_class: str                    # Ground truth category, e.g., "exponential"
-    discovered_class: str              # Classified category of discovered term
-    class_match: bool                  # True if same structural family
-    ast_edit_distance: int             # Levenshtein distance on AST preorder token representation
-    parameter_error: Dict[str, float]  # Percentage error for recovered free parameters |θ_fit - θ_true|/|θ_true|
-    bic: float                         # Bayesian Information Criterion score
+    nmse_residual: float
+    nmse_full: float
+    true_class: str
+    discovered_class: str
+    class_match: bool
+    ast_edit_distance: int
+    parameter_error: Dict[str, float]
+    bic: float
+    # NEW: honesty flags for the parameter-error numbers above.
+    parameter_match_structural: bool = False   # True only if a symbolic-exact
+                                                # permutation was found
+    parameter_count_mismatch: bool = False     # True if #true_params != #fit_params
+
 
 def classify_structure(expr: Union[str, sp.Expr], theta_fit: Optional[Dict[str, float]] = None) -> str:
-    """
-    Classifies a SymPy expression or string into one of the structural classes:
-    'exponential', 'trigonometric', 'logarithmic', 'power_law', 'rational', 'polynomial'
-    
-    Uses AST traversal for robust classification instead of fragile string matching.
-    """
+    """Unchanged from the audited original -- no bug found in this function
+    beyond the priority-ordering note in the audit report (documented, not
+    a silent bug: it is a deliberate, uniformly-applied convention)."""
     if isinstance(expr, str):
         try:
             expr = sp.sympify(expr)
         except Exception:
             return "unknown"
-    
-    # Walk the AST to detect function types
+
     has_exp = False
     has_trig = False
     has_log = False
     has_noninteger_pow = False
     has_rational_denom = False
-    
+
     constants = {"c", "G", "sigma", "k_e", "pi"}
-    
+
     for sub in sp.preorder_traversal(expr):
         if isinstance(sub, sp.Function):
             fname = sub.func.__name__
             if fname in ("exp",):
                 has_exp = True
-            elif fname in ("sin", "cos", "tan", "tanh", "sinh", "cosh", "sinc",
-                           "asin", "acos", "atan"):
+            elif fname in ("sin", "cos", "tan", "tanh", "sinh", "cosh", "sinc", "asin", "acos", "atan"):
                 has_trig = True
             elif fname in ("log", "ln"):
                 has_log = True
         elif isinstance(sub, sp.Pow):
             base, exponent = sub.args
-            
-            # Identify if base has physical variables (non-parameter, non-constant symbols)
             base_syms = [str(s) for s in base.free_symbols]
-            has_var = any(
-                not s.startswith("theta_") and s not in constants 
-                for s in base_syms
-            )
-            
+            has_var = any(not s.startswith("theta_") and s not in constants for s in base_syms)
+
             if has_var:
-                # Check for power law:
-                # 1. Non-integer exponent (e.g. x**1.5)
-                # 2. Negative exponent (e.g. T**-4 or T**-1)
-                # 3. Exponent is a parameter symbol (e.g. x**theta_1)
                 is_neg = exponent.is_Number and float(exponent) < 0
                 is_param = exponent.is_Symbol and str(exponent).startswith("theta_")
-                
-                # Check for degenerate linear case (exponent ~ 1.0)
+
                 is_degenerate = False
                 if is_param and theta_fit is not None:
                     param_name = str(exponent)
@@ -72,16 +105,14 @@ def classify_structure(expr: Union[str, sp.Expr], theta_fit: Optional[Dict[str, 
                         val = theta_fit[param_name]
                         if abs(val - 1.0) < 0.05:
                             is_degenerate = True
-                            
+
                 if (not exponent.is_Integer or is_neg or is_param) and not is_degenerate:
                     has_noninteger_pow = True
-                    
-            # Check for rational function: x / (x + a) style denominators
+
             if exponent.is_Number and float(exponent) < 0:
                 if isinstance(base, sp.Add):
                     has_rational_denom = True
-    
-    # Priority ordering: transcendental > power_law > rational > polynomial
+
     if has_exp:
         return "exponential"
     if has_trig:
@@ -92,55 +123,39 @@ def classify_structure(expr: Union[str, sp.Expr], theta_fit: Optional[Dict[str, 
         return "rational"
     if has_noninteger_pow:
         return "power_law"
-    
-    # Default: polynomial (integer powers, additions, multiplications)
     return "polynomial"
 
+
 def get_ast_tokens(expr: sp.Expr) -> List[str]:
-    """
-    Returns a sequence of token strings by preorder traversal of the SymPy AST.
-    This provides a robust, platform-independent representation of AST structure.
-    """
     tokens = []
     for node in sp.preorder_traversal(expr):
         if node.is_Symbol:
-            # Normalize theta symbols so their specific indices don't inflate edit distance
             name = str(node)
-            if name.startswith("theta_"):
-                tokens.append("Symbol(theta)")
-            else:
-                tokens.append(f"Symbol({name})")
+            tokens.append("Symbol(theta)" if name.startswith("theta_") else f"Symbol({name})")
         elif node.is_Number:
-            # We don't want slight constant differences to skew structure distance
             tokens.append("Number")
         else:
             tokens.append(node.__class__.__name__)
     return tokens
 
+
 def compute_levenshtein_distance(seq1: List[str], seq2: List[str]) -> int:
-    """Computes the Levenshtein edit distance between two token sequences."""
-    size_x = len(seq1) + 1
-    size_y = len(seq2) + 1
+    size_x, size_y = len(seq1) + 1, len(seq2) + 1
     matrix = np.zeros((size_x, size_y), dtype=int)
     for x in range(size_x):
         matrix[x, 0] = x
     for y in range(size_y):
         matrix[0, y] = y
-
     for x in range(1, size_x):
         for y in range(1, size_y):
-            if seq1[x-1] == seq2[y-1]:
-                matrix[x, y] = matrix[x-1, y-1]
+            if seq1[x - 1] == seq2[y - 1]:
+                matrix[x, y] = matrix[x - 1, y - 1]
             else:
-                matrix[x, y] = min(
-                    matrix[x-1, y] + 1,    # deletion
-                    matrix[x, y-1] + 1,    # insertion
-                    matrix[x-1, y-1] + 1   # substitution
-                )
+                matrix[x, y] = min(matrix[x - 1, y] + 1, matrix[x, y - 1] + 1, matrix[x - 1, y - 1] + 1)
     return int(matrix[size_x - 1, size_y - 1])
 
+
 def _nmse(mse: float, reference: np.ndarray) -> float:
-    """Scale-adaptive NMSE; matches JAX optimizer denominator logic."""
     var_y = float(np.var(reference))
     eps = max(var_y * 1e-6, 1e-36)
     denom = var_y + eps
@@ -148,16 +163,6 @@ def _nmse(mse: float, reference: np.ndarray) -> float:
 
 
 def bic_score(nmse: float, n_params: int, n_points: int) -> float:
-    """Lower is better. Penalizes parameter count.
-    
-    A noise floor of 1e-6 is applied to NMSE before computing the log-likelihood.
-    This prevents BIC from rewarding extra parameters when NMSE falls into 
-    floating-point precision territory (< 1e-6), where numerical noise dominates 
-    and additional parameters provide no real information gain.
-    """
-    # Noise floor: differences below 1e-6 NMSE are numerically indistinguishable
-    # Without this, a 3-param model that shaves 1e-14 off a 1e-14 NMSE beats a
-    # 1-param model via BIC despite conveying zero additional physical information.
     nmse_floored = max(nmse, 1e-6)
     rss = nmse_floored * n_points
     log_likelihood = -n_points / 2 * np.log(rss / n_points + 1e-30)
@@ -165,15 +170,103 @@ def bic_score(nmse: float, n_params: int, n_points: int) -> float:
 
 
 def extended_bic_score(nmse: float, n_params: int, n_points: int, n_candidates: int = 1) -> float:
-    """Computes Extended BIC score with model selection penalty 2*ln(M).
-
-    BIC_ext = N * ln(NMSE) + k * ln(N) + 2 * ln(M)
-    where M = n_candidates evaluated in the active candidate pool.
-    When n_candidates = 1, reduces identically to standard BIC score.
-    """
     base_bic = bic_score(nmse, n_params, n_points)
     m_penalty = float(2.0 * np.log(max(1, n_candidates)))
     return base_bic + m_penalty
+
+
+def match_parameters(
+    true_params: Dict[str, float],
+    fit_params: Dict[str, float],
+    discovered_expr: Optional[sp.Expr] = None,
+    true_expr: Optional[sp.Expr] = None,
+) -> Tuple[Dict[str, float], bool, bool]:
+    """
+    Establish correspondence between TRUE parameter names/values and FITTED
+    parameter names/values.
+
+    Returns:
+        (parameter_error_by_true_name, structural_match, count_mismatch)
+
+    Strategy (in order):
+    1. If discovered_expr/true_expr are given and parameter counts match,
+       try every permutation of the fit-parameter symbols substituted into
+       discovered_expr; if sp.simplify(discovered.subs(perm) - true_expr)==0
+       for some permutation, that is an EXACT structural match -- use it and
+       set structural_match=True.
+    2. Otherwise, fall back to the permutation that numerically MINIMIZES
+       total relative error (still tries all permutations -- cheap for the
+       small parameter counts used throughout this project). structural_match
+       is False in this branch: the pairing is a best-effort heuristic, not a
+       confirmed correspondence, and should be reported as such.
+    3. If len(fit_params) != len(true_params), no 1:1 correspondence can be
+       established at all; return count_mismatch=True and an empty error dict
+       rather than silently truncating via zip.
+    """
+    true_keys = sorted(true_params.keys())
+    fit_keys = sorted(fit_params.keys())
+
+    if len(fit_keys) != len(true_keys) or len(true_keys) == 0:
+        return {}, False, True
+
+    n = len(true_keys)
+    best_perm = None
+    best_err = float("inf")
+    structural_match = False
+
+    # Try structural (symbolic-exact) correspondence first, if we have the
+    # expressions to check it against.
+    if discovered_expr is not None and true_expr is not None and n <= 6:
+        for perm in itertools.permutations(fit_keys, n):
+            subs_map = {sp.Symbol(fk): fit_params[fk] for fk in perm}
+            # Also need to map true theta symbol names -> perm's fit symbol
+            # names to compare structurally: substitute the TRUE expr's
+            # theta_i with the same VALUE the perm assigns, and compare
+            # against discovered_expr with fit values substituted directly.
+            try:
+                disc_val = discovered_expr.subs({sp.Symbol(fk): fit_params[fk] for fk in fit_keys})
+                true_val = true_expr.subs({sp.Symbol(tk): true_params[tk] for tk in true_keys})
+                # Structural check is on the SYMBOLIC form with matched roles,
+                # not on plugged-in numbers (numbers would trivially differ by
+                # fit error) -- so instead verify role correspondence via
+                # symbol substitution equivalence:
+                role_map = {sp.Symbol(fk): sp.Symbol(tk) for fk, tk in zip(perm, true_keys)}
+                relabeled_discovered = discovered_expr.subs(role_map, simultaneous=True)
+                diff = sp.simplify(relabeled_discovered - true_expr)
+                if diff == 0:
+                    best_perm = perm
+                    structural_match = True
+                    break
+            except Exception:
+                continue
+
+    # Fall back to (or additionally compute, for reporting) the numerically
+    # best permutation if no exact structural match was found.
+    if best_perm is None:
+        for perm in itertools.permutations(fit_keys, n):
+            total_err = 0.0
+            ok = True
+            for tk, fk in zip(true_keys, perm):
+                tv, fv = true_params[tk], fit_params[fk]
+                if not (np.isfinite(tv) and np.isfinite(fv)):
+                    ok = False
+                    break
+                total_err += abs(fv - tv) / max(abs(tv), 1e-15)
+            if ok and total_err < best_err:
+                best_err = total_err
+                best_perm = perm
+        structural_match = False
+
+    if best_perm is None:
+        return {}, False, True
+
+    param_errors = {}
+    for tk, fk in zip(true_keys, best_perm):
+        tv, fv = true_params[tk], fit_params[fk]
+        err = abs(fv - tv) / abs(tv) if abs(tv) > 1e-15 else abs(fv - tv)
+        param_errors[tk] = float(err)
+
+    return param_errors, structural_match, False
 
 
 def _evaluate_delta_array(
@@ -183,18 +276,13 @@ def _evaluate_delta_array(
     classical_constants: Dict[str, float],
     n_points: int,
 ) -> np.ndarray:
-    """Numerically evaluate a correction expression on tabular data (robust vs. eval())."""
     try:
         expr = sp.sympify(expr_str)
-        subs = {
-            sp.Symbol(k): v
-            for k, v in {**(classical_constants or {}), **theta_fit}.items()
-        }
+        subs = {sp.Symbol(k): v for k, v in {**(classical_constants or {}), **theta_fit}.items()}
         expr = expr.subs(subs)
         free_syms = sorted(expr.free_symbols, key=lambda s: str(s))
         if not free_syms:
             return np.full(n_points, float(expr))
-
         fn = sp.lambdify(free_syms, expr, modules=["scipy", "numpy"])
         args = []
         for sym in free_syms:
@@ -207,11 +295,11 @@ def _evaluate_delta_array(
         return np.zeros(n_points)
 
 
-# PERINGATAN UNTUK EDITOR MANA PUN (manusia atau AI):
-# JANGAN PERNAH meng-OR nmse_full ke dalam kriteria class_match.
-# nmse_full nyaris selalu kecil pada correction-first karena baseline
-# mendominasi — ini membuatnya jalan pintas palsu untuk PASS.
-# Lihat ADCD_Metric_Integrity_Hardening_Plan.md Bagian 1 untuk histori lengkap.
+# WARNING FOR ANY FUTURE EDITOR (human or AI):
+# NEVER OR nmse_full into the class_match criterion. nmse_full is almost
+# always small under correction-first design because the baseline dominates
+# -- that makes it a false shortcut to PASS. This rule is unchanged from the
+# original audit and remains correct; it is preserved here as-is.
 def evaluate_correction(
     discovered_expr_str: str,
     scenario,
@@ -220,54 +308,33 @@ def evaluate_correction(
     y_classical: np.ndarray,
     theta_fit: Dict[str, float]
 ) -> CorrectionEvaluation:
-    """
-    Computes all standard physical, structural, and symbolic metrics 
-    comparing discovered correction term against ground truth.
-    """
-    # 1. Structural parse
     try:
         discovered_expr = sp.sympify(discovered_expr_str)
         true_expr = sp.sympify(scenario.correction_expr)
     except Exception:
-        # Return fallback high-error evaluation if expressions cannot be parsed
         return CorrectionEvaluation(
-            nmse_residual=1.0,
-            nmse_full=1.0,
-            true_class=scenario.correction_class,
-            discovered_class="unparseable",
-            class_match=False,
-            ast_edit_distance=999,
-            parameter_error={},
-            bic=9999.0
+            nmse_residual=1.0, nmse_full=1.0, true_class=scenario.correction_class,
+            discovered_class="unparseable", class_match=False, ast_edit_distance=999,
+            parameter_error={}, bic=9999.0, parameter_match_structural=False,
+            parameter_count_mismatch=True,
         )
 
-    # 2. Structural classification
     true_cls = scenario.correction_class
     disc_cls = classify_structure(discovered_expr, theta_fit)
 
-    # 3. AST Levenshtein Distance
     seq_disc = get_ast_tokens(discovered_expr)
     seq_true = get_ast_tokens(true_expr)
     ast_dist = compute_levenshtein_distance(seq_disc, seq_true)
 
-    # 4. Numerical NMSE metrics
     n_points = len(y_obs)
-    delta_discovered = _evaluate_delta_array(
-        discovered_expr_str,
-        X,
-        theta_fit,
-        scenario.classical_constants,
-        n_points,
-    )
+    delta_discovered = _evaluate_delta_array(discovered_expr_str, X, theta_fit, scenario.classical_constants, n_points)
 
-    # Reconstruct y
     if scenario.correction_type == "multiplicative":
         y_recon = y_classical * (1.0 + delta_discovered)
-        # Compute residual NMSE
         residual_obs = y_obs / y_classical - 1.0
         mse_res = np.mean((delta_discovered - residual_obs) ** 2)
         nmse_res = _nmse(mse_res, residual_obs)
-    else:  # additive
+    else:
         y_recon = y_classical + delta_discovered
         residual_obs = y_obs - y_classical
         mse_res = np.mean((delta_discovered - residual_obs) ** 2)
@@ -276,43 +343,21 @@ def evaluate_correction(
     mse_full = np.mean((y_recon - y_obs) ** 2)
     nmse_full = _nmse(mse_full, y_obs)
 
-    # --------------------------------------------------------------------------------------
-    # CRITICAL METRIC HARDENING (Audit v3 - Physically Viable Threshold):
-    # Kriteria PRIMER untuk class_match/"discovery": HANYA nmse_res yang menentukan (< 0.20).
-    # Ini SATU-SATUNYA metrik yang mengisolasi kualitas koreksi itu sendiri (variance explained >= 80%),
-    # terpisah dari seberapa besar baseline sudah mendominasi data. HANYA nmse_res, ZERO OR-logic!
-    # --------------------------------------------------------------------------------------
     RESIDUAL_NMSE_THRESHOLD = 0.20
     is_genuinely_good_fit = bool(nmse_res < RESIDUAL_NMSE_THRESHOLD)
 
     class_match = bool(
-        (true_cls == disc_cls)
-        and is_genuinely_good_fit
-        and bool(discovered_expr_str.strip())
+        (true_cls == disc_cls) and is_genuinely_good_fit and bool(discovered_expr_str.strip())
     )
 
-    # nmse_full TETAP dihitung dan dilaporkan sebagai kolom diagnostik TERPISAH.
-    # ATURAN KERAS: nmse_full TIDAK PERNAH dipakai untuk meng-OR atau menggantikan
-    # kriteria class_match, dalam bentuk apa pun, di file manapun.
+    # FIXED parameter-recovery matching (see match_parameters docstring).
+    param_errors, structural_match, count_mismatch = match_parameters(
+        true_params=scenario.correction_constants,
+        fit_params={k: v for k, v in theta_fit.items() if k.startswith("theta_")},
+        discovered_expr=discovered_expr,
+        true_expr=true_expr,
+    )
 
-    # 5. Parameter recovery error
-    sorted_true_keys = sorted(scenario.correction_constants.keys())
-    sorted_fit_keys = sorted([k for k in theta_fit.keys() if k.startswith("theta_")])
-    
-    param_errors = {}
-    for i, true_k in enumerate(sorted_true_keys):
-        if i < len(sorted_fit_keys):
-            fit_k = sorted_fit_keys[i]
-            true_v = scenario.correction_constants[true_k]
-            fit_v = theta_fit[fit_k]
-            
-            if abs(true_v) > 1e-15:
-                err = abs(fit_v - true_v) / abs(true_v)
-            else:
-                err = abs(fit_v - true_v)
-            param_errors[true_k] = float(err)
-
-    # 6. BIC calculation
     n_params = len([k for k in theta_fit.keys() if k.startswith("theta_")])
     n_points = len(y_obs)
     bic_val = bic_score(nmse_res, n_params, n_points)
@@ -325,5 +370,7 @@ def evaluate_correction(
         class_match=class_match,
         ast_edit_distance=ast_dist,
         parameter_error=param_errors,
-        bic=bic_val
+        bic=bic_val,
+        parameter_match_structural=structural_match,
+        parameter_count_mismatch=count_mismatch,
     )

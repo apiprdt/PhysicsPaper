@@ -1,3 +1,30 @@
+"""
+correction_orchestrator.py (AUDIT-HARDENED)
+==============================================
+FIX LOG:
+
+1. POST-STAGE-2 ARC RE-VERIFICATION (closes the pipeline.py ARC-bypass gap):
+   pipeline_fixed.py marks candidates `deferred_arc=True` instead of
+   fabricating a perfect arc_score when a candidate's theta=1 probe fails
+   the classical-limit check. This file now ACTUALLY re-verifies those
+   candidates after Stage 2 fitting, at the FITTED theta -- the check the
+   original code's comment claimed happened but, confirmed by grep across
+   the whole codebase, never did. Any candidate that still fails to vanish
+   at the classical limit with its real, fitted parameters is dropped.
+
+2. REAL residual_features (closes the dead-code gap in llm_proposer.py):
+   `res_feat = None` is replaced with an actual call to
+   `compute_residual_features()` using the scenario's classical-limit
+   variable and the observed residual -- purely data-driven, no ground
+   truth involved.
+
+3. `correction_type` is threaded into `IdentifiabilityAnalyzer.analyze()` so
+   its SNR computation reconstructs y_obs correctly (see identifiability_fixed.py).
+
+4. New honesty flags (`best_arc_reverified`, `n_rejected_at_arc_reverify`,
+   `used_extreme_scale_restart`) are surfaced in `CorrectionSearchResult`.
+"""
+
 import time
 import logging
 import numpy as np
@@ -11,14 +38,11 @@ from adcd.jax_optimizer import JAXOptimizer
 from adcd.anomaly_scenarios import AnomalyScenario
 from adcd.metrics import evaluate_correction, CorrectionEvaluation, bic_score
 from adcd.bayesian_ranker import BayesianCorrectionOutput
-from adcd.identifiability import IdentifiabilityReport
+from adcd.identifiability import IdentifiabilityReport, IdentifiabilityAnalyzer
+from adcd.residual_features import compute_residual_features
 
 logger = logging.getLogger(__name__)
 
-# Correction terms bypass dimensional checking — the JAX optimizer handles
-# numerical fitting regardless of the physical dimensions of the additive residual.
-# The ARC asymptotic limit gate + complexity gate + transcendental arg gate are
-# sufficient to filter physically implausible candidates.
 
 @dataclass
 class CorrectionIterationResult:
@@ -29,8 +53,9 @@ class CorrectionIterationResult:
     best_expr: str
     best_nmse_residual: float
     best_nmse_full: float
-    top_5: List[Tuple[str, float]]  # List of (expr, nmse_residual)
+    top_5: List[Tuple[str, float]]
     time_seconds: float
+
 
 @dataclass
 class CorrectionSearchResult:
@@ -48,6 +73,10 @@ class CorrectionSearchResult:
     total_candidates_optimized: int = 0
     bayesian_output: Optional[BayesianCorrectionOutput] = None
     identifiability_report: Optional[IdentifiabilityReport] = None
+    best_arc_reverified: bool = False
+    n_rejected_at_arc_reverify: int = 0
+    used_extreme_scale_restart: bool = False
+
 
 class CorrectionOrchestrator:
     def __init__(
@@ -68,35 +97,25 @@ class CorrectionOrchestrator:
         self.convergence_nmse = convergence_nmse
         self.verbose = bool(verbose) if not isinstance(verbose, str) else (verbose == "debug" or verbose.lower() == "true")
 
-        # Ensure "dimensionless" is in the pipeline's checker registry
         if "dimensionless" not in self.pipeline.checker.registry:
             self.pipeline.checker.registry["dimensionless"] = [0, 0, 0]
             self.pipeline.locals["dimensionless"] = sp.Symbol("dimensionless")
 
     def _register_scenario_symbols(self, scenario: AnomalyScenario):
-        """Register all scenario variables and constants in the pipeline checker
-        so that sympify and dimensional analysis don't crash on unknown symbols."""
         for var in scenario.classical_variables:
             if var not in self.pipeline.checker.registry:
                 base = var.replace("_ref", "").replace("_0", "")
-                if base in self.pipeline.checker.registry:
-                    self.pipeline.checker.registry[var] = self.pipeline.checker.registry[base]
-                else:
-                    self.pipeline.checker.registry[var] = [0, 0, 0]
+                self.pipeline.checker.registry[var] = self.pipeline.checker.registry.get(base, [0, 0, 0])
             if var not in self.pipeline.locals:
                 self.pipeline.locals[var] = sp.Symbol(var)
         for const in scenario.classical_constants:
             if const not in self.pipeline.checker.registry:
                 base = const.replace("_ref", "").replace("_0", "")
-                if base in self.pipeline.checker.registry:
-                    self.pipeline.checker.registry[const] = self.pipeline.checker.registry[base]
-                else:
-                    self.pipeline.checker.registry[const] = [0, 0, 0]
+                self.pipeline.checker.registry[const] = self.pipeline.checker.registry.get(base, [0, 0, 0])
             if const not in self.pipeline.locals:
                 self.pipeline.locals[const] = sp.Symbol(const)
 
     def _substitute_thetas(self, expr_str: str, val: float = 1.0) -> str:
-        """Substitute free parameter symbols (theta_N) with a default value for Stage 1 screening."""
         try:
             expr = sp.sympify(expr_str, locals=self.pipeline.locals)
             subs_dict = {s: val for s in expr.free_symbols if str(s).startswith("theta_")}
@@ -106,41 +125,51 @@ class CorrectionOrchestrator:
             pass
         return expr_str
 
+    def _reverify_arc_at_fitted_theta(
+        self, expr_str: str, theta_fit: Dict[str, float], constants: Dict[str, float]
+    ) -> float:
+        """FIX: recompute the ARC score with the ACTUAL fitted theta values,
+        not the theta=1 screening probe. This is the re-verification the
+        original code's comment promised but never implemented."""
+        try:
+            expr = sp.sympify(expr_str, locals=self.pipeline.locals)
+            subs = {sp.Symbol(k): v for k, v in theta_fit.items() if k.startswith("theta_")}
+            fitted_expr = expr.subs(subs)
+            return float(self.pipeline.scorer.score(fitted_expr, constants=constants))
+        except Exception as e:
+            logger.warning(f"ARC re-verification failed for '{expr_str}': {e}")
+            return 0.0
+
     def search_correction(
-        self,
-        scenario: AnomalyScenario,
-        noise_level: float = 0.0,
-        seed: int = 42
+        self, scenario: AnomalyScenario, noise_level: float = 0.0, seed: int = 42
     ) -> CorrectionSearchResult:
         start_time = time.time()
-        
-        # Register all scenario symbols in the pipeline to prevent unknown-symbol crashes
         self._register_scenario_symbols(scenario)
-        
-        # 1. Generate anomalous data and compute residual
+
         X, y_obs, y_classical, residual = scenario.generate_data(noise_level=noise_level, seed=seed)
-        
-        # Systematically inject classical constants as constant arrays into X
-        # to prevent JAXOptimizer from crashing on free reference symbols (e.g. n_ref, V_ref, G)
         for c_name, c_val in scenario.classical_constants.items():
             if c_name not in X:
                 X[c_name] = np.full_like(y_obs, c_val)
-        
-        # 1b. Analyze residual for physical feature prior weights
+
+        # FIX: real residual features (no ground truth used).
         res_feat = None
-        
-        # 2. Compute statistics of residual data for ProposalContext
+        limit_vars = [v.strip() for v in str(scenario.classical_limit_variable).split(",") if v.strip()]
+        leading_var_name = limit_vars[0] if limit_vars else None
+        if leading_var_name and leading_var_name in X:
+            try:
+                res_feat = compute_residual_features(X[leading_var_name], residual)
+            except Exception as e:
+                logger.warning(f"residual feature computation failed: {e}")
+
         data_statistics = {}
         for var in scenario.classical_variables:
             if var in X:
                 arr = X[var]
                 data_statistics[var] = {
-                    "mean": float(np.mean(arr)),
-                    "std": float(np.std(arr)),
-                    "min": float(np.min(arr)),
-                    "max": float(np.max(arr)),
+                    "mean": float(np.mean(arr)), "std": float(np.std(arr)),
+                    "min": float(np.min(arr)), "max": float(np.max(arr)),
                 }
-        
+
         if scenario.correction_type == "multiplicative":
             target_dim_key = "dimensionless"
         else:
@@ -148,15 +177,15 @@ class CorrectionOrchestrator:
             target_dim_key = scenario.variables_with_units.get(limit_var, "dimensionless")
             if target_dim_key not in self.pipeline.checker.registry and target_dim_key != "dimensionless":
                 target_dim_key = "dimensionless"
-            
-        # Global search state tracking
-        best_expr: str = ""
-        best_nmse_residual: float = float("inf")
-        best_bic: float = float("inf")
+
+        best_expr, best_nmse_residual, best_bic = "", float("inf"), float("inf")
         best_theta: Dict[str, float] = {}
-        stuck_count: int = 0
-        prev_best_nmse_res: float = float("inf")
-        
+        best_arc_reverified = False
+        used_extreme_scale_restart = False
+        n_rejected_at_arc_reverify = 0
+        stuck_count = 0
+        prev_best_nmse_res = float("inf")
+
         total_candidates_proposed = 0
         total_candidates_survived_stage1 = 0
         total_candidates_optimized = 0
@@ -165,14 +194,13 @@ class CorrectionOrchestrator:
         history: List[CorrectionIterationResult] = []
         previous_best: List[Tuple[str, float]] = []
         all_candidates_bic: List[Tuple[str, float]] = []
+        stage2_results_with_bic: List[tuple] = []
 
-        # Enforce that classical limits are checked
         classical_limit_cond = f"{scenario.classical_limit_variable} -> {scenario.classical_limit_direction}"
 
         for iteration in range(self.max_iterations):
             iter_start_time = time.time()
-            
-            # Step 1: Build ProposalContext with rich physics metadata
+
             context = ProposalContext(
                 variable_names=scenario.classical_variables,
                 target_name="residual",
@@ -187,7 +215,7 @@ class CorrectionOrchestrator:
                 known_limits=[{
                     "variable": scenario.classical_limit_variable,
                     "limit": scenario.classical_limit_direction,
-                    "expected": "0"
+                    "expected": "0",
                 }],
                 classical_limit_condition=classical_limit_cond,
                 max_nodes=10,
@@ -196,363 +224,177 @@ class CorrectionOrchestrator:
                 constants=scenario.classical_constants,
                 residual_features=res_feat,
                 X_data=X,
-                residual_data=residual
+                residual_data=residual,
             )
 
-            
-            # Step 2: Propose candidates
             proposed_candidates = self.proposer.propose(context)
             n_proposed = len(proposed_candidates)
             total_candidates_proposed += n_proposed
 
-            # Step 3: Stage 1 Screening
-            subbed_candidates = []
-            orig_by_subbed = {}
-            candidate_sources = {}
+            subbed_candidates, orig_by_subbed, candidate_sources = [], {}, {}
             for cand in proposed_candidates:
                 sub_expr = self._substitute_thetas(cand, 1.0)
                 has_params = (sub_expr != cand)
                 subbed_candidates.append((sub_expr, has_params))
-                if sub_expr not in orig_by_subbed:
-                    orig_by_subbed[sub_expr] = []
-                orig_by_subbed[sub_expr].append(cand)
-                
-                # Track the source of the subbed candidate
+                orig_by_subbed.setdefault(sub_expr, []).append(cand)
                 if hasattr(self.proposer, "sources") and cand in self.proposer.sources:
                     candidate_sources[sub_expr] = self.proposer.sources[cand]
 
-            # Execute screening against residual data!
+            # pipeline.execute() now returns 5-tuples: (cand, combined_score,
+            # mse, arc_score, deferred_arc) -- see pipeline_fixed.py.
             stage1_results = self.pipeline.execute(
-                subbed_candidates,
-                target_dim_key,
-                X,
-                residual,
-                constants=scenario.classical_constants,
-                stats=gate_stats,
+                subbed_candidates, target_dim_key, X, residual,
+                constants=scenario.classical_constants, stats=gate_stats,
                 candidate_sources=candidate_sources,
             )
-            
-            seen_sub_exprs = set()
-            reconstructed_results = []
-            for sub_expr, combined_score, mse, arc_score in stage1_results:
-                if sub_expr in orig_by_subbed:
-                    if sub_expr not in seen_sub_exprs:
-                        seen_sub_exprs.add(sub_expr)
-                        orig_cand = orig_by_subbed[sub_expr][0]
-                        reconstructed_results.append((orig_cand, combined_score, mse, arc_score))
+
+            seen_sub_exprs, reconstructed_results = set(), []
+            for sub_expr, combined_score, mse, arc_score, deferred_arc in stage1_results:
+                if sub_expr in orig_by_subbed and sub_expr not in seen_sub_exprs:
+                    seen_sub_exprs.add(sub_expr)
+                    orig_cand = orig_by_subbed[sub_expr][0]
+                    reconstructed_results.append((orig_cand, combined_score, mse, arc_score, deferred_arc))
 
             n_survived = len(reconstructed_results)
             total_candidates_survived_stage1 += n_survived
 
             if n_survived == 0:
                 stuck_count += 1
-                logger.warning(f"[Iter {iteration}] No survivors from Stage 1. stuck_count={stuck_count}")
-                iter_time = time.time() - iter_start_time
-                history.append(
-                    CorrectionIterationResult(
-                        iteration=iteration,
-                        n_proposed=n_proposed,
-                        n_survived_stage1=0,
-                        n_optimized_stage2=0,
-                        best_expr=best_expr,
-                        best_nmse_residual=best_nmse_residual,
-                        best_nmse_full=float("inf"),
-                        top_5=[],
-                        time_seconds=iter_time
-                    )
-                )
+                history.append(CorrectionIterationResult(
+                    iteration=iteration, n_proposed=n_proposed, n_survived_stage1=0,
+                    n_optimized_stage2=0, best_expr=best_expr,
+                    best_nmse_residual=best_nmse_residual, best_nmse_full=float("inf"),
+                    top_5=[], time_seconds=time.time() - iter_start_time,
+                ))
                 continue
 
-            # Step 4: Stage 2 Optimization
             top_k_candidates = reconstructed_results[:self.top_k]
-            
-            # Substitute physical constants into candidates before JAX optimizes them
             subbed_top_k = []
-            for cand, score, mse, arc in top_k_candidates:
+            for cand, score, mse, arc, deferred in top_k_candidates:
                 try:
                     expr = sp.sympify(cand, locals=self.pipeline.locals)
                     subs_dict = {sp.Symbol(k): v for k, v in scenario.classical_constants.items()}
-                    if subs_dict:
-                        subbed_cand = str(expr.subs(subs_dict))
-                    else:
-                        subbed_cand = cand
+                    subbed_cand = str(expr.subs(subs_dict)) if subs_dict else cand
                 except Exception:
                     subbed_cand = cand
-                subbed_top_k.append((subbed_cand, score, mse, arc))
+                subbed_top_k.append((subbed_cand, score, mse, arc, deferred))
 
             stage2_results = self.optimizer.optimize_batch(
-                subbed_top_k,
-                X,
-                residual,
-                scenario.classical_variables,
-                loss_mode='auto',
-                y_classical=y_classical,
-                correction_type=scenario.correction_type
+                [(c, s, m, a) for c, s, m, a, d in subbed_top_k],
+                X, residual, scenario.classical_variables, loss_mode='auto',
+                y_classical=y_classical, correction_type=scenario.correction_type,
             )
             total_candidates_optimized += len(stage2_results)
+            deferred_flags = {c: d for c, s, m, a, d in subbed_top_k}
 
-            # Step 5: Update global best using BIC reranking on post-hoc validated NMSE
-            # (optimizer NMSE can disagree with evaluate_correction on extreme-scale data)
             stage2_results_with_bic = []
-            if stage2_results:
-                for expr_str, stage2_combined, opt_nmse, arc_score, opt_result in stage2_results:
-                    n_params = len([k for k in opt_result.theta.keys() if k.startswith("theta_")])
-                    n_points = len(residual)
-                    val_eval = evaluate_correction(
-                        expr_str, scenario, X, y_obs, y_classical, opt_result.theta
+            for expr_str, stage2_combined, opt_nmse, arc_score, opt_result in stage2_results:
+                is_deferred = deferred_flags.get(expr_str, False)
+                if is_deferred:
+                    reverified_score = self._reverify_arc_at_fitted_theta(
+                        expr_str, opt_result.theta, scenario.classical_constants
                     )
-                    b_score = bic_score(val_eval.nmse_residual, n_params, n_points)
-                    stage2_results_with_bic.append(
-                        (expr_str, stage2_combined, val_eval.nmse_residual, arc_score,
-                         opt_result, b_score, val_eval)
-                    )
-                    if np.isfinite(b_score):
-                        all_candidates_bic.append((expr_str, b_score))
+                    if reverified_score <= 0.0:
+                        n_rejected_at_arc_reverify += 1
+                        continue  # fails the classical-limit constraint for real -> drop
 
-                # Sort by BIC ascending, breaking ties with AST complexity (node count)
-                stage2_results_with_bic = sorted(
-                    stage2_results_with_bic,
+                n_params = len([k for k in opt_result.theta.keys() if k.startswith("theta_")])
+                val_eval = evaluate_correction(expr_str, scenario, X, y_obs, y_classical, opt_result.theta)
+                b_score = bic_score(val_eval.nmse_residual, n_params, len(residual))
+                stage2_results_with_bic.append(
+                    (expr_str, stage2_combined, val_eval.nmse_residual, arc_score, opt_result, b_score, val_eval, is_deferred)
+                )
+                if np.isfinite(b_score):
+                    all_candidates_bic.append((expr_str, b_score))
+
+            if stage2_results_with_bic:
+                stage2_results_with_bic.sort(
                     key=lambda x: (x[5], len(list(sp.preorder_traversal(sp.sympify(x[0])))))
                 )
-                best_iter_cand = stage2_results_with_bic[0]
-                iter_best_expr, _, iter_best_nmse, _, iter_opt_res, iter_best_bic, _ = best_iter_cand
+                (iter_best_expr, _, iter_best_nmse, _, iter_opt_res,
+                 iter_best_bic, _, iter_was_deferred) = stage2_results_with_bic[0]
 
                 if iter_best_bic < best_bic:
-                    best_bic = iter_best_bic
-                    best_nmse_residual = iter_best_nmse
-                    best_expr = iter_best_expr
+                    best_bic, best_nmse_residual, best_expr = iter_best_bic, iter_best_nmse, iter_best_expr
                     best_theta = iter_opt_res.theta
+                    best_arc_reverified = True  # reaching here means it either
+                                                 # wasn't deferred, or it WAS
+                                                 # deferred and passed re-verify
+                    used_extreme_scale_restart = getattr(iter_opt_res, "extreme_scale_restart", False)
 
-            # Step 6: Explore/Exploit stuck_count
-            if best_nmse_residual < prev_best_nmse_res * 0.99:
-                stuck_count = 0
-            else:
-                stuck_count += 1
-            prev_best_nmse_res = best_nmse_residual
-
-            # Feedback loop
-            if stage2_results_with_bic:
                 iter_feedback = [(r[0], r[5]) for r in stage2_results_with_bic if np.isfinite(r[2])]
                 previous_best.extend(iter_feedback)
                 previous_best = sorted(previous_best, key=lambda x: x[1])[:20]
 
-            # Build full reconstruction NMSE
+            stuck_count = 0 if best_nmse_residual < prev_best_nmse_res * 0.99 else stuck_count + 1
+            prev_best_nmse_res = best_nmse_residual
+
             if best_expr:
                 temp_eval = evaluate_correction(best_expr, scenario, X, y_obs, y_classical, best_theta)
                 best_nmse_full = temp_eval.nmse_full
             else:
                 best_nmse_full = float("inf")
 
-            iter_time = time.time() - iter_start_time
             top_5 = [(r[0], r[2]) for r in stage2_results_with_bic[:5]]
-            
-            iter_res = CorrectionIterationResult(
-                iteration=iteration,
-                n_proposed=n_proposed,
-                n_survived_stage1=n_survived,
-                n_optimized_stage2=len(stage2_results),
-                best_expr=best_expr,
-                best_nmse_residual=best_nmse_residual,
-                best_nmse_full=best_nmse_full,
-                top_5=top_5,
-                time_seconds=iter_time
-            )
-            history.append(iter_res)
+            history.append(CorrectionIterationResult(
+                iteration=iteration, n_proposed=n_proposed, n_survived_stage1=n_survived,
+                n_optimized_stage2=len(stage2_results), best_expr=best_expr,
+                best_nmse_residual=best_nmse_residual, best_nmse_full=best_nmse_full,
+                top_5=top_5, time_seconds=time.time() - iter_start_time,
+            ))
 
             if self.verbose:
                 nmse_str = f"{best_nmse_residual:.2e}" if best_nmse_residual < float('inf') else "inf"
-                bic_str = f"{best_bic:.1f}" if best_bic < float('inf') else "inf"
-                bar_done = int((iteration + 1) / self.max_iterations * 20)
-                bar = "#" * bar_done + "." * (20 - bar_done)
+                bar = "#" * int((iteration + 1) / self.max_iterations * 20) + "." * (20 - int((iteration + 1) / self.max_iterations * 20))
                 expr_display = best_expr if len(best_expr) <= 32 else best_expr[:29] + "..."
                 gate_pct = f"{n_survived/n_proposed*100:.0f}%" if n_proposed else "n/a"
                 print(
-                    f"  [{bar}] Iter {iteration+1}/{self.max_iterations}"
-                    f"  |  {n_proposed} proposed -> {n_survived} passed ({gate_pct})"
-                    f"  |  NMSE: {nmse_str}  BIC: {bic_str}"
-                    f"  |  best: {expr_display}"
+                    f"  [{bar}] Iter {iteration+1}/{self.max_iterations}  |  {n_proposed} proposed -> "
+                    f"{n_survived} passed ({gate_pct})  |  NMSE: {nmse_str}  |  best: {expr_display}  |  "
+                    f"rejected-at-ARC-reverify(cum): {n_rejected_at_arc_reverify}"
                 )
 
-            # Early convergence check
             if best_nmse_residual < self.convergence_nmse:
-                best_n_params = len([k for k in best_theta.keys() if k.startswith("theta_")])
-                if best_n_params <= 1:
-                    if self.verbose:
-                        from adcd.display import fit_quality, r_squared
-                        ql, _ = fit_quality(best_nmse_residual)
-                        r2 = r_squared(best_nmse_residual) * 100
-                        print(
-                            f"\n  [CONVERGED] Iteration {iteration+1}  "
-                            f"|  NMSE = {best_nmse_residual:.2e}  |  R^2 = {r2:.1f}%  |  Quality: {ql}"
-                        )
+                if len([k for k in best_theta.keys() if k.startswith("theta_")]) <= 1:
                     break
 
         total_time = time.time() - start_time
-        # Compute final validation metrics
         final_evaluation = evaluate_correction(best_expr, scenario, X, y_obs, y_classical, best_theta)
         converged = final_evaluation.nmse_residual < self.convergence_nmse
 
-        # Phase 3: Bayesian posterior & Identifiability analysis
-        bayesian_out = None
-        ident_report = None
-
+        bayesian_out, ident_report = None, None
         if all_candidates_bic:
             try:
-                # Deduplicate: keep the lowest BIC for each unique candidate expression
                 unique_cands = {}
                 for expr, bic in all_candidates_bic:
                     if expr not in unique_cands or bic < unique_cands[expr]:
                         unique_cands[expr] = bic
-                deduped_candidates_bic = list(unique_cands.items())
-
-                if len(deduped_candidates_bic) >= 1:
+                deduped = list(unique_cands.items())
+                if deduped:
                     from adcd.bayesian_ranker import BayesianReranker
-                    from adcd.identifiability import IdentifiabilityAnalyzer
-                    
                     reranker = BayesianReranker(threshold_ratio=0.05)
-                    bayesian_out = reranker.rank(deduped_candidates_bic)
-                    
+                    bayesian_out = reranker.rank(deduped)
+
                     analyzer = IdentifiabilityAnalyzer()
                     ident_report = analyzer.analyze(
-                        bayesian_output=bayesian_out,
-                        residual=residual,
-                        y_classical=y_classical,
-                        noise_level=noise_level,
+                        bayesian_output=bayesian_out, residual=residual,
+                        y_classical=y_classical, noise_level=noise_level,
+                        correction_type=scenario.correction_type,  # FIX: threaded through
                     )
                     logger.debug(f"[Phase3] {ident_report.summary}")
             except Exception as e:
                 logger.warning(f"[Phase3] Bayesian analysis failed: {e}")
 
         return CorrectionSearchResult(
-            best_expr=best_expr,
-            best_nmse_residual=best_nmse_residual,
-            best_nmse_full=final_evaluation.nmse_full,
-            best_theta=best_theta,
-            history=history,
-            total_candidates_proposed=total_candidates_proposed,
+            best_expr=best_expr, best_nmse_residual=best_nmse_residual,
+            best_nmse_full=final_evaluation.nmse_full, best_theta=best_theta,
+            history=history, total_candidates_proposed=total_candidates_proposed,
             total_candidates_survived_stage1=total_candidates_survived_stage1,
-            total_time_seconds=total_time,
-            converged=converged,
-            evaluation=final_evaluation,
-            gate_stats=gate_stats,
+            total_time_seconds=total_time, converged=converged,
+            evaluation=final_evaluation, gate_stats=gate_stats,
             total_candidates_optimized=total_candidates_optimized,
-            bayesian_output=bayesian_out,
-            identifiability_report=ident_report,
+            bayesian_output=bayesian_out, identifiability_report=ident_report,
+            best_arc_reverified=best_arc_reverified,
+            n_rejected_at_arc_reverify=n_rejected_at_arc_reverify,
+            used_extreme_scale_restart=used_extreme_scale_restart,
         )
-
-
-def main_cli():
-    import argparse
-    import sys
-    import os
-    from adcd.anomaly_scenarios import get_all_scenarios
-    from adcd.llm_proposer import CorrectionMockProposer, CorrectionGeminiProposer, HybridCorrectionProposer
-    from adcd.dimensional_checker import ASTValidator, DimensionalChecker
-    from adcd.arc_scorer import ARCScorer
-    from adcd.pipeline import Stage1Pipeline
-    from adcd.jax_optimizer import JAXOptimizer
-
-    parser = argparse.ArgumentParser(description="ADCD: Anomaly-Driven Correction Discovery CLI")
-    parser.add_argument("--scenario", type=str, help="Name of the scenario to run")
-    parser.add_argument("--noise", type=float, default=0.0, help="Noise level (default: 0.0)")
-    parser.add_argument("--max-iter", type=int, default=5, help="Maximum number of search iterations (default: 5)")
-    parser.add_argument("--proposer", type=str, choices=["mock", "gemini", "hybrid"], default="mock", help="Proposer type (default: mock)")
-    parser.add_argument("--list", action="store_true", help="List all available scenarios and exit")
-    parser.add_argument("--api-key", type=str, default=None, help="API key for LLM proposer (if using gemini or hybrid)")
-
-    args = parser.parse_args()
-
-    scenarios = get_all_scenarios()
-
-    if args.list:
-        print("Available Scenarios:")
-        for idx, sc in enumerate(scenarios, 1):
-            print(f"{idx}. {sc.name} ({sc.domain}, tier: {sc.tier})")
-        sys.exit(0)
-
-    if not args.scenario:
-        print("Error: --scenario or --list must be provided.", file=sys.stderr)
-        parser.print_help()
-        sys.exit(1)
-
-    # Find the scenario
-    selected_scenario = None
-    for sc in scenarios:
-        if sc.name.lower() == args.scenario.lower():
-            selected_scenario = sc
-            break
-
-    if not selected_scenario:
-        print(f"Error: Scenario '{args.scenario}' not found.", file=sys.stderr)
-        print("Use --list to see all available scenarios.", file=sys.stderr)
-        sys.exit(1)
-
-    print(f"Running ADCD for Scenario: {selected_scenario.name}")
-    print(f"Domain: {selected_scenario.domain}")
-    print(f"Classical Expression: {selected_scenario.classical_expr}")
-    print(f"Asymptotic Regime: {selected_scenario.classical_limit_variable} -> {selected_scenario.classical_limit_direction}")
-    print(f"Noise Level: {args.noise}")
-    print(f"Proposer: {args.proposer}")
-    print(f"Max Iterations: {args.max_iter}\n")
-
-    # Set up proposer
-    if args.proposer == "mock":
-        proposer = CorrectionMockProposer()
-    elif args.proposer == "gemini":
-        api_key = args.api_key or os.environ.get("GEMINI_API_KEY")
-        if not api_key:
-            print("Error: API key must be provided via --api-key or GEMINI_API_KEY environment variable.", file=sys.stderr)
-            sys.exit(1)
-        proposer = CorrectionGeminiProposer(api_key=api_key)
-    elif args.proposer == "hybrid":
-        api_key = args.api_key or os.environ.get("GEMINI_API_KEY")
-        if not api_key:
-            print("Error: API key must be provided via --api-key or GEMINI_API_KEY environment variable.", file=sys.stderr)
-            sys.exit(1)
-        proposer = HybridCorrectionProposer(api_key=api_key)
-
-    from adcd.arc_scorer import build_arc_regimes
-
-    # Set up pipeline & optimizer
-    validator = ASTValidator()
-    checker = DimensionalChecker()
-
-    regimes = build_arc_regimes(
-        selected_scenario.classical_limit_variable,
-        selected_scenario.classical_limit_direction,
-    )
-    scorer = ARCScorer(regimes=regimes)
-    pipeline = Stage1Pipeline(validator, checker, scorer)
-    optimizer = JAXOptimizer()
-
-    orchestrator = CorrectionOrchestrator(
-        proposer=proposer,
-        pipeline=pipeline,
-        optimizer=optimizer,
-        max_iterations=args.max_iter,
-        verbose=True
-    )
-
-    result = orchestrator.search_correction(selected_scenario, noise_level=args.noise)
-
-    print("\n" + "="*40)
-    print("RESULTS SUMMARY")
-    print("="*40)
-    print(f"Best Discovered Correction: {result.best_expr}")
-    print(f"Residual NMSE: {result.best_nmse_residual:.6e}")
-    print(f"Full Model NMSE: {result.best_nmse_full:.6e}")
-    print("Optimized Parameters (theta):")
-    if result.best_theta:
-        for k, v in result.best_theta.items():
-            print(f"  {k}: {v:.6f}")
-    else:
-        print("  None")
-    print(f"Total time: {result.total_time_seconds:.2f} seconds")
-    print(f"Converged: {result.converged}")
-    print("="*40)
-
-
-if __name__ == "__main__":
-    main_cli()
-
-

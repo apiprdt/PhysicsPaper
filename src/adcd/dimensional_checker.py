@@ -1,46 +1,115 @@
+"""
+dimensional_checker.py (AUDIT-HARDENED)
+========================================
+FIX LOG (read before touching this file again):
+
+BUG FOUND: `verify()` and `validate_transcendental_args()` both contained a
+blanket "adaptive relaxation": if a dimensionless target (or a transcendental
+function argument) contains AT MOST ONE physical symbol, the check returned
+True unconditionally, reasoning "a free theta parameter could always rescale
+it to be dimensionless."
+
+WHY THIS WAS A FATAL RIGOR BUG: almost every realistic correction candidate
+in this project has exactly ONE physical variable per ratio (v/c, r/r_0,
+x/x_0, f/T, ...). The blanket relaxation therefore did not "relax" dimensional
+checking for an edge case -- it disabled it for the overwhelming majority of
+real candidates, including physically nonsensical ones like `exp(-r)` (a bare
+length inside a transcendental, with NO parameter anywhere near it to carry
+the compensating dimension). The comment justifying the relaxation ("a free
+parameter can always rescale it") was never actually verified: nothing
+checked that a theta symbol was present at all, let alone structurally
+positioned to carry a compensating dimension.
+
+FIX: replace the blanket relaxation with a STRUCTURAL check. A single bare
+physical symbol is only given the benefit of the doubt if it is combined
+with a free theta parameter via multiplication or division in that exact
+sub-expression (i.e. the candidate itself proposes something that *could*
+be dimensionless once theta is fitted). A bare, unscaled physical symbol
+(e.g. `exp(-r)`, `sin(v)`) is REJECTED outright -- there is no way to make
+that dimensionally consistent with a free scalar.
+
+Every relaxed pass is now also recorded (`checker.last_relaxed`) so gate
+telemetry can report exactly how many candidates were waved through on
+"pending Stage-2 verification" rather than fully verified. This makes the
+remaining, unavoidable limitation of this architecture (theta is treated as
+a dimensionless bookkeeping number, never assigned a physical unit of its
+own) visible and auditable instead of silently laundered.
+"""
+
 import sympy as sp
 from typing import Dict, Union, List, Optional
 
 # Core physical constants and variables SI base vectors: [M, L, T]
 DIMENSIONS = {
-    'm': [1, 0, 0],      # Mass (kg)
-    'M': [1, 0, 0],      # Mass (kg)
-    'v': [0, 1, -1],     # Velocity (m/s)
-    'r': [0, 1, 0],      # Distance/Length (m)
-    't': [0, 0, 1],      # Time (s)
-    'G': [-1, 3, -2],    # Gravitational Constant
-    'c': [0, 1, -1],     # Speed of Light (m/s)
-    'E': [1, 2, -2],     # Energy (Joule)
-    'F': [1, 1, -2],     # Force (Newton)
-    'rho': [1, -3, 0],   # Density (kg/m^3)
-    'n': [0, -3, 0],     # Number density (1/m^3) or count scaled
-    'T': [0, 0, 0],      # Temperature (Kelvin)
-    'V': [0, 3, 0],      # Volume (m^3)
-    'k_B': [1, 2, -2],   # Boltzmann constant (J/K)
-    'b': [1, 0, -1],     # Drag coefficient (kg/s)
-    'A': [0, 2, 0],      # Area (m^2)
-    'sigma': [1, 0, -3], # Stefan-Boltzmann
+    'm': [1, 0, 0],
+    'M': [1, 0, 0],
+    'v': [0, 1, -1],
+    'r': [0, 1, 0],
+    't': [0, 0, 1],
+    'G': [-1, 3, -2],
+    'c': [0, 1, -1],
+    'E': [1, 2, -2],
+    'F': [1, 1, -2],
+    'rho': [1, -3, 0],
+    'n': [0, -3, 0],
+    'T': [0, 0, 0],
+    'V': [0, 3, 0],
+    'k_B': [1, 2, -2],
+    'b': [1, 0, -1],
+    'A': [0, 2, 0],
+    'sigma': [1, 0, -3],
+    'a': [0, 1, -2],   # NEW: acceleration [L T^-2] -- needed for real-data
+                       # scenarios (e.g. SPARC/RAR: gbar, gobs, a0 all have
+                       # this dimension). Added during the audit; was
+                       # absent from the original registry.
 }
+
+
+def _symbol_is_theta_scaled(expr: sp.Expr, symbol: sp.Symbol) -> bool:
+    """
+    Structural check: is `symbol` combined with at least one free theta_N
+    parameter via Mul/Pow in `expr`? This is the ONLY configuration in which
+    a lone physical variable can plausibly become dimensionless once theta
+    is fitted (theta absorbs the compensating dimension). A bare symbol with
+    only numeric coefficients can NEVER become dimensionless -- numbers carry
+    no compensating unit.
+    """
+    thetas_in_expr = {s for s in expr.free_symbols if str(s).startswith("theta_")}
+    if not thetas_in_expr:
+        return False
+
+    # Expression must contain BOTH the physical symbol and at least one theta
+    # in a multiplicative/power relationship somewhere in its tree (covers
+    # v/theta_1, theta_0*v, (v/theta_1)**theta_2, etc.)
+    found_symbol = False
+    found_theta_nearby = False
+    for node in sp.preorder_traversal(expr):
+        if isinstance(node, (sp.Mul, sp.Pow)):
+            node_syms = node.free_symbols
+            if symbol in node_syms:
+                found_symbol = True
+                if node_syms & thetas_in_expr:
+                    found_theta_nearby = True
+    return found_symbol and found_theta_nearby
+
 
 class DimensionalChecker:
     """
-    Verifies the physical dimensional consistency of a candidate expression
-    using linear algebra over SI base unit exponent vectors.
-    
-    Example:
-        >>> checker = DimensionalChecker()
-        >>> checker.verify("v**2 / r", "v")  # False
-        >>> checker.verify("v**2 / r", "G")  # False
+    Verifies physical dimensional consistency of a candidate expression using
+    linear algebra over SI base unit exponent vectors [M, L, T].
     """
+
     def __init__(self, unit_registry: Dict[str, List[int]] = None):
         self.registry = dict(unit_registry) if unit_registry is not None else dict(DIMENSIONS)
         self.locals = {s: sp.Symbol(s) for s in self.registry}
+        # Telemetry: how many verify() calls were passed only via the
+        # structural theta-scaling relaxation, never fully dimension-verified.
+        self.last_relaxed: bool = False
 
     def _get_dim_vector(self, expr: sp.Expr) -> List[int]:
-        """Recursively computes the dimensional exponent vector of a SymPy AST."""
         if expr.is_Number or expr.is_NumberSymbol or expr == sp.I:
-            return [0, 0, 0]  # Dimensionless constant
-        
+            return [0, 0, 0]
+
         if expr.is_Symbol:
             sym_str = str(expr)
             if sym_str.startswith("theta_"):
@@ -50,7 +119,6 @@ class DimensionalChecker:
             raise ValueError(f"Unknown physical symbol in registry: {sym_str}")
 
         if isinstance(expr, sp.Add):
-            # Homogeneity check: All added elements must share identical dimensions
             args = expr.args
             first_dim = self._get_dim_vector(args[0])
             for arg in args[1:]:
@@ -59,7 +127,6 @@ class DimensionalChecker:
             return first_dim
 
         if isinstance(expr, sp.Mul):
-            # Multiplication adds dimensions element-wise
             base_dim = [0, 0, 0]
             for arg in expr.args:
                 arg_dim = self._get_dim_vector(arg)
@@ -69,15 +136,12 @@ class DimensionalChecker:
         if isinstance(expr, sp.Pow):
             base, exponent = expr.args
             if not exponent.is_Number:
-                return [0, 0, 0]  # Non-numeric exponent fallback
-            
+                return [0, 0, 0]
             base_dim = self._get_dim_vector(base)
             exp_val = float(exponent)
             return [int(d * exp_val) if (d * exp_val).is_integer() else d * exp_val for d in base_dim]
 
         if isinstance(expr, sp.Function):
-            # Transcendental functions (sin, cos, exp, log) arguments must be dimensionless
-            # and they output a dimensionless quantity.
             arg = expr.args[0]
             arg_dim = self._get_dim_vector(arg)
             if arg_dim != [0, 0, 0]:
@@ -92,146 +156,109 @@ class DimensionalChecker:
     def verify(self, candidate_expr: Union[str, sp.Expr], target_dimension_key: Optional[str]) -> bool:
         """
         Returns True if the expression's units match the physical target dimension.
-        
-        Args:
-            candidate_expr: The expression string or SymPy expression to check.
-            target_dimension_key: The target dimension key in the registry (e.g. "dimensionless").
-            
-        Returns:
-            bool: True if consistent, False otherwise.
-            
-        Example:
-            >>> checker.verify("v**2 / r", "dimensionless")
+
+        FIXED: the old "len(physical_symbols) == 1 -> always True" shortcut is
+        gone. A lone physical symbol only passes if it is structurally scaled
+        by a free theta parameter (see `_symbol_is_theta_scaled`); otherwise
+        its raw registry dimension is used, exactly like any other symbol.
         """
+        self.last_relaxed = False
         if target_dimension_key is None:
             return True
         try:
             expr = sp.sympify(candidate_expr, locals=self.locals) if isinstance(candidate_expr, str) else candidate_expr
-            
-            # Adaptive relaxation: If the target is dimensionless and there is exactly one
-            # physical symbol, free parameters (substituted with 1.0) can always scale it to be dimensionless.
+
             physical_symbols = [s for s in expr.free_symbols if str(s) in self.registry]
             if target_dimension_key == "dimensionless" and len(physical_symbols) == 1:
-                return True
-                
+                sym = physical_symbols[0]
+                if _symbol_is_theta_scaled(expr, sym):
+                    self.last_relaxed = True
+                    return True
+                # else: fall through to full dimensional evaluation below --
+                # a bare unscaled physical symbol must genuinely be dimensionless
+                # (it never will be, but we let the real computation say so
+                # rather than assuming).
+
             candidate_dim = self._get_dim_vector(expr)
-            
+
             if target_dimension_key == "dimensionless":
                 target_dim = [0, 0, 0]
             elif target_dimension_key in self.registry:
                 target_dim = self.registry[target_dimension_key]
             else:
-                # Interpret target_dimension_key as a classical baseline expression
                 target_expr = sp.sympify(target_dimension_key, locals=self.locals)
                 target_dim = self._get_dim_vector(target_expr)
-                
+
             return candidate_dim == target_dim
         except (TypeError, ValueError, KeyError, NotImplementedError):
             return False
 
-    def enumerate_dimensionless_ratios(
-        self,
-        symbols: List[str],
-        max_degree: int = 2
-    ) -> List[sp.Expr]:
-        """
-        Enumerate all base dimensionless monomials from the given symbols
-        using Buckingham-pi style nullspace computation.
-        
-        Args:
-            symbols: List of symbol names to combine.
-            max_degree: Max absolute exponent value in the returned monomials.
-            
-        Returns:
-            List of SymPy expressions that are guaranteed dimensionless.
+    def enumerate_dimensionless_ratios(self, symbols: List[str], max_degree: int = 2) -> List[sp.Expr]:
+        """Buckingham-Pi style nullspace enumeration of dimensionless monomials.
+        (unchanged from the original -- this part of the file was already correct
+        and, per the audit, is the piece that should be doing the heavy lifting
+        for generic 'u' ratio construction instead of a human hand-picking it.)
         """
         import math
         import itertools
 
-        # Filter symbols to only those in the registry
         valid_symbols = [s for s in symbols if s in self.registry]
         if not valid_symbols:
             return []
 
-        # Build the dimension matrix A where columns are the dimension vectors of valid_symbols
-        # Dimensions are 3-vectors: [M, L, T]
         col_vectors = [self.registry[s] for s in valid_symbols]
-        
-        # We use SymPy Matrix to find the null space
-        A = sp.Matrix(col_vectors).T  # Transpose so columns correspond to symbols
+        A = sp.Matrix(col_vectors).T
         null_space = A.nullspace()
-        
         if not null_space:
             return []
 
-        # Clear denominators for each basis vector to get integer exponent vectors
         int_basis = []
         for v in null_space:
-            # v is a column vector (Matrix of shape (len(valid_symbols), 1))
             denoms = [sp.Rational(x).q for x in v]
             lcm_val = sp.lcm(denoms)
             v_int = [int(x * lcm_val) for x in v]
             int_basis.append(v_int)
 
-        # Generate integer combinations of the basis vectors
         k = len(int_basis)
         n_syms = len(valid_symbols)
-        
         coef_range = range(-max_degree, max_degree + 1)
-        
+
         unique_exponent_sets = set()
         for coefs in itertools.product(coef_range, repeat=k):
             if all(c == 0 for c in coefs):
                 continue
-            
-            # Compute linear combination of basis vectors
             e = [0] * n_syms
             for j in range(n_syms):
                 e[j] = sum(coefs[i] * int_basis[i][j] for i in range(k))
-            
-            # Check if any exponent is non-zero and all exponents are within max_degree
             if not any(x != 0 for x in e) or any(abs(x) > max_degree for x in e):
                 continue
-                
-            # Normalize exponents to avoid duplicates like [1, -1] vs [-1, 1]
             g = math.gcd(*e)
             if g != 0:
                 e = [x // g for x in e]
-            # Ensure the first non-zero exponent is positive to standardize the ratio
             for x in e:
                 if x != 0:
                     if x < 0:
                         e = [-val for val in e]
                     break
-            
             unique_exponent_sets.add(tuple(e))
 
-        # Convert the unique exponent tuples back to SymPy expressions
         ratios = []
         for e in sorted(unique_exponent_sets):
-            # Construct monomial: product of s**e_s
             expr = sp.Integer(1)
             for s, exp in zip(valid_symbols, e):
                 if exp != 0:
-                    expr *= sp.Symbol(s)**exp
+                    expr *= sp.Symbol(s) ** exp
             ratios.append(expr)
-
         return ratios
 
 
 def validate_transcendental_args(expr: sp.Expr, checker: DimensionalChecker) -> bool:
     """
     Returns True if all transcendental function arguments are dimensionless.
-    
-    Args:
-        expr: The SymPy expression to check.
-        checker: The DimensionalChecker unit mapping.
-        
-    Returns:
-        bool: True if argument dimensions are valid, False otherwise.
-        
-    Example:
-        >>> validate_transcendental_args(sp.sympify("sin(v/c)"), checker)
+
+    FIXED: same structural theta-scaling requirement as `DimensionalChecker.verify`.
+    A bare `exp(-r)` / `sin(v)` with no free parameter anywhere in the argument
+    is now correctly rejected instead of being waved through.
     """
     for sub in sp.preorder_traversal(expr):
         if isinstance(sub, sp.Function):
@@ -240,12 +267,19 @@ def validate_transcendental_args(expr: sp.Expr, checker: DimensionalChecker) -> 
                     if len(sub.args) > 0:
                         arg = sub.args[0]
                         physical_symbols = [s for s in arg.free_symbols if str(s) in checker.registry]
-                        
-                        # Adaptive relaxation: If there is at most one physical symbol in the argument,
-                        # free parameters can scale it to be dimensionless.
+
                         if len(physical_symbols) <= 1:
+                            if len(physical_symbols) == 1 and _symbol_is_theta_scaled(arg, physical_symbols[0]):
+                                checker.last_relaxed = True
+                                continue
+                            if len(physical_symbols) == 0:
+                                continue
+                            # exactly one physical symbol, NOT theta-scaled -> genuinely check it
+                            arg_dim = checker._get_dim_vector(arg)
+                            if arg_dim != [0, 0, 0]:
+                                return False
                             continue
-                            
+
                         arg_dim = checker._get_dim_vector(arg)
                         if arg_dim != [0, 0, 0]:
                             return False
@@ -255,13 +289,11 @@ def validate_transcendental_args(expr: sp.Expr, checker: DimensionalChecker) -> 
 
 
 class ASTValidator:
+    """Prunes bloated expressions to prevent dynamic algebraic over-fitting/bloating.
+    (unchanged from original -- no bug found here; the `set_threshold_relative_to()`
+    removal note in the original was itself correct engineering discipline.)
     """
-    Prunes bloated expressions to prevent dynamic algebraic over-fitting/bloating.
-    
-    Example:
-        >>> validator = ASTValidator(max_depth=5, max_tokens=15)
-        >>> validator.verify("x**2 + y**2")
-    """
+
     def __init__(self, max_depth: int = 7, max_tokens: int = 25):
         self.max_depth = max_depth
         self.max_tokens = max_tokens
@@ -273,15 +305,6 @@ class ASTValidator:
         return 1 + max(self._get_depth(arg) for arg in expr.args)
 
     def verify(self, candidate_expr: Union[str, sp.Expr]) -> bool:
-        """
-        Returns True if the expression complexity falls within depth and token limits.
-        
-        Args:
-            candidate_expr: The expression string or SymPy expression to check.
-            
-        Returns:
-            bool: True if complexity is within bounds, False otherwise.
-        """
         try:
             expr = sp.sympify(candidate_expr, locals=self.locals) if isinstance(candidate_expr, str) else candidate_expr
             depth = self._get_depth(expr)
@@ -289,8 +312,3 @@ class ASTValidator:
             return depth <= self.max_depth and tokens <= self.max_tokens
         except Exception:
             return False
-
-    # NOTE: set_threshold_relative_to() was removed.
-    # Dynamically adjusting complexity bounds from a ground-truth formula
-    # constitutes oracle leakage: the evaluator sees the answer before scoring.
-    # Use the static max_depth / max_tokens constructor arguments instead.

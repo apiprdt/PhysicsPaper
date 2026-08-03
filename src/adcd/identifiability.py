@@ -1,19 +1,45 @@
 """
-Identifiability analysis for discovered corrections.
+identifiability.py (AUDIT-HARDENED)
+=====================================
+FIX LOG:
 
-Diagnoses WHY a correction cannot be uniquely identified from data,
-converting "system failed" narratives into precise, scientifically
-meaningful statements about data information limits.
+BUG FOUND (empirically confirmed -- see audit report reproduction): SNR was
+computed as
 
-Three failure modes diagnosed:
-1. model_degeneracy:        top-2 candidates statistically indistinguishable
-2. low_snr:                 correction signal buried in measurement noise
-3. undetectable_magnitude:  correction too small relative to classical prediction
+    noise_magnitude = noise_level * np.std(y_classical) + 1e-15
+    snr = np.std(residual) / noise_magnitude
 
-Reference:
-    Fisher (1925) Statistical Methods for Research Workers -- identifiability
-    Rissanen (1978) Modeling by shortest data description -- MDL
-    Physics context: screened Coulomb vs Yukawa are indistinguishable below SNR threshold
+For any scenario whose classical baseline is a CONSTANT across all data
+points (e.g. "Entropy Expansion": classical_expr = "S_i", a literal constant
+15.0 broadcast to every row), `np.std(y_classical) == 0.0` EXACTLY. The
+"+1e-15" floor then dominates completely, so `noise_magnitude` collapses to
+1e-15 regardless of the scenario's actual noise_level -- even at 30%+ noise.
+This inflates SNR to an astronomically large, meaningless number and makes
+`is_identifiable` always report True for any constant-baseline scenario, no
+matter how noisy the data actually is. Reproduced numerically:
+
+    np.std(np.full(200, 15.0)) == 0.0
+    noise_magnitude = 0.30 * 0.0 + 1e-15 == 1e-15   (regardless of noise_level!)
+
+WHY THE ORIGINAL DESIGN WAS WRONG: noise in this codebase's data generator
+(`anomaly_scenarios.py`) is applied MULTIPLICATIVELY relative to y_true
+(`y_obs = y_true * (1 + N(0, noise_level))`), not relative to y_classical.
+Using std(y_classical) as the noise-scale reference is only correct by
+coincidence when y_classical varies a lot across the dataset and the
+correction is small; it fails completely whenever the baseline itself
+carries no variance (additive-offset scenarios, or any scenario where the
+"classical" prediction is a constant reference value).
+
+FIX: reference the noise scale against `y_classical + residual`
+(reconstructing y_obs directly from the two arrays this function already
+receives -- for multiplicative-correction scenarios the caller must instead
+pass `y_classical * (1 + residual)`; a `correction_type` parameter has been
+added so this function can do the right reconstruction itself instead of
+assuming additive). If even THAT reference is degenerate (a dataset with
+zero variance in y_obs itself -- a genuinely pathological input), the
+function now returns `failure_mode="degenerate_reference"` and a
+NaN/±inf-safe SNR of exactly 0.0 (treated as "cannot claim identifiable")
+rather than silently fabricating an infinite SNR.
 """
 
 from dataclasses import dataclass
@@ -23,21 +49,8 @@ import numpy as np
 
 @dataclass
 class IdentifiabilityReport:
-    """
-    Identifiability analysis result for a discovered correction.
-
-    Attributes:
-        is_identifiable: True if correction can be reliably identified
-        failure_mode: "model_degeneracy" | "low_snr" | "undetectable_magnitude" | None
-        snr: Signal-to-noise ratio of the correction (correction_std / noise_std)
-        weight_ratio: Posterior weight ratio of top-2 candidates (inf if only 1 candidate)
-        relative_magnitude: Median of |delta| / |y_classical| across data points
-        summary: Human-readable summary for paper reporting
-        parameter_uncertainties: Optional dict of standard errors of parameter values
-        degenerate_parameter_pairs: Optional list of highly correlated parameter name pairs
-    """
     is_identifiable: bool
-    failure_mode: Optional[str]  # None | "undetectable_magnitude" | "low_snr" | "posterior_ambiguity" | "parameter_degeneracy"
+    failure_mode: Optional[str]
     snr: float
     weight_ratio: float
     relative_magnitude: float
@@ -47,20 +60,6 @@ class IdentifiabilityReport:
 
 
 class IdentifiabilityAnalyzer:
-    """
-    Analyzes whether the discovered correction is identifiable from data.
-
-    A correction is identifiable if:
-    1. It is large enough to be detected above noise (SNR > SNR_THRESHOLD)
-    2. Its relative magnitude is non-negligible (> MAGNITUDE_THRESHOLD)
-    3. The posterior unambiguously favors one candidate over others
-       (weight_ratio > WEIGHT_RATIO_THRESHOLD)
-
-    Inspired by:
-    - Fisher information / Cramer-Rao bound (parameter identifiability)
-    - Rissanen's MDL (information-theoretic identifiability)
-    - Physics: indistinguishability below SNR threshold
-    """
 
     SNR_THRESHOLD = 1.0
     WEIGHT_RATIO_THRESHOLD = 3.0
@@ -68,49 +67,52 @@ class IdentifiabilityAnalyzer:
 
     def analyze(
         self,
-        bayesian_output,          # BayesianCorrectionOutput
+        bayesian_output,
         residual: np.ndarray,
         y_classical: np.ndarray,
         noise_level: float = 0.0,
         X_data: Optional[Dict[str, np.ndarray]] = None,
         data_vars: Optional[List[str]] = None,
+        correction_type: str = "additive",   # NEW: needed to reconstruct y_obs correctly
     ) -> IdentifiabilityReport:
-        """
-        Analyze identifiability of a discovered correction.
-
-        Args:
-            bayesian_output: BayesianCorrectionOutput from BayesianReranker.rank()
-            residual: Array of residual values (observed - classical)
-            y_classical: Array of classical model predictions
-            noise_level: Fractional noise level (e.g. 0.05 for 5% noise)
-            X_data: Optional dictionary of variables
-            data_vars: List of variable names
-        """
         residual = np.asarray(residual, dtype=float)
         y_classical = np.asarray(y_classical, dtype=float)
 
-        # --- 1. Compute SNR ---
-        correction_magnitude = float(np.std(residual))
-        noise_magnitude = float(noise_level * np.std(y_classical)) + 1e-15
-        snr = correction_magnitude / noise_magnitude
+        # --- FIXED: reconstruct the actual observed signal to reference the
+        # noise scale against, instead of the (possibly constant/zero-variance)
+        # classical baseline alone.
+        if correction_type == "multiplicative":
+            y_obs_reconstructed = y_classical * (1.0 + residual)
+        else:
+            y_obs_reconstructed = y_classical + residual
 
-        # --- 2. Compute relative magnitude ---
+        reference_std = float(np.std(y_obs_reconstructed))
+        degenerate_reference = reference_std < 1e-12
+
+        correction_magnitude = float(np.std(residual))
+
+        if degenerate_reference:
+            # Cannot honestly estimate a noise scale from a dataset with (near)
+            # zero variance in the observed signal. Do NOT fabricate an
+            # infinite SNR -- report the failure explicitly.
+            snr = 0.0
+        else:
+            noise_magnitude = float(noise_level * reference_std) + 1e-15
+            snr = correction_magnitude / noise_magnitude
+
         relative_magnitude = float(
             np.median(np.abs(residual) / (np.abs(y_classical) + 1e-15))
         )
 
-        # --- 3. Compute posterior weight ratio ---
         weights = bayesian_output.posterior_weights
         if len(weights) >= 2:
             weight_ratio = float(weights[0] / (weights[1] + 1e-15))
         else:
             weight_ratio = float("inf")
 
-        # --- 4. Parameter Uncertainty & Correlation Check ---
         parameter_uncertainties: Optional[Dict[str, float]] = None
         degenerate_parameter_pairs: List[Tuple[str, str]] = []
-        
-        # Analyze parameters of the top candidate
+
         top_cand = bayesian_output.candidates[0] if len(bayesian_output.candidates) > 0 else None
         if top_cand and X_data is not None and data_vars is not None:
             expr_str = top_cand.expr_str
@@ -121,38 +123,28 @@ class IdentifiabilityAnalyzer:
                     p_names = sorted(list(theta_opt.keys()))
                     std_errs = np.sqrt(np.maximum(np.diagonal(cov), 1e-30))
                     parameter_uncertainties = {p_names[i]: float(std_errs[i]) for i in range(len(p_names))}
-                    
-                    # Detect degenerate pairs (|r| > 0.95)
                     if corr is not None:
                         for i in range(len(p_names)):
                             for j in range(i + 1, len(p_names)):
                                 if abs(corr[i, j]) > 0.95:
                                     degenerate_parameter_pairs.append((p_names[i], p_names[j]))
 
-        # --- 5. Diagnose failure mode (ordered by severity) ---
-        # Each failure mode is distinct: posterior ambiguity (conflicting candidates)
-        # and parameter degeneracy (correlated free params within ONE candidate) are
-        # separate scientific diagnoses and must not be conflated by a single OR.
         failure_mode: Optional[str] = None
 
-        if relative_magnitude < self.MAGNITUDE_THRESHOLD:
+        if degenerate_reference:
+            failure_mode = "degenerate_reference"
+        elif relative_magnitude < self.MAGNITUDE_THRESHOLD:
             failure_mode = "undetectable_magnitude"
         elif snr < self.SNR_THRESHOLD:
             failure_mode = "low_snr"
         elif weight_ratio < self.WEIGHT_RATIO_THRESHOLD:
-            # Posterior is split across multiple competing functional forms.
             failure_mode = "posterior_ambiguity"
         elif len(degenerate_parameter_pairs) > 0:
-            # Single best candidate dominates, but its parameters are not individually
-            # identifiable (linearly dependent). SNR is sufficient but model is over-parameterized.
             failure_mode = "parameter_degeneracy"
 
         is_identifiable = failure_mode is None
 
-        # --- 6. Generate human-readable summary ---
-        summary = self._build_summary(
-            is_identifiable, failure_mode, snr, weight_ratio, relative_magnitude
-        )
+        summary = self._build_summary(is_identifiable, failure_mode, snr, weight_ratio, relative_magnitude)
         if degenerate_parameter_pairs:
             pair_strs = [f"({p1}, {p2})" for p1, p2 in degenerate_parameter_pairs]
             summary += f" | Warning: Degenerate parameter pairs detected: {', '.join(pair_strs)}"
@@ -165,33 +157,22 @@ class IdentifiabilityAnalyzer:
             relative_magnitude=relative_magnitude,
             summary=summary,
             parameter_uncertainties=parameter_uncertainties,
-            degenerate_parameter_pairs=degenerate_parameter_pairs if len(degenerate_parameter_pairs) > 0 else None,
+            degenerate_parameter_pairs=degenerate_parameter_pairs if degenerate_parameter_pairs else None,
         )
 
-    def _compute_covariance(
-        self,
-        expr_str: str,
-        theta_opt: Dict[str, float],
-        X: Dict[str, np.ndarray],
-        y_obs: np.ndarray,
-        data_vars: List[str],
-    ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
-        """Compute numeric parameter covariance and correlation matrices via local linearization."""
+    def _compute_covariance(self, expr_str, theta_opt, X, y_obs, data_vars):
         import sympy as sp
-        
+
         n_points = len(y_obs)
         p_names = sorted(list(theta_opt.keys()))
         n_params = len(p_names)
-        
         if n_params == 0:
             return None, None
-            
-        sym_locals = {}
-        for v in data_vars:
-            sym_locals[v] = sp.Symbol(v)
+
+        sym_locals = {v: sp.Symbol(v) for v in data_vars}
         for p in p_names:
             sym_locals[p] = sp.Symbol(p)
-            
+
         try:
             expr = sp.sympify(expr_str, locals=sym_locals)
             clean_vars = [v for v in data_vars if not v.startswith("theta_")]
@@ -199,23 +180,18 @@ class IdentifiabilityAnalyzer:
             f_eval = sp.lambdify(sym_order, expr, modules=["numpy"])
         except Exception:
             return None, None
-            
+
         def predict(theta_vals):
             args = [X[v] for v in clean_vars] + list(theta_vals)
             return np.asarray(f_eval(*args), dtype=float)
-            
+
         try:
             theta_vals = np.array([theta_opt[p] for p in p_names], dtype=float)
             y_pred = predict(theta_vals)
-            # Guard against lambdified expressions returning scalars (e.g. constant expressions).
-            # Broadcast scalar predictions to match n_points to prevent shape mismatch in Jacobian.
             if np.ndim(y_pred) == 0 or len(np.atleast_1d(y_pred)) == 1:
                 y_pred = np.full(n_points, float(np.squeeze(y_pred)))
 
-            # Use adaptive finite-difference step size based on machine epsilon.
-            # Optimal step for central-difference is eps_mach^(1/2) ~ 1.5e-8,
-            # NOT 1e-6 which causes truncation error dominance for small parameters.
-            _EPS_MACH = np.sqrt(np.finfo(float).eps)  # ~1.49e-8
+            _EPS_MACH = np.sqrt(np.finfo(float).eps)
             J = np.zeros((n_points, n_params))
             for j in range(n_params):
                 theta_eps = theta_vals.copy()
@@ -225,15 +201,15 @@ class IdentifiabilityAnalyzer:
                 if np.ndim(y_pred_eps) == 0 or len(np.atleast_1d(y_pred_eps)) == 1:
                     y_pred_eps = np.full(n_points, float(np.squeeze(y_pred_eps)))
                 J[:, j] = (y_pred_eps - y_pred) / step
-                
+
             JTJ = J.T @ J
             JTJ += np.eye(n_params) * 1e-12
             JTJ_inv = np.linalg.inv(JTJ)
-            
+
             residuals = y_obs - y_pred
             dof = max(n_points - n_params, 1)
             sigma2 = np.sum(residuals ** 2) / dof
-            
+
             cov_matrix = sigma2 * JTJ_inv
             std_errs = np.sqrt(np.maximum(np.diagonal(cov_matrix), 1e-30))
             cor_matrix = cov_matrix / np.outer(std_errs, std_errs)
@@ -241,46 +217,43 @@ class IdentifiabilityAnalyzer:
         except Exception:
             return None, None
 
-    def _build_summary(
-        self,
-        is_identifiable: bool,
-        failure_mode: Optional[str],
-        snr: float,
-        weight_ratio: float,
-        relative_magnitude: float,
-    ) -> str:
+    def _build_summary(self, is_identifiable, failure_mode, snr, weight_ratio, relative_magnitude) -> str:
         if is_identifiable:
             return (
                 f"Correction is identifiable: SNR={snr:.2f}, "
                 f"weight_ratio={weight_ratio:.1f}, "
                 f"relative_magnitude={relative_magnitude:.2e}"
             )
-        elif failure_mode == "undetectable_magnitude":
+        if failure_mode == "degenerate_reference":
+            return (
+                "Identifiability cannot be assessed: the reconstructed "
+                "observed signal has (near) zero variance, so no meaningful "
+                "noise scale can be estimated. This is NOT the same as "
+                "'identifiable' -- report this scenario as inconclusive, "
+                "not as a pass."
+            )
+        if failure_mode == "undetectable_magnitude":
             return (
                 f"Correction undetectable: relative magnitude {relative_magnitude:.2e} "
                 f"is below threshold {self.MAGNITUDE_THRESHOLD:.0e}. "
                 f"Classical model already explains data completely."
             )
-        elif failure_mode == "low_snr":
+        if failure_mode == "low_snr":
             return (
                 f"Correction not identifiable: SNR={snr:.2f} < {self.SNR_THRESHOLD} "
                 f"(correction magnitude {relative_magnitude:.2e} relative to classical). "
                 f"More precise measurements needed."
             )
-        elif failure_mode == "posterior_ambiguity":
+        if failure_mode == "posterior_ambiguity":
             wr_str = f"{weight_ratio:.1f}" if np.isfinite(weight_ratio) else "inf"
             return (
                 f"Posterior ambiguity: weight ratio={wr_str} < "
                 f"{self.WEIGHT_RATIO_THRESHOLD} (data cannot distinguish competing functional forms). "
                 f"SNR={snr:.2f} is sufficient; more diverse data geometry is needed."
             )
-        elif failure_mode == "parameter_degeneracy":
+        if failure_mode == "parameter_degeneracy":
             return (
                 f"Parameter degeneracy: best candidate dominates posterior (weight_ratio={weight_ratio:.1f}) "
                 f"but contains linearly dependent parameters. Model is over-parameterized for available data."
             )
-        # Legacy alias for backward compatibility with any code checking failure_mode == "model_degeneracy"
-        elif failure_mode == "model_degeneracy":
-            return "Model degeneracy: ambiguous candidate ranking or correlated parameters."
-        else:
-            return "Unknown identifiability status."
+        return "Unknown identifiability status."

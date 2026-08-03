@@ -1,3 +1,55 @@
+"""
+pipeline.py (AUDIT-HARDENED)
+=============================
+FIX LOG:
+
+BUG FOUND (critical -- defeats the ARC classical-limit safety gate):
+Original code:
+
+    if arc_score <= 0.0:
+        if has_params:
+            arc_score = 1.0     # <-- BYPASS: treated as a PERFECT score
+        else:
+            reject
+
+`has_params` is True whenever the candidate contains ANY free theta_N symbol
+(set upstream by `_substitute_thetas`, which is True for essentially every
+candidate CorrectionMockProposer ever emits -- virtually all of its templates
+start with "theta_0 * ..."). The consequence: candidates that fail to vanish
+at the classical limit even at theta=1 were not just given a second chance,
+they were handed the BEST POSSIBLE arc_score (1.0) and then never re-checked.
+
+The comment claimed "This will be rigorously checked again AFTER Stage 2
+optimization" -- but grep across the entire 18-file codebase confirms no
+such re-check exists anywhere. `arc_score` is simply carried forward
+unchanged from Stage 1 all the way to the final BIC ranking. This means the
+single most important physical constraint this whole project is built
+around -- "a correction MUST vanish at the classical limit" -- is, for
+virtually every real candidate, never actually verified against the FITTED
+parameters. Only the untested theta=1 probe (which is not what the model
+claims at the end) goes through the gate at all, and even that is discarded
+in favor of an automatic pass.
+
+FIX:
+1. `has_params` no longer forces arc_score to 1.0. Instead the candidate is
+   marked `deferred_arc=True` and allowed to proceed to Stage 2 UNSCORED
+   (arc_score stays at its true, computed value, which may be 0). This
+   preserves the legitimate original intent (some ground-truth corrections
+   need exact cancellation between two terms that theta=1 cannot produce,
+   e.g. 2*(c/v)^2*(...) - 1) without pretending that intent has already been
+   satisfied.
+2. `GateStats` gains `deferred_arc` and `arc_relaxed_dim` counters so every
+   run reports exactly how many candidates were waved through pending
+   Stage-2 re-verification -- this number must now be reported alongside
+   any "success" claim.
+3. The actual Stage-2 re-verification is implemented in
+   `correction_orchestrator_fixed.py` (`_reverify_arc_at_fitted_theta`),
+   which recomputes the ARC score at the FITTED theta and drops any
+   candidate that still fails to vanish at the classical limit. This file
+   only prepares the honest bookkeeping; the enforcement lives where the
+   fitted theta actually exists.
+"""
+
 import sympy as sp
 import numpy as np
 from dataclasses import dataclass, fields, asdict
@@ -20,7 +72,10 @@ class GateStats:
     coarse_reject: int = 0
     output_count: int = 0
 
-    # Source-aware tracking (optional)
+    # NEW: honest bookkeeping for candidates waved through pending re-verification
+    deferred_arc: int = 0          # arc_score was 0 at theta=1 but candidate has free params
+    arc_relaxed_dim: int = 0       # passed dimensional check only via theta-scaling relaxation
+
     llm_input: int = 0
     llm_output: int = 0
     grammar_input: int = 0
@@ -57,7 +112,6 @@ class GateStats:
             setattr(self, f.name, getattr(self, f.name) + getattr(other, f.name))
 
     def survival_rates(self) -> Dict[str, float]:
-        """Fraction of inputs surviving each gate (1.0 if no inputs at gate entry)."""
         if self.input_count == 0:
             return {}
 
@@ -72,6 +126,11 @@ class GateStats:
             "arc": rate(self.after_arc, self.after_transcendental),
             "coarse": rate(self.output_count, self.after_arc),
             "overall": rate(self.output_count, self.input_count),
+            # NEW: fraction of the FINAL output pool that was never actually
+            # ARC-verified and is only pending Stage-2 re-check.
+            "fraction_output_deferred_arc": (
+                self.deferred_arc / self.output_count if self.output_count > 0 else 0.0
+            ),
         }
 
     def to_dict(self) -> Dict:
@@ -87,19 +146,8 @@ class GateStats:
 
 
 class Stage1Pipeline:
-    """
-    Orchestrates the cascading coarse screening workflow to protect low-resource CPU
-    hardware from processing mathematically flawed candidates.
+    """Orchestrates the cascading coarse screening workflow."""
 
-    Example:
-        >>> from adcd.pipeline import Stage1Pipeline
-        >>> from adcd.dimensional_checker import ASTValidator, DimensionalChecker
-        >>> from adcd.arc_scorer import ARCScorer
-        >>> validator = ASTValidator()
-        >>> checker = DimensionalChecker()
-        >>> scorer = ARCScorer(regimes=[...])
-        >>> pipeline = Stage1Pipeline(validator, checker, scorer)
-    """
     def __init__(self, validator: ASTValidator, checker: DimensionalChecker, scorer: ARCScorer):
         self.validator = validator
         self.checker = checker
@@ -116,24 +164,13 @@ class Stage1Pipeline:
         constants: Dict[str, float] = None,
         stats: Optional[GateStats] = None,
         candidate_sources: Optional[Dict[str, str]] = None,
-    ) -> List[Tuple[str, float, float, float]]:
+    ) -> List[Tuple[str, float, float, float, bool]]:
         """
-        Runs candidate strings through the filter cascade.
-
-        Args:
-            candidates: A list of candidate strings, or list of tuples (cand_str, has_params).
-            target_dimension_key: The target dimension registry key (e.g. "dimensionless").
-            X: Dictionary of independent variable arrays.
-            y_obs: The observed residual array to fit.
-            beta: Exponential weight factor scaling the influence of coarse NMSE.
-            constants: Physical constants to substitute during evaluation.
-            stats: Optional GateStats object mutated in-place with per-gate counts.
-
-        Returns:
-            List of sorted tuples (candidate, combined_score, mse, arc_score) in descending order of combined_score.
-
-        Example:
-            >>> results = pipeline.execute(["theta_0 * x**2", "x"], "dimensionless", X, y)
+        Returns list of (candidate, combined_score, mse, arc_score, deferred_arc)
+        sorted by combined_score descending. `deferred_arc=True` means arc_score
+        was 0 at the screening probe (theta=1) and MUST be re-verified at the
+        fitted theta before being reported as a discovery -- see
+        `correction_orchestrator_fixed._reverify_arc_at_fitted_theta`.
         """
         screened_candidates = []
 
@@ -174,37 +211,40 @@ class Stage1Pipeline:
             is_dim_ok = True
             if target_dimension_key is not None:
                 is_dim_ok = self.checker.verify(expr, target_dimension_key)
-            
+                if is_dim_ok and getattr(self.checker, "last_relaxed", False) and stats is not None:
+                    stats.arc_relaxed_dim += 1
+
             if not is_dim_ok:
                 if stats is not None:
                     stats.dim_reject += 1
-                print(f"[DEBUG] Rejected by Dim: {raw_cand}")
                 continue
 
             if not validate_transcendental_args(expr, self.checker):
                 if stats is not None:
                     stats.transcendental_reject += 1
-                print(f"[DEBUG] Rejected by Trans: {raw_cand}")
                 continue
 
             try:
                 arc_score = float(self.scorer.score(expr, constants=constants))
-            except Exception as e:
+            except Exception:
                 if stats is not None:
                     stats.arc_reject += 1
-                print(f"[DEBUG] Rejected by ARC Exception ({e}): {raw_cand}")
                 continue
-                
+
+            deferred_arc = False
             if arc_score <= 0.0:
                 if has_params:
-                    # By-pass ARC rejection for unparameterized templates (theta_i = 1.0).
-                    # Singularities often require exact opposing signs (e.g. 2 and -2) to cancel.
-                    # This will be rigorously checked again AFTER Stage 2 optimization.
-                    arc_score = 1.0
+                    # FIXED: do NOT fabricate a perfect score. Mark as deferred
+                    # and let it through UNSCORED (arc_score stays 0.0) so that
+                    # BIC/likelihood ranking downstream does not treat it as
+                    # ARC-verified. It must clear `_reverify_arc_at_fitted_theta`
+                    # after Stage 2 or it gets dropped there.
+                    deferred_arc = True
+                    if stats is not None:
+                        stats.deferred_arc += 1
                 else:
                     if stats is not None:
                         stats.arc_reject += 1
-                    print(f"[DEBUG] Rejected by ARC Score <= 0: {raw_cand}")
                     continue
 
             mse = 0.0
@@ -214,11 +254,15 @@ class Stage1Pipeline:
                 if np.isinf(mse):
                     if stats is not None:
                         stats.coarse_reject += 1
-                    print(f"[DEBUG] Rejected by Coarse MSE (inf): {raw_cand}")
                     continue
 
-            combined_score = arc_score * float(np.exp(-beta * nmse))
-            screened_candidates.append((raw_cand, combined_score, mse, arc_score))
+            # For deferred candidates, use a neutral placeholder (0.5) for the
+            # coarse ranking pass ONLY -- never report this as the final
+            # arc_score. It exists purely so the candidate isn't sorted to the
+            # very bottom before Stage 2 gets a chance to fit it properly.
+            ranking_arc_score = 0.5 if deferred_arc else arc_score
+            combined_score = ranking_arc_score * float(np.exp(-beta * nmse))
+            screened_candidates.append((raw_cand, combined_score, mse, arc_score, deferred_arc))
             if stats is not None:
                 stats.output_count += 1
                 if candidate_sources and raw_cand in candidate_sources:
