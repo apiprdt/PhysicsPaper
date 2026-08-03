@@ -1,4 +1,4 @@
-# Asymptotic Dictionary Correction Discovery (ADCD) v3
+# Asymptotic Dictionary Correction Discovery (ADCD)
 
 > **A correction-first, physically-regularized symbolic regression framework for discovering mathematically rigorous extensions to classical theories.**
 
