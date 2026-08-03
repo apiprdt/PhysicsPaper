@@ -67,7 +67,7 @@ ADCD prevents false-positive structural claims by gating every discovery behind 
 
 ---
 
-## 🚀 Quickstart & Installation
+## 🚀 Installation & Usage
 
 **Prerequisites:** Python 3.10+, JAX, SymPy, NumPy, SciPy
 
@@ -82,10 +82,47 @@ source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+```
 
-# Execute the validation suite
+### 1. Running the Paper's Validation Suite
+To reproduce the exact 4-step validation protocol and results claimed in our paper:
+```bash
 export PYTHONPATH=src      # On Windows use: $env:PYTHONPATH="src"
 python src/adcd/run_adcd_v3_validation.py
+```
+
+### 2. Basic Usage (Python API)
+You can use ADCD to discover asymptotic corrections for your own custom physics datasets. Here is how to initialize the pipeline:
+
+```python
+import numpy as np
+from adcd.pipeline import Stage1Pipeline
+from adcd.correction_orchestrator import CorrectionOrchestrator
+from adcd.dimensional_checker import DimensionalChecker, ASTValidator
+from adcd.arc_scorer import ARCScorer, build_arc_regimes
+from adcd.asymptotic_dictionary_proposer_v3 import AsymptoticDictionaryProposerV3
+
+# 1. Define your scenario (Mock Example)
+class MyPhysicsScenario:
+    name = "My Custom Limit"
+    # ... define data, classical baseline, and units ...
+
+scenario = MyPhysicsScenario()
+
+# 2. Initialize the physics gates
+ast_validator = ASTValidator(max_depth=7, max_tokens=25)
+dim_checker = DimensionalChecker()
+arc_scorer = ARCScorer(regimes=build_arc_regimes())
+
+# 3. Setup the deterministic proposer
+proposer = AsymptoticDictionaryProposerV3(scenario, depth_limit=7, token_limit=25)
+
+# 4. Build pipeline and run
+pipeline = Stage1Pipeline(scenario, ast_validator, dim_checker, arc_scorer, proposer=proposer)
+orchestrator = CorrectionOrchestrator(pipeline)
+
+best_expr, best_nmse = orchestrator.run(scenario, max_candidates=100)
+print(f"Discovered Correction: {best_expr}")
 ```
 
 ---
