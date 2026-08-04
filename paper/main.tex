@@ -60,8 +60,8 @@ Physical Corrections from Observational Data}}
     a known classical law is extended by a correction term that vanishes at the
     classical limit.
     Special relativity introduced the Lorentz factor as a multiplicative
-    correction to Newtonian momentum; Yukawa screening added an exponential
-    decay to Coulomb's law; van der Waals modified ideal-gas entropy with a
+    correction to Newtonian momentum;    Yukawa screening added an exponential
+    decay to Coulomb's law; ideal-gas isothermal expansion modifies entropy with a
     logarithmic term.
     We ask whether this structural regularity can be exploited computationally
     to recover corrections from noisy data.
@@ -78,7 +78,7 @@ Physical Corrections from Observational Data}}
     A four-step validation protocol determines when data are sufficient to
     support a structural claim.
     We validate on three canonical synthetic scenarios: special-relativistic
-    time dilation, Yukawa plasma screening, and van der Waals entropy expansion.
+    time dilation, Yukawa plasma screening, and ideal-gas isothermal expansion entropy.
     Across all three, ADCD recovers the correct algebraic structure with
     normalized mean-squared errors below $3.4 \times 10^{-3}$ and BIC
     differences of 60--2024 over the best competing alternative.
@@ -300,9 +300,10 @@ $\theta_i$ are substituted with probe values.
 Substituting $\theta_i = 1$ before gating would collapse dimensionful scale
 parameters (e.g., $r/\theta_1$, where $\theta_1$ represents the Debye length)
 into dimensionless constants, falsifying dimensional analysis.
-In practice this constraint results in an overall Stage-1 survival rate of
-$0.56$ across the scenarios studied, a known and deliberate trade-off of
-honest structural assessment.
+In practice, the AST gate alone yields a uniform $0.56$ survival rate across
+scenarios; overall survival (after all five gates) is $0.56$, $0.52$, and $0.52$
+for TD, SC, and EE respectively, reflecting a known and deliberate trade-off
+of honest structural assessment.
 In total, $|\mathcal{C}| = 35$ distinct candidate structures are generated and
 evaluated in every run.
 
@@ -344,8 +345,8 @@ $\texttt{np.isfinite(mse)}$, correctly catching both \texttt{inf} and
 Candidates surviving all five gates are optimized via L-BFGS-B, implemented
 in JAX with \texttt{float64} precision.
 Parameters appearing inside transcendental arguments are log-parameterized
-($\theta_i = e^{u_i}$) to enforce positivity and smooth gradients across
-orders of magnitude.
+($\theta_i = s_i e^{u_i}$, with $s_i \in \{-1, +1\}$) to allow for both positive
+and negative scales while enforcing smooth gradients across orders of magnitude.
 After fitting, a post-fit ARC re-verification repeats the asymptotic check
 with $\boldsymbol{\theta} = \boldsymbol{\theta}^*$, confirming the fitted
 parameters do not move the expression into a non-asymptotic regime.
@@ -400,7 +401,7 @@ Table~\ref{tab:scenarios} summarizes the three scenarios.
 \small
 \caption{The three validated scenarios with their domains, primitives,
 and ablation $\Delta$BIC values. All figures are from the validation log,
-commit \texttt{ebc7b53}.}
+commit \texttt{f3cf7f3}.}
 \label{tab:scenarios}
 \centering
 \begin{tabular}{@{}llll@{}}
@@ -496,14 +497,14 @@ and Entropy scenarios, rejecting candidates with singularities on the dataset.
     Blue solid line: 1:1 reference.
     Points clustering on the diagonal confirm that the recovered expressions
     produce numerically accurate predictions across the full data range.
-    NMSE values are from the validation log (commit \texttt{ebc7b53}).
+    NMSE values are from the validation log (commit \texttt{f3cf7f3}).
   }
   \label{fig:parity}
 \end{figure*}
 % ---------------------------------------------------------------
 
-The following are direct, unedited lines from the validation log of
-\texttt{run\_adcd\_v3\_validation.py}, commit \texttt{ebc7b53}.
+The following are condensed from the validation log of
+\texttt{run\_adcd\_v3\_validation.py}, commit \texttt{f3cf7f3}.
 
 \begin{small}
 \begin{verbatim}
@@ -563,7 +564,7 @@ Scenario & NMSE & Param fitted & Relative error \\
 \midrule
 Time Dilation     & $5.3\times10^{-4}$ & $\theta_0 = 1.00$ & $<$0.1\% \\
 Screened Coulomb  & $2.8\times10^{-4}$ & $\theta_1 = 1.49$ vs $1.50$ & 0.7\% \\
-Entropy Expansion & $3.4\times10^{-3}$ & $\theta_3 = nR/S_i$ & $<$0.1\% \\
+Entropy Expansion & $3.4\times10^{-3}$ & $\theta_3 = 0.55$ vs $0.55$ & $<$0.1\% \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -590,7 +591,7 @@ We state precisely what this paper claims and what it does not.
 deterministically recovers the correct algebraic structure from 1\%-noisy
 synthetic data.
 All three pass the full four-step validation protocol with
-$\Delta\mathrm{BIC} \geq 60$.
+$\Delta\mathrm{BIC} \geq 59.6$.
 Results are byte-exact reproducible.
 The framework explicitly reports identifiability confidence rather than
 returning a structural claim without qualification.
@@ -685,7 +686,7 @@ that renders the search reproducible and auditable; and an explicit four-step
 validation protocol that bounds structural claims within identifiable regimes.
 
 On three canonical scenarios (special-relativistic time dilation, Yukawa plasma
-screening, and van der Waals entropy expansion), ADCD recovers the correct
+screening, and ideal-gas isothermal expansion entropy), ADCD recovers the correct
 algebraic correction structure with NMSE below $3.4 \times 10^{-3}$, BIC
 differences of 60--2024 over the best competing structure, and byte-exact
 determinism across repeated runs.
@@ -720,7 +721,7 @@ No AI tool was listed as an author or credited with originating the
 scientific contributions.
 
 The codebase and all raw validation logs are publicly available at
-\url{https://github.com/apiprdt/PhysicsPaper} (commit \texttt{ebc7b53}).
+\url{https://github.com/apiprdt/PhysicsPaper} (commit \texttt{f3cf7f3}).
 
 % ---------------------------------------------------------------
 \section*{Data Availability}
