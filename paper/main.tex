@@ -297,7 +297,7 @@ Name & Regularized form $D(u)$ & Domain \\
 Candidates are assembled by a bounded grammar over the five primitives.
 A candidate takes the form $\hat{\Delta} = \theta_0 \cdot D_i(u_{ij})$, where
 $u_{ij}$ is a dimensionless ratio of input variables and scale parameters.
-The grammar is restricted to maximum AST depth 3 and token count $\leq 25$.
+The grammar is restricted to a maximum composition depth of 3 (up to 3 nested primitive layers) and token count $\leq 25$.
 
 All structural gates (Section~\ref{sec:gates}) are evaluated on the
 \emph{theta-intact} expression -- the fully parameterized form before any
@@ -319,7 +319,7 @@ Before numerical fitting, each candidate passes five gates in ascending
 computational cost.
 
 \textbf{Gate~1 (AST complexity).}
-Candidates whose sympy expression tree exceeds depth 9 or token count $>25$
+Candidates whose resulting SymPy expression tree exceeds depth 9 or token count $>25$
 (theta-intact) are rejected.
 
 \textbf{Gate~2 (Dimensional consistency).}
@@ -570,7 +570,7 @@ Scenario & NMSE & Param fitted & Relative error \\
 \midrule
 Time Dilation     & $5.3\times10^{-4}$ & $\theta_0 = 1.00$ & $<$0.1\% \\
 Screened Coulomb  & $2.8\times10^{-4}$ & $\theta_1 = 1.49$ vs $1.50$ & 0.7\% \\
-Entropy Expansion & $3.4\times10^{-3}$ & $\theta_0 = nR/S_i \approx 0.554$ & $<$0.1\% \\
+Entropy Expansion & $3.4\times10^{-3}$ & $\theta_3 = nR/S_i \approx 0.554$ (true) & $<$0.1\% \\
 \bottomrule
 \end{tabular}
 \end{table}
