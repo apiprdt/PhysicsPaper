@@ -1,41 +1,3 @@
-"""
-dimensional_checker.py (AUDIT-HARDENED)
-========================================
-FIX LOG (read before touching this file again):
-
-BUG FOUND: `verify()` and `validate_transcendental_args()` both contained a
-blanket "adaptive relaxation": if a dimensionless target (or a transcendental
-function argument) contains AT MOST ONE physical symbol, the check returned
-True unconditionally, reasoning "a free theta parameter could always rescale
-it to be dimensionless."
-
-WHY THIS WAS A FATAL RIGOR BUG: almost every realistic correction candidate
-in this project has exactly ONE physical variable per ratio (v/c, r/r_0,
-x/x_0, f/T, ...). The blanket relaxation therefore did not "relax" dimensional
-checking for an edge case -- it disabled it for the overwhelming majority of
-real candidates, including physically nonsensical ones like `exp(-r)` (a bare
-length inside a transcendental, with NO parameter anywhere near it to carry
-the compensating dimension). The comment justifying the relaxation ("a free
-parameter can always rescale it") was never actually verified: nothing
-checked that a theta symbol was present at all, let alone structurally
-positioned to carry a compensating dimension.
-
-FIX: replace the blanket relaxation with a STRUCTURAL check. A single bare
-physical symbol is only given the benefit of the doubt if it is combined
-with a free theta parameter via multiplication or division in that exact
-sub-expression (i.e. the candidate itself proposes something that *could*
-be dimensionless once theta is fitted). A bare, unscaled physical symbol
-(e.g. `exp(-r)`, `sin(v)`) is REJECTED outright -- there is no way to make
-that dimensionally consistent with a free scalar.
-
-Every relaxed pass is now also recorded (`checker.last_relaxed`) so gate
-telemetry can report exactly how many candidates were waved through on
-"pending Stage-2 verification" rather than fully verified. This makes the
-remaining, unavoidable limitation of this architecture (theta is treated as
-a dimensionless bookkeeping number, never assigned a physical unit of its
-own) visible and auditable instead of silently laundered.
-"""
-
 import sympy as sp
 from typing import Dict, Union, List, Optional
 
@@ -66,31 +28,26 @@ DIMENSIONS = {
 
 
 def _symbol_is_theta_scaled(expr: sp.Expr, symbol: sp.Symbol) -> bool:
-    """
-    Structural check: is `symbol` combined with at least one free theta_N
-    parameter via Mul/Pow in `expr`? This is the ONLY configuration in which
-    a lone physical variable can plausibly become dimensionless once theta
-    is fitted (theta absorbs the compensating dimension). A bare symbol with
-    only numeric coefficients can NEVER become dimensionless -- numbers carry
-    no compensating unit.
-    """
-    thetas_in_expr = {s for s in expr.free_symbols if str(s).startswith("theta_")}
-    if not thetas_in_expr:
+    def _is_symbol_or_power_of(factor, sym) -> bool:
+        if factor == sym:
+            return True
+        if isinstance(factor, sp.Pow) and factor.args[0] == sym:
+            return True
         return False
 
-    # Expression must contain BOTH the physical symbol and at least one theta
-    # in a multiplicative/power relationship somewhere in its tree (covers
-    # v/theta_1, theta_0*v, (v/theta_1)**theta_2, etc.)
-    found_symbol = False
-    found_theta_nearby = False
     for node in sp.preorder_traversal(expr):
-        if isinstance(node, (sp.Mul, sp.Pow)):
-            node_syms = node.free_symbols
-            if symbol in node_syms:
-                found_symbol = True
-                if node_syms & thetas_in_expr:
-                    found_theta_nearby = True
-    return found_symbol and found_theta_nearby
+        if isinstance(node, sp.Mul):
+            factors = node.args
+            has_symbol = any(_is_symbol_or_power_of(f, symbol) for f in factors)
+            if not has_symbol:
+                continue
+            local_thetas = {s for s in node.free_symbols if str(s).startswith("theta_")}
+            has_theta = any(
+                _is_symbol_or_power_of(f, t) for f in factors for t in local_thetas
+            )
+            if has_theta:
+                return True
+    return False
 
 
 class DimensionalChecker:
@@ -154,14 +111,6 @@ class DimensionalChecker:
         raise NotImplementedError(f"Operator {type(expr)} not yet supported in dimensional analysis.")
 
     def verify(self, candidate_expr: Union[str, sp.Expr], target_dimension_key: Optional[str]) -> bool:
-        """
-        Returns True if the expression's units match the physical target dimension.
-
-        FIXED: the old "len(physical_symbols) == 1 -> always True" shortcut is
-        gone. A lone physical symbol only passes if it is structurally scaled
-        by a free theta parameter (see `_symbol_is_theta_scaled`); otherwise
-        its raw registry dimension is used, exactly like any other symbol.
-        """
         self.last_relaxed = False
         if target_dimension_key is None:
             return True
@@ -194,11 +143,6 @@ class DimensionalChecker:
             return False
 
     def enumerate_dimensionless_ratios(self, symbols: List[str], max_degree: int = 2) -> List[sp.Expr]:
-        """Buckingham-Pi style nullspace enumeration of dimensionless monomials.
-        (unchanged from the original -- this part of the file was already correct
-        and, per the audit, is the piece that should be doing the heavy lifting
-        for generic 'u' ratio construction instead of a human hand-picking it.)
-        """
         import math
         import itertools
 
@@ -253,13 +197,6 @@ class DimensionalChecker:
 
 
 def validate_transcendental_args(expr: sp.Expr, checker: DimensionalChecker) -> bool:
-    """
-    Returns True if all transcendental function arguments are dimensionless.
-
-    FIXED: same structural theta-scaling requirement as `DimensionalChecker.verify`.
-    A bare `exp(-r)` / `sin(v)` with no free parameter anywhere in the argument
-    is now correctly rejected instead of being waved through.
-    """
     for sub in sp.preorder_traversal(expr):
         if isinstance(sub, sp.Function):
             if sub.func.__name__ in ("sin", "cos", "tan", "exp", "log", "asin", "acos", "atan", "sinh", "cosh", "tanh"):
@@ -289,11 +226,6 @@ def validate_transcendental_args(expr: sp.Expr, checker: DimensionalChecker) -> 
 
 
 class ASTValidator:
-    """Prunes bloated expressions to prevent dynamic algebraic over-fitting/bloating.
-    (unchanged from original -- no bug found here; the `set_threshold_relative_to()`
-    removal note in the original was itself correct engineering discipline.)
-    """
-
     def __init__(self, max_depth: int = 7, max_tokens: int = 25):
         self.max_depth = max_depth
         self.max_tokens = max_tokens

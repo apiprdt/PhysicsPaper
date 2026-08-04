@@ -251,7 +251,7 @@ class Stage1Pipeline:
             nmse = 0.0
             if evaluator is not None:
                 mse, nmse = evaluator.evaluate(expr, has_params=has_params)
-                if np.isinf(mse):
+                if not np.isfinite(mse):
                     if stats is not None:
                         stats.coarse_reject += 1
                     continue

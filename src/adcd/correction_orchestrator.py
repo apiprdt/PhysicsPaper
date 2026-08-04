@@ -231,28 +231,40 @@ class CorrectionOrchestrator:
             n_proposed = len(proposed_candidates)
             total_candidates_proposed += n_proposed
 
-            stage1_candidates = []
-            candidate_sources = {}
+            raw_candidates, candidate_sources = [], {}
             for cand in proposed_candidates:
-                has_params = "theta_" in cand
-                stage1_candidates.append((cand, has_params))
+                has_params = any(
+                    str(s).startswith("theta_")
+                    for s in sp.sympify(cand, locals=self.pipeline.locals).free_symbols
+                )
+                raw_candidates.append((cand, has_params))
                 if hasattr(self.proposer, "sources") and cand in self.proposer.sources:
                     candidate_sources[cand] = self.proposer.sources[cand]
 
-            # pipeline.execute() now returns 5-tuples: (cand, combined_score,
-            # mse, arc_score, deferred_arc) -- see pipeline_fixed.py.
+            # pipeline_v3_corrected.py now does its OWN internal theta=1 substitution,
+            # only where numerically necessary (ARC probe / coarse eval), never
+            # before AST/dimensional/transcendental checks. It returns the ORIGINAL
+            # (theta-intact) candidate strings directly.
             stage1_results = self.pipeline.execute(
-                stage1_candidates, target_dim_key, X, residual,
+                raw_candidates, target_dim_key, X, residual,
                 constants=scenario.classical_constants, stats=gate_stats,
                 candidate_sources=candidate_sources,
             )
 
-            seen_sub_exprs, reconstructed_results = set(), []
-            for cand, combined_score, mse, arc_score, deferred_arc in stage1_results:
-                sub_expr = self._substitute_thetas(cand, 1.0)
-                if sub_expr not in seen_sub_exprs:
-                    seen_sub_exprs.add(sub_expr)
-                    reconstructed_results.append((cand, combined_score, mse, arc_score, deferred_arc))
+            seen_canonical = set()
+            reconstructed_results = []
+            for expr_str, combined_score, mse, arc_score, deferred_arc in stage1_results:
+                try:
+                    canonical = str(sp.sympify(expr_str, locals=self.pipeline.locals).subs(
+                        {s: 1.0 for s in sp.sympify(expr_str, locals=self.pipeline.locals).free_symbols
+                         if str(s).startswith("theta_")}
+                    ))
+                except Exception:
+                    canonical = expr_str  # fail open: if canonicalization errors, don't dedup it away
+                if canonical in seen_canonical:
+                    continue
+                seen_canonical.add(canonical)
+                reconstructed_results.append((expr_str, combined_score, mse, arc_score, deferred_arc))
 
             n_survived = len(reconstructed_results)
             total_candidates_survived_stage1 += n_survived
