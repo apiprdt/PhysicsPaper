@@ -311,7 +311,7 @@ def run_full_protocol(
         if raw.identifiability_report:
             print(f"[ REPORT ] IDENTIFIABILITY    | {raw.identifiability_report.summary}")
         else:
-            print(f"[ REPORT ] IDENTIFIABILITY    | Not generated (insufficient valid candidates to compare)")
+            print("[ REPORT ] IDENTIFIABILITY    | Not generated (insufficient valid candidates to compare)")
         
         flags = [
             f"best_arc_reverified={raw.best_arc_reverified}",
@@ -320,16 +320,16 @@ def run_full_protocol(
         ]
         print(f"[ REPORT ] HONESTY FLAGS      | {', '.join(flags)}")
     else:
-        print(f"[ REPORT ] HONESTY FLAGS      | (No raw result captured)")
+        print("[ REPORT ] HONESTY FLAGS      | (No raw result captured)")
 
     all_passed = all(r.passed for r in results)
     print(f"{'-'*80}")
     if all_passed:
-        print(f"[SUCCESS] STATUS: All 4 protocol checks passed for this scenario.")
-        print(f"          Human review of the discovered structure is still required")
-        print(f"          before any publication claim.")
+        print("[SUCCESS] STATUS: All 4 protocol checks passed for this scenario.")
+        print("          Human review of the discovered structure is still required")
+        print("          before any publication claim.")
     else:
-        print(f"[FAILURE] STATUS: AT LEAST ONE CHECK FAILED.")
+        print("[FAILURE] STATUS: AT LEAST ONE CHECK FAILED.")
         print(
             "   DO NOT cite this scenario's result until every check above passes.\n"
             "   A failed ablation or determinism check invalidates the positive-control\n"
