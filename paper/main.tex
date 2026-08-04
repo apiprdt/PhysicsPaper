@@ -117,7 +117,7 @@ $e^{-r/\lambda_D}$ in plasmas, where free charges attenuate the field at the
 Debye length $\lambda_D$~\cite{debye1923}.
 The entropy of an ideal gas undergoing isothermal expansion receives a
 logarithmic correction $\Delta S = nR\ln(V_f/V_i)$, a standard result of
-classical thermodynamics~\cite{vanderwaals1873}.
+classical thermodynamics~\cite{callen1985}.
 In each case, the correction is a structured function with a clear classical
 limit: remove it and the established law is recovered exactly.
 
@@ -319,7 +319,7 @@ Before numerical fitting, each candidate passes five gates in ascending
 computational cost.
 
 \textbf{Gate~1 (AST complexity).}
-Candidates with Abstract Syntax Tree depth $>3$ or token count $>25$
+Candidates whose sympy expression tree exceeds depth 9 or token count $>25$
 (theta-intact) are rejected.
 
 \textbf{Gate~2 (Dimensional consistency).}
@@ -570,7 +570,7 @@ Scenario & NMSE & Param fitted & Relative error \\
 \midrule
 Time Dilation     & $5.3\times10^{-4}$ & $\theta_0 = 1.00$ & $<$0.1\% \\
 Screened Coulomb  & $2.8\times10^{-4}$ & $\theta_1 = 1.49$ vs $1.50$ & 0.7\% \\
-Entropy Expansion & $3.4\times10^{-3}$ & $\theta_3 = 0.554$ vs $0.554$ & $<$0.1\% \\
+Entropy Expansion & $3.4\times10^{-3}$ & $\theta_0 = nR/S_i \approx 0.554$ & $<$0.1\% \\
 \bottomrule
 \end{tabular}
 \end{table}
