@@ -25,6 +25,20 @@ import json
 from dataclasses import dataclass, asdict
 from typing import List, Optional
 
+import logging
+import warnings
+
+# Configure logging to write to a file, so debug logs and warnings don't spam stdout
+# but are still fully accessible to developers.
+logging.basicConfig(
+    filename='adcd_validation_debug.log',
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logging.captureWarnings(True)
+warnings.filterwarnings('always', category=RuntimeWarning)
+
+
 # --- MUST be first: see jax_precision_config.py for why import order matters
 import jax
 jax.config.update("jax_enable_x64", True)
@@ -35,7 +49,7 @@ from adcd.pipeline import Stage1Pipeline
 from adcd.dimensional_checker import ASTValidator, DimensionalChecker
 from adcd.arc_scorer import ARCScorer, build_arc_regimes
 from adcd.jax_optimizer import JAXOptimizer
-from adcd.correction_orchestrator import CorrectionOrchestrator
+from adcd.correction_orchestrator import CorrectionOrchestrator, CorrectionSearchResult
 from adcd.anomaly_scenarios import get_all_scenarios
 
 from adcd.asymptotic_dictionary_proposer_v3 import (
@@ -59,6 +73,7 @@ class ValidationResult:
     search_space_size: int
     best_expr: Optional[str] = None
     best_nmse_residual: Optional[float] = None
+    raw_result: Optional[CorrectionSearchResult] = None
 
 
 def run_pipeline(
@@ -156,6 +171,7 @@ def positive_control(scenario, ratio_symbol: str, ground_truth_primitive: str, s
         search_space_size=proposer.search_space_size(),
         best_expr=result.best_expr,
         best_nmse_residual=result.best_nmse_residual,
+        raw_result=result,
     )
 
 
@@ -274,19 +290,52 @@ def run_full_protocol(
         determinism_check(scenario, ratio_symbol, seed=seed),
     ]
 
-    print(f"\n{'='*70}\nVALIDATION PROTOCOL: {scenario_name}\n{'='*70}")
+    print(f"\n{'='*80}")
+    print(f" ADCD VALIDATION PROTOCOL: {scenario_name.upper()}")
+    print(f"{'='*80}")
+    
+    pos_res = results[1]
+    raw = pos_res.raw_result
+    
     for r in results:
-        status = "PASS" if r.passed else "FAIL"
-        print(f"[{status}] {r.check_name}: {r.detail}")
+        status_box = "[  PASS  ]" if r.passed else "[FAILED!]"
+        if r.check_name == "ablation_control":
+            # Add explicit threshold string
+            print(f"{status_box} {r.check_name.upper():<20} | {r.detail} (threshold=10 -> {'PASS' if r.passed else 'FAIL'})")
+        else:
+            print(f"{status_box} {r.check_name.upper():<20} | {r.detail}")
+
+    # Surface Identifiability Report and Honesty Flags
+    print(f"{'-'*80}")
+    if raw:
+        if raw.identifiability_report:
+            print(f"[ REPORT ] IDENTIFIABILITY    | {raw.identifiability_report.summary}")
+        else:
+            print(f"[ REPORT ] IDENTIFIABILITY    | Not generated (insufficient valid candidates to compare)")
+        
+        flags = [
+            f"best_arc_reverified={raw.best_arc_reverified}",
+            f"n_rejected_at_arc_reverify={raw.n_rejected_at_arc_reverify}",
+            f"used_extreme_scale_restart={raw.used_extreme_scale_restart}"
+        ]
+        print(f"[ REPORT ] HONESTY FLAGS      | {', '.join(flags)}")
+    else:
+        print(f"[ REPORT ] HONESTY FLAGS      | (No raw result captured)")
 
     all_passed = all(r.passed for r in results)
-    print(f"\nOVERALL: {'ALL CHECKS PASSED' if all_passed else 'AT LEAST ONE CHECK FAILED'}")
-    if not all_passed:
+    print(f"{'-'*80}")
+    if all_passed:
+        print(f"[SUCCESS] STATUS: All 4 protocol checks passed for this scenario.")
+        print(f"          Human review of the discovered structure is still required")
+        print(f"          before any publication claim.")
+    else:
+        print(f"[FAILURE] STATUS: AT LEAST ONE CHECK FAILED.")
         print(
-            "DO NOT cite this scenario's result until every check above "
-            "passes. A failed ablation or determinism check invalidates "
-            "the positive-control result too, even if that one looks good."
+            "   DO NOT cite this scenario's result until every check above passes.\n"
+            "   A failed ablation or determinism check invalidates the positive-control\n"
+            "   result too, even if that one looks good."
         )
+    print(f"{'='*80}\n")
 
     return results
 
@@ -320,4 +369,20 @@ if __name__ == "__main__":
 
     with open("adcd_v3_validation_report.json", "w") as f:
         json.dump(all_results, f, indent=2, default=str)
-    print("\nFull report saved to adcd_v3_validation_report.json")
+    
+    print("\n" + "#"*80)
+    print(" GLOBAL VALIDATION SUMMARY ")
+    print("#"*80)
+    for cfg in SCENARIOS_TO_VALIDATE:
+        name = cfg["scenario_name"]
+        results_list = [ValidationResult(**r) if isinstance(r, dict) else r for r in all_results[name]]
+        if all(r.passed for r in results_list):
+            print(f" [SUCCESS] {name:<25} : All 4 checks passed.")
+        else:
+            print(f" [FAILURE] {name:<25} : At least one check failed.")
+    
+    print(f" [O.O.S.]  {'Additive Corrections':<25} : Out of scope for ADCD v3 (Correction-First formulation)")
+    print(f" [O.O.S.]  {'SPARC / RAR':<25} : Out of scope (Requires coupled ODE solvers)")
+    print("#"*80 + "\n")
+    print("Full report saved to adcd_v3_validation_report.json")
+    print("Check adcd_validation_debug.log for all numerical warnings and JAX debug logs.")

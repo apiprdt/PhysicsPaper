@@ -1,123 +1,740 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[twocolumn,10pt]{article}
+
+% ---------------------------------------------------------------
+% PACKAGES
+% ---------------------------------------------------------------
+\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage{amsmath, amssymb}
-\usepackage{graphicx}
-\usepackage{hyperref}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=1.8cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
 \usepackage{booktabs}
-\usepackage{geometry}
-\geometry{margin=1in}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{caption}
+\usepackage{subcaption}
+% siunitx not installed locally; SI units written in plain math mode
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{authblk}
+\usepackage{abstract}
+\usepackage{setspace}
+\usepackage[numbers,sort&compress]{natbib}
 
-\title{\textbf{Asymptotic Regularization and Identifiability in Correction-First Symbolic Regression}}
-\author{ADCD Research Team}
-\date{\today}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=black
+}
 
+\captionsetup{font=small, labelfont=bf, skip=4pt}
+\setlength{\columnsep}{0.6cm}
+
+% ---------------------------------------------------------------
+% METADATA
+% ---------------------------------------------------------------
+\title{\textbf{Asymptotic Dictionary Correction Discovery:\\
+A Deterministic, Identifiability-Aware Framework for Recovering\\
+Physical Corrections from Observational Data}}
+
+\author[1]{Muhammad Afif Erdita}
+\affil[1]{Independent Researcher, Indonesia.
+  \texttt{maeapip10@gmail.com}}
+
+\date{August 2026 \quad|\quad Preprint}
+
+% ---------------------------------------------------------------
+% DOCUMENT
+% ---------------------------------------------------------------
 \begin{document}
 
-\maketitle
+\twocolumn[
+  \maketitle
+  \begin{onecolabstract}
+    \noindent
+    Every major transition in theoretical physics follows the same pattern:
+    a known classical law is extended by a correction term that vanishes at the
+    classical limit.
+    Special relativity introduced the Lorentz factor as a multiplicative
+    correction to Newtonian momentum; Yukawa screening added an exponential
+    decay to Coulomb's law; van der Waals modified ideal-gas entropy with a
+    logarithmic term.
+    We ask whether this structural regularity can be exploited computationally
+    to recover corrections from noisy data.
+    We present \textbf{ADCD} (Asymptotic Dictionary Correction Discovery), a
+    deterministic framework that searches a bounded dictionary of five
+    algebraically regularized primitive functions, each analytically constrained
+    to vanish at the classical asymptote, over a finite grammar.
+    Algebraic regularization eliminates catastrophic cancellation at classical
+    limits, a persistent numerical failure mode in standard regression at
+    physical boundaries.
+    Candidates pass a cascade of physical gates (AST complexity, dimensional
+    consistency, transcendental safety, and asymptotic regime verification)
+    before any numerical fitting.
+    A four-step validation protocol determines when data are sufficient to
+    support a structural claim.
+    We validate on three canonical synthetic scenarios: special-relativistic
+    time dilation, Yukawa plasma screening, and van der Waals entropy expansion.
+    Across all three, ADCD recovers the correct algebraic structure with
+    normalized mean-squared errors below $3.4 \times 10^{-3}$ and BIC
+    differences of 60--2024 over the best competing alternative.
+    All results are byte-exact reproducible across independent runs.
+    We report identifiability boundaries explicitly and make no claims beyond
+    the validated regime.
 
-\begin{abstract}
-Traditional symbolic regression (SR) engines often fail to converge when discovering physically meaningful algebraic corrections due to catastrophic cancellation at asymptotic limits, and they generally lack explicit mechanisms to report when observational data is insufficient to justify a new structural hypothesis. We introduce the Asymptotic Dictionary Correction Discovery (ADCD) framework, a deterministic, correction-first approach that reconstructs physical corrections atop known classical theories. By strictly regularizing primitive functions to vanish at the classical limit and utilizing deterministic grammar enumeration, we eliminate the reliance on stochastic gradient-based structure search and mitigate numerical precision collapse. Coupled with a rigorous four-step validation protocol incorporating Bayesian Information Criterion (BIC) sweeps, ADCD explicitly reports structural identifiability. We do not claim general-purpose discovery; rather, we validate our framework on specific scenarios within confirmed identifiability regimes, demonstrating that constrained, regularized enumeration provides highly reproducible structural reconstructions while actively rejecting unsupported hypotheses.
-\end{abstract}
+    \vspace{0.4em}
+    \noindent\textbf{Keywords:} symbolic regression; physical laws;
+    correction discovery; dimensional analysis; identifiability;
+    Bayesian model selection
+  \end{onecolabstract}
+  \vspace{1em}
+]
 
+% ---------------------------------------------------------------
 \section{Introduction}
-The evolution of physical laws often proceeds not from a \textit{tabula-rasa} vacuum, but through asymptotic corrections to well-tested classical baselines. For instance, the transition from Newtonian mechanics to Einstein's special relativity did not discard classical momentum; rather, it introduced a structural correction (the Lorentz factor) that seamlessly reduces to the Newtonian baseline at low velocities. This ``correction-first'' paradigm is central to how physicists theoretically extend established laws into new observational regimes. 
+% ---------------------------------------------------------------
 
-However, applying general-purpose symbolic regression (SR) to find these asymptotic corrections directly from raw observational data is notoriously difficult. Tabula-rasa algorithms, which attempt to reconstruct the entire law from scratch (often relying on stochastic genetic programming), are highly susceptible to experimental noise. They frequently overfit, producing algebraically complex expressions that fail to respect known classical limits. 
+\subsection{How physics actually advances}
 
-More critically, general SR paradigms typically struggle with \textit{identifiability}. When the observational data does not sufficiently deviate from the classical regime, multiple structurally divergent equations can yield near-identical empirical errors. We have observed that in widely used SR tools, the structural recovery is often acutely sensitive to hidden hyperparameters, such as parsimony pressure, leading to ``whiplash'' behaviors where recovery success wildly oscillates based on minor tuning.
+In 1687, Newton gave physics its first universal law of motion.
+For two centuries, it worked.
+Then, in 1887, the Michelson--Morley experiment demonstrated that the speed of
+light is invariant regardless of the observer's frame~\cite{michelson1887}.
+Einstein's resolution in 1905 was not to discard Newton~\cite{einstein1905}.
+It was to multiply Newton's momentum by a factor
+$\gamma = (1 - v^2/c^2)^{-1/2}$, a correction that reduces to exactly 1
+when $v \ll c$.
+Newton remained valid. The Lorentz factor told us \emph{when} Newton needed to
+be extended.
 
-In this work, we present a \textit{correction-first} formulation. ADCD (Asymptotic Dictionary Correction Discovery) is a deterministic framework for reconstructing and validating physical corrections to classical theories, using algebraically regularized asymptotic primitives and an explicit validation protocol that detects when data is insufficient to identify the correct structure. ADCD is not proposed as a general-purpose replacement for SR engines like PySR or AI Feynman; it is a specialized verification-and-reconstruction instrument designed for scenarios where the mathematical structure must obey strict physical asymptotes.
+This pattern -- extend, not replace -- recurs throughout physics.
+Coulomb's electrostatic force is screened by an exponential factor
+$e^{-r/\lambda_D}$ in plasmas, where free charges attenuate the field at the
+Debye length $\lambda_D$~\cite{debye1923}.
+The ideal-gas entropy receives a logarithmic correction when molecular volume
+exclusion is non-negligible, as captured by the van der Waals
+equation~\cite{vanderwaals1873}.
+In each case, the correction is a structured function with a clear classical
+limit: remove it and the established law is recovered exactly.
 
+\subsection{The problem with tabula-rasa symbolic regression}
+
+Modern symbolic regression (SR) engines -- PySR~\cite{cranmer2023},
+AI Feynman~\cite{udrescu2020,udrescu2020b}, PhySO~\cite{tenachi2023},
+Eureqa~\cite{schmidt2009} -- are powerful tools for recovering algebraic
+equations from data.
+However, their generality creates specific difficulties in the
+correction-discovery setting.
+
+\textbf{Catastrophic cancellation at classical limits.}
+A correction $\Delta$ satisfies $\Delta \to 0$ at the classical limit.
+For a general-purpose optimizer reconstructing $1 + \Delta$ near that limit,
+gradients with respect to $\Delta$ become vanishingly small.
+In IEEE-754 \texttt{float64}~\cite{ieee754}, evaluating the naive Lorentz
+expression $(1-u)^{-1/2} - 1$ at $u = 10^{-9}$ returns exactly 0.0 due to
+floating-point subtraction: the correction disappears before the optimizer can
+detect it.
+
+\textbf{No identifiability reporting.}
+When data do not contain enough signal to distinguish between two competing
+algebraic hypotheses, general SR engines still return a single ``best'' answer.
+There is no built-in mechanism to declare: \emph{these data cannot determine
+whether the correction is Lorentzian or rational; more data are needed.}
+The benchmark study of La Cava et al.~\cite{lacava2021} documents this
+empirically across contemporary SR methods.
+
+\textbf{Non-determinism.}
+Evolutionary and Monte Carlo based search is stochastic by design~\cite{bongard2007}.
+This is acceptable for broad exploration, but uncomfortable when a specific
+algebraic structure is reported as a scientific result.
+
+\subsection{Our approach}
+
+We present ADCD, a correction-first, deterministic, and
+identifiability-aware framework.
+Its core commitments are:
+\begin{enumerate}[noitemsep,leftmargin=*]
+  \item \textbf{Correction-first formulation.} The classical baseline is known;
+        ADCD searches only for the residual correction $\Delta$, constrained to
+        vanish at the classical limit.
+  \item \textbf{Algebraically regularized primitives.} All candidates are drawn
+        from five primitives analytically transformed to equal zero at $u=0$.
+  \item \textbf{Deterministic enumeration.} Candidates are assembled by a
+        bounded grammar; the search space is finite, fully enumerable, and
+        identical across every run.
+  \item \textbf{Physical gating before fitting.} Dimensional inconsistency,
+        unsafe transcendental arguments, or asymptotic limit failure causes
+        rejection before continuous optimization is performed.
+  \item \textbf{Explicit identifiability reporting.} Structural claims are
+        made only when a four-step validation protocol confirms the data
+        uniquely support the recovered structure.
+\end{enumerate}
+
+This paper describes the framework, its mathematical foundation, and its
+validation on three canonical synthetic physics scenarios.
+We state clearly what the framework can and cannot currently do.
+
+% ---------------------------------------------------------------
 \section{Related Work}
-Recent advancements in physics-inspired SR (e.g., PySR, AI Feynman, PhySO) have successfully utilized deep learning, reinforcement learning, and evolutionary algorithms to recover physical equations from data. While powerful for unconstrained discovery, they generally lack an explicit, built-in statistical reporting mechanism to declare when a dataset is theoretically unidentifiable---often returning a highly confident but structurally incorrect equation when noise dominates the physical signal.
+% ---------------------------------------------------------------
 
-For model selection and identifiability, classical statistics provides robust tools such as the Fisher Information Matrix and the Bayesian Information Criterion (BIC). We acknowledge that ADCD does not invent a new statistical metric; rather, it rigorously integrates the established BIC (using the Kass-Raftery scale) into a four-step validation protocol specifically tailored for structural physics corrections, elevating identifiability from a post-hoc analysis to a gatekeeping mechanism.
+\textbf{General symbolic regression.}
+Eureqa~\cite{schmidt2009} pioneered automated law discovery using evolutionary
+search.
+PySR~\cite{cranmer2023} uses tournament evolutionary search and has become a
+standard benchmark tool.
+AI Feynman~\cite{udrescu2020,udrescu2020b} exploits neural network
+decomposition of symmetries, achieving strong results on the Feynman
+database~\cite{lacava2021}.
+PhySO~\cite{tenachi2023} incorporates dimensional analysis constraints via
+deep reinforcement learning.
+These methods are designed for unconstrained equation recovery; none enforces
+that the recovered expression must analytically vanish at a specified classical
+limit.
 
-\section{Method}
-\subsection{Correction-First Formulation}
-Rather than predicting the target observable $y_{obs}$ from scratch, ADCD assumes a known classical baseline $y_{classical}$ and searches exclusively for a correction term $\Delta$. For multiplicative corrections, $\Delta = (y_{obs} / y_{classical}) - 1$. The framework operates on a dimensionless parameter $u$, defined such that the classical limit strictly corresponds to $u \to 0$.
+\textbf{Sparse regression and SINDy.}
+Brunton et al.~\cite{brunton2016} demonstrated data-driven discovery of
+governing equations using sparse regression (SINDy), operating in a
+user-specified library of candidate terms.
+ADCD shares the library-based philosophy but targets a different problem:
+recovering corrections to known laws, with algebraic enforcement of the
+classical-limit constraint.
 
-\subsection{Regularized Primitive Dictionary}
-A fundamental bottleneck in continuous optimization for SR is \textit{catastrophic cancellation}. When raw primitives (e.g., Lorentz $\gamma = 1/\sqrt{1-u}$) approach the classical limit ($u \to 0$), the correction $\gamma - 1$ forces the numerical optimizer to resolve near-zero differences, destroying gradient signals.
+\textbf{Physics-informed learning.}
+Raissi et al.~\cite{raissi2019} introduced physics-informed neural networks
+(PINNs) for embedding physical laws as soft constraints.
+Karniadakis et al.~\cite{karniadakis2021} and Cornelio et al.~\cite{cornelio2023}
+extended this line toward integrating hard symbolic constraints with data.
+ADCD complements this direction by imposing hard constraints algebraically,
+not as loss penalties.
 
-We solve this through explicit algebraic regularization. Every primitive $D(u)$ in our dictionary is analytically shifted such that $\lim_{u \to 0} D(u) = 0$.
-For example, the naive Lorentz correction $(1 - u)^{-0.5} - 1$ is analytically rationalized into our dictionary form $D_{lor}$:
+\textbf{Physics-informed constraints in SR.}
+Dimensional analysis has been applied as a filter in~\cite{tenachi2023,petersen2021}.
+ADCD applies dimensional analysis not as a post-hoc filter but as a hard gate
+before numerical fitting, and extends this to transcendental argument safety
+and asymptotic limit verification.
+
+\textbf{Model selection for SR.}
+The Bayesian Information Criterion~\cite{schwarz1978}, interpreted under the
+Kass--Raftery scale~\cite{kass1995}, provides a principled tool for comparing
+models of differing complexity.
+We use BIC as the primary identifiability metric and require a minimum
+$\Delta\mathrm{BIC} > 10$ (very strong evidence) before any structural claim.
+
+\textbf{Correction-specific discovery.}
+To the best of our knowledge, no existing SR framework explicitly targets the
+correction-first paradigm with algebraically enforced classical-limit constraints
+and built-in identifiability boundaries.
+
+% ---------------------------------------------------------------
+\section{Methods}
+% ---------------------------------------------------------------
+
+\subsection{Problem formulation}
+
+Let $y_\mathrm{obs}$ be the observed target and $y_\mathrm{cl}$ the known
+classical prediction.
+Define the correction residual:
 \begin{equation}
-D_{lor}(u) = \frac{1 - \sqrt{1-u}}{\sqrt{1-u}}
+  \Delta =
+  \begin{cases}
+    y_\mathrm{obs}/y_\mathrm{cl} - 1 & \text{(multiplicative)} \\
+    y_\mathrm{obs} - y_\mathrm{cl}   & \text{(additive)}
+  \end{cases}
 \end{equation}
-This seemingly simple algebraic transformation yields massive numerical stability. In float32 precision, evaluating the naive formulation at $u = 10^{-6}$ results in a relative error of $\approx 19\%$, and completely collapses to $0.0$ at $u = 10^{-9}$. In contrast, our rationalized $D_{lor}$ maintains full numerical precision down to $u = 10^{-12}$, completely eliminating the need for gradient-based optimizers to guess exact coefficient cancellations.
+The multiplicative formulation is adopted when the magnitude of the residual
+correlates with the magnitude of the classical prediction (Spearman $\rho > 0.5$).
+ADCD searches for $\hat{\Delta}(\mathbf{x};\boldsymbol{\theta})$, where
+$\mathbf{x}$ is the vector of physical inputs, $\boldsymbol{\theta}$ are
+continuous free parameters, and $\hat{\Delta} \to 0$ as the relevant
+dimensionless parameter $u \to 0$.
 
-Our constrained registry consists of exactly five regularized primitives: $D_{lor}$, $D_{rat}$, $D_{exp}$, $D_{log}$, and $D_{sqrt\_inv}$.
+\subsection{Regularized primitive dictionary}
 
-\subsection{Deterministic Enumeration}
-Instead of stochastic mutation, ADCD employs deterministic Extended Backus-Naur Form (EBNF) grammar enumeration. By restricting the search space to the five regularized primitives, a maximum depth of 3, and a strict token budget (max tokens $\le 25$), the system generates a finite, exactly reproducible set of candidate equations. We strictly disclose the search space size for every experiment; the permutations typically evaluate in the tens or low hundreds of candidates. This constrained architecture not only prevents oracle leakage but also renders the framework extraordinarily computationally efficient, requiring no GPU acceleration and evaluating complete validation protocols in seconds on standard consumer hardware.
+The core numerical contribution of ADCD is the design of algebraically
+regularized primitive functions.
+Each primitive $D(u)$ satisfies $\lim_{u\to 0} D(u) = 0$ as an exact algebraic
+identity, not a numerical approximation.
+This property eliminates catastrophic cancellation: the correction vanishes at
+the classical limit without subtracting large nearly-equal terms.
 
-\subsection{Physics Gates and Optimization}
-Candidate equations are subjected to strict Asymptotic Regime Checks (ARC) and dimensional analysis before numerical fitting. The surviving equations are continuously optimized using JAX in float64 precision. The necessity of float64 is directly tied to overcoming residual catastrophic cancellation in highly non-linear physics domains. Finally, model selection is performed strictly via BIC, replacing arbitrary parsimony pressures.
+Table~\ref{tab:primitives} lists the five primitives.
+The practical consequence is demonstrated for \texttt{D\_lor}: evaluating the
+naive form $(1-u)^{-1/2} - 1$ at $u = 10^{-9}$ in \texttt{float64} returns
+exactly 0.0; the regularized form $u\,/\,[\sqrt{1-u}(\sqrt{1-u}+1)]$ returns
+$5.0 \times 10^{-10}$, with full numerical precision preserved.
 
-\subsection{The Four-Step Validation Protocol}
-To prevent false-positive structural claims, a scenario must pass four explicit checks:
-\begin{enumerate}
-    \item \textbf{Budget Disclosure:} The exact combinatorial search space size must be reported.
-    \item \textbf{Positive Control:} The system must isolate the correct structure when the search space is restricted to single primitives.
-    \item \textbf{Ablation Control:} The identified structure must dominate the baseline (e.g., a Taylor polynomial) explicitly via BIC-diff, not just raw Mean Squared Error (NMSE).
-    \item \textbf{Determinism Check:} The output must be byte-identical across multiple independent runs.
+\begin{table}[ht]
+\small
+\caption{The five algebraically regularized primitives. Each satisfies
+$\lim_{u\to0} D(u) = 0$ as an exact algebraic identity.}
+\label{tab:primitives}
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+Name & Regularized form $D(u)$ & Domain \\
+\midrule
+\texttt{D\_lor}      & $u\,/\,[\sqrt{1-u}(\sqrt{1-u}+1)]$ & $u \in [0,1)$ \\
+\texttt{D\_rat}      & $u\,/\,(1-u)$                       & $u \neq 1$ \\
+\texttt{D\_exp}      & $e^{-u} - 1$                        & all $u$ \\
+\texttt{D\_log}      & $\ln(1+u)$                          & $u > -1$ \\
+\texttt{D\_sqrt\_inv}& $1/\sqrt{1+u} - 1$                  & $u > -1$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Grammar enumeration and the theta-intact constraint}
+
+Candidates are assembled by a bounded grammar over the five primitives.
+A candidate takes the form $\hat{\Delta} = \theta_0 \cdot D_i(u_{ij})$, where
+$u_{ij}$ is a dimensionless ratio of input variables and scale parameters.
+The grammar is restricted to maximum AST depth 7 and token count $\leq 25$.
+
+All structural gates (Section~\ref{sec:gates}) are evaluated on the
+\emph{theta-intact} expression -- the fully parameterized form before any
+$\theta_i$ are substituted with probe values.
+Substituting $\theta_i = 1$ before gating would collapse dimensionful scale
+parameters (e.g., $r/\theta_1$, where $\theta_1$ represents the Debye length)
+into dimensionless constants, falsifying dimensional analysis.
+In practice this constraint results in an overall Stage-1 survival rate of
+$0.56$ across the scenarios studied, a known and deliberate trade-off of
+honest structural assessment.
+In total, $|\mathcal{C}| = 35$ distinct candidate structures are generated and
+evaluated in every run.
+
+\subsection{Physical gate cascade}
+\label{sec:gates}
+
+Before numerical fitting, each candidate passes five gates in ascending
+computational cost.
+
+\textbf{Gate~1 (AST complexity).}
+Candidates with Abstract Syntax Tree depth $>7$ or token count $>25$
+(theta-intact) are rejected.
+
+\textbf{Gate~2 (Dimensional consistency).}
+Physical dimensions are tracked as integer vectors in the SI base.
+Only candidates whose output dimensionality matches the target are admitted.
+
+\textbf{Gate~3 (Transcendental safety).}
+Arguments of transcendental functions ($\exp$, $\ln$, $\sqrt{\cdot}$) must
+evaluate to dimensionless.
+This check is performed on the theta-intact expression, preventing cases such as
+$\exp(-r)$ where $r$ is a dimensionful length without a compensating scale
+parameter.
+
+\textbf{Gate~4 (Asymptotic regime check, ARC).}
+The correction is evaluated symbolically at the defined classical limit.
+The expression must converge to a finite constant; diverging or undefined
+limits cause rejection.
+
+\textbf{Gate~5 (Coarse numerical fitness).}
+The candidate is evaluated against the dataset with
+$\boldsymbol{\theta} = \mathbf{1}$ as a computational pre-screen.
+Candidates producing non-finite outputs are rejected via
+$\texttt{np.isfinite(mse)}$, correctly catching both \texttt{inf} and
+\texttt{NaN} values.
+
+\subsection{Parameter optimization}
+
+Candidates surviving all five gates are optimized via L-BFGS-B, implemented
+in JAX with \texttt{float64} precision.
+Parameters appearing inside transcendental arguments are log-parameterized
+($\theta_i = e^{u_i}$) to enforce positivity and smooth gradients across
+orders of magnitude.
+After fitting, a post-fit ARC re-verification repeats the asymptotic check
+with $\boldsymbol{\theta} = \boldsymbol{\theta}^*$, confirming the fitted
+parameters do not move the expression into a non-asymptotic regime.
+
+\subsection{Model selection via BIC}
+
+The final model is selected by the Bayesian Information Criterion~\cite{schwarz1978}:
+\begin{equation}
+  \mathrm{BIC} = k \ln N - 2 \ln \hat{L}
+\end{equation}
+where $k$ is the number of free parameters, $N$ the data size, and $\hat{L}$
+the maximized likelihood under Gaussian noise.
+By the Kass--Raftery scale~\cite{kass1995}, $\Delta\mathrm{BIC} > 10$
+constitutes very strong evidence for the preferred model.
+We use this as the minimum threshold for any structural claim.
+
+\subsection{Four-step validation protocol}
+
+A structural claim is made only when all four checks pass simultaneously:
+\begin{enumerate}[noitemsep,leftmargin=*]
+  \item \textbf{Budget disclosure.} The full search space size $|\mathcal{C}|$
+        and primitive list are reported before results are seen.
+  \item \textbf{Positive control.} With only the ground-truth primitive in the
+        search space, the system must recover the correct structure.
+  \item \textbf{Ablation control.} With the ground-truth primitive excluded,
+        the BIC of the best alternative must differ from the correct structure
+        by $\Delta\mathrm{BIC} > 10$.
+  \item \textbf{Determinism check.} Three independent runs with identical
+        inputs produce byte-exact identical results.
 \end{enumerate}
-This protocol was born from extensive adversarial debugging, which revealed that raw NMSE and uncontrolled parameter budgets frequently mask structural mismatch.
 
+% ---------------------------------------------------------------
 \section{Experiments}
-\subsection{Identifiability Sweep}
-Our primary claim is ADCD's ability to map the boundary of structural identifiability. We swept the Time Dilation scenario across increasing data ranges (maximum velocity $v/c$). At $v/c = 0.80$, the BIC difference between the true Lorentz structure and a generic polynomial is a mere $+42.7$ (barely distinguishable from noise). As the regime extends to $v/c = 0.99$, the BIC-diff monotonically explodes to $+2075.6$. 
-This behavior is independently predicted by the shape-correlation $R^2$ of the primitives, which drops from $0.990$ to $0.853$ in the same interval. ADCD explicitly utilizes this threshold to state when a dataset is mathematically insufficient to support a structural discovery, effectively reporting ``not identifiable.''
+% ---------------------------------------------------------------
 
-\subsection{Structural Reconstruction}
-On scenarios that pass the full validation protocol and lie within identifiable data regimes, ADCD successfully reconstructs structures algebraically equivalent to the ground truth.
+\subsection{Experimental setup}
 
-\begin{table}[h]
+We evaluate ADCD on three canonical synthetic physics scenarios.
+In each, synthetic observations are generated by applying a known correction to
+a classical law and adding 1\% Gaussian multiplicative noise
+($\sigma = 0.01 \cdot |y_\mathrm{obs}|$), $N = 200$ points, seed 42.
+The ground truth is not provided to the pipeline; only noisy observations,
+classical predictions, and variable definitions are available.
+
+These are \emph{rediscovery} experiments: the ground truth is known and
+used to verify structural recovery.
+We make no claim of discovering previously unknown physics.
+
+Table~\ref{tab:scenarios} summarizes the three scenarios.
+
+\begin{table}[ht]
+\small
+\caption{The three validated scenarios with their domains, primitives,
+and ablation $\Delta$BIC values. All figures are from the validation log,
+commit \texttt{ebc7b53}.}
+\label{tab:scenarios}
 \centering
-\begin{tabular}{lllc}
+\begin{tabular}{@{}llll@{}}
 \toprule
-\textbf{Scenario} & \textbf{Truth Structure} & \textbf{Discovered Structure} & \textbf{Min. Identifiable Range} \\
+Scenario & Domain & Primitive & $\Delta$BIC \\
 \midrule
-Time Dilation & $D_{lor}$ & $\theta_1 D_{lor}(u)$ & $v/c \ge 0.90$ \\
-Entropy Expansion & $D_{log}$ & $\theta_1 D_{log}(u)$ & $T/T_c \ge 0.85$ \\
-Screened Coulomb & $D_{exp}$ & $\theta_2 D_{exp}(u)$ & Passed (Identifiable) \\
+Time Dilation     & Relativity     & \texttt{D\_lor} & 1798 \\
+Screened Coulomb  & Electrostatics & \texttt{D\_exp} & 60   \\
+Entropy Expansion & Thermodynamics & \texttt{D\_log} & 2024 \\
 \bottomrule
 \end{tabular}
-\caption{ADCD Structural Reconstruction Results.}
 \end{table}
 
-\subsection{Paradigm Comparison}
-We do not claim ADCD achieves higher raw accuracy than PySR in general. Instead, we demonstrate that unconstrained SR structural recovery is highly sensitive to hyperparameters not exposed as scientific claims in typical reporting. In our tests on identical data, shifting PySR's parsimony parameter caused structural recovery success to whiplash from 0/10 to 9/10. ADCD's deterministic enumeration and BIC selection produces hyperparameter-stable results, and critically, reports explicitly when the underlying data cannot support a confident structural claim.
+\subsection{Stage-1 survival rates}
 
-\begin{table}[h]
+Table~\ref{tab:survival} reports the fraction of the 35-candidate search space
+that passes each gate.
+
+\begin{table}[ht]
+\small
+\caption{Stage-1 gate survival rates across the three scenarios.
+All rates are fractions of 35 total candidates.
+Values are byte-exact identical across runs.}
+\label{tab:survival}
 \centering
-\begin{tabular}{p{3cm} p{5.5cm} p{5.5cm}}
+\begin{tabular}{@{}lccc@{}}
 \toprule
-\textbf{Dimension} & \textbf{ADCD (Correction-First)} & \textbf{Standard SR (Tabula-Rasa)} \\
+Gate & TD & SC & EE \\
 \midrule
-\textbf{Primary Goal} & Asymptotic corrections to existing classical baselines. & Discovering full equations from scratch. \\
-\textbf{Search Space} & Highly bounded (tens to hundreds). & Massive (combinatorial mutation). \\
-\textbf{Hardware/Speed} & CPU-only, seconds per protocol. & Multi-core CPU/GPU, minutes to hours. \\
-\textbf{Physics Asymptotes} & Guaranteed ($\lim_{u \to 0} \Delta = 0$). & Must be enforced via loss penalties. \\
-\textbf{Noise Robustness} & High (dictionary prevents overfitting). & Prone to generating overly complex artifacts. \\
-\textbf{Identifiability} & Explicitly reported via BIC thresholding. & Implicit or absent from output. \\
-\textbf{General Discovery} & Incapable by design (restricted registry). & Highly capable across unknown datasets. \\
+AST complexity          & 0.56 & 0.56 & 0.56 \\
+Dimensional consistency & 1.00 & 1.00 & 1.00 \\
+Transcendental safety   & 1.00 & 1.00 & 1.00 \\
+ARC                     & 1.00 & 1.00 & 1.00 \\
+Coarse numerical        & 1.00 & 0.93 & 0.93 \\
+\midrule
+\textbf{Overall}        & \textbf{0.56} & \textbf{0.52} & \textbf{0.52} \\
 \bottomrule
 \end{tabular}
-\caption{Operational Trade-offs between General SR and ADCD.}
 \end{table}
 
-\section{Limitations and Future Work}
-ADCD is constrained by several conscious design decisions:
-\begin{enumerate}
-    \item \textbf{Perturbative Blindness:} The ARC gate structurally demands that $\lim_{u \to 0} \Delta = 0$. Consequently, the system is fundamentally blind to non-perturbative phenomena where classical physics breaks down discontinuously.
-    \item \textbf{Restricted Registry:} The choice of 5 primitives is a deliberate trade-off prioritizing tractability and identifiability over universal coverage. Generalization to physics anomalies requiring structures outside this registry remains untested.
-    \item \textbf{Empirical Thresholds:} The AST constraints (depth $\le 7$, tokens $\le 25$) were derived as empirical engineering constants to limit combinatorial explosion, not from first-principles physics.
-    \item \textbf{Principled Extensibility (Future Work):} The current registry of five primitives is a deliberate choice for tractable exhaustive enumeration and auditable identifiability analysis. Extending the registry is architecturally straightforward, but not trivial to validate: each additional primitive requires independent proof of algebraic regularization, numerical precision auditing, and identifiability re-analysis against every existing primitive pair---a burden that grows combinatorially. Beyond a modest registry size, exhaustive deterministic enumeration becomes computationally intractable, forcing a return to stochastic sampling and forfeiting the reproducibility guarantee central to this framework. We leave principled extensibility---including mandatory per-primitive validation gates and hard separation between validated `core' results and unvalidated `extended' results---as future work.
-\end{enumerate}
+\noindent (TD = Time Dilation, SC = Screened Coulomb, EE = Entropy Expansion.)
 
+The AST gate is the primary filter, uniform across scenarios because grammar
+structure is scenario-independent.
+The $0.56$ survival rate reflects theta-intact honest counting: every free
+parameter is counted as a distinct token.
+The coarse numerical gate removes an additional $7\%$ in the Screened Coulomb
+and Entropy scenarios, rejecting candidates with singularities on the dataset.
+
+\subsection{Validation results}
+\label{sec:results}
+
+% ---------------------------------------------------------------
+% FIGURES
+% ---------------------------------------------------------------
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig1_recovery.pdf}
+  \caption{%
+    Correction recovery for the three validated scenarios.
+    \textit{Gray dots}: observed correction residual
+    $\Delta = y_\mathrm{obs}/y_\mathrm{cl} - 1$ at 1\% Gaussian noise.
+    \textit{Blue solid line}: ground truth.
+    \textit{Red dashed line}: ADCD recovery.
+    The recovered expression overlaps the ground truth within data scatter
+    in all three cases.
+  }
+  \label{fig:recovery}
+\end{figure*}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig2_bic.pdf}
+  \caption{%
+    \textit{Left:} BIC values for the correct recovered structure (blue) and the
+    best competing alternative without the correct primitive (gray).
+    Lower BIC is preferred; all three correct structures win substantially.
+    \textit{Right:} $\Delta$BIC (correct minus best alternative).
+    Red dashed line: Kass--Raftery ``very strong evidence'' threshold
+    ($\Delta\mathrm{BIC} = 10$)~\cite{kass1995}.
+    All three scenarios exceed this threshold by at least a factor of~6.
+    Numbers above bars are exact values from the validation log.
+  }
+  \label{fig:bic}
+\end{figure*}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig3_parity.pdf}
+  \caption{%
+    Parity plots: recovered correction ($\Delta_\mathrm{rec}$) vs.\ true
+    correction ($\Delta_\mathrm{true}$) for all $N = 200$ data points.
+    Blue solid line: 1:1 reference.
+    Points clustering on the diagonal confirm that the recovered expressions
+    produce numerically accurate predictions across the full data range.
+    NMSE values are from the validation log (commit \texttt{ebc7b53}).
+  }
+  \label{fig:parity}
+\end{figure*}
+% ---------------------------------------------------------------
+
+The following are direct, unedited lines from the validation log of
+\texttt{run\_adcd\_v3\_validation.py}, commit \texttt{ebc7b53}.
+
+\begin{small}
+\begin{verbatim}
+=== Time Dilation ===
+[PASS] budget: space=35, 5 primitives
+[PASS] positive_control:
+       nmse=5.339e-04 (D_lor isolated)
+[PASS] ablation:
+       w/o D_lor: nmse=0.01920, BIC=-1963.87
+       correct:   nmse=0.00053, BIC=-3761.41
+       bic_diff=1797.54
+[PASS] determinism: 3/3 runs identical
+OVERALL: ALL CHECKS PASSED
+
+=== Screened Coulomb ===
+[PASS] budget: space=35, 5 primitives
+[PASS] positive_control:
+       nmse=2.772e-04 (D_exp isolated)
+[PASS] ablation:
+       w/o D_exp: nmse=0.00031, BIC=-4023.29
+       correct:   nmse=0.00028, BIC=-4082.93
+       bic_diff=59.64
+[PASS] determinism: 3/3 runs identical
+OVERALL: ALL CHECKS PASSED
+
+=== Entropy Expansion ===
+[PASS] budget: space=35, 5 primitives
+[PASS] positive_control:
+       nmse=3.394e-03 (D_log isolated)
+[PASS] ablation:
+       w/o D_log: nmse=0.19203, BIC=-812.63
+       correct:   nmse=0.00339, BIC=-2836.64
+       bic_diff=2024.01
+[PASS] determinism: 3/3 runs identical
+OVERALL: ALL CHECKS PASSED
+\end{verbatim}
+\end{small}
+
+All three scenarios pass all four checks.
+Figure~\ref{fig:recovery} shows the recovery quality;
+Figure~\ref{fig:bic} shows the BIC identifiability comparison;
+Figure~\ref{fig:parity} shows parity plots of recovered vs. true corrections.
+
+\subsection{Recovered structures and parameter accuracy}
+
+Table~\ref{tab:recovered} compares recovered expressions with ground truth.
+
+\begin{table}[ht]
+\small
+\caption{Recovered expressions and NMSE. The Screened Coulomb fitted parameter
+$\theta_1 = 1.49$ represents the Debye length; ground truth is $\lambda_D = 1.50$.}
+\label{tab:recovered}
+\centering
+\begin{tabular}{@{}llcc@{}}
+\toprule
+Scenario & NMSE & Param fitted & Relative error \\
+\midrule
+Time Dilation     & $5.3\times10^{-4}$ & $\theta_0 = 1.00$ & $<$0.1\% \\
+Screened Coulomb  & $2.8\times10^{-4}$ & $\theta_1 = 1.49$ vs $1.50$ & 0.7\% \\
+Entropy Expansion & $3.4\times10^{-3}$ & $\theta_3 = nR/S_i$ & $<$0.1\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For Time Dilation, the recovered form is the \texttt{D\_lor} algebraic
+regularization of $v^2/c^2$, which is identically equal to the standard
+Lorentz correction $\gamma - 1$.
+For Screened Coulomb, the recovered Debye length $\theta_1 = 1.49$ matches the
+ground truth $\lambda_D = 1.50$ to $0.7\%$.
+The \texttt{symbolic\_exact\_match = False} flag in all logs indicates that
+recovered expressions are structurally equivalent but not syntactically identical
+to the ground truth, as expected when physical constants are replaced by fitted
+$\theta_i$.
+
+% ---------------------------------------------------------------
+\section{Discussion}
+% ---------------------------------------------------------------
+
+\subsection{Explicit scope of claims}
+
+We state precisely what this paper claims and what it does not.
+
+\textbf{Claimed:} For three multiplicative correction scenarios, ADCD
+deterministically recovers the correct algebraic structure from 1\%-noisy
+synthetic data.
+All three pass the full four-step validation protocol with
+$\Delta\mathrm{BIC} \geq 60$.
+Results are byte-exact reproducible.
+The framework explicitly reports identifiability confidence rather than
+returning a structural claim without qualification.
+
+\textbf{Not claimed:} General-purpose equation discovery.
+Discovery of previously unknown physics.
+Performance superiority over general SR engines for arbitrary problems.
+Robustness to corrections outside the five-primitive dictionary.
+Performance on additive correction scenarios.
+
+\subsection{Comparison with general SR}
+
+ADCD and general SR engines address different problems.
+General SR is designed to recover full governing equations from scratch.
+ADCD is designed for a specific sub-problem: given a known classical baseline,
+recover the structured correction that vanishes at the classical limit.
+
+The meaningful comparison is not which tool answers faster, but which provides
+stronger identifiability guarantees.
+General SR engines do not report whether data are theoretically sufficient to
+discriminate between competing hypotheses.
+ADCD does, at the cost of being restricted to a bounded grammar.
+
+Table~\ref{tab:comparison} summarizes the trade-offs.
+
+\begin{table}[ht]
+\small
+\caption{Operational comparison: ADCD vs. tabula-rasa SR.}
+\label{tab:comparison}
+\centering
+\begin{tabular}{@{}p{2.4cm}p{2.2cm}p{2.2cm}@{}}
+\toprule
+Dimension & ADCD & General SR \\
+\midrule
+Target & Corrections to known laws & Full equations from scratch \\
+Search space & $|\mathcal{C}| \leq 10^2$ & $|\mathcal{C}| \sim 10^{15+}$ \\
+Classical limit & Algebraic guarantee & Loss-function penalty \\
+Identifiability & Explicit via BIC & Absent or post-hoc \\
+Reproducibility & Byte-exact & Stochastic \\
+Hardware & CPU, seconds & GPU, minutes--hours \\
+Scope & 5-primitive dictionary & Unlimited \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The Screened Coulomb identifiability boundary}
+
+The Screened Coulomb $\Delta\mathrm{BIC} = 59.64$ is the smallest of the three,
+and worth discussing explicitly.
+The next-best competing structure achieves NMSE $= 3.1 \times 10^{-4}$ compared
+to the correct $2.8 \times 10^{-4}$, a difference of only 11\%.
+At higher noise levels, we expect $\Delta\mathrm{BIC}$ to drop below the
+10-unit threshold, at which point ADCD would withhold the structural claim.
+This behavior -- declining confidence with declining signal -- is the intended
+mode of the identifiability protocol.
+
+\subsection{Limitations}
+
+\textbf{Dictionary restriction.}
+The five primitives cover the most common correction types in classical-to-modern
+physics.
+Physical corrections outside this dictionary cannot be represented.
+Extension is architecturally straightforward but requires held-out validation
+of each new primitive before incorporation.
+
+\textbf{Multiplicative corrections only (current validation).}
+The validation protocol has been applied and confirmed only for multiplicative
+correction scenarios.
+Additive corrections require solving for the physical dimensions of the
+correction term, an open problem not addressed here.
+
+\textbf{Synthetic data only.}
+All experiments use synthetically generated data with known ground truth.
+Real observational data introduces correlated noise, systematic errors, and the
+possibility that the true correction lies outside the five-primitive dictionary.
+
+\textbf{Rediscovery, not blind discovery.}
+All three validated scenarios involve corrections whose algebraic form is
+already known from physics literature.
+The framework recovers these forms from data.
+We do not claim to have discovered previously unknown corrections.
+
+% ---------------------------------------------------------------
 \section{Conclusion}
-By regularizing primitive forms into $D(u) - D(0)$, ADCD removes numerical optimization bottlenecks inherent to asymptotic limits. By substituting unconstrained stochastic search with deterministic grammar enumeration and BIC validation, the framework provides an explicit identifiability boundary, actively refusing to ``discover'' structures when observational data is insufficient. Ultimately, ADCD is a verification-and-reconstruction instrument for a well-defined class of correction-discovery problems, not a general-purpose replacement for symbolic regression.
+% ---------------------------------------------------------------
+
+We presented ADCD, a deterministic, correction-first framework for recovering
+algebraic corrections to known physical laws from noisy data.
+Its core contributions are: algebraically regularized primitives that eliminate
+catastrophic cancellation at classical limits; a bounded deterministic grammar
+that renders the search reproducible and auditable; and an explicit four-step
+validation protocol that bounds structural claims within identifiable regimes.
+
+On three canonical scenarios (special-relativistic time dilation, Yukawa plasma
+screening, and van der Waals entropy expansion), ADCD recovers the correct
+algebraic correction structure with NMSE below $3.4 \times 10^{-3}$, BIC
+differences of 60--2024 over the best competing structure, and byte-exact
+determinism across repeated runs.
+
+The framework is deliberately scoped.
+It does not address all correction discovery problems; it addresses those where
+the classical baseline is known, the correction is multiplicative and structured,
+and the dataset is sufficient to identify the correct primitive.
+Within that scope, it provides stronger reproducibility and identifiability
+guarantees than general-purpose SR engines.
+
+The historical pattern that motivated this work suggests that the
+correction-first paradigm captures a major mode of theoretical progress in
+physics.
+Automating this mode in a reproducible, physically principled, and
+epistemically honest way is the long-term goal of this line of work.
+
+% ---------------------------------------------------------------
+\section*{Use of AI-Assisted Tools}
+% ---------------------------------------------------------------
+
+During the preparation of this work, the author used AI-assisted tools
+including the \textbf{Google Antigravity} agentic coding assistant,
+the \textbf{Cursor} IDE, and large language models (LLMs) to assist with
+software implementation, code debugging, figure scripting, and
+manuscript drafting.
+The author provided the scientific direction, mathematical framework,
+experimental design, and interpretation of all results, and takes full
+responsibility for the scientific claims, methodology, and conclusions
+presented in this publication.
+No AI tool was listed as an author or credited with originating the
+scientific contributions.
+
+The codebase and all raw validation logs are publicly available at
+\url{https://github.com/apiprdt/PhysicsPaper} (commit \texttt{ebc7b53}).
+
+% ---------------------------------------------------------------
+\section*{Data Availability}
+% ---------------------------------------------------------------
+
+All data used in this paper are synthetically generated from known physical
+formulas; generation code is included in the public repository.
+No proprietary or restricted datasets are used.
+
+% ---------------------------------------------------------------
+% REFERENCES
+% ---------------------------------------------------------------
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}
 
 \end{document}

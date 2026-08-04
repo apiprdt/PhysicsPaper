@@ -1,0 +1,405 @@
+{
+  "Time Dilation": [
+    {
+      "scenario_name": "Time Dilation",
+      "check_name": "budget_disclosure",
+      "passed": true,
+      "detail": "search_space_size=35, primitives=['D_lor', 'D_rat', 'D_exp', 'D_log', 'D_sqrt_inv'], budget={'max_depth': 3, 'max_tokens': 25, 'max_primitives_used': 2}",
+      "search_space_size": 35,
+      "best_expr": null,
+      "best_nmse_residual": null,
+      "raw_result": null
+    },
+    {
+      "scenario_name": "Time Dilation",
+      "check_name": "positive_control",
+      "passed": true,
+      "detail": "nmse_residual=0.0005339333998419459, symbolic_exact_match=False, TRULY isolated to 'D_lor' (4 other primitives excluded, search_space_size=1)",
+      "search_space_size": 1,
+      "best_expr": "1.0*theta_0*v**2/(sqrt(1.0 - 1.0*v**2)*(sqrt(1.0 - 1.0*v**2) + 1.0))",
+      "best_nmse_residual": 0.0005339333998419459,
+      "raw_result": {
+        "best_expr": "1.0*theta_0*v**2/(sqrt(1.0 - 1.0*v**2)*(sqrt(1.0 - 1.0*v**2) + 1.0))",
+        "best_nmse_residual": 0.0005339333998419459,
+        "best_nmse_full": 0.0003283139978643837,
+        "best_theta": {
+          "theta_0": 0.9977829595825181
+        },
+        "history": [
+          {
+            "iteration": 0,
+            "n_proposed": 1,
+            "n_survived_stage1": 1,
+            "n_optimized_stage2": 1,
+            "best_expr": "1.0*theta_0*v**2/(sqrt(1.0 - 1.0*v**2)*(sqrt(1.0 - 1.0*v**2) + 1.0))",
+            "best_nmse_residual": 0.0005339333998419459,
+            "best_nmse_full": 0.0003283139978643837,
+            "top_5": [
+              [
+                "1.0*theta_0*v**2/(sqrt(1.0 - 1.0*v**2)*(sqrt(1.0 - 1.0*v**2) + 1.0))",
+                0.0005339333998419459
+              ]
+            ],
+            "time_seconds": 1.4064667224884033
+          }
+        ],
+        "total_candidates_proposed": 1,
+        "total_candidates_survived_stage1": 1,
+        "total_time_seconds": 1.4139728546142578,
+        "converged": false,
+        "evaluation": {
+          "nmse_residual": 0.0005339333998419459,
+          "nmse_full": 0.0003283139978643837,
+          "true_class": "rational",
+          "discovered_class": "rational",
+          "class_match": true,
+          "ast_edit_distance": 15,
+          "parameter_error": {},
+          "bic": -1501.749571869311,
+          "parameter_match_structural": false,
+          "parameter_count_mismatch": true
+        },
+        "gate_stats": {
+          "input_count": 1,
+          "parse_fail": 0,
+          "ast_reject": 0,
+          "dim_reject": 0,
+          "transcendental_reject": 0,
+          "arc_reject": 0,
+          "coarse_reject": 0,
+          "output_count": 1,
+          "deferred_arc": 0,
+          "arc_relaxed_dim": 0,
+          "llm_input": 0,
+          "llm_output": 0,
+          "grammar_input": 0,
+          "grammar_output": 0,
+          "mock_input": 0,
+          "mock_output": 0
+        },
+        "total_candidates_optimized": 1,
+        "bayesian_output": {
+          "candidates": [
+            [
+              "1.0*theta_0*v**2/(sqrt(1.0 - 1.0*v**2)*(sqrt(1.0 - 1.0*v**2) + 1.0))",
+              -1501.749571869311
+            ]
+          ],
+          "posterior_weights": [
+            1.0
+          ],
+          "correction_class_probs": {
+            "rational": 1.0
+          },
+          "is_ambiguous": false,
+          "evidence_label": "decisive",
+          "posterior_entropy": -1.601713251907458e-15,
+          "best_expr": "1.0*theta_0*v**2/(sqrt(1.0 - 1.0*v**2)*(sqrt(1.0 - 1.0*v**2) + 1.0))",
+          "best_weight": 1.0
+        },
+        "identifiability_report": {
+          "is_identifiable": true,
+          "failure_mode": null,
+          "snr": 15.12260076028145,
+          "weight_ratio": Infinity,
+          "relative_magnitude": 0.04279907538927197,
+          "summary": "Correction is identifiable: SNR=15.12, weight_ratio=inf, relative_magnitude=4.28e-02",
+          "parameter_uncertainties": null,
+          "degenerate_parameter_pairs": null
+        },
+        "best_arc_reverified": true,
+        "n_rejected_at_arc_reverify": 0,
+        "used_extreme_scale_restart": false
+      }
+    },
+    {
+      "scenario_name": "Time Dilation",
+      "check_name": "ablation_control",
+      "passed": true,
+      "detail": "excluded=D_lor only (4 primitives still available, matches original intent), ablated_nmse=0.01920 (BIC=-1963.87), TRULY-isolated positive_control_nmse=0.00053 (BIC=-3761.41), bic_diff=1797.54",
+      "search_space_size": 22,
+      "best_expr": "1.0*theta_6*v**2/(1.0 - 1.0*v**2) + theta_7*log(1.0*v**2 + 1.0)",
+      "best_nmse_residual": 0.01920482973231891,
+      "raw_result": null
+    },
+    {
+      "scenario_name": "Time Dilation",
+      "check_name": "determinism_check",
+      "passed": true,
+      "detail": "3 runs produced: [('1.0*theta_0*v**2/(sqrt(1.0 - 1.0*v**2)*(sqrt(1.0 - 1.0*v**2) + 1.0))', 0.0005339333998419459), ('1.0*theta_0*v**2/(sqrt(1.0 - 1.0*v**2)*(sqrt(1.0 - 1.0*v**2) + 1.0))', 0.0005339333998419459), ('1.0*theta_0*v**2/(sqrt(1.0 - 1.0*v**2)*(sqrt(1.0 - 1.0*v**2) + 1.0))', 0.0005339333998419459)]",
+      "search_space_size": 35,
+      "best_expr": null,
+      "best_nmse_residual": null,
+      "raw_result": null
+    }
+  ],
+  "Screened Coulomb": [
+    {
+      "scenario_name": "Screened Coulomb",
+      "check_name": "budget_disclosure",
+      "passed": true,
+      "detail": "search_space_size=35, primitives=['D_lor', 'D_rat', 'D_exp', 'D_log', 'D_sqrt_inv'], budget={'max_depth': 3, 'max_tokens': 25, 'max_primitives_used': 2}",
+      "search_space_size": 35,
+      "best_expr": null,
+      "best_nmse_residual": null,
+      "raw_result": null
+    },
+    {
+      "scenario_name": "Screened Coulomb",
+      "check_name": "positive_control",
+      "passed": true,
+      "detail": "nmse_residual=0.000277215198566382, symbolic_exact_match=False, TRULY isolated to 'D_exp' (4 other primitives excluded, search_space_size=1)",
+      "search_space_size": 1,
+      "best_expr": "theta_0*(-1.0 + exp(-r/theta_1))",
+      "best_nmse_residual": 0.000277215198566382,
+      "raw_result": {
+        "best_expr": "theta_0*(-1.0 + exp(-r/theta_1))",
+        "best_nmse_residual": 0.000277215198566382,
+        "best_nmse_full": 4.8636929937240995e-05,
+        "best_theta": {
+          "theta_0": 0.9987182098492946,
+          "theta_1": 1.4933229505328478
+        },
+        "history": [
+          {
+            "iteration": 0,
+            "n_proposed": 1,
+            "n_survived_stage1": 1,
+            "n_optimized_stage2": 1,
+            "best_expr": "theta_0*(-1.0 + exp(-r/theta_1))",
+            "best_nmse_residual": 0.000277215198566382,
+            "best_nmse_full": 4.8636929937240995e-05,
+            "top_5": [
+              [
+                "theta_0*(-1.0 + exp(-r/theta_1))",
+                0.000277215198566382
+              ]
+            ],
+            "time_seconds": 0.5210659503936768
+          }
+        ],
+        "total_candidates_proposed": 1,
+        "total_candidates_survived_stage1": 1,
+        "total_time_seconds": 0.52911376953125,
+        "converged": false,
+        "evaluation": {
+          "nmse_residual": 0.000277215198566382,
+          "nmse_full": 4.8636929937240995e-05,
+          "true_class": "exponential",
+          "discovered_class": "exponential",
+          "class_match": true,
+          "ast_edit_distance": 2,
+          "parameter_error": {},
+          "bic": -1627.5466579206084,
+          "parameter_match_structural": false,
+          "parameter_count_mismatch": true
+        },
+        "gate_stats": {
+          "input_count": 1,
+          "parse_fail": 0,
+          "ast_reject": 0,
+          "dim_reject": 0,
+          "transcendental_reject": 0,
+          "arc_reject": 0,
+          "coarse_reject": 0,
+          "output_count": 1,
+          "deferred_arc": 0,
+          "arc_relaxed_dim": 1,
+          "llm_input": 0,
+          "llm_output": 0,
+          "grammar_input": 0,
+          "grammar_output": 0,
+          "mock_input": 0,
+          "mock_output": 0
+        },
+        "total_candidates_optimized": 1,
+        "bayesian_output": {
+          "candidates": [
+            [
+              "theta_0*(-1.0 + exp(-r/theta_1))",
+              -1627.5466579206084
+            ]
+          ],
+          "posterior_weights": [
+            1.0
+          ],
+          "correction_class_probs": {
+            "exponential": 1.0
+          },
+          "is_ambiguous": false,
+          "evidence_label": "decisive",
+          "posterior_entropy": -1.601713251907458e-15,
+          "best_expr": "theta_0*(-1.0 + exp(-r/theta_1))",
+          "best_weight": 1.0
+        },
+        "identifiability_report": {
+          "is_identifiable": true,
+          "failure_mode": null,
+          "snr": 22.489364795669168,
+          "weight_ratio": Infinity,
+          "relative_magnitude": 16.673350788695025,
+          "summary": "Correction is identifiable: SNR=22.49, weight_ratio=inf, relative_magnitude=1.67e+01",
+          "parameter_uncertainties": null,
+          "degenerate_parameter_pairs": null
+        },
+        "best_arc_reverified": true,
+        "n_rejected_at_arc_reverify": 0,
+        "used_extreme_scale_restart": false
+      }
+    },
+    {
+      "scenario_name": "Screened Coulomb",
+      "check_name": "ablation_control",
+      "passed": true,
+      "detail": "excluded=D_exp only (4 primitives still available, matches original intent), ablated_nmse=0.00031 (BIC=-4023.29), TRULY-isolated positive_control_nmse=0.00028 (BIC=-4082.93), bic_diff=59.64",
+      "search_space_size": 22,
+      "best_expr": "theta_38*(-1.0 + 1.0/sqrt(r/theta_1 + 1.0))*(theta_39*log(r/theta_1 + 1.0) + 1.0)",
+      "best_nmse_residual": 0.00030847543256202554,
+      "raw_result": null
+    },
+    {
+      "scenario_name": "Screened Coulomb",
+      "check_name": "determinism_check",
+      "passed": true,
+      "detail": "3 runs produced: [('theta_2*(-1.0 + exp(-r/theta_1))', 0.00027721519777636005), ('theta_2*(-1.0 + exp(-r/theta_1))', 0.00027721519777636005), ('theta_2*(-1.0 + exp(-r/theta_1))', 0.00027721519777636005)]",
+      "search_space_size": 35,
+      "best_expr": null,
+      "best_nmse_residual": null,
+      "raw_result": null
+    }
+  ],
+  "Entropy Expansion": [
+    {
+      "scenario_name": "Entropy Expansion",
+      "check_name": "budget_disclosure",
+      "passed": true,
+      "detail": "search_space_size=35, primitives=['D_lor', 'D_rat', 'D_exp', 'D_log', 'D_sqrt_inv'], budget={'max_depth': 3, 'max_tokens': 25, 'max_primitives_used': 2}",
+      "search_space_size": 35,
+      "best_expr": null,
+      "best_nmse_residual": null,
+      "raw_result": null
+    },
+    {
+      "scenario_name": "Entropy Expansion",
+      "check_name": "positive_control",
+      "passed": true,
+      "detail": "nmse_residual=0.0033941068816947086, symbolic_exact_match=False, TRULY isolated to 'D_log' (4 other primitives excluded, search_space_size=1)",
+      "search_space_size": 1,
+      "best_expr": "theta_0*log(1.0 + dV/V_i)",
+      "best_nmse_residual": 0.0033941068816947086,
+      "raw_result": {
+        "best_expr": "theta_0*log(1.0 + dV/V_i)",
+        "best_nmse_residual": 0.0033941068816947086,
+        "best_nmse_full": 0.0033941068816947056,
+        "best_theta": {
+          "theta_0": 0.5540500519503214
+        },
+        "history": [
+          {
+            "iteration": 0,
+            "n_proposed": 1,
+            "n_survived_stage1": 1,
+            "n_optimized_stage2": 1,
+            "best_expr": "theta_0*log(1.0 + dV/V_i)",
+            "best_nmse_residual": 0.0033941068816947086,
+            "best_nmse_full": 0.0033941068816947056,
+            "top_5": [
+              [
+                "theta_0*log(1.0 + dV/V_i)",
+                0.0033941068816947086
+              ]
+            ],
+            "time_seconds": 0.38079047203063965
+          }
+        ],
+        "total_candidates_proposed": 1,
+        "total_candidates_survived_stage1": 1,
+        "total_time_seconds": 0.3887934684753418,
+        "converged": false,
+        "evaluation": {
+          "nmse_residual": 0.0033941068816947086,
+          "nmse_full": 0.0033941068816947056,
+          "true_class": "logarithmic",
+          "discovered_class": "logarithmic",
+          "class_match": true,
+          "ast_edit_distance": 4,
+          "parameter_error": {},
+          "bic": -1131.844606893529,
+          "parameter_match_structural": false,
+          "parameter_count_mismatch": true
+        },
+        "gate_stats": {
+          "input_count": 1,
+          "parse_fail": 0,
+          "ast_reject": 0,
+          "dim_reject": 0,
+          "transcendental_reject": 0,
+          "arc_reject": 0,
+          "coarse_reject": 0,
+          "output_count": 1,
+          "deferred_arc": 0,
+          "arc_relaxed_dim": 0,
+          "llm_input": 0,
+          "llm_output": 0,
+          "grammar_input": 0,
+          "grammar_output": 0,
+          "mock_input": 0,
+          "mock_output": 0
+        },
+        "total_candidates_optimized": 1,
+        "bayesian_output": {
+          "candidates": [
+            [
+              "theta_0*log(1.0 + dV/V_i)",
+              -1131.844606893529
+            ]
+          ],
+          "posterior_weights": [
+            1.0
+          ],
+          "correction_class_probs": {
+            "logarithmic": 1.0
+          },
+          "is_ambiguous": false,
+          "evidence_label": "decisive",
+          "posterior_entropy": -1.601713251907458e-15,
+          "best_expr": "theta_0*log(1.0 + dV/V_i)",
+          "best_weight": 1.0
+        },
+        "identifiability_report": {
+          "is_identifiable": true,
+          "failure_mode": null,
+          "snr": 6.666666666666582,
+          "weight_ratio": Infinity,
+          "relative_magnitude": 0.14745217221535384,
+          "summary": "Correction is identifiable: SNR=6.67, weight_ratio=inf, relative_magnitude=1.47e-01",
+          "parameter_uncertainties": null,
+          "degenerate_parameter_pairs": null
+        },
+        "best_arc_reverified": true,
+        "n_rejected_at_arc_reverify": 0,
+        "used_extreme_scale_restart": false
+      }
+    },
+    {
+      "scenario_name": "Entropy Expansion",
+      "check_name": "ablation_control",
+      "passed": true,
+      "detail": "excluded=D_log only (4 primitives still available, matches original intent), ablated_nmse=0.19203 (BIC=-812.63), TRULY-isolated positive_control_nmse=0.00339 (BIC=-2836.64), bic_diff=2024.01",
+      "search_space_size": 22,
+      "best_expr": "theta_38*(-1.0 + 1.0/sqrt(1.0 + dV/V_i))*(theta_39*(-1.0 + exp(-dV/V_i)) + 1.0)",
+      "best_nmse_residual": 0.1920264010980031,
+      "raw_result": null
+    },
+    {
+      "scenario_name": "Entropy Expansion",
+      "check_name": "determinism_check",
+      "passed": true,
+      "detail": "3 runs produced: [('theta_3*log(1.0 + dV/V_i)', 0.0033941068816947086), ('theta_3*log(1.0 + dV/V_i)', 0.0033941068816947086), ('theta_3*log(1.0 + dV/V_i)', 0.0033941068816947086)]",
+      "search_space_size": 35,
+      "best_expr": null,
+      "best_nmse_residual": null,
+      "raw_result": null
+    }
+  ]
+}

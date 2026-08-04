@@ -1,8 +1,11 @@
 import sympy as sp
 import numpy as np
+import logging
 from typing import Dict, Tuple
 
 from adcd.constants import DEFAULT_CONSTANTS  # noqa: F401  (re-exported for backwards compat)
+
+logger = logging.getLogger(__name__)
 
 class CoarseEvaluator:
     """
@@ -59,7 +62,7 @@ class CoarseEvaluator:
                 has_params = True
             else:
                 # Unknown variable/constant in expression -> hard failure
-                print(f"[CoarseEvaluator] Unknown variable: {name}")
+                logger.debug(f"[CoarseEvaluator] Unknown variable: {name}")
                 return float('inf'), float('inf')
 
         try:
@@ -75,7 +78,7 @@ class CoarseEvaluator:
 
             # Clean check for invalid numerical outputs (inf, NaN, complex numbers)
             if np.any(np.isinf(y_pred)) or np.any(np.isnan(y_pred)) or np.iscomplexobj(y_pred):
-                print(f"[CoarseEvaluator] {expr} -> y_pred has inf/nan. max={np.max(y_pred) if not np.any(np.isnan(y_pred)) else 'NaN'}")
+                logger.debug(f"[CoarseEvaluator] {expr} -> y_pred has inf/nan. max={np.max(y_pred) if not np.any(np.isnan(y_pred)) else 'NaN'}")
                 return float('inf'), float('inf')
 
             # Scale prediction to match observed target scale (1D OLS)
@@ -86,18 +89,18 @@ class CoarseEvaluator:
                         optimal_scale = float(np.dot(y_pred, self.y_obs)) / denom
                         y_pred = optimal_scale * y_pred
                 except Exception as e:
-                    print(f"[CoarseEvaluator] scaling error: {e}")
+                    logger.debug(f"[CoarseEvaluator] scaling error: {e}")
                     pass
 
             # Calculate MSE and scale-invariant NMSE
             mse = float(np.mean((y_pred - self.y_obs) ** 2))
             if np.isinf(mse):
-                print(f"[CoarseEvaluator] MSE is inf! y_pred max={np.max(y_pred)}")
+                logger.debug(f"[CoarseEvaluator] MSE is inf! y_pred max={np.max(y_pred)}")
             nmse = mse / self.y_var
             
             return mse, nmse
 
         except Exception as e:
             # Catch division by zero, domain errors, overflow, etc.
-            print(f"[CoarseEvaluator] Exception for {expr}: {e}")
+            logger.debug(f"[CoarseEvaluator] Exception for {expr}: {e}")
             return float('inf'), float('inf')
