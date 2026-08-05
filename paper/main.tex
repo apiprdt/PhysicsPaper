@@ -680,6 +680,36 @@ already known from physics literature.
 The framework recovers these forms from data.
 We do not claim to have discovered previously unknown corrections.
 
+\subsection{Future Work}
+
+\textbf{Simplified input interface.}
+The current interface requires users to specify dimensionless ratio candidates
+explicitly (e.g.\ \texttt{ratio\_symbol="r/theta\_1"}), which demands
+familiarity with the asymptotic grammar and is a known source of configuration
+error.
+A planned follow-up engineering contribution is a rule-based wrapper
+(\texttt{adcd.quickfit()}) that automatically enumerates dimensionless ratio
+candidates from user-supplied variable definitions using dimensional analysis
+(Buckingham~$\pi$ theorem).
+This wrapper is purely deterministic -- no learned components, no external
+calls -- while leaving the core four-step validation protocol entirely
+unchanged.
+It would be validated independently against held-out test cases before release,
+and would not alter any claim made in this paper.
+
+\textbf{Primitive dictionary expansion.}
+Additional primitives (e.g.\ polynomial, oscillatory, or logarithmic
+corrections) can be incorporated once held-out validation confirms asymptotic
+regularity and classical-limit identifiability, following the same protocol
+applied to the five current primitives.
+
+\textbf{Real observational data.}
+Extending validation to real experimental datasets requires handling correlated
+noise, systematic offsets, and the possibility that the true correction lies
+outside the current dictionary.
+Identifiability analysis must be re-run per dataset class before any structural
+claim is made.
+
 % ---------------------------------------------------------------
 \section{Conclusion}
 % ---------------------------------------------------------------
