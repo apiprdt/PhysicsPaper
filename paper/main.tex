@@ -1,28 +1,27 @@
-\documentclass[twocolumn,10pt]{article}
+\documentclass{article}
+
+\usepackage[dblblindworkshop]{neurips_2026}
+\workshoptitle{AI4Science Workshop (NeurIPS 2026)}
 
 % ---------------------------------------------------------------
 % PACKAGES
 % ---------------------------------------------------------------
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage{lmodern}
-\usepackage{microtype}
-\usepackage[margin=1.8cm,top=2cm,bottom=2cm]{geometry}
-\usepackage{amsmath,amssymb,amsfonts}
-\usepackage{booktabs}
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{amsmath,amssymb}
 \usepackage{graphicx}
-\usepackage{xcolor}
-\usepackage{hyperref}
 \usepackage{cleveref}
 \usepackage{caption}
 \usepackage{subcaption}
-% siunitx not installed locally; SI units written in plain math mode
 \usepackage{listings}
 \usepackage{enumitem}
-\usepackage{authblk}
-\usepackage{abstract}
-\usepackage{setspace}
-\usepackage[numbers,sort&compress]{natbib}
 
 \hypersetup{
     colorlinks=true,
@@ -32,29 +31,36 @@
 }
 
 \captionsetup{font=small, labelfont=bf, skip=4pt}
-\setlength{\columnsep}{0.6cm}
 
 % ---------------------------------------------------------------
 % METADATA
 % ---------------------------------------------------------------
-\title{\textbf{Asymptotic Dictionary Correction Discovery:\\
-A Deterministic, Identifiability-Aware Framework for Recovering\\
-Physical Corrections from Observational Data}}
+\title{Asymptotic Dictionary Correction Discovery:\\ A Deterministic, Identifiability-Aware Framework for Recovering Physical Corrections from Observational Data}
 
-\author[1]{Anonymous Author(s)}
-\affil[1]{Anonymous Institution \\ \texttt{anonymous@example.com}}
-
-\date{August 2026 \quad|\quad Preprint}
+\author{%
+  Anonymous Author(s) \\
+  Affiliation \\
+  Address \\
+  \texttt{email} \\
+}
 
 % ---------------------------------------------------------------
 % DOCUMENT
 % ---------------------------------------------------------------
+
+% For the paper checklist
+\newcommand{\answerYes}[1][]{\textcolor{blue}{[Yes]#1}}
+\newcommand{\answerNo}[1][]{\textcolor{orange}{[No]#1}}
+\newcommand{\answerNA}[1][]{\textcolor{gray}{[N/A]#1}}
+\newcommand{\answerTODO}[1][]{\textcolor{red}{\bf [TODO]}}
+\newcommand{\justificationTODO}[1][]{\textcolor{red}{\bf [TODO]}}
+
 \begin{document}
 
-\twocolumn[
-  \maketitle
-  \begin{onecolabstract}
-    \noindent
+
+\maketitle
+
+\begin{abstract}
     Every major transition in theoretical physics follows the same pattern:
     a known classical law is extended by a correction term that vanishes at the
     classical limit.
@@ -89,9 +95,7 @@ Physical Corrections from Observational Data}}
     \noindent\textbf{Keywords:} symbolic regression; physical laws;
     correction discovery; dimensional analysis; identifiability;
     Bayesian model selection
-  \end{onecolabstract}
-  \vspace{1em}
-]
+\end{abstract}
 
 % ---------------------------------------------------------------
 \section{Introduction}
@@ -773,5 +777,8 @@ No proprietary or restricted datasets are used.
 
 \bibliographystyle{unsrtnat}
 \bibliography{references}
+
+\newpage
+\input{checklist.tex}
 
 \end{document}
