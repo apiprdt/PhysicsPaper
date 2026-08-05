@@ -64,6 +64,7 @@ from __future__ import annotations
 import logging
 import warnings
 from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -190,7 +191,9 @@ def _generate_ratio_symbols(
 # MULTI-RATIO PROPOSER — ONE pipeline, ALL candidates, BIC-correct
 # =====================================================================
 
-class MultiRatioProposer:
+from adcd.llm_proposer import BaseProposer
+
+class MultiRatioProposer(BaseProposer):
     """
     A drop-in proposer that generates candidates for ALL ratio symbols at
     once, then feeds them into a SINGLE pipeline run.
@@ -324,70 +327,43 @@ def _evaluate_formula(
 # LIMIT VARIABLE INFERENCE — confidence-gated, not silent
 # =====================================================================
 
-def _infer_limit_variable(
-    X: Dict[str, np.ndarray],
-    variables: Dict[str, str],
-    verbose: bool = True,
-) -> Tuple[str, float]:
+@dataclass
+class _DetectedLimitVar:
+    name: str
+    confidence: float
+    method: str
+
+def _infer_limit_variable(X: Dict[str, np.ndarray]) -> _DetectedLimitVar:
     """
-    Infer the most likely classical limit variable.
+    Heuristic guess: variable with the highest coefficient of variation
+    (std/mean) is most likely to span a wide relative range -- and
+    therefore most likely to contain the classical-limit information.
 
-    Heuristic: the variable with highest coefficient of variation (std/mean)
-    is most likely to span regimes from classical to relativistic/quantum.
-    Confidence is defined as how much it exceeds the second-best candidate.
-
-    IMPORTANT: this heuristic has no physical grounding — it is a statistical
-    proxy. Confidence < 0.3 triggers a mandatory warning. Users should always
-    verify by calling adcd.fit() directly with limit_variable= if they are
-    unsure.
+    HONESTY NOTE: this has no principled connection to the actual
+    physics. It is a plausible weak proxy, nothing more. Confidence
+    is deliberately capped at 0.7 regardless of how sharp the
+    statistical signal looks, because the heuristic itself does not
+    merit high confidence.
     """
-    scores: Dict[str, float] = {}
-    for col, arr in X.items():
-        if len(arr) > 1:
-            mean_abs = np.mean(np.abs(arr))
-            if mean_abs > 1e-15:
-                scores[col] = float(np.std(arr) / mean_abs)
-            else:
-                scores[col] = 0.0
+    cvs = {
+        col: float(np.std(arr) / (np.mean(np.abs(arr)) + 1e-30))
+        for col, arr in X.items()
+        if len(arr) > 1
+    }
+    if not cvs:
+        first = next(iter(X))
+        return _DetectedLimitVar(first, 0.0, "fallback_single_variable")
 
-    if not scores:
-        first = list(X.keys())[0]
-        return first, 0.0
+    ranked = sorted(cvs.items(), key=lambda kv: kv[1], reverse=True)
+    best, best_cv = ranked[0]
 
-    sorted_vars = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-    best_var, best_score = sorted_vars[0]
-
-    # Confidence: gap between best and second best, normalised to [0, 1]
-    if len(sorted_vars) > 1:
-        second_score = sorted_vars[1][1]
-        total = best_score + second_score
-        confidence = float((best_score - second_score) / total) if total > 1e-15 else 0.0
+    if len(ranked) >= 2:
+        sep = (best_cv - ranked[1][1]) / (best_cv + 1e-12)
+        conf = min(0.70, 0.40 + 0.30 * sep)
     else:
-        confidence = 1.0  # only one variable — trivially "best"
+        conf = 0.40
 
-    if verbose:
-        print(
-            f"[quickfit] Inferred limit variable: '{best_var}' "
-            f"(CV={best_score:.3f}, confidence={confidence:.2f})"
-        )
-        if confidence < 0.3:
-            warnings.warn(
-                f"[quickfit] limit_variable confidence is low ({confidence:.2f}). "
-                f"The variables {[v for v, _ in sorted_vars[:3]]} have similar "
-                "coefficient of variation. This heuristic has no physical basis — "
-                "the ARC gate will silently check the wrong classical limit if this "
-                "is wrong. Specify limit_variable='<name>' in quickfit() or use "
-                "adcd.fit() directly.",
-                UserWarning,
-                stacklevel=3,
-            )
-        else:
-            print(
-                f"[quickfit] If '{best_var}' is not the correct limit variable, "
-                f"pass limit_variable='<name>' explicitly."
-            )
-
-    return best_var, confidence
+    return _DetectedLimitVar(best, conf, "coefficient_of_variation")
 
 
 # =====================================================================
@@ -405,7 +381,8 @@ def quickfit(
     max_ratios: int = 4,
     seed: int = 42,
     noise_level: float = 0.0,
-    max_iterations: int = 1,
+    max_iterations: int = 3,
+
     verbose: bool = True,
 ):
     """
@@ -593,11 +570,29 @@ def quickfit(
     # 5. Infer limit variable (confidence-gated, warns on low confidence)
     # ------------------------------------------------------------------
     if limit_variable is not None:
-        lv = limit_variable
         if verbose:
-            print(f"[quickfit] Limit variable: '{lv}' (user-specified)")
+            print(f"[quickfit] Classical limit variable: '{limit_variable}' (user-specified)")
+        lv = limit_variable
     else:
-        lv, lv_confidence = _infer_limit_variable(X, variables, verbose=verbose)
+        detected = _infer_limit_variable(X)
+        lv = detected.name
+        if verbose:
+            print(
+                f"[quickfit] Guessed classical limit variable: '{lv}' "
+                f"(confidence={detected.confidence:.2f}, "
+                f"method={detected.method})"
+            )
+        warnings.warn(
+            f"[quickfit] `limit_variable` was not specified -- guessed as "
+            f"'{lv}' with confidence={detected.confidence:.2f}. "
+            f"This heuristic has NO guaranteed connection to the actual "
+            f"physics of which variable governs the classical limit. A wrong "
+            f"guess silently misconfigures the ARC gate with no error message. "
+            f"For any result you plan to publish or rely on, call quickfit() "
+            f"again with limit_variable='{lv}' (or the correct variable) "
+            f"explicitly after inspecting this result.",
+            UserWarning, stacklevel=2,
+        )
 
     # ------------------------------------------------------------------
     # 6. Run the core engine ONCE with MultiRatioProposer
