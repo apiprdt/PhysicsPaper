@@ -105,10 +105,11 @@ def main():
         ax1.text(rect.get_x() + rect.get_width() / 2, y_pos, f'{int(height)}',
                  ha='center', va='center', fontsize=8.5, color='#0f172a', fontweight='bold')
 
-    # Y-axis bounds & legend (placed at lower right where there is empty space below y=-500)
+    # Y-axis bounds & legend (expand top to y=350 so legend sits cleanly ABOVE y=0 without touching any bar)
     min_bic = min(min(bics_chosen), min(bics_ablated))
-    ax1.set_ylim(min_bic * 1.15, 0)
-    ax1.legend(loc='lower right', frameon=True, facecolor='white', framealpha=0.95, edgecolor='#cbd5e1', fontsize=9)
+    ax1.set_ylim(min_bic * 1.15, 350)
+    ax1.axhline(y=0, color='black', linewidth=0.8, zorder=2)  # Zero line
+    ax1.legend(loc='upper right', frameon=True, facecolor='white', framealpha=0.95, edgecolor='#cbd5e1', fontsize=8.5)
     ax1.grid(axis='y', linestyle='--', alpha=0.3)
 
     # -------------------------------------------------------------------------
