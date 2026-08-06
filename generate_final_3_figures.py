@@ -72,40 +72,83 @@ def main():
         chosen_exprs[name] = pareto[idx]["expr_str"]
 
     # =========================================================================
-    # FIGURE 2: BIC Comparison
+    # FIGURE 2: BIC Comparison & Statistical Evidence (Clean & Publication-Ready)
     # =========================================================================
-    fig2, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+    fig2, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
     
-    x = np.arange(len(scenario_names))
-    width = 0.35
+    x_labels = ["Time Dilation\n(Einstein 0.3c)", "Screened Coulomb\n(Debye 1920s)", "Entropy Expansion\n(Carnot 1850s)"]
+    x = np.arange(len(x_labels))
+    width = 0.32
+
+    # -------------------------------------------------------------------------
+    # Subplot (a): Absolute BICs
+    # -------------------------------------------------------------------------
+    rects1 = ax1.bar(x - width/2, bics_chosen, width, label='Chosen (Pareto)', color='#1e3a8a', edgecolor='black', linewidth=0.5)
+    rects2 = ax1.bar(x + width/2, bics_ablated, width, label='Best Alternative (Ablated)', color='#94a3b8', edgecolor='black', linewidth=0.5)
     
-    # Left subplot: Absolute BICs
-    ax1.bar(x - width/2, bics_chosen, width, label='Chosen (Pareto)', color=ADCD_COLOR)
-    ax1.bar(x + width/2, bics_ablated, width, label='Best Alternative (Ablated)', color=GRAY_ABLAT)
-    
-    ax1.set_ylabel('BIC (Lower is better)')
-    ax1.set_title('Bayesian Information Criterion')
+    ax1.set_ylabel('BIC (Lower is better)', fontsize=11, labelpad=8)
+    ax1.set_title('(a) Absolute BIC Model Selection', fontsize=12, fontweight='bold', pad=12)
     ax1.set_xticks(x)
-    ax1.set_xticklabels(scenario_names)
-    ax1.legend()
+    ax1.set_xticklabels(x_labels, fontsize=9.5)
     
-    # Right subplot: Delta BIC
+    # Value annotations placed inside near the bottom of each bar
+    for rect in rects1:
+        height = rect.get_height()
+        # For long negative bars, place near the bottom inside the bar
+        y_pos = height * 0.85 if abs(height) > 500 else height * 0.65
+        ax1.text(rect.get_x() + rect.get_width() / 2, y_pos, f'{int(height)}',
+                 ha='center', va='center', fontsize=8.5, color='white', fontweight='bold')
+
+    for rect in rects2:
+        height = rect.get_height()
+        y_pos = height * 0.85 if abs(height) > 500 else height * 0.65
+        ax1.text(rect.get_x() + rect.get_width() / 2, y_pos, f'{int(height)}',
+                 ha='center', va='center', fontsize=8.5, color='#0f172a', fontweight='bold')
+
+    # Y-axis bounds & legend (placed at lower right where there is empty space below y=-500)
+    min_bic = min(min(bics_chosen), min(bics_ablated))
+    ax1.set_ylim(min_bic * 1.15, 0)
+    ax1.legend(loc='lower right', frameon=True, facecolor='white', framealpha=0.95, edgecolor='#cbd5e1', fontsize=9)
+    ax1.grid(axis='y', linestyle='--', alpha=0.3)
+
+    # -------------------------------------------------------------------------
+    # Subplot (b): Evidence Strength (Delta BIC - Log Scale for Clarity)
+    # -------------------------------------------------------------------------
     delta_bics = np.array(bics_ablated) - np.array(bics_chosen)
-    ax2.bar(x, delta_bics, width=0.5, color=ADCD_COLOR)
     
-    # Kass-Raftery threshold
-    ax2.axhline(y=10, color=RED_THRESH, linestyle='--', label='Kass-Raftery "Very Strong" (>10)')
+    # Custom bar colors based on threshold
+    bar_colors = ['#d97706' if v < 10 else '#1e3a8a' for v in delta_bics]
     
-    ax2.set_ylabel(r'$\Delta$ BIC (Ablated - Chosen)')
-    ax2.set_title('Evidence for Physical Structure')
+    bars2 = ax2.bar(x, delta_bics, width=0.45, color=bar_colors, edgecolor='black', linewidth=0.5)
+    
+    ax2.set_yscale('log')
+    ax2.set_ylim(0.8, 6000)  # Extended y-max to 6000 for ample headroom
+    
+    # Kass-Raftery threshold line (y=10)
+    ax2.axhline(y=10, color=RED_THRESH, linestyle='--', linewidth=1.5, zorder=3,
+                label=r'Kass-Raftery "Very Strong" Threshold ($\Delta\text{BIC} = 10$)')
+    
+    # Shaded region below threshold
+    ax2.axhspan(0.8, 10, color='#fef3c7', alpha=0.45, zorder=0, label='Low-Signal Region (Pareto Prior Required)')
+
+    ax2.set_ylabel(r'$\Delta$ BIC (Ablated - Chosen)', fontsize=11, labelpad=8)
+    ax2.set_title(r'(b) Statistical Evidence Strength ($\Delta\text{BIC}$)', fontsize=12, fontweight='bold', pad=12)
     ax2.set_xticks(x)
-    ax2.set_xticklabels(scenario_names)
-    
+    ax2.set_xticklabels(x_labels, fontsize=9.5)
+
+    # Value callouts on top of bars
     for i, v in enumerate(delta_bics):
-        ax2.text(i, v + (v * 0.05), f'{v:.1f}', ha='center', va='bottom', fontweight='bold')
-    
-    ax2.legend()
-    plt.tight_layout()
+        ax2.annotate(f'$\\Delta\\text{{BIC}} = {v:.1f}$',
+                    xy=(i, v),
+                    xytext=(0, 6),
+                    textcoords="offset points",
+                    ha='center', va='bottom', fontsize=8.5, fontweight='bold',
+                    bbox=dict(boxstyle="round,pad=0.25", facecolor="white", edgecolor="#cbd5e1", alpha=0.95))
+
+    ax2.legend(loc='upper left', frameon=True, facecolor='white', framealpha=0.95, edgecolor='#cbd5e1', fontsize=8.5)
+    ax2.grid(axis='y', which='both', linestyle='--', alpha=0.3)
+
+    plt.subplots_adjust(wspace=0.26, bottom=0.18, top=0.88, left=0.08, right=0.96)
     os.makedirs("paper", exist_ok=True)
     fig2.savefig('paper/fig2_bic.pdf')
     print("Saved paper/fig2_bic.pdf")
