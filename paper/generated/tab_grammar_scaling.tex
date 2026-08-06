@@ -1,0 +1,15 @@
+\begin{table}[H]
+\centering\footnotesize
+\caption{Gate Filtering Efficiency vs.\ Candidate Pool Size (Grammar Scaling Experiment). Candidate pool size is controlled by \texttt{n\_oversample} in \texttt{CorrectionMockProposer}. Survival rate = candidates passing Stage~1 physics gates (AST + dimensional + ARC) divided by total proposed. Stable or declining survival rate as pool size grows indicates gates filter effectively at scale.}
+\label{tab:grammar_scaling}
+\begin{tabular}{r r r c c}
+\toprule
+\textbf{Pool Size} & \textbf{Proposed} & \textbf{Stage 1 Pass} & \textbf{Survival Rate} & \textbf{Accuracy (9 scenarios)} \\
+\midrule
+34 & 1125 & 241 & 21.4\% & 77.8\% \\
+100 & 1125 & 213 & 18.9\% & 77.8\% \\
+500 & 1125 & 223 & 19.8\% & 77.8\% \\
+2000 & 1125 & 184 & 16.4\% & 77.8\% \\
+\bottomrule
+\end{tabular}
+\end{table}

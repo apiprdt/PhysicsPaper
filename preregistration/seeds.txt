@@ -1,0 +1,8 @@
+# ADCD Pre-Registration Random Seeds Lock
+# Timestamp: 2026-07-31
+
+SEED_1=0
+SEED_2=42
+SEED_3=123
+SEED_4=456
+SEED_5=789

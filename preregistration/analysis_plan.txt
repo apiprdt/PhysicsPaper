@@ -1,0 +1,10 @@
+# ADCD Pre-Registration Statistical Analysis Plan Lock
+# Timestamp: 2026-07-31
+
+Statistical Testing Pipeline:
+1. Primary Test: Wilcoxon signed-rank test (two-tailed, paired) comparing PVR and FPRR between filtered vs unfiltered arms.
+2. Significance Threshold: alpha = 0.05.
+3. Effect Size: Cohen's d (standardized mean difference) computed for all metric pairs.
+4. Multiple Testing Correction: Bonferroni correction applied across M1, M2, M3, M4 (alpha_adjusted = 0.05 / 4 = 0.0125).
+5. Confidence Intervals: 95% non-parametric bootstrap confidence intervals (n_bootstraps = 1000, seed = 42).
+6. Outlier Handling: No data points removed; all 450 benchmark runs included in final metrics.

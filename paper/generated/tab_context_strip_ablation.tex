@@ -1,0 +1,20 @@
+\begin{table}[H]
+\centering\footnotesize
+\caption{Context-Stripping Ablation at $\eta=5\%$ noise (Mock Proposer, Seed=42, 9 core synthetic scenarios). \textbf{Full Context}: original physical variable names and domain labels. \textbf{Partial Strip}: generic domain label only. \textbf{Full Strip}: variables renamed to \texttt{x1}, \texttt{x2}. Mock Proposer is a template bank that does not read prompt context; Full Context $\approx$ Partial Strip is an expected control negative. Full Strip tests whether variable renaming disrupts the pipeline.}
+\label{tab:context_strip_ablation}
+\begin{tabular}{l c c c}
+\toprule
+\textbf{Scenario} & \textbf{Full Context} & \textbf{Partial Strip} & \textbf{Full Strip} \\
+\midrule
+Anharmonic Spring & \texttt{polyno} (N) & \texttt{polyno} (N) & \texttt{polyno} (N) \\
+Mystery-A & \texttt{trigon} (Y) & \texttt{trigon} (Y) & \texttt{trigon} (Y) \\
+Mystery-B & \texttt{trigon} (Y) & \texttt{trigon} (Y) & \texttt{trigon} (Y) \\
+Mystery-C & \texttt{logari} (Y) & \texttt{logari} (Y) & \texttt{logari} (Y) \\
+Net Radiation & \texttt{power_} (Y) & \texttt{power_} (Y) & \texttt{power_} (Y) \\
+Nonlinear Drag & \texttt{polyno} (Y) & \texttt{polyno} (Y) & \texttt{polyno} (Y) \\
+Relativistic KE & \texttt{polyno} (Y) & \texttt{polyno} (Y) & \texttt{polyno} (Y) \\
+Screened Coulomb & \texttt{expone} (Y) & \texttt{expone} (Y) & \texttt{expone} (Y) \\
+Yukawa Gravity & \texttt{logari} (N) & \texttt{logari} (N) & \texttt{logari} (N) \\
+\bottomrule
+\end{tabular}
+\end{table}

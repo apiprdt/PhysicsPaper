@@ -1,0 +1,36 @@
+# ADCD Pre-Registration Benchmark Specifications Lock
+# Timestamp: 2026-07-31
+
+Level A: 20 Feynman Benchmark Equations (Ground Truth Known)
+1. I.6.2a: exp(-theta^2/2) / sqrt(2*pi)
+2. I.12.1: F = q * (E + v * B)
+3. I.15.3x: (x - v*t) / sqrt(1 - v^2/c^2)
+4. I.18.12: r * F * sin(theta)
+5. I.27.6: m * c^2 / sqrt(1 - v^2/c^2)
+6. I.30.5: sin(n * theta / 2)^2 / sin(theta / 2)^2
+7. I.32.17: (1/2) * epsilon_0 * E^2
+8. I.34.8: q * v * B / (2 * pi * r)
+9. I.39.1: (3/2) * k * T
+10. I.43.16: m * v_0^2 / (2 * k * T)
+11. I.48.2: E * cos(omega * t - k * x)
+12. II.6.15a: p * cos(theta) / (4 * pi * epsilon_0 * r^2)
+13. II.11.28: n_0 * exp(-q * V / (k * T))
+14. II.13.17: 1 / sqrt(1 - v^2/c^2)
+15. II.27.18: epsilon_0 * c * E^2
+16. III.4.32: 1 / (exp(hbar * omega / (k * T)) - 1)
+17. III.10.19: mu * B * z / hbar
+18. III.12.11: q * B / (2 * m)
+19. III.15.14: (hbar^2 / (2 * m)) * (pi / L)^2
+20. III.21.14: q * A / m
+
+Level B: 10 Correction-First Synthetic Scenarios (f0(x) + delta(x))
+1. CF_01: f0 = 1.0, delta = 0.5 * exp(-x1)
+2. CF_02: f0 = x1^2, delta = 0.2 * x1 * exp(-x1)
+3. CF_03: f0 = 1.0 / x1, delta = 0.1 * exp(-x1^2)
+4. CF_04: f0 = sqrt(x1), delta = 0.05 * log(1 + x1) / (1 + x1^2)
+5. CF_05: f0 = x1, delta = 0.3 * exp(-2 * x1)
+6. CF_06: f0 = 1.0, delta = 0.15 * (1 - exp(-x1)) / x1
+7. CF_07: f0 = x1^3, delta = 0.1 * x1^2 * exp(-x1)
+8. CF_08: f0 = 1.0 / (1 + x1), delta = 0.05 * exp(-x1)
+9. CF_09: f0 = sqrt(1 + x1^2), delta = 0.08 * exp(-x1) / (1 + x1)
+10. CF_10: f0 = log(x1), delta = 0.1 / (1 + x1^2)

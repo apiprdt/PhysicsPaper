@@ -1,0 +1,27 @@
+\begin{table}[H]
+\centering\footnotesize
+\caption{Held-Out Novel Hypothesis Benchmark — Class-Isolated Bank. For each scenario, all templates of the matching functional class are removed from the bank before evaluation, ruling out spurious class-matching from the template pool. Mock Proposer structural recovery drops to near-zero, confirming that the 80.4\% synthetic benchmark rate reflects gate-and-noise-robust \emph{selection}, not open-vocabulary discovery.}
+\label{tab:held_out_results}
+\begin{tabularx}{\textwidth}{l l c c c r}
+\toprule
+\textbf{Scenario} & \textbf{Excluded Class} & \textbf{Noise} & \textbf{Discovered} & \textbf{NMSE} & \textbf{Match?} \\
+\midrule
+Held-Out A (Rational-Cubic) & rational & 0\% & \texttt{polynomial} & 6.484e-04 & No \\
+Held-Out A (Rational-Cubic) & rational & 1\% & \texttt{polynomial} & 9.045e-03 & No \\
+Held-Out A (Rational-Cubic) & rational & 5\% & \texttt{exponential} & 1.637e-01 & No \\
+Held-Out A (Rational-Cubic) & rational & 10\% & \texttt{polynomial} & 4.259e-01 & No \\
+Held-Out B (Exp-Linear Product) & exponential & 0\% & \texttt{logarithmic} & 2.448e-06 & No \\
+Held-Out B (Exp-Linear Product) & exponential & 1\% & \texttt{logarithmic} & 1.176e-01 & No \\
+Held-Out B (Exp-Linear Product) & exponential & 5\% & \texttt{logarithmic} & 7.341e-01 & No \\
+Held-Out B (Exp-Linear Product) & exponential & 10\% & \texttt{polynomial} & 8.955e-01 & No \\
+Held-Out C (Tanh-Log Product) & logarithmic, trigonometric & 0\% & \texttt{exponential} & 4.639e-05 & No \\
+Held-Out C (Tanh-Log Product) & logarithmic, trigonometric & 1\% & \texttt{exponential} & 2.928e-01 & No \\
+Held-Out C (Tanh-Log Product) & logarithmic, trigonometric & 5\% & \texttt{exponential} & 8.789e-01 & No \\
+Held-Out C (Tanh-Log Product) & logarithmic, trigonometric & 10\% & \texttt{exponential} & 9.543e-01 & No \\
+Held-Out D (Airy-like Fractional) & exponential & 0\% & \texttt{trigonometric} & 6.895e-04 & No \\
+Held-Out D (Airy-like Fractional) & exponential & 1\% & \texttt{polynomial} & 5.951e-01 & No \\
+Held-Out D (Airy-like Fractional) & exponential & 5\% & \texttt{rational} & 5.076e-01 & No \\
+Held-Out D (Airy-like Fractional) & exponential & 10\% & \texttt{polynomial} & 9.814e-01 & No \\
+\bottomrule
+\end{tabularx}
+\end{table}
