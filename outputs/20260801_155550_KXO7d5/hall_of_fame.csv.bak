@@ -1,7 +1,0 @@
-Complexity,Loss,Equation
-1,2.3463588,"x2_displacement"
-3,2.071339,"0.48840767 / D_exp_raw_displacement"
-5,0.74072164,"(x2_displacement * x2_displacement) * 0.15154105"
-7,0.7394762,"x2_displacement * ((x2_displacement + -0.18995239) * 0.15570006)"
-9,0.73810613,"x2_displacement / (-0.6951868 - (-3.493238 / (x_displacement - 0.5269906)))"
-15,0.7376881,"(x2_displacement + x_displacement) * (((-0.06660775 / (D_rat_raw_displacement + (D_inv_raw_displacement / 1.4072144))) - -0.09287385) * x_displacement)"

@@ -1,8 +1,0 @@
-Complexity,Loss,Equation
-1,0.17137434,"0.5340287"
-3,0.00047939396,"1.0324519 / x1"
-5,0.00040851644,"(1.0495105 / x1) - 0.013977689"
-16,0.00040132337,"abs(sqrt(sqrt(sqrt(sqrt(exp(sqrt(x1 + abs(x1)) / exp(x1)))))) / x1)"
-20,0.00039547394,"abs(sqrt(sqrt(exp(sqrt(0.7731175 / exp(x1 + x1))) / sqrt(exp(0.37351072 / x1)))) / abs(x1))"
-25,0.00038951458,"sqrt(sqrt(exp(sqrt(((exp(sqrt(x1)) / -0.63237697) * -0.21900465) / exp(x1 + x1))) / sqrt(exp(0.37351072 / x1)))) / abs(x1)"
-28,0.00038391748,"sqrt(sqrt(sqrt(exp(((exp(x1) / -0.42009366) * -0.37824592) / exp(x1 + x1)) / sqrt(exp(abs(log(x1) / x1) * 0.34763423))))) / abs(x1)"
