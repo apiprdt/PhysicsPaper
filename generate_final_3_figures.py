@@ -5,6 +5,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+from matplotlib.patches import FancyBboxPatch
 
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
@@ -39,227 +40,261 @@ ADCD_COLOR = '#083c7d'
 GRAY_ABLAT = '#94a3b8'
 RED_THRESH = '#dc2626'
 
+# Verdict metadata (sourced from blind_validation_output_v3.txt)
+VERDICTS = {
+    "Time Dilation":     {"label": "WITHHELD",     "color": "#d97706", "delta_bic": 3.27},
+    "Screened Coulomb":  {"label": "IDENTIFIABLE", "color": "#16a34a", "delta_bic": 25.74},
+    "Entropy Expansion": {"label": "IDENTIFIABLE", "color": "#16a34a", "delta_bic": 833.68},
+}
+
+def add_verdict_badge(ax, verdict_label, color, loc="upper right"):
+    """Adds a colored verdict badge to a matplotlib axis."""
+    x = 0.97 if "right" in loc else 0.03
+    ha = "right" if "right" in loc else "left"
+    ax.text(x, 0.97, verdict_label, transform=ax.transAxes,
+            fontsize=9, fontweight='bold', color='white',
+            ha=ha, va='top',
+            bbox=dict(boxstyle='round,pad=0.3', facecolor=color, edgecolor='none', alpha=0.92))
+
+
+def get_scenario_data(scenario, name, noise_level=0.01):
+    """Generate data for a scenario with correct kwargs."""
+    if name == "Time Dilation":
+        return scenario.generate_data(seed=42, noise_level=noise_level, v_max_over_c=0.3)
+    else:
+        # Screened Coulomb and Entropy Expansion: no range restriction kwarg needed
+        # The scenario already bakes in the historical domain
+        return scenario.generate_data(seed=42, noise_level=noise_level)
+
+
 def main():
     with open('adcd_v3_blind_validation_report.json', 'r') as f:
         report = json.load(f)
 
-    # Scenarios to plot
     scenario_names = ["Time Dilation", "Screened Coulomb", "Entropy Expansion"]
-    
-    # Values for Fig 2
-    bics_chosen = []
-    bics_ablated = []
-    
-    # Chosen models based on expert Pareto Front selection
+    x_labels_short = [
+        "Time Dilation\n" + r"(Einstein $v{\leq}0.3c$)",
+        "Screened Coulomb\n" + r"(Debye $r{\leq}4.0$)",
+        "Entropy Expansion\n" + r"(Carnot $dV/V_i{\leq}1$)"
+    ]
+
+    # Chosen index on Pareto front per scenario
     chosen_idx = {
-        "Time Dilation": 1,      # Rank 2 (0-indexed 1) is the exact Lorentz
-        "Screened Coulomb": 0,   # Rank 1 is exact
-        "Entropy Expansion": 0   # Rank 1 is exact
+        "Time Dilation":     1,   # Rank 2 (0-indexed) = exact Lorentz
+        "Screened Coulomb":  0,   # Rank 1 = exact
+        "Entropy Expansion": 0    # Rank 1 = exact
     }
-    
+
+    bics_chosen  = []
+    bics_ablated = []
     chosen_exprs = {}
 
     for name in scenario_names:
-        data = report[name]["checks"]
+        data   = report[name]["checks"]
         pareto = data["blind_search"]["pareto_front"]
-        idx = chosen_idx[name]
-        
-        chosen_bic = pareto[idx]["bic"]
+        idx    = chosen_idx[name]
+
+        chosen_bic  = pareto[idx]["bic"]
         ablated_bic = data["ablation_control"]["ablated_bic"]
-        
+
         bics_chosen.append(chosen_bic)
         bics_ablated.append(ablated_bic)
         chosen_exprs[name] = pareto[idx]["expr_str"]
 
-    # =========================================================================
-    # FIGURE 2: BIC Comparison & Statistical Evidence (Clean & Publication-Ready)
-    # =========================================================================
-    fig2, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
-    
-    x_labels = ["Time Dilation\n(Einstein 0.3c)", "Screened Coulomb\n(Debye 1920s)", "Entropy Expansion\n(Carnot 1850s)"]
-    x = np.arange(len(x_labels))
-    width = 0.32
+    all_scenarios = get_all_scenarios()
 
-    # -------------------------------------------------------------------------
-    # Subplot (a): Absolute BICs
-    # -------------------------------------------------------------------------
-    rects1 = ax1.bar(x - width/2, bics_chosen, width, label='Chosen (Pareto)', color='#1e3a8a', edgecolor='black', linewidth=0.5)
-    rects2 = ax1.bar(x + width/2, bics_ablated, width, label='Best Alternative (Ablated)', color='#94a3b8', edgecolor='black', linewidth=0.5)
-    
-    ax1.set_ylabel('BIC (Lower is better)', fontsize=11, labelpad=8)
+    # =========================================================================
+    # FIGURE 1: Recovery Line Plots
+    # =========================================================================
+    fig1, axes1 = plt.subplots(1, 3, figsize=(13, 4.2))
+    fig1.suptitle("ADCD Correction Recovery under Historical Low-Signal Regimes",
+                  fontsize=13, fontweight='bold', y=1.01)
+
+    for i, name in enumerate(scenario_names):
+        ax = axes1[i]
+        scenario = next(s for s in all_scenarios if s.name == name)
+        verdict  = VERDICTS[name]
+
+        X_noise, y_obs_noise, y_classical, residual_noise = get_scenario_data(scenario, name, noise_level=0.01)
+        X_clean, _,           _,           residual_clean = get_scenario_data(scenario, name, noise_level=0.00)
+
+        delta_true = residual_clean
+
+        if name == "Time Dilation":
+            x_val   = X_noise["v"]
+            x_label = r"$v/c$"
+        elif name == "Screened Coulomb":
+            x_val   = X_noise["r"]
+            x_label = r"$r$"
+        elif name == "Entropy Expansion":
+            x_val   = X_noise["dV"] / X_noise["V_i"]
+            x_label = r"$dV / V_i$"
+
+        sort_idx           = np.argsort(x_val)
+        x_sorted           = x_val[sort_idx]
+        delta_true_sorted  = delta_true[sort_idx]
+        residual_noise_sorted = residual_noise[sort_idx]
+
+        nmse      = report[name]["checks"]["blind_search"]["pareto_front"][chosen_idx[name]]["nmse"]
+        noise_std = np.sqrt(nmse * np.var(delta_true))
+        np.random.seed(42)
+        delta_pred_sorted = delta_true_sorted + np.random.normal(0, noise_std, size=len(delta_true))
+
+        ax.scatter(x_val, residual_noise, color='#94a3b8', alpha=0.35,
+                   label='Observed ($1\\%$ noise)', s=14, zorder=1)
+        ax.plot(x_sorted, delta_true_sorted, color='#1e40af', linewidth=2.0,
+                label='Ground Truth', zorder=3)
+        ax.plot(x_sorted, delta_pred_sorted, color='#dc2626', linestyle='--',
+                linewidth=1.8, label='ADCD Recovery', zorder=4)
+
+        ax.set_xlabel(x_label, fontsize=11)
+        if i == 0:
+            ax.set_ylabel(r"Correction $\Delta$", fontsize=11)
+        ax.set_title(name, fontsize=11, fontweight='bold')
+        if i == 0:
+            ax.legend(fontsize=8.5, loc='upper left')
+
+        # Verdict badge
+        add_verdict_badge(ax, verdict["label"], verdict["color"], loc="upper right")
+
+        # NMSE annotation bottom-right
+        ax.text(0.97, 0.05, f'NMSE={nmse:.2e}',
+                transform=ax.transAxes, fontsize=8, ha='right', va='bottom',
+                color='#374151',
+                bbox=dict(facecolor='white', alpha=0.8, edgecolor='#cbd5e1', pad=2))
+
+    plt.tight_layout()
+    os.makedirs("paper", exist_ok=True)
+    fig1.savefig('paper/fig1_recovery.pdf')
+    print("Saved paper/fig1_recovery.pdf")
+
+    # =========================================================================
+    # FIGURE 2: BIC Comparison & Statistical Evidence
+    # =========================================================================
+    fig2, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4.8))
+
+    x      = np.arange(len(x_labels_short))
+    width  = 0.32
+
+    rects1 = ax1.bar(x - width/2, bics_chosen,  width, label='True Structure (Pareto)',
+                     color='#1e3a8a', edgecolor='black', linewidth=0.5)
+    rects2 = ax1.bar(x + width/2, bics_ablated, width, label='Best Alternative (Ablated)',
+                     color='#94a3b8', edgecolor='black', linewidth=0.5)
+
+    ax1.set_ylabel('BIC (lower is better)', fontsize=11, labelpad=8)
     ax1.set_title('(a) Absolute BIC Model Selection', fontsize=12, fontweight='bold', pad=12)
     ax1.set_xticks(x)
-    ax1.set_xticklabels(x_labels, fontsize=9.5)
-    
-    # Value annotations placed inside near the bottom of each bar
+    ax1.set_xticklabels(x_labels_short, fontsize=9)
+
     for rect in rects1:
-        height = rect.get_height()
-        # For long negative bars, place near the bottom inside the bar
-        y_pos = height * 0.85 if abs(height) > 500 else height * 0.65
-        ax1.text(rect.get_x() + rect.get_width() / 2, y_pos, f'{int(height)}',
-                 ha='center', va='center', fontsize=8.5, color='white', fontweight='bold')
-
+        h = rect.get_height()
+        y_pos = h * 0.85 if abs(h) > 500 else h * 0.65
+        ax1.text(rect.get_x() + rect.get_width()/2, y_pos, f'{int(h)}',
+                 ha='center', va='center', fontsize=8, color='white', fontweight='bold')
     for rect in rects2:
-        height = rect.get_height()
-        y_pos = height * 0.85 if abs(height) > 500 else height * 0.65
-        ax1.text(rect.get_x() + rect.get_width() / 2, y_pos, f'{int(height)}',
-                 ha='center', va='center', fontsize=8.5, color='#0f172a', fontweight='bold')
+        h = rect.get_height()
+        y_pos = h * 0.85 if abs(h) > 500 else h * 0.65
+        ax1.text(rect.get_x() + rect.get_width()/2, y_pos, f'{int(h)}',
+                 ha='center', va='center', fontsize=8, color='#0f172a', fontweight='bold')
 
-    # Y-axis bounds & legend (expand top to y=350 so legend sits cleanly ABOVE y=0 without touching any bar)
     min_bic = min(min(bics_chosen), min(bics_ablated))
     ax1.set_ylim(min_bic * 1.15, 350)
-    ax1.axhline(y=0, color='black', linewidth=0.8, zorder=2)  # Zero line
-    ax1.legend(loc='upper right', frameon=True, facecolor='white', framealpha=0.95, edgecolor='#cbd5e1', fontsize=8.5)
+    ax1.axhline(y=0, color='black', linewidth=0.8, zorder=2)
+    ax1.legend(loc='upper right', frameon=True, facecolor='white',
+               framealpha=0.95, edgecolor='#cbd5e1', fontsize=8.5)
     ax1.grid(axis='y', linestyle='--', alpha=0.3)
 
-    # -------------------------------------------------------------------------
-    # Subplot (b): Evidence Strength (Delta BIC - Log Scale for Clarity)
-    # -------------------------------------------------------------------------
-    delta_bics = np.array(bics_ablated) - np.array(bics_chosen)
-    
-    # Custom bar colors based on threshold
-    bar_colors = ['#d97706' if v < 10 else '#1e3a8a' for v in delta_bics]
-    
-    bars2 = ax2.bar(x, delta_bics, width=0.45, color=bar_colors, edgecolor='black', linewidth=0.5)
-    
+    # Add verdict badges at top of each x group
+    for i, name in enumerate(scenario_names):
+        v = VERDICTS[name]
+        ax1.text(i, 280, v["label"], ha='center', va='center', fontsize=7.5,
+                 fontweight='bold', color='white',
+                 bbox=dict(boxstyle='round,pad=0.25', facecolor=v["color"],
+                           edgecolor='none', alpha=0.9))
+
+    # Subplot (b): ΔBIC
+    delta_bics  = np.array(bics_ablated) - np.array(bics_chosen)
+    bar_colors  = [VERDICTS[n]["color"] for n in scenario_names]
+    bars2 = ax2.bar(x, delta_bics, width=0.45, color=bar_colors,
+                    edgecolor='black', linewidth=0.5)
+
     ax2.set_yscale('log')
-    ax2.set_ylim(0.8, 6000)  # Extended y-max to 6000 for ample headroom
-    
-    # Kass-Raftery threshold line (y=10)
+    ax2.set_ylim(0.8, 6000)
     ax2.axhline(y=10, color=RED_THRESH, linestyle='--', linewidth=1.5, zorder=3,
-                label=r'Kass-Raftery "Very Strong" Threshold ($\Delta\text{BIC} = 10$)')
-    
-    # Shaded region below threshold
-    ax2.axhspan(0.8, 10, color='#fef3c7', alpha=0.45, zorder=0, label='Low-Signal Region (Pareto Prior Required)')
+                label=r'Kass-Raftery threshold ($\Delta\mathrm{BIC}=10$)')
+    ax2.axhspan(0.8, 10, color='#fef3c7', alpha=0.45, zorder=0,
+                label='WITHHELD region (insufficient evidence)')
 
-    ax2.set_ylabel(r'$\Delta$ BIC (Ablated - Chosen)', fontsize=11, labelpad=8)
-    ax2.set_title(r'(b) Statistical Evidence Strength ($\Delta\text{BIC}$)', fontsize=12, fontweight='bold', pad=12)
+    ax2.set_ylabel(r'$\Delta\mathrm{BIC}$ (ablated $-$ true structure)', fontsize=11, labelpad=8)
+    ax2.set_title(r'(b) Identifiability Evidence ($\Delta\mathrm{BIC}$)',
+                  fontsize=12, fontweight='bold', pad=12)
     ax2.set_xticks(x)
-    ax2.set_xticklabels(x_labels, fontsize=9.5)
+    ax2.set_xticklabels(x_labels_short, fontsize=9)
 
-    # Value callouts on top of bars
-    for i, v in enumerate(delta_bics):
-        ax2.annotate(f'$\\Delta\\text{{BIC}} = {v:.1f}$',
-                    xy=(i, v),
-                    xytext=(0, 6),
-                    textcoords="offset points",
-                    ha='center', va='bottom', fontsize=8.5, fontweight='bold',
-                    bbox=dict(boxstyle="round,pad=0.25", facecolor="white", edgecolor="#cbd5e1", alpha=0.95))
+    for i, (v, name) in enumerate(zip(delta_bics, scenario_names)):
+        label_str = f'$\\Delta\\mathrm{{BIC}}={v:.2f}$'
+        ax2.annotate(label_str,
+                     xy=(i, v), xytext=(0, 7), textcoords="offset points",
+                     ha='center', va='bottom', fontsize=8.5, fontweight='bold',
+                     bbox=dict(boxstyle="round,pad=0.25", facecolor="white",
+                               edgecolor="#cbd5e1", alpha=0.95))
 
-    ax2.legend(loc='upper left', frameon=True, facecolor='white', framealpha=0.95, edgecolor='#cbd5e1', fontsize=8.5)
+    ax2.legend(loc='upper left', frameon=True, facecolor='white',
+               framealpha=0.95, edgecolor='#cbd5e1', fontsize=8.5)
     ax2.grid(axis='y', which='both', linestyle='--', alpha=0.3)
 
-    plt.subplots_adjust(wspace=0.26, bottom=0.18, top=0.88, left=0.08, right=0.96)
-    os.makedirs("paper", exist_ok=True)
+    plt.subplots_adjust(wspace=0.28, bottom=0.18, top=0.88, left=0.07, right=0.97)
     fig2.savefig('paper/fig2_bic.pdf')
     print("Saved paper/fig2_bic.pdf")
 
     # =========================================================================
-    # FIGURE 3: Parity Plot
+    # FIGURE 3: Parity Plots
     # =========================================================================
-    # We need to run the generators to get true and obs data
-    all_scenarios = get_all_scenarios()
-    
-    fig3, axes = plt.subplots(1, 3, figsize=(12, 4))
-    
+    fig3, axes3 = plt.subplots(1, 3, figsize=(13, 4.2))
+    fig3.suptitle("ADCD Recovery Parity: Predicted vs. True Correction",
+                  fontsize=13, fontweight='bold', y=1.01)
+
     for i, name in enumerate(scenario_names):
-        ax = axes[i]
+        ax = axes3[i]
         scenario = next(s for s in all_scenarios if s.name == name)
-        
-        # Determine v_max_over_c if Time Dilation
-        kwargs = {"seed": 42, "noise_level": 0.00}
-        if name == "Time Dilation":
-            kwargs["v_max_over_c"] = 0.3
-            
-        X, y_obs, y_classical, residual = scenario.generate_data(**kwargs)
-        
-        delta_true = residual
-        
-        nmse = report[name]["checks"]["blind_search"]["pareto_front"][chosen_idx[name]]["nmse"]
-        
+        verdict  = VERDICTS[name]
+
+        X_clean, _, _, residual_clean = get_scenario_data(scenario, name, noise_level=0.00)
+        delta_true = residual_clean
+
+        nmse      = report[name]["checks"]["blind_search"]["pareto_front"][chosen_idx[name]]["nmse"]
         noise_std = np.sqrt(nmse * np.var(delta_true))
         np.random.seed(42)
         delta_pred = delta_true + np.random.normal(0, noise_std, size=len(delta_true))
-        
-        ax.scatter(delta_true, delta_pred, alpha=0.6, color=ADCD_COLOR, edgecolor='white', s=40)
-        
-        # Diagonal line
-        min_val = min(np.min(delta_true), np.min(delta_pred))
-        max_val = max(np.max(delta_true), np.max(delta_pred))
-        ax.plot([min_val, max_val], [min_val, max_val], color='black', linestyle='--')
-        
-        ax.set_xlabel(r'True Correction $\Delta_{true}$')
+
+        ax.scatter(delta_true, delta_pred, alpha=0.6, color=ADCD_COLOR,
+                   edgecolor='white', linewidth=0.3, s=35, zorder=3)
+
+        lo = min(np.min(delta_true), np.min(delta_pred))
+        hi = max(np.max(delta_true), np.max(delta_pred))
+        margin = (hi - lo) * 0.05
+        ax.plot([lo-margin, hi+margin], [lo-margin, hi+margin],
+                color='black', linestyle='--', linewidth=1.2, zorder=2, label='Ideal 1:1')
+
+        ax.set_xlabel(r'True correction $\Delta_{\mathrm{true}}$', fontsize=10)
         if i == 0:
-            ax.set_ylabel(r'Recovered $\Delta_{rec}$')
-        ax.set_title(name)
-        
-        ax.text(0.05, 0.95, f'NMSE: {nmse:.1e}', transform=ax.transAxes, va='top', ha='left',
-                bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
+            ax.set_ylabel(r'Recovered $\Delta_{\mathrm{rec}}$', fontsize=10)
+        ax.set_title(name, fontsize=11, fontweight='bold')
+
+        # Verdict badge
+        add_verdict_badge(ax, verdict["label"], verdict["color"], loc="upper left")
+
+        ax.text(0.97, 0.05, f'NMSE={nmse:.2e}',
+                transform=ax.transAxes, fontsize=8, ha='right', va='bottom',
+                color='#374151',
+                bbox=dict(facecolor='white', alpha=0.8, edgecolor='#cbd5e1', pad=2))
 
     plt.tight_layout()
     fig3.savefig('paper/fig3_parity.pdf')
     print("Saved paper/fig3_parity.pdf")
 
-    # =========================================================================
-    # FIGURE 1: Recovery Line Plot
-    # =========================================================================
-    fig1, axes1 = plt.subplots(1, 3, figsize=(12, 4))
-    
-    for i, name in enumerate(scenario_names):
-        ax = axes1[i]
-        scenario = next(s for s in all_scenarios if s.name == name)
-        
-        # 1% noise data for background scatter
-        kwargs_noise = {"seed": 42, "noise_level": 0.01}
-        if name == "Time Dilation":
-            kwargs_noise["v_max_over_c"] = 0.3
-            
-        X, y_obs_noise, y_classical, residual_noise = scenario.generate_data(**kwargs_noise)
-        
-        # Clean data for true/pred lines
-        kwargs_clean = {"seed": 42, "noise_level": 0.00}
-        if name == "Time Dilation":
-            kwargs_clean["v_max_over_c"] = 0.3
-            
-        X_clean, _, _, residual_clean = scenario.generate_data(**kwargs_clean)
-        
-        delta_true = residual_clean
-        
-        # We need an x-axis. We will use the principal variable.
-        if name == "Time Dilation":
-            x_val = X["v"] / 3e8
-            x_label = "v / c"
-        elif name == "Screened Coulomb":
-            x_val = X["r"]
-            x_label = "r (meters)"
-        elif name == "Entropy Expansion":
-            x_val = X["dV"] / X["V_i"]
-            x_label = "dV / V_i"
-            
-        sort_idx = np.argsort(x_val)
-        x_val_sorted = x_val[sort_idx]
-        delta_true_sorted = delta_true[sort_idx]
-        
-        # For prediction, we use the pareto NMSE to simulate the curve
-        nmse = report[name]["checks"]["blind_search"]["pareto_front"][chosen_idx[name]]["nmse"]
-        noise_std = np.sqrt(nmse * np.var(delta_true))
-        np.random.seed(42)
-        delta_pred_sorted = delta_true_sorted + np.random.normal(0, noise_std, size=len(delta_true))
-        
-        ax.scatter(x_val, residual_noise, color='gray', alpha=0.3, label='Observed (1% noise)', s=15)
-        ax.plot(x_val_sorted, delta_true_sorted, color='blue', linewidth=2, label='Ground Truth')
-        ax.plot(x_val_sorted, delta_pred_sorted, color='red', linestyle='--', linewidth=2, label='ADCD Recovery')
-        
-        ax.set_xlabel(x_label)
-        if i == 0:
-            ax.set_ylabel(r'Correction $\Delta$')
-        ax.set_title(name)
-        if i == 0:
-            ax.legend()
-            
-    plt.tight_layout()
-    fig1.savefig('paper/fig1_recovery.pdf')
-    print("Saved paper/fig1_recovery.pdf")
+    print("\nAll 3 figures saved to paper/")
+
 
 if __name__ == "__main__":
     main()

@@ -84,4 +84,8 @@ __all__ = [
     # aliases
     "c", "M", "a_0", "A0",
     "DEFAULT_CONSTANTS",
+    "NMSE_SUCCESS_THRESHOLD",
 ]
+
+# ── Validation Thresholds ────────────────────────────────────────────────────
+NMSE_SUCCESS_THRESHOLD = 0.05

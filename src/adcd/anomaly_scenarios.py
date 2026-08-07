@@ -70,9 +70,10 @@ class AnomalyScenario:
             X["x"] = rng.uniform(0.1, 3.0, size=n_points)
             
         elif self.name == "Screened Coulomb":
+            r_max = v_max_over_c if v_max_over_c is not None else 4.0
             X["q1"] = rng.uniform(1e-6, 1e-5, size=n_points)
             X["q2"] = rng.uniform(1e-6, 1e-5, size=n_points)
-            X["r"] = rng.uniform(0.2, 4.0, size=n_points)
+            X["r"] = rng.uniform(0.2, r_max, size=n_points)
             
         elif self.name == "Net Radiation":
             X["A"] = rng.uniform(0.1, 2.0, size=n_points)

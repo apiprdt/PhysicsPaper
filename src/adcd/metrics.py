@@ -340,8 +340,8 @@ def evaluate_correction(
     mse_full = np.mean((y_recon - y_obs) ** 2)
     nmse_full = _nmse(mse_full, y_obs)
 
-    RESIDUAL_NMSE_THRESHOLD = 0.20
-    is_genuinely_good_fit = bool(nmse_res < RESIDUAL_NMSE_THRESHOLD)
+    from adcd.constants import NMSE_SUCCESS_THRESHOLD
+    is_genuinely_good_fit = bool(nmse_res < NMSE_SUCCESS_THRESHOLD)
 
     class_match = bool(
         (true_cls == disc_cls) and is_genuinely_good_fit and bool(discovered_expr_str.strip())

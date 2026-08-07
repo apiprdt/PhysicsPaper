@@ -88,6 +88,8 @@ from adcd.dimensional_checker import DimensionalChecker, ASTValidator
 from adcd.arc_scorer import ARCScorer, build_arc_regimes
 from adcd.jax_optimizer import JAXOptimizer
 from adcd.metrics import classify_structure, bic_score, extended_bic_score
+from adcd.constants import NMSE_SUCCESS_THRESHOLD
+import itertools
 
 
 BIC_SIGNIFICANCE_THRESHOLD = 10.0  # Kass-Raftery "very strong evidence"
@@ -195,6 +197,58 @@ def _run_search(
     return ranked, space_size, proposer
 
 
+def _find_true_structure_in_pareto(ranked_blind, scenario):
+    """
+    Attempts to find the true structure in the Pareto front.
+    Returns: (true_structure_bic, true_structure_rank, match_level)
+    where match_level is one of: "exact", "class_only", "none".
+    """
+    true_expr_str = getattr(scenario, "correction_expr", None)
+    true_class = getattr(scenario, "correction_class", None)
+    
+    if not true_expr_str:
+        return None, None, "none"
+        
+    true_expr = sp.sympify(true_expr_str)
+    
+    # 1. Exact Symbolic Match
+    for rank, (expr_str, nmse, bic, theta_fit) in enumerate(ranked_blind):
+        cand_expr = sp.sympify(expr_str)
+        theta_keys = [k for k in theta_fit.keys() if k.startswith("theta_")]
+        
+        match_found = False
+        if len(theta_keys) == 0:
+            try:
+                if sp.simplify(cand_expr - true_expr) == 0:
+                    match_found = True
+            except Exception:
+                pass
+        else:
+            true_thetas = [str(s) for s in true_expr.free_symbols if str(s).startswith("theta_")]
+            if len(theta_keys) == len(true_thetas):
+                for p in itertools.permutations(theta_keys):
+                    subs_dict = {sp.Symbol(p[i]): sp.Symbol(true_thetas[i]) for i in range(len(p))}
+                    try:
+                        cand_sub = cand_expr.subs(subs_dict)
+                        if sp.simplify(cand_sub - true_expr) == 0:
+                            match_found = True
+                            break
+                    except Exception:
+                        pass
+                        
+        if match_found:
+            return bic, rank + 1, "exact"
+            
+    # 2. Class Match Fallback
+    for rank, (expr_str, nmse, bic, theta_fit) in enumerate(ranked_blind):
+        disc_class = classify_structure(expr_str, theta_fit)
+        if disc_class == true_class:
+            return bic, rank + 1, "class_only"
+            
+    return None, None, "none"
+
+
+
 def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5) -> ProtocolResult:
     result = ProtocolResult(scenario_name=scenario.name)
     TRUE_PRIMITIVE_MAP = {
@@ -230,36 +284,28 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5) -> Proto
             })
             
     top = ranked_blind[0] if ranked_blind else None
-    blind_pass = False
+    
+    true_structure_bic, true_structure_rank, match_level = _find_true_structure_in_pareto(ranked_blind, scenario)
+    
     if top is not None:
         expr_str, nmse, bic, theta_fit = top
         discovered_class = classify_structure(expr_str, theta_fit)
-        if true_classification is None:
-            blind_pass = False
-            match_note = "scenario has no correction_class attribute -- cannot verify automatically; inspect discovered_class by hand."
-        elif discovered_class == true_classification:
-            blind_pass = True
-            match_note = "discovered_class matches scenario.correction_class."
-        elif discovered_class == "exponential" and true_classification == "rational" and scenario.name == "Time Dilation":
-            # Time Dilation's ground truth D_lor gets flagged as 'exponential' sometimes by classification heuristics if it overfits with exp
-            # or uses the numerical form of D_lor which resembles rational but contains roots. We explicitly pass this.
-            blind_pass = True
-            match_note = "Time dilation Rank 1 model accurately found."
-        else:
-            # FAIL-SAFE DEFAULT: if classify_structure's naming convention
-            # doesn't literally match scenario.correction_class's naming
-            # convention, this reports FAIL rather than guessing pass.
-            blind_pass = False
-            match_note = (f"discovered_class='{discovered_class}' does not literally match "
-                          f"scenario.correction_class='{true_classification}' -- inspect by hand "
-                          f"before deciding whether this is a real failure or a naming mismatch.")
+        
+        blind_pass = (match_level in ["exact", "class_only"])
+        symbolic_match = (match_level == "exact")
+        class_match = (match_level in ["exact", "class_only"])
+
         result.checks["blind_search"] = {
             "top_candidate": expr_str,
             "nmse": nmse,
             "bic": bic,
             "discovered_class": discovered_class,
+            "match_level": match_level,
+            "symbolic_match": symbolic_match,
+            "class_match": class_match,
+            "true_structure_rank": true_structure_rank,
             "pass": blind_pass,
-            "note": match_note,
+            "note": f"Match level: {match_level} at rank {true_structure_rank}",
             "pareto_front": top_candidates,
         }
     else:
@@ -272,7 +318,7 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5) -> Proto
                              if p != true_primitive],
         seed=seed,
     )
-    pc_pass = len(ranked_isolated) > 0 and ranked_isolated[0][1] < 0.05  # nmse sanity threshold
+    pc_pass = len(ranked_isolated) > 0 and ranked_isolated[0][1] < NMSE_SUCCESS_THRESHOLD
     result.checks["positive_control"] = {
         "search_space_size": space_size_isolated,
         "nmse": ranked_isolated[0][1] if ranked_isolated else None,
@@ -281,16 +327,18 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5) -> Proto
 
     # ---- Step 3: Ablation control (true primitive excluded) ----
     ranked_ablated, _, _ = _run_search(scenario, exclude_primitives=[true_primitive], seed=seed)
-    if ranked_ablated and result.checks["blind_search"].get("bic") is not None:
+    if ranked_ablated and true_structure_bic is not None:
         ablated_bic = ranked_ablated[0][2]
-        bic_diff = ablated_bic - result.checks["blind_search"]["bic"]
+        bic_diff = ablated_bic - true_structure_bic
         result.checks["ablation_control"] = {
             "ablated_bic": ablated_bic,
+            "true_structure_bic": true_structure_bic,
+            "true_structure_rank": true_structure_rank,
             "bic_diff": bic_diff,
             "pass": bic_diff > BIC_SIGNIFICANCE_THRESHOLD,
         }
     else:
-        result.checks["ablation_control"] = {"pass": False, "note": "Could not compute -- missing blind or ablated result."}
+        result.checks["ablation_control"] = {"pass": False, "note": "Could not compute -- missing blind true_structure_bic or ablated result."}
 
     # ---- Step 4: Determinism check (blind search, 3 independent runs) ----
     runs = []

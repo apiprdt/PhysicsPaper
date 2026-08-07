@@ -1,6 +1,8 @@
 """
 budget_sweep.py
 =================
+
+FOR DIAGNOSTIC USE ONLY — do not use sweep results to select the budget used in the paper.
 """
 
 from __future__ import annotations
@@ -9,8 +11,8 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 import numpy as np
 
-DEFAULT_TOKEN_BUDGET_SWEEP = [50]
-DEFAULT_DEPTH_BUDGET_SWEEP = [8]
+DEFAULT_TOKEN_BUDGET_SWEEP = [10, 15, 20, 25, 30, 35, 40, 50]
+DEFAULT_DEPTH_BUDGET_SWEEP = [7, 8, 9, 12]
 
 @dataclass
 class SweepPoint:
