@@ -521,30 +521,4 @@ No proprietary or restricted datasets are used.
 %\input{checklist.tex}
 
 % ---------------------------------------------------------------
-\appendix
-\section*{Supplementary S5: Methodological Lessons Learned (Audit Trail)}
-\label{sec:s5}
-% ---------------------------------------------------------------
-
-This section documents methodological issues discovered and corrected during the preparation of this manuscript. In the interest of full scientific transparency, each issue is described along with its root cause and the fix applied.
-
-\paragraph{S5.1 Oracle Leak in Positive Control (Closed).}
-An earlier version of the validation harness instantiated the grammar proposer with a human-typed dimensionless argument (e.g., \texttt{ratio\_symbol="(v/c)**2"}), which directly fed the correct physics ratio into the discovery step. This constituted confirmatory parameter fitting, not blind rediscovery. Fix: the validation harness was fully rewritten to use \texttt{GrammarProposerV3}, which auto-derives all dimensionless ratio candidates from declared physical units via Buckingham-$\pi$ analysis. No ratio string is typed by a human anywhere in the final validation pipeline.
-
-\paragraph{S5.2 Ablation Baseline Bug (Fixed).}
-The ablation control metric originally compared the ablated BIC against the Rank 1 candidate's BIC rather than the BIC of the \emph{true structure} as located on the Pareto front. This meant the metric was measuring the wrong comparison. Fix: \texttt{\_find\_true\_structure\_in\_pareto()} was implemented to perform an exact symbolic match (\texttt{sp.simplify}) across all $\theta$ permutations, and the ablation formula was updated to \texttt{bic\_diff = ablated\_bic - true\_structure\_bic}.
-
-\paragraph{S5.3 Stale BIC Numbers in Paper (Corrected).}
-Three sets of headline numbers were found with untraceable provenance or known contamination: (1) $\Delta\mathrm{BIC} \in \{1798, 59.6, 2024\}$ from an oracle-contaminated run; (2) values from a LaTeX table with no matching raw log; (3) $\Delta\mathrm{BIC} \in \{0.07, 25.74, 833.68\}$ from a run using the incorrect ablation baseline (Rank~1 BIC instead of true-structure BIC). In set~(3), only the Time Dilation value $0.07$ is wrong; $25.74$ and $833.68$ were numerically stable across baseline choices. Nevertheless, all three sets are formally discarded as a bundle. All numbers in the final manuscript are sourced exclusively from \texttt{blind\_validation\_output\_v3.txt}, the output of \texttt{run\_adcd\_v3\_validation\_blind.py} with no human-tuned parameters.
-
-\paragraph{S5.4 Positive Control Failure for Screened Coulomb (Disclosed).}
-During final validation, the positive control check for Screened Coulomb returned NMSE $= 0.083 > 0.05$ (FAIL). The root cause is that restricting the grammar to only the \texttt{D\_exp} primitive family produces only 4 candidate expressions; the JAX optimizer with $n\_\mathrm{restarts} = 15$ fails to converge for all 4 due to poor gradient coverage in this very small candidate pool. The full blind search (140 candidates) succeeds (NMSE $= 2.77 \times 10^{-4}$) because it provides richer initialization diversity. This failure is \emph{not} suppressed: it is reported in Section~\ref{sec:limitations} and the positive control result is not cited as evidence for the main rediscovery claim.
-
-\paragraph{S5.5 Premature Task Completion (Corrected).}
-Two checklist items (seed sensitivity and this supplementary section) were incorrectly marked as completed before the corresponding code and text were actually verified. This was identified by adversarial self-audit and corrected. The seed sensitivity run was re-executed with the correct function signature (\texttt{exclude\_primitives=None}), and this section was written as required.
-
-
-%\newpage
-%\input{checklist.tex}
-
 \end{document}
