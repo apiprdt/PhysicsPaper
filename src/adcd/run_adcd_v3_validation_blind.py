@@ -87,7 +87,7 @@ from adcd.pipeline import Stage1Pipeline
 from adcd.dimensional_checker import DimensionalChecker, ASTValidator
 from adcd.arc_scorer import ARCScorer, build_arc_regimes
 from adcd.jax_optimizer import JAXOptimizer
-from adcd.metrics import classify_structure, bic_score, extended_bic_score
+from adcd.metrics import classify_structure, extended_bic_score
 from adcd.constants import NMSE_SUCCESS_THRESHOLD
 import itertools
 
@@ -307,7 +307,6 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5) -> Proto
         "Entropy Expansion": "D_log"
     }
     true_primitive = TRUE_PRIMITIVE_MAP.get(scenario.name)
-    true_classification = scenario.correction_class if hasattr(scenario, "correction_class") else None
 
     # ---- Step 0: Budget disclosure (fully blind search space) ----
     _, space_size_blind, proposer = _run_search(scenario, exclude_primitives=None, seed=seed, n_candidates=0)
@@ -365,7 +364,7 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5) -> Proto
     ranked_isolated, space_size_isolated, _ = _run_search(
         scenario,
         exclude_primitives=[p for p in ["D_lor", "D_rat", "D_exp", "D_log", "D_sqrt_inv"]
-                             if p != true_primitive],
+                            if p != true_primitive],
         seed=seed,
     )
     pc_pass = len(ranked_isolated) > 0 and ranked_isolated[0][1] < NMSE_SUCCESS_THRESHOLD

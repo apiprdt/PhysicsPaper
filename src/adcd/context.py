@@ -9,8 +9,6 @@ class BaseProposer(ABC):
         """Generate candidate equation strings"""
         pass
 
-import numpy as np
-
 @dataclass
 class ProposalContext:
     # --- Standard Statistics & Parameters ---

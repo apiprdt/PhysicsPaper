@@ -8,7 +8,7 @@ FOR DIAGNOSTIC USE ONLY — do not use sweep results to select the budget used i
 from __future__ import annotations
 import json
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import List, Optional
 import numpy as np
 
 DEFAULT_TOKEN_BUDGET_SWEEP = [10, 15, 20, 25, 30, 35, 40, 50]
@@ -72,7 +72,7 @@ def run_budget_sweep(
                 target_name="residual", data_statistics={}, n_candidates=0,
                 constants=scenario.classical_constants,
                 known_limits=[{"variable": scenario.classical_limit_variable,
-                                "limit": scenario.classical_limit_direction, "expected": "0"}],
+                               "limit": scenario.classical_limit_direction, "expected": "0"}],
             )
             candidates = proposer.propose(context)
             space_size = proposer.search_space_size(context)
@@ -88,7 +88,7 @@ def run_budget_sweep(
 
             if not stage1:
                 results.append(SweepPoint(max_tokens, max_depth, space_size,
-                                           None, None, None, None, None))
+                                          None, None, None, None, None))
                 continue
 
             optimizer = JAXOptimizer(n_restarts=15)
@@ -108,7 +108,7 @@ def run_budget_sweep(
 
             if not ranked:
                 results.append(SweepPoint(max_tokens, max_depth, space_size,
-                                           None, None, None, None, None))
+                                          None, None, None, None, None))
                 continue
 
             expr_str, nmse, bic, theta_fit = ranked[0]

@@ -63,7 +63,7 @@ from __future__ import annotations
 
 import logging
 import warnings
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from dataclasses import dataclass
 
 import numpy as np
