@@ -128,6 +128,19 @@ def _make_pipeline(checker: DimensionalChecker, scenario) -> Stage1Pipeline:
     return Stage1Pipeline(validator=validator, checker=checker, scorer=scorer)
 
 
+# ---------------------------------------------------------------------------
+# DOMAIN RESTRICTIONS: these are the LOCKED historical low-signal boundaries
+# described in the paper abstract, Section 5.1, and Table 2.
+# v_max_over_c is the *only* parameter that controls observation window.
+# Changing any value here changes ALL reported BIC/NMSE numbers.
+# ---------------------------------------------------------------------------
+DOMAIN_RESTRICTIONS = {
+    "Time Dilation":     {"v_max_over_c": 0.3},   # v <= 0.3c (historical regime)
+    "Screened Coulomb":  {"v_max_over_c": 4.0},   # r <= 4.0  (default already 4.0)
+    "Entropy Expansion": {"v_max_over_c": 1.0},   # dV/V_i <= 1.0 (historical regime)
+}
+
+
 def _run_search(
     scenario,
     exclude_primitives: Optional[List[str]],
@@ -144,6 +157,11 @@ def _run_search(
     either way; only the primitive family list is ever restricted, and only
     for the two checks whose entire published purpose is to isolate that
     variable.
+
+    DOMAIN FIX (2026-08-08): generate_data() is now called WITH v_max_over_c
+    from DOMAIN_RESTRICTIONS. Previously the call had no v_max_over_c argument,
+    so Time Dilation silently used the default v<=0.99c and Entropy Expansion
+    used dV/V_i<=100 -- both contradicting the paper's stated observation windows.
     """
     checker = DimensionalChecker()
     for var in scenario.classical_variables:
@@ -163,7 +181,10 @@ def _run_search(
     space_size = proposer.search_space_size(context)
 
     pipeline = _make_pipeline(checker, scenario)
-    X, y_obs, y_classical, residual = scenario.generate_data(noise_level=0.01, seed=seed)
+    domain_kwargs = DOMAIN_RESTRICTIONS.get(scenario.name, {})
+    X, y_obs, y_classical, residual = scenario.generate_data(
+        noise_level=0.01, seed=seed, **domain_kwargs
+    )
     for c_name, c_val in scenario.classical_constants.items():
         if c_name not in X:
             X[c_name] = np.full_like(residual, c_val)
