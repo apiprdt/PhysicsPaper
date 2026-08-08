@@ -201,7 +201,8 @@ def main():
     ax1.set_ylim(min_bic * 1.15, 350)
     ax1.axhline(y=0, color='black', linewidth=0.8, zorder=2)
     ax1.legend(loc='lower left', frameon=True, facecolor='white',
-               framealpha=0.95, edgecolor='#cbd5e1', fontsize=8.5)
+               framealpha=0.95, edgecolor='#cbd5e1', fontsize=7.5,
+               labelspacing=0.2, handlelength=1.0, handletextpad=0.4, borderpad=0.3)
     ax1.grid(axis='y', linestyle='--', alpha=0.3)
 
     # Add verdict badges at top of each x group
