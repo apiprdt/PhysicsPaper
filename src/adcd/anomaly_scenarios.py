@@ -30,7 +30,7 @@ class AnomalyScenario:
     # Structural classification (for evaluation)
     correction_class: str             # "exponential" | "power_law" | "rational" | "trigonometric" | "polynomial" | "logarithmic"
 
-    def generate_data(self, n_points: int = 200, noise_level: float = 0.0, seed: int = 42, v_max_over_c: float = None) -> Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
+    def generate_data(self, n_points: int = 200, noise_level: float = 0.0, seed: int = 42, domain_max: float = None) -> Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
         """
         Generates variables X, classical prediction y_classical, 
         noisy observation y_obs, and the corresponding residual.
@@ -41,19 +41,19 @@ class AnomalyScenario:
         # 1. Generate domain-specific variables in the anomaly-sensitive regime
         if self.name == "Relativistic KE" or self.name.startswith("Subtle Misspecification"):
             c = self.classical_constants["c"]
-            v_max = v_max_over_c * c if v_max_over_c is not None else 0.85 * c
+            v_max = domain_max * c if domain_max is not None else 0.85 * c
             X["m"] = rng.uniform(0.5, 10.0, size=n_points)
             X["v"] = rng.uniform(0.1 * c, v_max, size=n_points)
 
         elif self.name == "Time Dilation":
             c = self.classical_constants.get("c", 1.0)
-            v_max = v_max_over_c * c if v_max_over_c is not None else 0.99 * c
+            v_max = domain_max * c if domain_max is not None else 0.99 * c
             X["t_0"] = rng.uniform(1.0, 10.0, size=n_points)
             X["v"] = rng.uniform(0.1 * c, v_max, size=n_points)
 
         elif self.name == "Entropy Expansion":
             V_i = rng.uniform(1.0, 10.0, size=n_points)
-            u_max = v_max_over_c if v_max_over_c is not None else 100.0
+            u_max = domain_max if domain_max is not None else 100.0
             dV = rng.uniform(0.1, u_max, size=n_points) * V_i
             S_i = np.full_like(V_i, 15.0)
             X["V_i"] = V_i
@@ -70,7 +70,7 @@ class AnomalyScenario:
             X["x"] = rng.uniform(0.1, 3.0, size=n_points)
             
         elif self.name == "Screened Coulomb":
-            r_max = v_max_over_c if v_max_over_c is not None else 4.0
+            r_max = domain_max if domain_max is not None else 4.0
             X["q1"] = rng.uniform(1e-6, 1e-5, size=n_points)
             X["q2"] = rng.uniform(1e-6, 1e-5, size=n_points)
             X["r"] = rng.uniform(0.2, r_max, size=n_points)
@@ -107,12 +107,12 @@ class AnomalyScenario:
             
         elif self.name == "Blind-3: Wien Displacement" or self.name == "Blind-8: Composite Blackbody":
             X["T"] = rng.uniform(1000.0, 6000.0, size=n_points)
-            f_max = v_max_over_c * 1e15 if v_max_over_c is not None else 1e14
+            f_max = domain_max * 1e15 if domain_max is not None else 1e14
             X["f"] = rng.uniform(1e12, f_max, size=n_points)
 
         elif self.name == "Blind-4: Relativistic Pendulum":
             c = self.classical_constants["c"]
-            v_max = v_max_over_c * c if v_max_over_c is not None else 0.85 * c
+            v_max = domain_max * c if domain_max is not None else 0.85 * c
             X["m"] = rng.uniform(0.5, 10.0, size=n_points)
             X["v"] = rng.uniform(0.1 * c, v_max, size=n_points)
 
@@ -218,58 +218,7 @@ class AnomalyScenario:
             
         return X, y_obs, y_classical, residual
 
-def generate_time_dilation_data(seed: int = 42, v_max_over_c: float = 0.3, noise_level: float = 0.00) -> Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
-    rng = np.random.RandomState(seed)
-    N = 100
-    c = 1.0
-    v = rng.uniform(0.1 * c, v_max_over_c * c, size=N)
-    t_0 = rng.uniform(1.0, 10.0, size=N)
 
-    X = {'v': v, 't_0': t_0}
-
-    y_classical = t_0
-    
-    # Ground truth is D_sqrt_inv(- (v/c)**2 )
-    delta_true = 1.0 / np.sqrt(1.0 - (v/c)**2) - 1.0
-    
-    y_true = y_classical * (1.0 + delta_true)
-    
-    if noise_level > 0.0:
-        noise = rng.normal(0, noise_level, size=N)
-        y_obs = y_true * (1.0 + noise)
-    else:
-        y_obs = y_true.copy()
-        
-    residual = y_obs / y_classical - 1.0
-    return X, y_obs, y_classical, residual
-
-def generate_entropy_expansion_data(seed: int = 42, v_max_over_c: float = None, noise_level: float = 0.00) -> Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
-    rng = np.random.RandomState(seed)
-    N = 100
-    
-    # Generate positive volumes
-    V_i = rng.uniform(1.0, 10.0, size=N)
-    u_max = v_max_over_c if v_max_over_c is not None else 100.0
-    dV = rng.uniform(0.1, u_max, size=N) * V_i
-    
-    S_i = 15.0 # Treated as constant
-    nR = 8.314 # Treated as constant
-
-    X = {'V_i': V_i, 'dV': dV}
-    y_classical = np.full(N, S_i)
-    
-    # Ground truth is D_log(dV/V_i)
-    delta_true = (nR / S_i) * np.log(1.0 + dV / V_i)
-    y_true = y_classical * (1.0 + delta_true)
-    
-    if noise_level > 0.0:
-        noise = rng.normal(0, noise_level, size=N)
-        y_obs = y_true * (1.0 + noise)
-    else:
-        y_obs = y_true.copy()
-        
-    residual = y_obs / y_classical - 1.0
-    return X, y_obs, y_classical, residual
     
 def get_all_scenarios() -> List[AnomalyScenario]:
     """Returns standard scenarios plus multivariable Phase 2 scenarios."""

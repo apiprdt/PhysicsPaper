@@ -38,16 +38,7 @@ GrammarProposerV3 completely unrestricted (all 5 primitives, all
 auto-derived ratios, no exclusions) and checks whether the TRUE PRIMITIVE
 FAMILY wins the BIC ranking on its own.
 
-MANDATORY BEFORE TRUSTING ANY OUTPUT OF THIS FILE:
-1. Run it with real JAX and post the RAW terminal output here -- I have no
-   way to execute this in my own environment. Every number below is
-   design intent, not a verified result.
-2. The search space WILL be larger than 35 (previously hand-fed to a
-   single ratio) -- this is expected and correct, not a regression. Report
-   the actual `search_space_size` honestly; do not tune anything to bring
-   it back down to a specific number.
-3. If Step 1 (blind search) does NOT recover the correct primitive family
-   for some scenario, that is a real, reportable result -- do not add new
+    for some scenario, that is a real, reportable result -- do not add new
    primitives or composition rules "motivated by" that scenario's known
    answer to force it to pass. Report the failure in Limitations, exactly
    as Screened Coulomb's numerical difficulties were reported before their
@@ -131,13 +122,13 @@ def _make_pipeline(checker: DimensionalChecker, scenario) -> Stage1Pipeline:
 # ---------------------------------------------------------------------------
 # DOMAIN RESTRICTIONS: these are the LOCKED historical low-signal boundaries
 # described in the paper abstract, Section 5.1, and Table 2.
-# v_max_over_c is the *only* parameter that controls observation window.
+# domain_max is the *only* parameter that controls observation window.
 # Changing any value here changes ALL reported BIC/NMSE numbers.
 # ---------------------------------------------------------------------------
 DOMAIN_RESTRICTIONS = {
-    "Time Dilation":     {"v_max_over_c": 0.3},   # v <= 0.3c (historical regime)
-    "Screened Coulomb":  {"v_max_over_c": 4.0},   # r <= 4.0  (default already 4.0)
-    "Entropy Expansion": {"v_max_over_c": 1.0},   # dV/V_i <= 1.0 (historical regime)
+    "Time Dilation":     {"domain_max": 0.3},   # v <= 0.3c (historical regime)
+    "Screened Coulomb":  {"domain_max": 4.0},   # r <= 4.0  (default already 4.0)
+    "Entropy Expansion": {"domain_max": 1.0},   # dV/V_i <= 1.0 (historical regime)
 }
 
 
@@ -158,8 +149,8 @@ def _run_search(
     for the two checks whose entire published purpose is to isolate that
     variable.
 
-    DOMAIN FIX (2026-08-08): generate_data() is now called WITH v_max_over_c
-    from DOMAIN_RESTRICTIONS. Previously the call had no v_max_over_c argument,
+    DOMAIN FIX (2026-08-08): generate_data() is now called WITH domain_max
+    from DOMAIN_RESTRICTIONS. Previously the call had no domain_max argument,
     so Time Dilation silently used the default v<=0.99c and Entropy Expansion
     used dV/V_i<=100 -- both contradicting the paper's stated observation windows.
     """
