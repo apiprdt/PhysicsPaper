@@ -32,7 +32,7 @@ jobs:
       - name: Run Validation Suite
         env:
           PYTHONPATH: src
-        run: python src/adcd/run_adcd_v3_validation.py
+        run: python src/adcd/run_adcd_v3_validation_blind.py
 
 
   build-paper:
@@ -44,7 +44,7 @@ jobs:
       - name: Compile main.tex (pass 1 + 2)
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: paper/main.tex
+          root_file: paper/neurips_paper.tex
           work_in_root_file_dir: true
           extra_system_packages: "py-pygments"
 
@@ -52,5 +52,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ADCD-paper-${{ github.sha }}
-          path: paper/main.pdf
+          path: paper/neurips_paper.pdf
           retention-days: 30
