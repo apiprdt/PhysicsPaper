@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1>⚛️ Asymptotic Dictionary Correction Discovery (ADCD)</h1>
+<h1> Asymptotic Dictionary Correction Discovery (ADCD)</h1>
 <p><em>A deterministic framework for recovering algebraic corrections to known physical laws from noisy observational data.</em></p>
 
 <p>
