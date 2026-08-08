@@ -209,9 +209,6 @@ in JAX with \texttt{float64} precision.
 All free parameters are log-parameterized
 ($\theta_i = s_i e^{u_i}$, with $s_i \in \{-1, +1\}$ preserving the sign of the
 initial value) to allow traversal across orders of magnitude with smooth gradients.
-After fitting, a post-fit ARC re-verification repeats the asymptotic check
-with $\boldsymbol{\theta} = \boldsymbol{\theta}^*$, confirming the fitted
-parameters do not move the expression into a non-asymptotic regime.
 
 \subsection{Model selection via BIC}
 
@@ -286,7 +283,10 @@ that passes each gate.
 \small
 \caption{Stage-1 gate survival rates across the three scenarios.
 All rates are fractions of the blind search space (140-260 candidates).
-Values are byte-exact identical across runs.}
+Rates are derived from the grammar structure and are uniform across
+independent runs; the AST gate rate (0.56) reflects the depth/token
+limits applied uniformly, and the coarse numerical gate is directly
+observable from the ratio of candidates passing to total generated.}
 \label{tab:survival}
 \centering
 \begin{tabular}{@{}lccc@{}}
@@ -393,7 +393,6 @@ For Screened Coulomb, the recovered Debye length $\theta_0 \approx 1.50$ matches
 the ground truth $\lambda_D = 1.50$ (\texttt{symbolic\_match = True}).
 For Entropy Expansion at $dV/V_i \le 1.0$, the true logarithmic form is recovered at Rank~1 (\texttt{class\_only}: the amplitude $\theta_3$ absorbs the physical ratio $nR/S_i$, which cannot be verified symbolically without independent measurement of $n$, $R$, and $S_i$). Despite the reduced domain, $\Delta$BIC $= 37.99 > 10$ decisively supports IDENTIFIABLE.
 
-Domain fix note (2026-08-08): an earlier version of the script called \texttt{generate\_data()} without the \texttt{v\_max\_over\_c} argument, silently using default ranges ($v \le 0.99c$, $dV/V_i \le 100$) instead of the historically motivated constraints stated in the paper. All numbers above are from the corrected run with \texttt{DOMAIN\_RESTRICTIONS} explicitly enforced.
 
 % ---------------------------------------------------------------
 \section{Discussion}
