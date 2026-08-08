@@ -202,6 +202,12 @@ def _find_true_structure_in_pareto(ranked_blind, scenario):
     Attempts to find the true structure in the Pareto front.
     Returns: (true_structure_bic, true_structure_rank, match_level)
     where match_level is one of: "exact", "class_only", "none".
+
+    AUDIT FIX (2026-08-08): The original version skipped symbolic matching
+    when len(candidate_thetas) != len(ground_truth_thetas). Ground truth often
+    has implicit coefficient 1 (no theta), so candidates with an explicit
+    amplitude theta_0 were misclassified as "class_only". Fix: when counts
+    differ, collapse extra candidate thetas to 1 and retry sp.simplify.
     """
     true_expr_str = getattr(scenario, "correction_expr", None)
     true_class = getattr(scenario, "correction_class", None)
@@ -210,35 +216,59 @@ def _find_true_structure_in_pareto(ranked_blind, scenario):
         return None, None, "none"
         
     true_expr = sp.sympify(true_expr_str)
-    
-    # 1. Exact Symbolic Match
+    true_thetas = [str(s) for s in true_expr.free_symbols if str(s).startswith("theta_")]
+
+    def _try_exact_match(cand_expr, theta_keys):
+        """Try all routes to symbolic exact match. Returns True if match found."""
+        # Route 1: same theta count — try permutations (or direct if both 0)
+        if len(theta_keys) == len(true_thetas):
+            if len(theta_keys) == 0:
+                try:
+                    return sp.simplify(cand_expr - true_expr) == 0
+                except Exception:
+                    return False
+            for p in itertools.permutations(theta_keys):
+                subs_dict = {sp.Symbol(p[i]): sp.Symbol(true_thetas[i])
+                             for i in range(len(p))}
+                try:
+                    if sp.simplify(cand_expr.subs(subs_dict) - true_expr) == 0:
+                        return True
+                except Exception:
+                    pass
+
+        # Route 2: candidate has MORE thetas (over-parameterised amplitude).
+        # Collapse extra thetas to 1, then match remaining to ground truth.
+        # Catches: `theta_0 * D_lor(v**2/c**2)` vs ground truth `D_lor(v**2/c**2)`.
+        if len(theta_keys) > len(true_thetas):
+            extra = len(theta_keys) - len(true_thetas)
+            for to_collapse in itertools.combinations(theta_keys, extra):
+                remaining = [t for t in theta_keys if t not in to_collapse]
+                collapse_subs = {sp.Symbol(t): sp.Integer(1) for t in to_collapse}
+                reduced = cand_expr.subs(collapse_subs)
+                if len(remaining) == 0 and len(true_thetas) == 0:
+                    try:
+                        if sp.simplify(reduced - true_expr) == 0:
+                            return True
+                    except Exception:
+                        pass
+                elif len(remaining) == len(true_thetas) and len(true_thetas) > 0:
+                    for p in itertools.permutations(remaining):
+                        subs_dict = {sp.Symbol(p[i]): sp.Symbol(true_thetas[i])
+                                     for i in range(len(p))}
+                        try:
+                            if sp.simplify(reduced.subs(subs_dict) - true_expr) == 0:
+                                return True
+                        except Exception:
+                            pass
+        return False
+
+    # 1. Exact Symbolic Match (all routes)
     for rank, (expr_str, nmse, bic, theta_fit) in enumerate(ranked_blind):
         cand_expr = sp.sympify(expr_str)
         theta_keys = [k for k in theta_fit.keys() if k.startswith("theta_")]
-        
-        match_found = False
-        if len(theta_keys) == 0:
-            try:
-                if sp.simplify(cand_expr - true_expr) == 0:
-                    match_found = True
-            except Exception:
-                pass
-        else:
-            true_thetas = [str(s) for s in true_expr.free_symbols if str(s).startswith("theta_")]
-            if len(theta_keys) == len(true_thetas):
-                for p in itertools.permutations(theta_keys):
-                    subs_dict = {sp.Symbol(p[i]): sp.Symbol(true_thetas[i]) for i in range(len(p))}
-                    try:
-                        cand_sub = cand_expr.subs(subs_dict)
-                        if sp.simplify(cand_sub - true_expr) == 0:
-                            match_found = True
-                            break
-                    except Exception:
-                        pass
-                        
-        if match_found:
+        if _try_exact_match(cand_expr, theta_keys):
             return bic, rank + 1, "exact"
-            
+
     # 2. Class Match Fallback
     for rank, (expr_str, nmse, bic, theta_fit) in enumerate(ranked_blind):
         disc_class = classify_structure(expr_str, theta_fit)
@@ -246,7 +276,6 @@ def _find_true_structure_in_pareto(ranked_blind, scenario):
             return bic, rank + 1, "class_only"
             
     return None, None, "none"
-
 
 
 def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5) -> ProtocolResult:

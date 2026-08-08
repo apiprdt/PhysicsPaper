@@ -411,10 +411,17 @@ regularization of $v^2/c^2$, which is identically equal to the standard
 Lorentz correction $\gamma - 1$.
 For Screened Coulomb, the recovered Debye length $\theta_1 = 1.49$ matches the
 ground truth $\lambda_D = 1.50$ to $0.7\%$.
-The \texttt{symbolic\_exact\_match = False} flag in all logs indicates that
-recovered expressions are structurally equivalent but not syntactically identical
-to the ground truth, as expected when physical constants are replaced by fitted
-$\theta_i$.
+Audit note (2026-08-08): after correcting a parameter-count bug in
+\texttt{\_find\_true\_structure\_in\_pareto} (the verifier previously skipped
+the symbolic comparison when candidate and ground truth had mismatched theta
+counts due to implicit amplitude coefficients), the match-level classification
+updated: Time Dilation reports \texttt{symbolic\_match = True} (Rank~2 candidate
+$\theta_0 \cdot D_{\mathrm{lor}}(v^2/c^2)$ collapses to the ground truth when
+$\theta_0 \to 1$); Screened Coulomb also reports \texttt{symbolic\_match = True}
+(Rank~1 candidate $\theta_2(e^{-r/\theta_0}-1)$ is the ground truth form with
+fitted scale). Entropy Expansion correctly remains \texttt{class\_only} because
+its ground truth contains a physical ratio $nR/S_i$ of two unmeasured quantities,
+not an amplitude that can be trivially set to~1.
 
 % ---------------------------------------------------------------
 \section{Discussion}
