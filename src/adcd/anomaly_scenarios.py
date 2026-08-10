@@ -225,7 +225,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
         AnomalyScenario(
             name="Entropy Expansion",
             tier="textbook",
-            domain="thermodynamics",
+            domain="boltzmann_thermodynamics",
             classical_expr="S_i",
             classical_variables=["V_i", "dV"],
             classical_constants={"nR": 8.314, "S_i": 15.0},
@@ -244,7 +244,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
         AnomalyScenario(
             name="Time Dilation",
             tier="textbook",
-            domain="relativistic",
+            domain="lorentz_special_relativity",
             classical_expr="t_0",
             classical_variables=["t_0", "v"],
             classical_constants={"c": 1.0},
@@ -312,7 +312,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
         AnomalyScenario(
             name="Screened Coulomb",
             tier="cross_domain",
-            domain="electrostatics",
+            domain="yukawa_debye_screening",
             classical_expr="k_e * q1 * q2 / r**2",
             classical_variables=["q1", "q2", "r"],
             classical_constants={"k_e": 8.9876e9},

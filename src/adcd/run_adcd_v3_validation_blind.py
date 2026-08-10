@@ -81,7 +81,7 @@ from adcd.jax_optimizer import JAXOptimizer
 from adcd.metrics import classify_structure, extended_bic_score
 from adcd.constants import NMSE_SUCCESS_THRESHOLD
 from adcd.quickfit import DOMAIN_TAXONOMY
-import itertools
+
 
 
 BIC_SIGNIFICANCE_THRESHOLD = 10.0  # Kass-Raftery "very strong evidence"
