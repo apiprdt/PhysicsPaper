@@ -42,9 +42,9 @@ RED_THRESH = '#dc2626'
 
 # Verdict metadata (sourced from blind_validation_output_v3.txt)
 VERDICTS = {
-    "Time Dilation":     {"label": "WITHHELD",     "color": "#d97706", "delta_bic": 3.27},
-    "Screened Coulomb":  {"label": "IDENTIFIABLE", "color": "#16a34a", "delta_bic": 25.74},
-    "Entropy Expansion": {"label": "IDENTIFIABLE", "color": "#16a34a", "delta_bic": 833.68},
+    "Time Dilation":     {"label": "WITHHELD",     "color": "#d97706", "delta_bic": 13.79},
+    "Screened Coulomb":  {"label": "IDENTIFIABLE", "color": "#16a34a", "delta_bic": 30.65},
+    "Entropy Expansion": {"label": "IDENTIFIABLE", "color": "#16a34a", "delta_bic": 14.58},
 }
 
 def add_verdict_badge(ax, verdict_label, color, loc="upper right"):
@@ -59,16 +59,20 @@ def add_verdict_badge(ax, verdict_label, color, loc="upper right"):
 
 def get_scenario_data(scenario, name, noise_level=0.01):
     """Generate data for a scenario with correct kwargs."""
-    if name == "Time Dilation":
-        return scenario.generate_data(seed=42, noise_level=noise_level, v_max_over_c=0.3)
-    else:
-        # Screened Coulomb and Entropy Expansion: no range restriction kwarg needed
-        # The scenario already bakes in the historical domain
-        return scenario.generate_data(seed=42, noise_level=noise_level)
+    # domain_max restricts the independent variable range (historical window)
+    domain_limits = {
+        "Time Dilation":     0.3,   # v_max = 0.3c (historical low-signal)
+        "Screened Coulomb":  4.0,   # r_max = 4.0 m
+        "Entropy Expansion": 1.0,   # dV/V_i max = 1.0
+    }
+    return scenario.generate_data(
+        seed=42, noise_level=noise_level,
+        domain_max=domain_limits[name]
+    )
 
 
 def main():
-    with open('adcd_v3_blind_validation_report.json', 'r') as f:
+    with open('run_outputs/adcd_v3_taxonomy_validation_report.json', 'r') as f:
         report = json.load(f)
 
     scenario_names = ["Time Dilation", "Screened Coulomb", "Entropy Expansion"]
@@ -78,11 +82,11 @@ def main():
         "Entropy Expansion\n" + r"(Carnot $dV/V_i{\leq}1$)"
     ]
 
-    # Chosen index on Pareto front per scenario
+    # Chosen index on Pareto front per scenario (0-indexed = Rank 1)
     chosen_idx = {
-        "Time Dilation":     1,   # Rank 2 (0-indexed) = exact Lorentz
-        "Screened Coulomb":  0,   # Rank 1 = exact
-        "Entropy Expansion": 0    # Rank 1 = exact
+        "Time Dilation":     0,   # Rank 1 = Lorentz class structure
+        "Screened Coulomb":  0,   # Rank 1 = exact match
+        "Entropy Expansion": 0    # Rank 1 = class match
     }
 
     bics_chosen  = []
