@@ -3,9 +3,6 @@
 \usepackage[dblblindworkshop]{neurips_2026}
 \workshoptitle{New in ML at NeurIPS 2026}
 
-% ---------------------------------------------------------------
-% PACKAGES
-% ---------------------------------------------------------------
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{hyperref}
@@ -32,9 +29,6 @@
 
 \captionsetup{font=small, labelfont=bf, skip=4pt}
 
-% ---------------------------------------------------------------
-% METADATA
-% ---------------------------------------------------------------
 \title{Asymptotic Dictionary Correction Discovery:\\ A Deterministic, Identifiability-Aware Framework\\
 for Recovering Physical Corrections from Observational Data}
 
@@ -45,10 +39,6 @@ for Recovering Physical Corrections from Observational Data}
   \texttt{email} \\
 }
 
-% ---------------------------------------------------------------
-% DOCUMENT
-% ---------------------------------------------------------------
-
 \begin{document}
 
 \maketitle
@@ -58,7 +48,7 @@ We present \textbf{ADCD} (Asymptotic Dictionary Correction Discovery), a
 deterministic framework for recovering structured corrections to known physical laws
 from noisy observational data.
 ADCD operates in the correction-first paradigm: given a known classical baseline,
-it searches exclusively for the anomalous residual that vanishes at the classical limit.
+it searches exclusively for the anomalous residual that must vanish at the classical limit.
 
 The framework rests on three interlocking innovations.
 \emph{First}, algebraically regularized primitive functions enforce exact
@@ -66,25 +56,25 @@ asymptotic vanishing, eliminating catastrophic cancellation that corrupts
 gradient-based optimization at classical limits.
 \emph{Second}, a five-dimensional (MLT$\Theta$Q) Buckingham-$\pi$ engine
 automatically derives physically valid dimensionless ratio arguments,
-enabling the system to correctly handle electromagnetic and thermodynamic
-variables without manual ratio specification.
+enabling correct treatment of electromagnetic and thermodynamic variables
+without manual ratio specification.
 \emph{Third}, a \emph{Phenomenon-Specific Taxonomy} formalizes the Bayesian prior
 inherent in domain expertise: the primitive search space is restricted
 to functional families whose derivation from first principles is documented in the
 physics literature, preventing physically absurd candidates
-(e.g., trigonometric oscillations of charge) without resorting to brute-force
-enumeration.
+(e.g., trigonometric oscillations of charge) without brute-force enumeration.
 
 Evaluated on three canonical physics scenarios under historical low-signal
 observation windows, ADCD demonstrates distinct epistemic behaviors.
 For Screened Coulomb ($\Delta\mathrm{BIC} = 30.65$) and Entropy Expansion
 ($\Delta\mathrm{BIC} = 14.58$), the system achieves full four-step validation
 (IDENTIFIABLE), with the Screened Coulomb result constituting an \emph{exact}
-symbolic match proved blind by virtue of an internal parameter index offset
-($\theta_4$ rather than $\theta_0$).
+symbolic match whose blind provenance is certified by an internal parameter
+index offset ($\theta_4$ rather than $\theta_0$).
 For Time Dilation at $v \le 0.3c$, the Lorentz structure is recovered at Rank~1
-but the system autonomously withholds the structural claim (WITHHELD) because
-the historical data carry insufficient signal for confident identifiability.
+but the positive control fails because the historical signal is too weak
+(${\le}\,4.8\%$ correction against $1\%$ noise): the system autonomously
+withholds the structural claim (WITHHELD).
 This self-aware epistemic restraint is a core design property: ADCD is
 engineered to report ``the data do not yet support a claim'' rather than
 return a confident but unreliable answer.
@@ -92,7 +82,7 @@ All results are byte-exact deterministic across independent runs.
 
 \vspace{0.3em}
 \noindent\textbf{Keywords:} symbolic regression; correction discovery;
-dimensional analysis; Bayesian prior; Pareto front; model selection
+dimensional analysis; Bayesian prior; model selection; identifiability
 \end{abstract}
 
 % ---------------------------------------------------------------
@@ -110,14 +100,14 @@ General-purpose symbolic regression (SR) engines such as PySR~\cite{cranmer2023}
 AI Feynman~\cite{udrescu2020}, and PhySO~\cite{tenachi2023} excel at discovering
 equations from scratch, but face a cluster of difficulties in this correction-first
 setting.
-\emph{Catastrophic cancellation}: as the correction $\Delta \to 0$, floating-point
-subtraction of large nearly-equal terms destroys the gradient
-signal~\cite{ieee754}, causing the optimizer to receive misleading feedback
-precisely where the physics is most constrained.
+\emph{Catastrophic cancellation}: as $\Delta \to 0$, floating-point subtraction
+of large nearly-equal terms destroys the gradient signal~\cite{ieee754},
+causing the optimizer to receive misleading feedback precisely where the physics
+is most constrained.
 \emph{Stochastic irreproducibility}: evolutionary and Monte Carlo search
 engines~\cite{bongard2007,schmidt2009} cannot guarantee byte-identical results
 across runs, complicating audit and replication.
-\emph{Silent overclaiming}: all major SR engines return a single best-fit equation
+\emph{Silent overclaiming}: major SR engines return a single best-fit equation
 regardless of whether the data carry sufficient statistical power to distinguish
 among competing structures~\cite{lacava2021}.
 
@@ -196,68 +186,95 @@ where the naive form returns $0.0$.
 \begin{table}[ht]
 \small
 \caption{The five algebraically regularized primitives, each satisfying
-$\lim_{u\to0}D(u)=0$ as an exact algebraic identity.}
+$\lim_{u\to0}D(u)=0$ as an exact algebraic identity.
+Column ``Physical origin'' cites the fundamental equation that produces this
+functional family; it does not imply the primitive is restricted to that domain.}
 \label{tab:primitives}
 \centering
 \begin{tabular}{@{}lllp{3.5cm}@{}}
 \toprule
 Name & Regularized form $D(u)$ & Domain & Physical origin \\
 \midrule
-\texttt{D\_lor}      & $u/[\sqrt{1-u}(\sqrt{1-u}+1)]$ & $u\in[0,1)$ & Lorentz factor \\
+\texttt{D\_lor}      & $u/[\sqrt{1-u}(\sqrt{1-u}+1)]$ & $u\in[0,1)$ & Lorentz factor ($\gamma-1$) \\
 \texttt{D\_rat}      & $u/(1-u)$                       & $u\neq 1$   & Yukawa/Fermi pole \\
-\texttt{D\_exp}      & $e^{-u}-1$                      & all $u$     & Debye screening \\
+\texttt{D\_exp}      & $e^{-u}-1$                      & all $u$     & Debye/Yukawa screening \\
 \texttt{D\_log}      & $\ln(1+u)$                      & $u>-1$      & Entropy of mixing \\
-\texttt{D\_sqrt\_inv}& $1/\sqrt{1+u}-1$                & $u>-1$      & Gravitational potential \\
+\texttt{D\_sqrt\_inv}& $1/\sqrt{1+u}-1$                & $u>-1$      & Gravitational/Coulomb potential \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Five-dimensional Buckingham-$\pi$ ratio generation}
+\label{sec:buckingham}
 
-ADCD employs a five-dimensional (MLT$\Theta$Q) Buckingham-$\pi$ engine.
-Each variable is represented as a five-vector $\mathbf{d}\in\mathbb{Z}^5$.
-The engine constructs dimensionless $\pi$-groups by computing the rational
-nullspace of the dimension matrix.
+ADCD employs a five-dimensional (MLT$\Theta$Q) Buckingham-$\pi$ engine
+where each variable is represented as a five-vector $\mathbf{d}\in\mathbb{Z}^5$
+over the SI base dimensions Mass~(M), Length~(L), Time~(T), Temperature~($\Theta$),
+and Electric Charge~(Q).
+The engine constructs dimensionless $\pi$-groups by computing the rational nullspace
+of the dimension matrix and enumerating integer-exponent products thereof.
 
-The extension from conventional MLT to MLT$\Theta$Q is crucial for correctness.
-For Screened Coulomb, charges $q_1,q_2$ carry genuine Charge dimension Q.
-The 5D engine must account for Q in every ratio it generates.
-As a result, four parameter slots ($\theta_0$--$\theta_3$) are consumed by
-charge-related ratios before the distance-ratio slot $\theta_4$ is reached.
-The recovered expression \texttt{theta\_0 * (exp(-r/theta\_4) - 1.0)} carries
-subscript 4 as machine-verifiable evidence that the distance ratio was
-discovered, not manually supplied: if $r/\theta$ had been hardcoded, the
-subscript would be 0.
+The extension from the conventional MLT to MLT$\Theta$Q is crucial for
+correctness, not merely completeness.
+In a 3D (MLT) engine, charges $q_1$ and $q_2$ carry no dimension and are
+trivially treated as scalars; the engine would form $r/\theta$ as the primary
+candidate ratio involving a length scale.
+In the 5D engine, charges carry genuine Charge dimension~(Q); the engine must
+enumerate and account for Q in every ratio candidate it generates.
+This increases the number of systematically explored ratio candidates,
+and the distance ratio $r/\theta$ is reached only after charge-dimensional
+candidates are enumerated in order.
+
+This enumeration order is reflected directly in the validation output.
+The blind search for Screened Coulomb recovers $\theta_0(e^{-r/\theta_4}-1)$,
+where subscript $4$ indicates that four ratio candidates were enumerated before
+the distance-ratio argument $r/\theta_4$ was reached.
+Had the ratio $r/\theta$ been supplied manually (bypassing the Buckingham-$\pi$
+engine), the parameter would universally carry subscript $0$.
+The non-zero subscript is therefore machine-verifiable evidence that the
+dimensionless argument was derived blindly from dimensional algebra, not
+from prior knowledge of the answer.
 
 \subsection{Phenomenon-specific taxonomy as Bayesian prior}
 \label{sec:taxonomy}
 
 Each physics phenomenon is associated with a named set of permitted primitive
 families, derived exclusively from the fundamental equations of that phenomenon.
-\texttt{yukawa\_debye\_screening} permits only \texttt{D\_exp} and \texttt{D\_rat},
-because the Klein-Gordon equation yields $V(r)\propto e^{-mr}/r$ and
-Debye-H\"{u}ckel theory yields $\phi(r)\propto e^{-r/\lambda_D}/r$.
+For example, the taxonomy entry \texttt{yukawa\_debye\_screening} permits only
+\texttt{D\_exp} and \texttt{D\_rat}, because the Klein-Gordon equation
+yields $V(r)\propto e^{-mr}/r$ and Debye-H\"{u}ckel theory yields
+$\phi(r)\propto e^{-r/\lambda_D}/r$: both involve only exponential and rational
+functional families.
 Trigonometric and power-law families are excluded because no peer-reviewed
 derivation of Yukawa or Debye screening produces them.
 
-Crucially, the taxonomy specifies \emph{which functional family}; it does not
-specify \emph{which variable enters the argument} or \emph{what the scale parameter is}.
-These are determined entirely by the Buckingham-$\pi$ engine and the JAX optimizer.
-A physicist confronting a shielding anomaly does not try sinusoidal oscillations
-of electric charge: the Klein-Gordon equation rules them out.
-ADCD formalizes this prior explicitly, making it documented, auditable, and reproducible.
+\textbf{What the taxonomy specifies.}
+The taxonomy restricts \emph{which functional family} is admitted to the
+search space. It supplies nothing about \emph{which variable} enters the
+dimensionless argument or \emph{what the scale parameter} is.
+These are determined entirely by the Buckingham-$\pi$ engine
+(Section~\ref{sec:buckingham}) and the numerical optimizer operating on data.
 
-Adding a physically unjustified primitive (e.g., \texttt{D\_pow} in a
-Yukawa scenario) acts as a ``noise sponge'': it absorbs variance from
-the distance variable and collapses the Ablation Control BIC gap,
-degrading identifiability without improving physical interpretability.
-The taxonomy restriction removes hypotheses that physics has already eliminated.
+\textbf{What this means in practice.}
+A physicist confronting a plasma shielding anomaly does not try sinusoidal
+oscillations of electric charge as candidate corrections: the Debye-H\"{u}ckel
+derivation rules them out.
+ADCD formalizes this prior explicitly, making it documented, auditable, and
+reproducible.
+Including a physically unjustified primitive (such as a power-law family
+not present in our dictionary) in a Yukawa scenario would make it act as a
+``noise sponge,'' absorbing variance from the distance variable and collapsing
+the Ablation Control BIC gap, degrading identifiability without improving
+physical interpretability.
+The Phenomenon-Specific Taxonomy is not a shortcut; it is the removal of
+hypotheses that the founding physics literature has already falsified.
 
 Table~\ref{tab:taxonomy} lists the taxonomy entries for our three experiments.
 
 \begin{table}[ht]
 \small
-\caption{Phenomenon-specific taxonomy: permitted primitives and justification.}
+\caption{Phenomenon-specific taxonomy entries used in experiments,
+with physical justification for the primitive set.}
 \label{tab:taxonomy}
 \centering
 \begin{tabular}{@{}p{3.8cm}p{2.4cm}p{5.4cm}@{}}
@@ -265,11 +282,11 @@ Table~\ref{tab:taxonomy} lists the taxonomy entries for our three experiments.
 Phenomenon key & Primitives & Justification \\
 \midrule
 \texttt{yukawa\_debye\_screening} & \texttt{D\_exp}, \texttt{D\_rat} &
-  Klein-Gordon / Debye-H\"{u}ckel: only $e^{-mr}/r$ form. \\
+  Klein-Gordon / Debye-H\"{u}ckel: fundamental form is $e^{-mr}/r$. \\
 \texttt{lorentz\_special\_relativity} & \texttt{D\_lor} &
-  Lorentz invariance of Maxwell equations: uniquely selects $\gamma-1$ factor. \\
+  Lorentz invariance of Maxwell equations uniquely selects the $\gamma-1$ form. \\
 \texttt{isothermal\_thermodynamics} & \texttt{D\_exp}, \texttt{D\_log} &
-  Entropy of mixing and van der Waals: $\ln$ and $e^{-\beta\epsilon}$ families. \\
+  Entropy of mixing and van der Waals equation involve $\ln$ and $e^{-\beta\epsilon}$. \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -277,16 +294,18 @@ Phenomenon key & Primitives & Justification \\
 \subsection{Grammar enumeration and theta-intact constraint}
 
 Candidates take the form $\hat{\Delta}=\theta_0\cdot D_i(u_{ij})$,
-optionally composed to depth 3 with a secondary term.
-Dimensionless arguments are auto-generated by the Buckingham-$\pi$ engine
-with a budget of up to 12 candidate ratios per scenario.
+optionally composed to depth~3 with a secondary correction term.
+Dimensionless arguments $u_{ij}$ are auto-generated by the Buckingham-$\pi$
+engine with a budget of up to 12 candidate ratios per scenario,
+ensuring sufficient coverage when multiple dimensional families (e.g., Charge and
+Length) are present simultaneously.
 
 All structural gates (Section~\ref{sec:gates}) are evaluated on the
 \emph{theta-intact} expression---the fully parameterized form before any
 $\theta_i$ are substituted with probe values.
 Substituting $\theta_i=1$ before gating would collapse dimensionful scale
-parameters (e.g., $r/\theta_4$) into dimensionless constants, falsifying
-dimensional analysis.
+parameters (e.g., the ratio $r/\theta_1$ representing a Debye length)
+into dimensionless constants, falsifying the dimensional consistency check.
 
 \subsection{Physical gate cascade}
 \label{sec:gates}
@@ -304,7 +323,7 @@ Before any numerical fitting, each candidate must pass a five-gate cascade
 Gate & Rejection criterion \\
 \midrule
 1. AST complexity & SymPy tree depth $>12$ or token count $>50$. \\
-2. Dimensional consistency & SI base dimensions do not match the target. \\
+2. Dimensional consistency & SI base dimensions of the expression do not match the target. \\
 3. Transcendental safety & Arguments to $\exp$, $\ln$, $\sqrt{\cdot}$ are not dimensionless. \\
 4. Asymptotic check (ARC) & Symbolic limit at the classical boundary does not vanish. \\
 5. Coarse numerical fitness & Evaluation at $\boldsymbol{\theta}=\mathbf{1}$ produces \texttt{NaN}/\texttt{Inf}. \\
@@ -313,21 +332,30 @@ Gate & Rejection criterion \\
 \end{table}
 
 Gate~3 (Transcendental Safety) rejects expressions such as $\exp(q/\theta)$
-when $q$ has dimension C, because the argument is not dimensionless.
-This prevents dimensionally inconsistent forms from surviving to the optimizer,
-even if the optimizer could numerically fit them to acceptable values.
+when $q$ carries dimension Q (Electric Charge), because the argument $q/\theta$
+is not dimensionless unless $\theta$ carries the same dimension.
+This prevents dimensionally inconsistent forms from reaching the optimizer,
+even when the optimizer could numerically fit them to acceptable values.
 
 \subsection{Parameter optimization and model selection}
 
-Surviving candidates are optimized via L-BFGS-B in JAX (\texttt{float64}).
-Parameters are log-parameterized ($\theta_i = s_i e^{u_i}$) to allow
-traversal across orders of magnitude with smooth gradients.
+Surviving candidates are optimized via L-BFGS-B implemented in JAX
+(\texttt{float64}).
+All free parameters are log-parameterized ($\theta_i = s_i e^{u_i}$,
+$s_i \in \{-1,+1\}$) to allow traversal across orders of magnitude with
+smooth gradients.
+Multiple restarts with diverse initializations reduce sensitivity to
+local optima.
 
 Model selection uses the Bayesian Information Criterion~\cite{schwarz1978}:
-$\mathrm{BIC}=k\ln N - 2\ln\hat{L}$.
+\begin{equation}
+  \mathrm{BIC} = k\ln N - 2\ln\hat{L}
+\end{equation}
+where $k$ is the number of free parameters, $N$ the data size, and $\hat{L}$
+the maximized likelihood under Gaussian noise.
 By the Kass--Raftery scale~\cite{kass1995}, $\Delta\mathrm{BIC}>10$
-constitutes very strong evidence; we use this as the minimum threshold
-for any identifiability claim.
+constitutes very strong evidence; we adopt this as the minimum threshold for
+any identifiability claim.
 
 \subsection{Four-step validation protocol}
 \label{sec:protocol}
@@ -335,14 +363,17 @@ for any identifiability claim.
 A structural discovery claim is made only when all four checks pass:
 \begin{enumerate}[noitemsep,leftmargin=*]
   \item \textbf{Budget disclosure.} Full search space size $|\mathcal{C}|$
-        and primitive list reported before results are seen.
-  \item \textbf{Positive control.} With only the ground-truth primitive,
-        the system recovers the correct structure.
-  \item \textbf{Ablation control.} With the ground-truth primitive excluded,
-        $\Delta\mathrm{BIC}>10$ between the correct and best-alternative structure.
-  \item \textbf{Determinism check.} Three independent runs produce
-        byte-exact identical results.
+        and primitive list are reported before results are seen.
+  \item \textbf{Positive control.} Restricted to only the ground-truth
+        primitive family, the system must recover the correct structure.
+  \item \textbf{Ablation control.} With the ground-truth primitive family excluded,
+        the BIC gap between the correct structure and the best alternative
+        must satisfy $\Delta\mathrm{BIC}>10$.
+  \item \textbf{Determinism check.} Three independent runs with identical inputs
+        produce byte-exact identical results.
 \end{enumerate}
+Failure of any single check yields WITHHELD.
+Passing all four yields IDENTIFIABLE.
 
 % ---------------------------------------------------------------
 \section{Experiments}
@@ -351,15 +382,18 @@ A structural discovery claim is made only when all four checks pass:
 \subsection{Setup}
 
 Table~\ref{tab:scenarios} summarizes the three scenarios.
-Observation windows reflect historical low-signal regimes.
-Synthetic observations use 1\% Gaussian multiplicative noise, $N=200$, seed~42.
-The ground truth is never provided to the pipeline;
-only noisy observations, classical predictions, dimensional definitions,
+Observation windows are chosen to reflect historical low-signal regimes where
+the anomalous correction was just beginning to emerge from classical noise.
+Synthetic observations use 1\% Gaussian multiplicative noise,
+$N=200$ points, seed~42.
+The ground truth is never provided to the pipeline at any stage;
+only noisy observations, classical predictions, dimensional variable definitions,
 and the taxonomy key are supplied.
 
 \begin{table}[ht]
 \small
-\caption{Experimental scenarios.}
+\caption{Experimental scenarios with domains, historical observation windows,
+taxonomy keys, and target primitive families.}
 \label{tab:scenarios}
 \centering
 \begin{tabular}{@{}lllll@{}}
@@ -383,14 +417,16 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
   \centering
   \includegraphics[width=\textwidth]{fig1_recovery.pdf}
   \caption{%
-    Correction recovery.
-    \textit{Gray}: observed residual at 1\% noise.
-    \textit{Blue}: ground truth.
+    Correction recovery for the three scenarios.
+    \textit{Gray dots}: observed residual $\Delta$ at 1\% Gaussian noise.
+    \textit{Blue solid}: ground truth.
     \textit{Red dashed}: ADCD top-ranked recovery.
-    Screened Coulomb (IDENTIFIABLE): exact match, $\mathrm{NMSE}=2.77\times10^{-4}$.
-    Entropy Expansion (IDENTIFIABLE): class-level match, $\mathrm{NMSE}=1.59\times10^{-2}$.
-    Time Dilation (WITHHELD): Lorentz structure at Rank~1,
-    positive control fails due to weak historical signal.
+    Screened Coulomb (IDENTIFIABLE): exact symbolic match,
+    $\mathrm{NMSE}=2.77\times10^{-4}$.
+    Entropy Expansion (IDENTIFIABLE): class-level match,
+    $\mathrm{NMSE}=1.59\times10^{-2}$.
+    Time Dilation (WITHHELD): Lorentz structure found at Rank~1,
+    but positive control fails under the historical $v\le0.3c$ window.
   }
   \label{fig:recovery}
 \end{figure*}
@@ -400,10 +436,13 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
   \includegraphics[width=\textwidth]{fig2_bic.pdf}
   \caption{%
     BIC identifiability comparison.
-    \textit{Left}: BIC of correctly-structured candidate (blue) and best
-    alternative with the ground-truth primitive excluded (gray).
-    \textit{Right}: $\Delta\mathrm{BIC}$.
-    Red dashed: Kass--Raftery threshold ($\Delta\mathrm{BIC}=10$)~\cite{kass1995}.
+    \textit{Left}: BIC of the correctly-structured candidate (blue) and the
+    best alternative with the ground-truth primitive family excluded (gray).
+    Lower BIC is preferred.
+    \textit{Right}: $\Delta\mathrm{BIC}$ (correct minus ablated).
+    Red dashed: Kass--Raftery ``very strong evidence'' threshold
+    ($\Delta\mathrm{BIC}=10$)~\cite{kass1995}.
+    Both identifiable scenarios exceed this threshold decisively.
   }
   \label{fig:bic}
 \end{figure*}
@@ -412,24 +451,28 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
   \centering
   \includegraphics[width=\textwidth]{fig3_parity.pdf}
   \caption{%
-    Parity plots: recovered vs.\ true correction for $N=200$ data points.
-    Blue: 1:1 reference.
-    Near-perfect diagonal for Screened Coulomb ($\mathrm{NMSE}=2.77\times10^{-4}$)
-    illustrates a clean exact match achieved without any symbolic hint.
+    Parity plots: recovered correction ($\Delta_\mathrm{rec}$) vs.\
+    true correction ($\Delta_\mathrm{true}$) for $N=200$ data points.
+    Blue solid: 1:1 reference.
+    The near-perfect diagonal for Screened Coulomb
+    ($\mathrm{NMSE}=2.77\times10^{-4}$) illustrates a clean exact match
+    achieved without any symbolic hint.
   }
   \label{fig:parity}
 \end{figure*}
 
-Table~\ref{tab:results} summarizes quantitative results.
-Two scenarios pass all four validation steps (IDENTIFIABLE);
-the third (Time Dilation) finds the correct structure at Rank~1 but
-the positive control fails under the historical low-signal window---
-the system correctly outputs WITHHELD.
+Table~\ref{tab:results} summarizes the full quantitative results.
+Two of three scenarios pass all four validation steps and are declared
+IDENTIFIABLE; the third (Time Dilation) finds the correct Lorentz structure
+at Rank~1 but the positive control fails under the historical low-signal window,
+resulting in the principled WITHHELD verdict.
 
 \begin{table}[ht]
   \small
-  \caption{Four-step validation results.
-  PC = Positive Control; AC$_\Delta$ = Ablation Control $\Delta$BIC.}
+  \caption{Four-step validation results for all three scenarios.
+  PC = Positive Control (pass/fail).
+  $\Delta$BIC = Ablation Control gap (correct minus best-without-correct-primitive).
+  Match level: \textit{exact} = symbolic equivalence verified; \textit{class} = correct functional family, amplitude absorbs unverifiable constants.}
   \label{tab:results}
   \centering
   \resizebox{\columnwidth}{!}{%
@@ -437,7 +480,7 @@ the system correctly outputs WITHHELD.
     \toprule
     \textbf{Scenario} & \textbf{Discovered structure} &
     \textbf{Rank} & \textbf{NMSE} & \textbf{PC} &
-    \textbf{AC$_\Delta$BIC} & \textbf{Match} & \textbf{Verdict} \\
+    \textbf{$\Delta$BIC} & \textbf{Match} & \textbf{Verdict} \\
     \midrule
     Screened Coulomb ($r\le4$~m) &
       $\theta_0(e^{-r/\theta_4}-1)$ &
@@ -453,38 +496,43 @@ the system correctly outputs WITHHELD.
   }
 \end{table}
 
-\paragraph{Screened Coulomb: exact match proved blind by parameter index.}
+\paragraph{Screened Coulomb: exact match with machine-verifiable blind provenance.}
 The recovered $\theta_0(e^{-r/\theta_4}-1)$ is an exact symbolic match to the
 ground truth $\theta_0(e^{-r/\lambda_D}-1)$, with fitted $\theta_4\approx1.50$
-matching $\lambda_D=1.50$.
-The subscript \texttt{4} rather than \texttt{0} is machine-verifiable evidence
-of blind discovery: the 5D Buckingham-$\pi$ engine consumed four parameter slots
-($\theta_0$--$\theta_3$) for charge-related ratios before reaching the
-distance-ratio slot $\theta_4$.
-Had $r/\theta$ been manually supplied, the subscript would be \texttt{0}.
-$\Delta\mathrm{BIC}=30.65$ far exceeds the Kass--Raftery threshold.
+matching the ground-truth Debye length $\lambda_D=1.50$.
+The parameter subscript $4$ rather than $0$ is machine-verifiable evidence of
+blind discovery: the 5D Buckingham-$\pi$ engine enumerated four ratio candidates
+in systematic dimensional order before reaching the distance-ratio candidate
+$r/\theta_4$.
+Had the ratio $r/\theta$ been manually supplied to the optimizer, the subscript
+would universally be $0$.
+$\Delta\mathrm{BIC}=30.65$ far exceeds the Kass--Raftery threshold of 10.
 
-\paragraph{Entropy Expansion: class-level match with explicit epistemic honesty.}
+\paragraph{Entropy Expansion: class-level match with explicit epistemic qualification.}
 Recovered $\theta_0\ln(1+dV/V_i)$ matches the ground truth
 $\frac{nR}{S_i}\ln(1+dV/V_i)$ at class level: the amplitude $\theta_0$
 absorbs the physical ratio $nR/S_i$, which cannot be verified symbolically
 without independent measurement of $n$, $R$, and $S_i$.
-ADCD explicitly labels this \texttt{class\_only} rather than \texttt{exact}---
-epistemic honesty absent in unconstrained SR outputs.
+ADCD explicitly labels this result \texttt{class\_only} rather than
+\texttt{exact}---a form of epistemic qualification absent in unconstrained
+SR outputs, which return a numerical amplitude without flagging its unverifiable
+physical interpretation.
 $\Delta\mathrm{BIC}=14.58>10$ supports IDENTIFIABLE.
 
 \paragraph{Time Dilation: WITHHELD as designed.}
-At $v\le0.3c$, the relativistic correction is $\le5\%$ of the classical
-baseline with 1\% injected noise.
-The Lorentz structure $D_\mathrm{lor}(v^2/c^2)$ appears at Rank~1, confirming
-the grammar's structural reach.
-But the positive control fails (NMSE$=0.41$): even restricted to the correct
-primitive family, the optimizer cannot confidently isolate the correction signal
-from noise at this historical window.
-The system outputs WITHHELD---a correct acknowledgment that the data are not
-yet sufficient, mirroring the situation of early-20th-century experimentalists
-who observed small deviations from Newton but lacked the precision to confirm
-the Lorentz structure.
+At $v\le0.3c$, the relativistic correction factor $\gamma-1\approx4.8\%$
+of the classical baseline, while the injected noise level is $1\%$.
+The Lorentz structure $D_\mathrm{lor}(v^2/c^2)$ is correctly recovered at Rank~1,
+confirming that the grammar reaches the correct functional form.
+However, the positive control fails (NMSE$=0.41$): even when the search
+space is restricted to \texttt{D\_lor} alone, the optimizer cannot reliably
+isolate the $4.8\%$ correction signal from the $1\%$ noise floor.
+The system outputs WITHHELD---not a wrong answer, but a correct
+acknowledgment that the historical data window does not carry sufficient signal
+for a confident structural claim.
+This mirrors the situation of early 20th-century experimentalists who observed
+small deviations from Newtonian predictions but lacked the precision to confirm
+the Lorentz structure with statistical confidence.
 
 % ---------------------------------------------------------------
 \section{Discussion}
@@ -492,41 +540,49 @@ the Lorentz structure.
 
 \subsection{Epistemic strength of the WITHHELD verdict}
 
-The Time Dilation WITHHELD result is frequently misread as failure.
+The Time Dilation WITHHELD result is frequently misread as a failure.
 The correct interpretation is the opposite.
-A system that returns a confident ``best answer'' regardless of data
-sufficiency is epistemically weaker than one that distinguishes between
-\emph{found and confirmed} (IDENTIFIABLE), \emph{found but uncertain}, and
-\emph{data do not support a claim} (WITHHELD).
-ADCD's WITHHELD verdict on Time Dilation at $v\le0.3c$ is the system
-correctly diagnosing its own identifiability boundary.
-Crucially, the transition from WITHHELD to IDENTIFIABLE is quantitative and
-reproducible: better instruments, wider velocity range, or denser data
-will push $\Delta\mathrm{BIC}$ above the threshold, and ADCD will report so.
+A system that always returns a confident ``best answer'' regardless of data
+sufficiency is epistemically weaker than one that formally distinguishes between
+two outcomes: \emph{found and confirmed} (IDENTIFIABLE) and
+\emph{data insufficient for a structural claim} (WITHHELD).
+ADCD's WITHHELD verdict on Time Dilation at $v\le0.3c$ is the system correctly
+diagnosing its own identifiability boundary.
+Crucially, this boundary is quantitative and reproducible: a wider velocity
+window, better instrument precision, or a larger dataset would push
+$\Delta\mathrm{BIC}$ above the threshold, and ADCD would then report
+IDENTIFIABLE. The threshold crossing is a falsifiable, reproducible event.
 
 \subsection{Taxonomy as Bayesian prior, not hint}
 
-The distinction between ``hand-feeding the answer'' and ``specifying a
-domain-justified prior'' is operational:
-the taxonomy restricts \emph{which functional family}---it supplies nothing
-about \emph{which variable} enters the argument or \emph{what the scale is}.
+The distinction between ``hand-feeding the answer'' and
+``specifying a domain-justified prior'' is operational.
+The taxonomy restricts \emph{which functional family} is admitted;
+it supplies nothing about \emph{which variable} enters the argument or
+\emph{what the numerical scale} is.
 A physicist confronting a plasma shielding anomaly does not try sinusoidal
-charge oscillations: the Debye-H\"{u}ckel derivation rules them out.
+oscillations of electric charge: the Debye-H\"{u}ckel derivation rules them out.
 ADCD makes this reasoning explicit, auditable, and reproducible.
 
-Including a physically unjustified primitive in the taxonomy---e.g., adding
-\texttt{D\_pow} to a Yukawa scenario---degrades performance: \texttt{D\_pow}
-acts as a noise sponge absorbing variance from distance, collapsing the
-Ablation Control BIC gap and destroying identifiability without improving
-physical interpretability.
+Including a physically unjustified primitive in the taxonomy degrades
+performance: such a primitive acts as a noise sponge, absorbing variance
+from the physically relevant variable (here, distance $r$), collapsing
+the Ablation Control BIC gap, and destroying identifiability without
+improving physical interpretability.
 The Phenomenon-Specific Taxonomy is not a shortcut; it is the removal of
-hypotheses that the founding literature has already falsified.
+hypotheses that the founding physics literature has already falsified.
 
 \subsection{Comparison with general SR}
 
+ADCD and general SR engines address fundamentally different objectives.
+The meaningful comparison is not search space size or flexibility,
+but epistemic certainty: ADCD explicitly reports when data are insufficient
+to support a structural claim. Table~\ref{tab:comparison} summarizes
+the distinct operational regimes.
+
 \begin{table}[ht]
 \small
-\caption{Operational comparison: ADCD vs.\ unconstrained (tabula-rasa) SR.}
+\caption{Operational comparison: ADCD vs.\ unconstrained symbolic regression.}
 \label{tab:comparison}
 \centering
 \begin{tabular}{@{}p{2.8cm}p{3.5cm}p{4.2cm}@{}}
@@ -535,8 +591,8 @@ Dimension & ADCD & General SR \\
 \midrule
 Target & Corrections to known laws & Full equations from scratch \\
 Prior & Phenomenon-specific taxonomy & None (tabula rasa) \\
-Dimensional engine & 5D MLT$\Theta$Q Buckingham-$\pi$ & Varies (often 3D or none) \\
-Classical limit & Algebraic guarantee & Soft penalty \\
+Dimensional engine & 5D MLT$\Theta$Q & Varies (often 3D or none) \\
+Classical limit & Algebraic guarantee & Soft loss penalty \\
 Identifiability & Explicit; WITHHELD if insufficient & Absent or post-hoc \\
 Reproducibility & Byte-exact deterministic & Stochastic \\
 \bottomrule
@@ -546,22 +602,24 @@ Reproducibility & Byte-exact deterministic & Stochastic \\
 \subsection{Limitations}
 \label{sec:limitations}
 
-\textbf{Positive control sensitivity.}
-Time Dilation's positive control failure stems from the weak signal at
-$v\le0.3c$, not from an algorithmic defect.
-Future work should investigate adaptive restart grids for weak-signal regimes.
+\textbf{Positive control sensitivity at weak signal.}
+Time Dilation's positive control failure is not an algorithmic defect; it is
+the correct output of the identifiability protocol at a data regime where
+the signal-to-noise ratio on the residual is insufficient.
+Future work should investigate adaptive restart strategies and denser
+initialization grids to improve optimizer convergence in such regimes.
 
 \textbf{Scope.}
-Current support is limited to five primitives, multiplicative corrections,
+Current support is limited to five primitive families, multiplicative corrections,
 and synthetic Gaussian noise.
-Extension to additive corrections, heavier-tailed noise, and real
-observational data (e.g., SPARC rotation curves for MOND-like corrections)
-is a primary direction for future work.
+Extension to additive corrections, heavier-tailed noise distributions, and
+real observational data (e.g., SPARC galactic rotation curves for MOND-like
+corrections) is a primary direction for future work.
 
 \textbf{Taxonomy coverage.}
-Each new taxonomy entry requires documenting a peer-reviewed derivation
-for every admitted primitive---a deliberate constraint that prevents
-unchecked hypothesis-space expansion.
+Each new taxonomy entry requires citing a peer-reviewed derivation for every
+admitted primitive family---a deliberate constraint that prevents unchecked
+hypothesis-space expansion and keeps the prior auditable.
 
 % ---------------------------------------------------------------
 \section{Conclusion}
@@ -572,29 +630,31 @@ physical corrections from observational data.
 Three core innovations work in concert:
 algebraically regularized primitives that enforce exact classical-limit
 vanishing without numerical approximation;
-a five-dimensional Buckingham-$\pi$ engine that correctly handles
-electromagnetic and thermodynamic variables in automatic ratio generation;
-and a Phenomenon-Specific Taxonomy that formalizes domain Bayesian priors
-as explicit, auditable constraints on the hypothesis space.
+a five-dimensional (MLT$\Theta$Q) Buckingham-$\pi$ engine that correctly
+handles electromagnetic and thermodynamic variables in automatic ratio
+generation; and a Phenomenon-Specific Taxonomy that formalizes domain
+Bayesian priors as explicit, auditable, and citable constraints on
+the hypothesis space.
 
 On three canonical scenarios at historical low-signal observation windows,
 ADCD delivers two fully validated IDENTIFIABLE results
-(Screened Coulomb: $\Delta\mathrm{BIC}=30.65$, exact match proved blind;
-Entropy Expansion: $\Delta\mathrm{BIC}=14.58$, class match with explicit
-epistemic qualification)
+(Screened Coulomb: $\Delta\mathrm{BIC}=30.65$, exact symbolic match with
+machine-verifiable blind provenance;
+Entropy Expansion: $\Delta\mathrm{BIC}=14.58$, class-level match with
+explicit epistemic qualification)
 and one principled WITHHELD verdict (Time Dilation at $v\le0.3c$),
-where the system correctly diagnoses that the historical data are insufficient
-for a confident structural claim.
+where the system correctly diagnoses that the historical observation
+window does not carry sufficient signal for a confident structural claim.
 
 The WITHHELD verdict is not a failure; it is ADCD's most important property.
-An equation discovery engine that reports uncertainty when data are ambiguous
-is more scientifically useful than one that always returns a confident but
-unreliable answer.
-Within its deliberate scope---known classical baseline, multiplicative correction,
-structured Gaussian noise---ADCD provides stronger reproducibility and
-identifiability guarantees than general-purpose SR engines,
-and furnishes a clear, quantitative signal to the domain expert when those
-guarantees cannot be met.
+An equation discovery engine that quantitatively reports its own
+identifiability boundary is more scientifically useful than one that
+always returns a confident but unreliable answer.
+Within its deliberate scope---known classical baseline, multiplicative
+correction, Gaussian noise---ADCD provides stronger reproducibility and
+identifiability guarantees than general-purpose SR engines, and furnishes
+a clear, quantitative signal to the domain expert when those guarantees
+cannot be met.
 
 % ---------------------------------------------------------------
 \section*{Use of AI-Assisted Tools}
@@ -620,9 +680,6 @@ formulas; generation code is included in the public repository.
 No proprietary or restricted datasets are used.
 
 % ---------------------------------------------------------------
-% REFERENCES
-% ---------------------------------------------------------------
-
 \bibliographystyle{unsrtnat}
 \bibliography{references}
 
