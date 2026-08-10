@@ -286,8 +286,8 @@ Phenomenon key & Primitives & Justification \\
   Klein-Gordon / Debye-H\"{u}ckel: fundamental form is $e^{-mr}/r$. \\
 \texttt{lorentz\_special\_relativity} & \texttt{D\_lor} &
   Lorentz invariance of Maxwell equations uniquely selects the $\gamma-1$ form. \\
-\texttt{isothermal\_thermodynamics} & \texttt{D\_exp}, \texttt{D\_log} &
-  Entropy of mixing and van der Waals equation involve $\ln$ and $e^{-\beta\epsilon}$. \\
+\texttt{boltzmann\_thermodynamics} & \texttt{D\_exp}, \texttt{D\_log} &
+  Boltzmann partition function and entropy of mixing involve $e^{-\beta\epsilon}$ and $\ln$. \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -407,7 +407,7 @@ Time Dilation     & Relativity      & $v\le0.3c$       &
 Screened Coulomb  & Electrostatics  & $r\le4.0$~m      &
   \texttt{yukawa\_debye\_screening}     & \texttt{D\_exp} \\
 Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
-  \texttt{isothermal\_thermodynamics}   & \texttt{D\_log} \\
+  \texttt{boltzmann\_thermodynamics}   & \texttt{D\_log} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -441,7 +441,7 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
   \includegraphics[width=\textwidth]{fig2_bic.pdf}
   \caption{%
     BIC identifiability comparison.
-    \textit{Left (a)}: absolute BIC of the correctly-structured candidate
+    \textit{Left (a)}: absolute BIC of the Rank-1 blind-search candidate
     (dark blue) and the best alternative with the ground-truth primitive family
     excluded (gray). Lower BIC is preferred.
     \textit{Right (b)}: $\Delta\mathrm{BIC}$ (ablated minus correct;
@@ -482,8 +482,8 @@ resulting in the principled WITHHELD verdict.
   \small
   \caption{Four-step validation results for all three scenarios.
   PC = Positive Control (pass/fail).
-  $\Delta$BIC = Ablation Control gap (best-without-correct-primitive minus correct;
-  positive values indicate the correct structure is preferred).
+  $\Delta$BIC = ablated Rank-1 BIC minus blind Rank-1 BIC;
+  positive values indicate the full-primitive set is preferred over the ablated set.
   Match level: \textit{exact} = symbolic equivalence verified;
   \textit{class} = correct functional family confirmed; amplitude absorbs
   unverifiable physical constants.}
@@ -572,20 +572,18 @@ IDENTIFIABLE---a transition that is itself a falsifiable, reproducible predictio
 
 The distinction between ``hand-feeding the answer'' and
 ``specifying a domain-justified prior'' is both real and practically significant.
-The taxonomy restricts \emph{which functional family} is admitted;
-it supplies nothing about \emph{which variable} enters the argument or
-\emph{what the numerical scale} is.
-A physicist confronting a plasma shielding anomaly does not try sinusoidal
-oscillations of electric charge: the Debye-H\"{u}ckel derivation rules them out.
-ADCD makes this reasoning explicit, auditable, and reproducible.
+The taxonomy restricts \emph{which functional family} is admitted to the search;
+it supplies nothing about \emph{which variable} enters the dimensionless argument
+or \emph{what the numerical scale} is---both are determined exclusively by the
+Buckingham-$\pi$ engine and the numerical optimizer.
 
-Including a physically unjustified primitive in the taxonomy degrades
-performance: such a primitive acts as a noise sponge, absorbing variance
-from the physically relevant variable (here, distance $r$), collapsing
-the Ablation Control BIC gap, and destroying identifiability without
-improving physical interpretability.
-The Phenomenon-Specific Taxonomy is not a shortcut; it is the removal of
-hypotheses that the founding physics literature has already falsified.
+The four-step validation protocol exposes this separation directly:
+Step~0 and Step~1 always execute as a fully blind search over all five primitives;
+the taxonomy prior is applied only in the calibration checks (Steps~2--3)
+to isolate and stress-test the specific structural claim.
+The Screened Coulomb exact match at $\theta_4$ therefore could not have been
+influenced by the taxonomy key: the subscript was assigned before taxonomy
+restriction ever entered the pipeline.
 
 \subsection{Comparison with general SR}
 
@@ -630,16 +628,27 @@ initialization grids to improve optimizer convergence in such regimes.
 Current support is limited to five primitive families, multiplicative corrections,
 and synthetic Gaussian noise.
 Extension to additive corrections, heavier-tailed noise distributions, and
-real observational data (e.g., SPARC galactic rotation curves for MOND-like
-corrections) is a primary direction for future work.
+real observational data (e.g., galactic rotation curves, pulsar timing residuals)
+remains as future work; validation on real data requires additional preprocessing
+for heteroscedastic and non-Gaussian measurement uncertainties not yet modelled
+by the current pipeline.
 
 \textbf{Taxonomy coverage.}
 Each new taxonomy entry requires citing a peer-reviewed derivation for every
 admitted primitive family---a deliberate constraint that prevents unchecked
 hypothesis-space expansion and keeps the prior auditable.
 
-\textbf{The Safety--Expressivity Trade-off.}
-ADCD intentionally sacrifices the unbounded expressivity of general-purpose SR engines like PySR in exchange for safety, identifiability, and physical validity. While PySR can fit arbitrary data geometries by combining unconstrained mathematical operators, ADCD refuses to explore functional forms that are dimensionally inconsistent or unsupported by the Phenomenon-Specific Taxonomy. This restricts ADCD from discovering entirely novel physical phenomena that do not share structural roots with known theories, reflecting its design as a tool for the \emph{correction} of known laws rather than their \emph{ab initio} formulation.
+\textbf{The safety--expressivity trade-off.}
+ADCD deliberately constrains its hypothesis space relative to
+general-purpose SR engines: any candidate that fails dimensional consistency
+or is outside the phenomenon-specific primitive set is rejected before fitting.
+This is a feature, not a bug---it prevents noise-sponge overfitting and
+enforces physical self-consistency---but it implies that ADCD cannot discover
+corrections whose functional family has no documented derivation in the
+physics literature.
+The appropriate framing is complementarity, not competition:
+general SR engines explore freely to generate hypotheses;
+ADCD audits and confirms corrections to an already-hypothesised baseline.
 
 % ---------------------------------------------------------------
 \section{Conclusion}
