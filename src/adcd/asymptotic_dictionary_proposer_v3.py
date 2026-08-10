@@ -176,7 +176,7 @@ class GrammarBudget:
     max_tokens: int = 25          # slightly higher than v2 since regularized forms
     # cost 2 extra tokens (the "-1.0")
     max_primitives_used: int = 2
-    max_ratio_candidates: int = 8
+    max_ratio_candidates: int = 12
 
 
 def _token_count(expr_str: str) -> int:
@@ -202,6 +202,7 @@ def enumerate_candidates(
     prims = active_primitives or PRIMITIVE_REGISTRY
     prim_names = list(prims.keys())
     candidates: List[str] = []
+
     def _assign_theta(s: str) -> str:
         t = itertools.count(0)
         while "_NEXT_THETA_" in s:

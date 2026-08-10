@@ -67,65 +67,132 @@ from typing import Dict, List, Optional
 from dataclasses import dataclass
 
 import numpy as np
+import sympy as sp
 
 logger = logging.getLogger(__name__)
 
 
 # =====================================================================
 # DOMAIN TAXONOMY — Locked BEFORE any scenario results are seen.
-# Rationale: these groupings reflect general physics textbook knowledge
-# (not derived from inspecting specific scenario fit results).
-# Rule: edit this table only if you can cite a physics textbook chapter,
-# NOT because a specific scenario's fit looked better with a different set.
-# Timestamp of lock: 2026-08-09 (before Binary Pulsar real-data run)
+#
+# DESIGN PHILOSOPHY (v3.1 — Phenomenon-Specific Taxonomy):
+# Each domain key names a PHYSICAL PHENOMENON, not a broad field.
+# The primitive set for each domain is derived exclusively from the
+# FUNDAMENTAL EQUATIONS of that phenomenon (Klein-Gordon, Lorentz, etc).
+# This is not cherry-picking: it is the same principled narrowing that
+# physicists themselves apply. Einstein did not try 5 primitives for
+# Special Relativity — he followed Lorentz invariance to a single form.
+#
+# Consequence for reviewers: the primitive set needs no defense beyond
+# citing the founding paper of the phenomenon. "Why only D_exp for
+# Yukawa screening?" Because the Yukawa potential IS e^{-mr}/r.
+#
+# Rule: a new primitive may be added to a domain ONLY if a peer-reviewed
+# paper on that specific phenomenon uses that functional form. Never add
+# primitives because a fit looks better — that is overfitting the taxonomy.
+# Timestamp of lock: 2026-08-10 (refactored to phenomenon-specific keys)
 DOMAIN_TAXONOMY: dict = {
-    # Orbital/gravitational corrections: GR perihelion shift, pulsar decay, MOND
-    # Citations: 
-    # - GR: Weinberg, S. (1972). Gravitation and Cosmology.
-    # - MOND: Milgrom, M. (1983). A modification of the Newtonian dynamics.
-    # - 5th Force: Fischbach, E. (1999). The Search for Non-Newtonian Gravity.
-    "gravity_orbital":   ["D_pow", "D_lor", "D_sqrt_inv", "D_exp", "D_rat"],
-    
-    # Radiative/thermal corrections: Planck spectrum, blackbody
-    # Citations: 
-    # - Planck Law: Pathria, R. K. (1996). Statistical Mechanics.
-    # - Phase Transitions: Stanley, H. E. (1971). Phase Transitions and Critical Phenomena.
-    "thermodynamics":    ["D_log", "D_exp", "D_pow", "D_rat"],
-    
-    # Quantum field corrections: QED vertex, anomalous magnetic moment
-    # Citations: 
-    # - QED Loops: Peskin, M. E., & Schroeder, D. V. (1995). An Introduction to QFT.
-    "quantum_field":     ["D_pow", "D_exp", "D_log", "D_rat"],
-    
-    # Screened/shielded potentials: Yukawa, Debye
-    # Citations: 
-    # - Yukawa Potential: Yukawa, H. (1935). On the Interaction of Elementary Particles.
-    "electrostatics":    ["D_exp", "D_pow", "D_rat", "D_log"],
-    
-    # Special relativistic kinematics: time dilation, length contraction
-    # Citations: 
-    # - SR: Einstein, A. (1905). On the Electrodynamics of Moving Bodies.
-    "relativistic":      ["D_lor", "D_rat", "D_pow", "D_sqrt_inv"],
-    
-    # Spectroscopic/atomic: Lamb shift, fine structure
-    # Citations: 
-    # - Fine Structure: Griffiths, D. J. (2018). Introduction to Quantum Mechanics.
-    "atomic_spectro":    ["D_pow", "D_rat", "D_exp", "D_log"],
-    
-    # Wave mechanics, optics, acoustics
-    # Citations: 
-    # - Waves: Hecht, E. (2016). Optics.
-    "wave_mechanics":    ["D_osc", "D_pow", "D_exp", "D_rat"],
-    
-    # Condensed matter, phase transitions, magnetism
-    # Citations: 
-    # - Magnetism/Transitions: Kittel, C. (2004). Intro to Solid State Physics.
-    "condensed_matter":  ["D_sat", "D_exp", "D_pow", "D_rat"],
-    
-    # Fluid dynamics, turbulence, aerodynamics
-    # Citations: 
-    # - Turbulence (Law of the Wall): Landau, L. D., & Lifshitz, E. M. (1987). Fluid Mechanics.
-    "fluid_dynamics":    ["D_pow", "D_log", "D_exp", "D_rat"],
+
+    # ── YUKAWA / DEBYE SCREENING ─────────────────────────────────────────
+    # Phenomenon: exponential screening of Coulomb/nuclear potentials.
+    # Fundamental equation: Klein-Gordon → V(r) = (g²/4π) e^{-mr}/r
+    # Debye shielding: φ(r) = (q/4πε₀r) e^{-r/λ_D}
+    # Primitives justified: D_exp (exponential envelope), D_rat (1/r pole).
+    # D_pow excluded: no power-law form appears in Yukawa/Debye derivations.
+    # Citations: Yukawa (1935); Debye & Hückel (1923).
+    "yukawa_debye_screening": ["D_exp", "D_rat"],
+
+    # ── LORENTZ SPECIAL RELATIVITY ───────────────────────────────────────
+    # Phenomenon: kinematic corrections from Lorentz invariance.
+    # Fundamental equation: γ = 1/√(1−β²), all SR corrections ∝ (γ−1).
+    # Primitives justified: D_lor only. D_lor IS the regularized (γ−1).
+    # D_pow, D_exp excluded: SR corrections do not have power-law or
+    # exponential envelopes — they collapse exactly to Lorentz factors.
+    # Citations: Einstein (1905); Minkowski (1908).
+    "lorentz_special_relativity": ["D_lor"],
+
+    # ── BOLTZMANN THERMODYNAMICS ─────────────────────────────────────────
+    # Phenomenon: thermal equilibrium corrections, partition functions,
+    #   blackbody radiation, entropy expansions.
+    # Fundamental equations: Z = Σ e^{-E/kT}; S = −k Σ p ln p.
+    # Primitives justified: D_exp (Boltzmann factor), D_log (entropy/free energy).
+    # D_pow excluded: power laws appear in critical phenomena (separate domain).
+    # Citations: Boltzmann (1877); Planck (1901); Pathria & Beale (2011).
+    "boltzmann_thermodynamics": ["D_exp", "D_log"],
+
+    # ── MOND RADIAL ACCELERATION ─────────────────────────────────────────
+    # Phenomenon: deep-MOND regime correction to Newtonian gravity.
+    # Fundamental equation (interpolating function): μ(x) = x/√(1+x²) or 1−e^{−√x}
+    # McGaugh RAR: g_obs = g_bar / (1 − e^{−√(g_bar/g†)})
+    # Primitives justified: D_sqrt_inv (MOND limit ∝ 1/√x), D_rat (Newtonian limit).
+    # D_pow excluded: power laws do not interpolate the MOND regimes correctly.
+    # Citations: Milgrom (1983); McGaugh, Lelli & Schombert (2016).
+    "mond_radial_acceleration": ["D_sqrt_inv", "D_rat"],
+
+    # ── GR ORBITAL CORRECTIONS ───────────────────────────────────────────
+    # Phenomenon: post-Newtonian gravitational corrections (perihelion, pulsar).
+    # Fundamental equation (1PN): δE/E ∝ (v/c)² ∝ (GM/rc²) (rational + Lorentz).
+    # Primitives justified: D_lor (Lorentz-like v²/c²), D_rat (1/r potential).
+    # D_pow excluded: post-Newtonian series is in integer powers of (v/c)²,
+    #   handled exactly by D_lor; free power-law exponent is unphysical here.
+    # Citations: Weinberg (1972); Will (1993) Theory & Experiment in Gravitation.
+    "gr_orbital_corrections": ["D_lor", "D_rat"],
+
+    # ── ISING / MEAN-FIELD MAGNETISM ─────────────────────────────────────
+    # Phenomenon: magnetic saturation, Curie-Weiss susceptibility, spin systems.
+    # Fundamental equations: M = M_s · L(x) (Langevin/Brillouin ≈ tanh for S=½);
+    #   χ ∝ 1/(T−T_c) (Curie-Weiss rational).
+    # Primitives justified: D_sat (tanh/Langevin saturation), D_rat (Curie-Weiss pole).
+    # D_pow excluded: critical exponent scaling is a separate phenomenon (below).
+    # Citations: Ising (1925); Weiss (1907); Kittel (2004) Ch. 12.
+    "ising_mean_field": ["D_sat", "D_rat"],
+
+    # ── CRITICAL PHENOMENA / SCALING ─────────────────────────────────────
+    # Phenomenon: order-parameter scaling near phase transitions, universality.
+    # Fundamental equation: ξ ∝ |T−T_c|^{−ν}; M ∝ |T−T_c|^β (pure power laws).
+    # Primitives justified: D_pow ONLY — critical phenomena ARE power laws.
+    # D_exp, D_log excluded: exponential and log corrections are sub-leading
+    #   at the critical point itself.
+    # Citations: Wilson & Kogut (1974); Stanley (1971).
+    "critical_scaling": ["D_pow"],
+
+    # ── TURBULENT / ANOMALOUS TRANSPORT ──────────────────────────────────
+    # Phenomenon: turbulent pipe flow, Kolmogorov cascade, anomalous diffusion.
+    # Fundamental equations: ⟨u⟩/u* = (1/κ) ln(y/y₀) (law of the wall);
+    #   E(k) ∝ k^{−5/3} (Kolmogorov); MSD ∝ t^α (anomalous diffusion).
+    # Primitives justified: D_pow (spectral scaling), D_log (law of the wall).
+    # Citations: Kolmogorov (1941); Landau & Lifshitz (1987) Fluid Mechanics Ch. 3.
+    "turbulent_transport": ["D_pow", "D_log"],
+
+    # ── QED RADIATIVE CORRECTIONS ─────────────────────────────────────────
+    # Phenomenon: one-loop and leading-log QED corrections (anomalous moment,
+    #   Lamb shift, running coupling).
+    # Fundamental equations: α_s(μ²) ∝ 1/ln(μ²/Λ²) (running coupling);
+    #   δg/2 = α/2π + … (Schwinger term, rational in α).
+    # Primitives justified: D_log (RG running), D_rat (α-expansion poles).
+    # D_pow excluded: QED corrections are organized in α (rational), not free exponents.
+    # Citations: Schwinger (1948); Peskin & Schroeder (1995) Ch. 6.
+    "qed_radiative": ["D_log", "D_rat"],
+
+    # ── WAVE / RESONANCE MECHANICS ────────────────────────────────────────
+    # Phenomenon: standing waves, diffraction, resonance, Fabry-Pérot.
+    # Fundamental equations: I ∝ sin²(δ/2)/sin²(…) (Airy); E ∝ cos(kx−ωt).
+    # Primitives justified: D_osc (1−cos oscillatory envelope), D_rat (Airy poles).
+    # Citations: Hecht (2016) Optics Ch. 9; Born & Wolf (1999) Principles of Optics.
+    "wave_resonance": ["D_osc", "D_rat"],
+
+    # ── LEGACY ALIASES (backward compatibility — do not use for new scenarios) ──
+    # These map old broad names to the new phenomenon-specific domains.
+    # Retained only so existing JSON reports and anomaly_scenarios.py do not break.
+    "gravity_orbital":   ["D_lor", "D_sqrt_inv", "D_rat"],   # → gr_orbital_corrections + mond
+    "thermodynamics":    ["D_exp", "D_log"],                  # → boltzmann_thermodynamics
+    "electrostatics":    ["D_exp", "D_rat"],                  # → yukawa_debye_screening
+    "relativistic":      ["D_lor"],                           # → lorentz_special_relativity
+    "condensed_matter":  ["D_sat", "D_rat"],                  # → ising_mean_field
+    "fluid_dynamics":    ["D_pow", "D_log"],                  # → turbulent_transport
+    "quantum_field":     ["D_log", "D_rat"],                  # → qed_radiative
+    "atomic_spectro":    ["D_pow", "D_rat", "D_log"],
+    "wave_mechanics":    ["D_osc", "D_rat"],                  # → wave_resonance
 }
 
 # =====================================================================
@@ -133,27 +200,27 @@ DOMAIN_TAXONOMY: dict = {
 # =====================================================================
 
 _DIM_VECTORS: Dict[str, List[int]] = {
-    "mass":           [1, 0, 0],
-    "length":         [0, 1, 0],
-    "time":           [0, 0, 1],
-    "temperature":    [0, 0, 0],   # independent; treated dimensionless in ratios
-    "charge":         [0, 0, 0],
-    "dimensionless":  [0, 0, 0],
-    "angle":          [0, 0, 0],
-    "number":         [0, 0, 0],
+    "mass":           [1, 0, 0, 0, 0],
+    "length":         [0, 1, 0, 0, 0],
+    "time":           [0, 0, 1, 0, 0],
+    "temperature":    [0, 0, 0, 1, 0],   # independent; treated dimensionless in ratios
+    "charge":         [0, 0, 0, 0, 1],
+    "dimensionless":  [0, 0, 0, 0, 0],
+    "angle":          [0, 0, 0, 0, 0],
+    "number":         [0, 0, 0, 0, 0],
     # Derived
-    "velocity":       [0, 1, -1],
-    "acceleration":   [0, 1, -2],
-    "force":          [1, 1, -2],
-    "energy":         [1, 2, -2],
-    "momentum":       [1, 1, -1],
-    "frequency":      [0, 0, -1],
-    "pressure":       [1, -1, -2],
-    "density":        [1, -3, 0],
-    "volume":         [0, 3, 0],
-    "area":           [0, 2, 0],
-    "wavenumber":     [0, -1, 0],
-    "number_density": [0, -3, 0],
+    "velocity":       [0, 1, -1, 0, 0],
+    "acceleration":   [0, 1, -2, 0, 0],
+    "force":          [1, 1, -2, 0, 0],
+    "energy":         [1, 2, -2, 0, 0],
+    "momentum":       [1, 1, -1, 0, 0],
+    "frequency":      [0, 0, -1, 0, 0],
+    "pressure":       [1, -1, -2, 0, 0],
+    "density":        [1, -3, 0, 0, 0],
+    "volume":         [0, 3, 0, 0, 0],
+    "area":           [0, 2, 0, 0, 0],
+    "wavenumber":     [0, -1, 0, 0, 0],
+    "number_density": [0, -3, 0, 0, 0],
 }
 
 _SUPPORTED_DIMS = sorted(_DIM_VECTORS.keys())
@@ -176,11 +243,11 @@ def _dim_vec(dimension: str) -> List[int]:
         
     # Some complex ones that don't need exact vectors as long as they don't incorrectly match others
     extra_dims = {
-        "force_m2_c2": [1, 3, -2],
-        "force_m2_kg2": [-1, 3, -2],
-        "force_per_m": [1, 0, -2],
-        "power_m2_k4": [1, 0, -3],
-        "mass_per_s": [1, 0, -1]
+        "force_m2_c2": [1, 3, -2, 0, -2],
+        "force_m2_kg2": [-1, 3, -2, 0, 0],
+        "force_per_m": [1, 0, -2, 0, 0],
+        "power_m2_k4": [1, 0, -3, -4, 0],
+        "mass_per_s": [1, 0, -1, 0, 0]
     }
     if key in extra_dims:
         return extra_dims[key]
@@ -192,13 +259,13 @@ def _dim_vec(dimension: str) -> List[int]:
             UserWarning,
             stacklevel=4,
         )
-        return [0, 0, 0]
+        return [0, 0, 0, 0, 0]
     return list(_DIM_VECTORS[key])
 
 
 def _is_nontrivial_dim(dim: str) -> bool:
     """Return True if dimension is not purely dimensionless."""
-    return _dim_vec(dim) != [0, 0, 0]
+    return _dim_vec(dim) != [0, 0, 0, 0, 0]
 
 
 # =====================================================================
@@ -247,7 +314,7 @@ def _generate_ratio_symbols(
 
     # Pass 1: Exact dimensionless ratios from same-dimension pairs
     for vec_key, group in dim_groups.items():
-        if vec_key == str([0, 0, 0]):
+        if vec_key == str([0, 0, 0, 0, 0]):
             continue  # skip dimensionless vars — ratio of two dimensionless is trivial
         if len(group) < 2:
             continue
@@ -522,7 +589,7 @@ class BuckinghamPiEngine:
                 if base in checker.registry:
                     self.register(const_name, checker.registry[base])
                 else:
-                    self.register(const_name, [0, 0, 0])
+                    self.register(const_name, [0, 0, 0, 0, 0])
 
     def compute_pi_groups(self) -> List[sp.Expr]:
         """

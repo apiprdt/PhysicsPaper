@@ -1,29 +1,33 @@
 import sympy as sp
 from typing import Dict, Union, List, Optional
 
-# Core physical constants and variables SI base vectors: [M, L, T]
+# Core physical constants and variables SI base vectors: [M, L, T, \Theta, Q]
 DIMENSIONS = {
-    'm': [1, 0, 0],
-    'M': [1, 0, 0],
-    'v': [0, 1, -1],
-    'r': [0, 1, 0],
-    't': [0, 0, 1],
-    'G': [-1, 3, -2],
-    'c': [0, 1, -1],
-    'E': [1, 2, -2],
-    'F': [1, 1, -2],
-    'rho': [1, -3, 0],
-    'n': [0, -3, 0],
-    'T': [0, 0, 0],
-    'V': [0, 3, 0],
-    'k_B': [1, 2, -2],
-    'b': [1, 0, -1],
-    'A': [0, 2, 0],
-    'sigma': [1, 0, -3],
-    'a': [0, 1, -2],   # NEW: acceleration [L T^-2] -- needed for real-data
-                       # scenarios (e.g. SPARC/RAR: gbar, gobs, a0 all have
-                       # this dimension). Added during the audit; was
-                       # absent from the original registry.
+    'm': [1, 0, 0, 0, 0],
+    'M': [1, 0, 0, 0, 0],
+    'v': [0, 1, -1, 0, 0],
+    'r': [0, 1, 0, 0, 0],
+    't': [0, 0, 1, 0, 0],
+    'G': [-1, 3, -2, 0, 0],
+    'c': [0, 1, -1, 0, 0],
+    'E': [1, 2, -2, 0, 0],
+    'F': [1, 1, -2, 0, 0],
+    'rho': [1, -3, 0, 0, 0],
+    'n': [0, -3, 0, 0, 0],
+    'T': [0, 0, 0, 1, 0],
+    'V': [0, 3, 0, 0, 0],
+    'k_B': [1, 2, -2, -1, 0],
+    'b': [1, 0, -1, 0, 0],
+    'A': [0, 2, 0, 0, 0],
+    'sigma': [1, 0, -3, -4, 0],
+    'a': [0, 1, -2, 0, 0],   # NEW: acceleration [L T^-2] -- needed for real-data
+                             # scenarios (e.g. SPARC/RAR: gbar, gobs, a0 all have
+                             # this dimension). Added during the audit; was
+                             # absent from the original registry.
+    'q': [0, 0, 0, 0, 1],
+    'Q': [0, 0, 0, 0, 1],
+    'k_e': [1, 3, -2, 0, -2],
+    'epsilon_0': [-1, -3, 2, 0, 2]
 }
 
 
@@ -65,12 +69,12 @@ class DimensionalChecker:
 
     def _get_dim_vector(self, expr: sp.Expr) -> List[int]:
         if expr.is_Number or expr.is_NumberSymbol or expr == sp.I:
-            return [0, 0, 0]
+            return [0, 0, 0, 0, 0]
 
         if expr.is_Symbol:
             sym_str = str(expr)
             if sym_str.startswith("theta_"):
-                return [0, 0, 0]
+                return [0, 0, 0, 0, 0]
             if sym_str in self.registry:
                 return self.registry[sym_str]
             raise ValueError(f"Unknown physical symbol in registry: {sym_str}")
@@ -84,7 +88,7 @@ class DimensionalChecker:
             return first_dim
 
         if isinstance(expr, sp.Mul):
-            base_dim = [0, 0, 0]
+            base_dim = [0, 0, 0, 0, 0]
             for arg in expr.args:
                 arg_dim = self._get_dim_vector(arg)
                 base_dim = [a + b for a, b in zip(base_dim, arg_dim)]
@@ -93,7 +97,7 @@ class DimensionalChecker:
         if isinstance(expr, sp.Pow):
             base, exponent = expr.args
             if not exponent.is_Number:
-                return [0, 0, 0]
+                return [0, 0, 0, 0, 0]
             base_dim = self._get_dim_vector(base)
             exp_val = float(exponent)
             return [int(d * exp_val) if (d * exp_val).is_integer() else d * exp_val for d in base_dim]
@@ -101,12 +105,12 @@ class DimensionalChecker:
         if isinstance(expr, sp.Function):
             arg = expr.args[0]
             arg_dim = self._get_dim_vector(arg)
-            if arg_dim != [0, 0, 0]:
+            if arg_dim != [0, 0, 0, 0, 0]:
                 raise TypeError(
                     f"Dimensional Mismatch: Argument of transcendental function {expr.func.__name__} "
                     f"must be dimensionless, but got {arg_dim}."
                 )
-            return [0, 0, 0]
+            return [0, 0, 0, 0, 0]
 
         raise NotImplementedError(f"Operator {type(expr)} not yet supported in dimensional analysis.")
 
@@ -131,7 +135,7 @@ class DimensionalChecker:
             candidate_dim = self._get_dim_vector(expr)
 
             if target_dimension_key == "dimensionless":
-                target_dim = [0, 0, 0]
+                target_dim = [0, 0, 0, 0, 0]
             elif target_dimension_key in self.registry:
                 target_dim = self.registry[target_dimension_key]
             else:
@@ -213,12 +217,12 @@ def validate_transcendental_args(expr: sp.Expr, checker: DimensionalChecker) -> 
                                 continue
                             # exactly one physical symbol, NOT theta-scaled -> genuinely check it
                             arg_dim = checker._get_dim_vector(arg)
-                            if arg_dim != [0, 0, 0]:
+                            if arg_dim != [0, 0, 0, 0, 0]:
                                 return False
                             continue
 
                         arg_dim = checker._get_dim_vector(arg)
-                        if arg_dim != [0, 0, 0]:
+                        if arg_dim != [0, 0, 0, 0, 0]:
                             return False
                 except Exception:
                     return False
