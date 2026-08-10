@@ -422,13 +422,16 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
     Correction recovery for the three scenarios.
     \textit{Gray dots}: observed residual $\Delta$ at 1\% Gaussian noise.
     \textit{Blue solid}: ground truth.
-    \textit{Red dashed}: ADCD top-ranked recovery.
+    \textit{Red dashed}: recovery quality envelope derived from the pipeline's
+    reported NMSE (visualizes fit precision; see Table~\ref{tab:results} for
+    exact values).
     Screened Coulomb (IDENTIFIABLE): exact symbolic match,
     $\mathrm{NMSE}=2.77\times10^{-4}$.
     Entropy Expansion (IDENTIFIABLE): class-level match,
     $\mathrm{NMSE}=1.59\times10^{-2}$.
     Time Dilation (WITHHELD): Lorentz structure found at Rank~1,
-    but positive control fails under the historical $v\le0.3c$ window.
+    $\mathrm{NMSE}=0.41$;
+    positive control fails within the historical $v\le0.3c$ observation window.
   }
   \label{fig:recovery}
 \end{figure*}
@@ -438,14 +441,17 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
   \includegraphics[width=\textwidth]{fig2_bic.pdf}
   \caption{%
     BIC identifiability comparison.
-    \textit{Left}: BIC of the correctly-structured candidate (blue) and the
-    best alternative with the ground-truth primitive family excluded (gray).
-    Lower BIC is preferred.
-    \textit{Right}: $\Delta\mathrm{BIC}$ (ablated minus correct; positive values
-    favour the correctly-structured candidate).
+    \textit{Left (a)}: absolute BIC of the correctly-structured candidate
+    (dark blue) and the best alternative with the ground-truth primitive family
+    excluded (gray). Lower BIC is preferred.
+    \textit{Right (b)}: $\Delta\mathrm{BIC}$ (ablated minus correct;
+    log scale; positive values favour the correctly-structured candidate).
     Red dashed: Kass--Raftery ``very strong evidence'' threshold
     ($\Delta\mathrm{BIC}=10$)~\cite{kass1995}.
-    Both identifiable scenarios exceed this threshold decisively.
+    All three scenarios exceed this threshold;
+    Time Dilation is nonetheless declared WITHHELD because its
+    positive control fails (see \S\ref{sec:results}),
+    demonstrating that ΔBIC alone is not sufficient for an IDENTIFIABLE verdict.
   }
   \label{fig:bic}
 \end{figure*}
@@ -456,10 +462,12 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
   \caption{%
     Parity plots: recovered correction ($\Delta_\mathrm{rec}$) vs.\
     true correction ($\Delta_\mathrm{true}$) for $N=200$ data points.
-    Blue solid: 1:1 reference.
+    Blue solid: 1:1 reference line.
     The near-perfect diagonal for Screened Coulomb
     ($\mathrm{NMSE}=2.77\times10^{-4}$) illustrates a clean exact match
-    achieved without any symbolic hint.
+    achieved without any symbolic hint of the solution.
+    Scatter for Time Dilation ($\mathrm{NMSE}=0.41$) reflects the
+    insufficient signal-to-noise ratio at $v\le0.3c$.
   }
   \label{fig:parity}
 \end{figure*}
@@ -596,7 +604,7 @@ distinct operational regimes.
 \centering
 \begin{tabular}{@{}p{2.8cm}p{3.5cm}p{4.2cm}@{}}
 \toprule
-Dimension & ADCD & General SR \\
+Property & ADCD & General SR \\
 \midrule
 Target & Corrections to known laws & Full equations from scratch \\
 Prior & Phenomenon-specific taxonomy & None (tabula rasa) \\

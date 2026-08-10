@@ -228,7 +228,7 @@ def main():
     ax2.axhline(y=10, color=RED_THRESH, linestyle='--', linewidth=1.5, zorder=3,
                 label=r'Kass-Raftery threshold ($\Delta\mathrm{BIC}=10$)')
     ax2.axhspan(0.8, 10, color='#fef3c7', alpha=0.45, zorder=0,
-                label='WITHHELD region (insufficient evidence)')
+                label='$\\Delta$BIC < 10 (below evidence threshold)')
 
     ax2.set_ylabel(r'$\Delta\mathrm{BIC}$ (ablated $-$ true structure)', fontsize=11, labelpad=8)
     ax2.set_title(r'(b) Identifiability Evidence ($\Delta\mathrm{BIC}$)',
@@ -256,7 +256,7 @@ def main():
     # FIGURE 3: Parity Plots
     # =========================================================================
     fig3, axes3 = plt.subplots(1, 3, figsize=(13, 4.2))
-    fig3.suptitle("ADCD Recovery Parity: Predicted vs. True Correction",
+    fig3.suptitle("ADCD Recovery Parity: Recovered vs. True Correction",
                   fontsize=13, fontweight='bold', y=1.01)
 
     for i, name in enumerate(scenario_names):
