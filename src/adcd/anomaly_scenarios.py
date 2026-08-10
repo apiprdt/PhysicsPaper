@@ -21,7 +21,6 @@ class AnomalyScenario:
     correction_expr: str              # e.g., "theta_0 * (v / c)**2"
     correction_constants: Dict[str, float]  # e.g., {"theta_0": 0.75}
     
-    # Physical metadata for the LLM
     anomaly_regime: str               # e.g., "high speeds v approaching c"
     variables_with_units: Dict[str, str]
     classical_limit_variable: str     # e.g., "v"
@@ -245,7 +244,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
         AnomalyScenario(
             name="Time Dilation",
             tier="textbook",
-            domain="relativistic mechanics",
+            domain="relativistic",
             classical_expr="t_0",
             classical_variables=["t_0", "v"],
             classical_constants={"c": 1.0},
@@ -261,7 +260,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
         AnomalyScenario(
             name="Relativistic KE",
             tier="textbook",
-            domain="relativistic mechanics",
+            domain="relativistic",
             classical_expr="0.5 * m * v**2",
             classical_variables=["m", "v"],
             classical_constants={"c": 3.0e8},
@@ -364,7 +363,6 @@ def get_all_scenarios() -> List[AnomalyScenario]:
         ),
         
         # =========================================================================
-        # TIER 3: Synthetic / Novel (LLM has never seen these)
         # =========================================================================
         AnomalyScenario(
             name="Mystery-A",
@@ -481,7 +479,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
         AnomalyScenario(
             name="Blind-4: Relativistic Pendulum",
             tier="blind",
-            domain="relativistic mechanics",
+            domain="relativistic",
             classical_expr="0.5 * m * v**2",
             classical_variables=["m", "v"],
             classical_constants={"c": 3.0e8},

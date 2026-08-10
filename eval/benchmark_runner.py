@@ -371,7 +371,7 @@ def run_level_a_experiment(scenario: dict, noise: float, seed: int, logger: Audi
     gate = PhysicsGateCascade(max_depth=7, max_tokens=20, enable_arc_check=False)
 
     # GrammarProposer (ARM-A)
-    from adcd.llm_proposer import ProposalContext
+    from adcd.context import ProposalContext
     proposer = GrammarProposer(seed=seed, n_candidates=40)
     data_stats = {
         v: {"mean": float(np.mean(X_train[:, i])), "std": float(np.std(X_train[:, i]))}
@@ -424,7 +424,7 @@ def run_level_b_experiment(scenario: dict, noise: float, seed: int, logger: Audi
     arc_limit_points = [sp.oo]    # ← KEY FIX: x1 → +∞, not x1 → 0
 
     # ── ARM-A: GrammarProposer (residual target) ─────────────────────────
-    from adcd.llm_proposer import ProposalContext
+    from adcd.context import ProposalContext
     proposer = GrammarProposer(seed=seed, n_candidates=40)
     data_stats = {
         "x1": {"mean": float(np.mean(X_train[:, 0])), "std": float(np.std(X_train[:, 0]))}

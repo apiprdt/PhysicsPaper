@@ -76,8 +76,6 @@ class GateStats:
     deferred_arc: int = 0          # arc_score was 0 at theta=1 but candidate has free params
     arc_relaxed_dim: int = 0       # passed dimensional check only via theta-scaling relaxation
 
-    llm_input: int = 0
-    llm_output: int = 0
     grammar_input: int = 0
     grammar_output: int = 0
     mock_input: int = 0
@@ -189,9 +187,7 @@ class Stage1Pipeline:
                 stats.input_count += 1
                 if candidate_sources and raw_cand in candidate_sources:
                     src = candidate_sources[raw_cand]
-                    if src in ("gemini", "llm"):
-                        stats.llm_input += 1
-                    elif src == "grammar":
+                    if src == "grammar":
                         stats.grammar_input += 1
                     elif src == "mock":
                         stats.mock_input += 1
@@ -267,9 +263,7 @@ class Stage1Pipeline:
                 stats.output_count += 1
                 if candidate_sources and raw_cand in candidate_sources:
                     src = candidate_sources[raw_cand]
-                    if src in ("gemini", "llm"):
-                        stats.llm_output += 1
-                    elif src == "grammar":
+                    if src == "grammar":
                         stats.grammar_output += 1
                     elif src == "mock":
                         stats.mock_output += 1

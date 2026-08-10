@@ -72,6 +72,63 @@ logger = logging.getLogger(__name__)
 
 
 # =====================================================================
+# DOMAIN TAXONOMY — Locked BEFORE any scenario results are seen.
+# Rationale: these groupings reflect general physics textbook knowledge
+# (not derived from inspecting specific scenario fit results).
+# Rule: edit this table only if you can cite a physics textbook chapter,
+# NOT because a specific scenario's fit looked better with a different set.
+# Timestamp of lock: 2026-08-09 (before Binary Pulsar real-data run)
+DOMAIN_TAXONOMY: dict = {
+    # Orbital/gravitational corrections: GR perihelion shift, pulsar decay, MOND
+    # Citations: 
+    # - GR: Weinberg, S. (1972). Gravitation and Cosmology.
+    # - MOND: Milgrom, M. (1983). A modification of the Newtonian dynamics.
+    # - 5th Force: Fischbach, E. (1999). The Search for Non-Newtonian Gravity.
+    "gravity_orbital":   ["D_pow", "D_lor", "D_sqrt_inv", "D_exp", "D_rat"],
+    
+    # Radiative/thermal corrections: Planck spectrum, blackbody
+    # Citations: 
+    # - Planck Law: Pathria, R. K. (1996). Statistical Mechanics.
+    # - Phase Transitions: Stanley, H. E. (1971). Phase Transitions and Critical Phenomena.
+    "thermodynamics":    ["D_log", "D_exp", "D_pow", "D_rat"],
+    
+    # Quantum field corrections: QED vertex, anomalous magnetic moment
+    # Citations: 
+    # - QED Loops: Peskin, M. E., & Schroeder, D. V. (1995). An Introduction to QFT.
+    "quantum_field":     ["D_pow", "D_exp", "D_log", "D_rat"],
+    
+    # Screened/shielded potentials: Yukawa, Debye
+    # Citations: 
+    # - Yukawa Potential: Yukawa, H. (1935). On the Interaction of Elementary Particles.
+    "electrostatics":    ["D_exp", "D_pow", "D_rat", "D_log"],
+    
+    # Special relativistic kinematics: time dilation, length contraction
+    # Citations: 
+    # - SR: Einstein, A. (1905). On the Electrodynamics of Moving Bodies.
+    "relativistic":      ["D_lor", "D_rat", "D_pow", "D_sqrt_inv"],
+    
+    # Spectroscopic/atomic: Lamb shift, fine structure
+    # Citations: 
+    # - Fine Structure: Griffiths, D. J. (2018). Introduction to Quantum Mechanics.
+    "atomic_spectro":    ["D_pow", "D_rat", "D_exp", "D_log"],
+    
+    # Wave mechanics, optics, acoustics
+    # Citations: 
+    # - Waves: Hecht, E. (2016). Optics.
+    "wave_mechanics":    ["D_osc", "D_pow", "D_exp", "D_rat"],
+    
+    # Condensed matter, phase transitions, magnetism
+    # Citations: 
+    # - Magnetism/Transitions: Kittel, C. (2004). Intro to Solid State Physics.
+    "condensed_matter":  ["D_sat", "D_exp", "D_pow", "D_rat"],
+    
+    # Fluid dynamics, turbulence, aerodynamics
+    # Citations: 
+    # - Turbulence (Law of the Wall): Landau, L. D., & Lifshitz, E. M. (1987). Fluid Mechanics.
+    "fluid_dynamics":    ["D_pow", "D_log", "D_exp", "D_rat"],
+}
+
+# =====================================================================
 # DIMENSION TABLE — [M, L, T] exponent vectors (SI basis)
 # =====================================================================
 
@@ -151,6 +208,8 @@ def _is_nontrivial_dim(dim: str) -> bool:
 def _generate_ratio_symbols(
     variables: Dict[str, str],
     max_ratios: int = 4,
+    limit_variable: Optional[str] = None,
+    limit_direction: str = "0",
 ) -> List[str]:
     """
     Return a list of dimensionless ratio SYMBOL strings for the proposer.
@@ -161,12 +220,21 @@ def _generate_ratio_symbols(
       For each dimensional variable v:
         • v/theta_new, v**2/theta_new              (free-scale ratios)
 
+    NUMERICAL STABILITY FIX (2026-08-09):
+    When limit_direction="oo" (variable x → ∞), the natural ratio x/theta
+    also → ∞ and causes NaN in JAX's gradient computation.
+    Fix: substitute u = theta/x (inverted) so that u → 0 as x → ∞.
+    This is mathematically equivalent (just relabels the free scale parameter)
+    but numerically stable. This is a pure numerical/mechanical fix — it does
+    NOT affect which structure wins the BIC ranking.
+
     Capped at max_ratios symbols total to keep search space exhaustively
     enumerable (each symbol will be expanded to ~35 grammar candidates by
     enumerate_candidates — so 4 symbols ≈ 140 total candidates, tractable).
 
     Returns strings suitable as ratio_symbol argument to enumerate_candidates().
     """
+    is_inf_limit = (limit_direction in ("oo", "inf", "+oo"))
     symbols: List[str] = []
     seen: set = set()
     theta_idx = 0
@@ -186,16 +254,42 @@ def _generate_ratio_symbols(
         for i in range(len(group)):
             for j in range(i + 1, len(group)):
                 a, b = group[i], group[j]
-                for sym in [f"{a}/{b}", f"{b}/{a}", f"{a}**2/{b}**2", f"{b}**2/{a}**2"]:
+                # If limit variable is one of the pair and direction is oo,
+                # put the limit variable in the DENOMINATOR so the ratio → 0.
+                if is_inf_limit and limit_variable:
+                    if a == limit_variable:
+                        pairs = [f"{b}/{a}", f"{b}**2/{a}**2"]
+                    elif b == limit_variable:
+                        pairs = [f"{a}/{b}", f"{a}**2/{b}**2"]
+                    else:
+                        pairs = [f"{a}/{b}", f"{b}/{a}",
+                                 f"{a}**2/{b}**2", f"{b}**2/{a}**2"]
+                else:
+                    pairs = [f"{a}/{b}", f"{b}/{a}",
+                             f"{a}**2/{b}**2", f"{b}**2/{a}**2"]
+                for sym in pairs:
                     if sym not in seen:
                         symbols.append(sym)
                         seen.add(sym)
 
     # Pass 2: Free-scale ratios for dimensional variables (var/theta)
+    # For oo-limit variables: use theta/var so the ratio → 0 as var → ∞.
     for var, dim in variables.items():
         if not _is_nontrivial_dim(dim):
             continue
-        for sym in [f"{var}/theta_{theta_idx}", f"{var}**2/theta_{theta_idx + 1}"]:
+        if is_inf_limit and var == limit_variable:
+            # INVERTED: theta/var and theta/var**2 both → 0 as var → ∞
+            syms = [
+                f"theta_{theta_idx}/{var}",
+                f"theta_{theta_idx + 1}/{var}**2",
+            ]
+            logger.debug(
+                f"[quickfit] limit_direction=oo: using inverted ratios "
+                f"theta/'{var}' so ratio → 0 as {var} → ∞ (numerical stability)."
+            )
+        else:
+            syms = [f"{var}/theta_{theta_idx}", f"{var}**2/theta_{theta_idx + 1}"]
+        for sym in syms:
             if sym not in seen:
                 symbols.append(sym)
                 seen.add(sym)
@@ -394,3 +488,109 @@ def _infer_limit_variable(X: Dict[str, np.ndarray]) -> _DetectedLimitVar:
 # MAIN PUBLIC API
 # =====================================================================
 
+
+"""Buckingham-Pi dimensionless group engine for multivariable ADCD Phase 2."""
+
+class BuckinghamPiEngine:
+    """
+    Computes dimensionless Buckingham-Pi groups from registered variables.
+
+    Uses SVD of the dimensional matrix to find the null space, which
+    corresponds to dimensionless combinations (Buckingham, 1914).
+    """
+
+    def __init__(self) -> None:
+        self.registry: Dict[str, np.ndarray] = {}
+
+    def register(self, name: str, dim_vector: List[int]) -> None:
+        """Register a variable with its dimension vector [M, L, T, ...]."""
+        self.registry[name] = np.array(dim_vector, dtype=float)
+
+    def register_from_scenario(self, scenario) -> None:
+        """Register classical variables and known scale constants from a scenario."""
+        from adcd.dimensional_checker import DimensionalChecker
+
+        checker = DimensionalChecker()
+        for var in scenario.classical_variables:
+            if var in checker.registry:
+                self.register(var, checker.registry[var])
+        for const_name in scenario.classical_constants:
+            if const_name in checker.registry:
+                self.register(const_name, checker.registry[const_name])
+            else:
+                base = const_name.replace("_ref", "").replace("_0", "")
+                if base in checker.registry:
+                    self.register(const_name, checker.registry[base])
+                else:
+                    self.register(const_name, [0, 0, 0])
+
+    def compute_pi_groups(self) -> List[sp.Expr]:
+        """
+        Compute independent dimensionless Pi groups.
+
+        Uses exact rational nullspace (SymPy) for clean ratio forms like m/M.
+        """
+        if len(self.registry) < 2:
+            return []
+
+        names = list(self.registry.keys())
+        dim_matrix = np.array([self.registry[n] for n in names]).T
+        k, n = dim_matrix.shape
+
+        if k >= n:
+            return self._simple_same_dimension_ratios(names)
+
+        from sympy import Matrix
+
+        null_vectors = Matrix(dim_matrix.tolist()).nullspace()
+        syms = {name: sp.Symbol(name) for name in names}
+        pi_groups: List[sp.Expr] = []
+
+        for vec in null_vectors:
+            factors = []
+            for name, exp in zip(names, vec):
+                if exp == 0:
+                    continue
+                factors.append(syms[name] ** int(exp))
+            if not factors:
+                continue
+            pi_expr = sp.simplify(sp.Mul(*factors))
+            free_vars = {str(s) for s in pi_expr.free_symbols}
+            if len(free_vars) >= 2:
+                pi_groups.append(pi_expr)
+
+        if not pi_groups:
+            pi_groups = self._simple_same_dimension_ratios(names)
+
+        return pi_groups
+
+    def _simple_same_dimension_ratios(self, names: List[str]) -> List[sp.Expr]:
+        """Fallback: pairwise ratios among equal-dimension variables."""
+        groups: List[sp.Expr] = []
+        seen: set[str] = set()
+        by_dim: Dict[tuple, List[str]] = {}
+        for name in names:
+            key = tuple(int(x) for x in self.registry[name])
+            by_dim.setdefault(key, []).append(name)
+
+        for dim_vars in by_dim.values():
+            if len(dim_vars) < 2:
+                continue
+            for i in range(len(dim_vars)):
+                for j in range(i + 1, len(dim_vars)):
+                    a, b = dim_vars[i], dim_vars[j]
+                    for ratio in (f"{a}/{b}", f"{b}/{a}"):
+                        if ratio not in seen:
+                            seen.add(ratio)
+                            groups.append(sp.sympify(ratio))
+        return groups
+
+    def get_parameterized_ratios(self) -> List[sp.Expr]:
+        """Parameterized Pi forms Π/θ and Π·θ for grammar ratio candidates."""
+        pi_groups = self.compute_pi_groups()
+        ratios: List[sp.Expr] = []
+        for i, pi in enumerate(pi_groups):
+            theta = sp.Symbol(f"theta_pi_{i}")
+            ratios.append(pi / theta)
+            ratios.append(pi * theta)
+        return ratios

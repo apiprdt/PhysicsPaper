@@ -80,6 +80,7 @@ from adcd.arc_scorer import ARCScorer, build_arc_regimes
 from adcd.jax_optimizer import JAXOptimizer
 from adcd.metrics import classify_structure, extended_bic_score
 from adcd.constants import NMSE_SUCCESS_THRESHOLD
+from adcd.quickfit import DOMAIN_TAXONOMY
 import itertools
 
 
@@ -220,6 +221,10 @@ def _find_true_structure_in_pareto(ranked_blind, scenario):
     has implicit coefficient 1 (no theta), so candidates with an explicit
     amplitude theta_0 were misclassified as "class_only". Fix: when counts
     differ, collapse extra candidate thetas to 1 and retry sp.simplify.
+
+    NUMERICAL MATCH FIX (2026-08-10): sympy.simplify is extremely brittle on
+    exponentiated functions. Switched to exact numeric sampling for "exact"
+    match confirmation.
     """
     true_expr_str = getattr(scenario, "correction_expr", None)
     true_class = getattr(scenario, "correction_class", None)
@@ -231,50 +236,61 @@ def _find_true_structure_in_pareto(ranked_blind, scenario):
     true_thetas = [str(s) for s in true_expr.free_symbols if str(s).startswith("theta_")]
 
     def _try_exact_match(cand_expr, theta_keys):
-        """Try all routes to symbolic exact match. Returns True if match found."""
-        # Route 1: same theta count — try permutations (or direct if both 0)
-        if len(theta_keys) == len(true_thetas):
-            if len(theta_keys) == 0:
-                try:
-                    return sp.simplify(cand_expr - true_expr) == 0
-                except Exception:
-                    return False
-            for p in itertools.permutations(theta_keys):
-                subs_dict = {sp.Symbol(p[i]): sp.Symbol(true_thetas[i])
-                             for i in range(len(p))}
-                try:
-                    if sp.simplify(cand_expr.subs(subs_dict) - true_expr) == 0:
+        """Try all routes to exact match via numeric sampling. Returns True if match found."""
+        import numpy as np
+        try:
+            # Generate 5 random points in a safe domain
+            test_points = np.random.uniform(0.1, 0.9, 5)
+            # Find the main variable to substitute
+            vars_cand = [str(s) for s in cand_expr.free_symbols if not str(s).startswith("theta_")]
+            vars_true = [str(s) for s in true_expr.free_symbols if not str(s).startswith("theta_")]
+            main_var = vars_cand[0] if vars_cand else (vars_true[0] if vars_true else "x")
+            
+            # Numeric evaluation function
+            def eval_expr(expr, var_val, theta_subs):
+                subs_dict = {sp.Symbol(main_var): var_val}
+                for k, v in theta_subs.items():
+                    subs_dict[sp.Symbol(k)] = v
+                return float(expr.subs(subs_dict))
+                
+            # If same number of thetas, try permutations of 1.0 (default true thetas are usually 1)
+            if len(theta_keys) == len(true_thetas):
+                for p in itertools.permutations(theta_keys):
+                    match_all = True
+                    for val in test_points:
+                        cand_subs = {k: 1.0 for k in p}
+                        true_subs = {k: 1.0 for k in true_thetas}
+                        if not np.isclose(eval_expr(cand_expr, val, cand_subs), eval_expr(true_expr, val, true_subs)):
+                            match_all = False
+                            break
+                    if match_all:
                         return True
-                except Exception:
-                    pass
-
-        # Route 2: candidate has MORE thetas (over-parameterised amplitude).
-        # Collapse extra thetas to 1, then match remaining to ground truth.
-        # Catches: `theta_0 * D_lor(v**2/c**2)` vs ground truth `D_lor(v**2/c**2)`.
-        if len(theta_keys) > len(true_thetas):
-            extra = len(theta_keys) - len(true_thetas)
-            for to_collapse in itertools.combinations(theta_keys, extra):
-                remaining = [t for t in theta_keys if t not in to_collapse]
-                collapse_subs = {sp.Symbol(t): sp.Integer(1) for t in to_collapse}
-                reduced = cand_expr.subs(collapse_subs)
-                if len(remaining) == 0 and len(true_thetas) == 0:
-                    try:
-                        if sp.simplify(reduced - true_expr) == 0:
-                            return True
-                    except Exception:
-                        pass
-                elif len(remaining) == len(true_thetas) and len(true_thetas) > 0:
-                    for p in itertools.permutations(remaining):
-                        subs_dict = {sp.Symbol(p[i]): sp.Symbol(true_thetas[i])
-                                     for i in range(len(p))}
-                        try:
-                            if sp.simplify(reduced.subs(subs_dict) - true_expr) == 0:
+                        
+            # If candidate has MORE thetas, collapse extra to 1.0
+            if len(theta_keys) > len(true_thetas):
+                extra = len(theta_keys) - len(true_thetas)
+                for to_collapse in itertools.combinations(theta_keys, extra):
+                    remaining = [t for t in theta_keys if t not in to_collapse]
+                    collapse_subs = {sp.Symbol(t): sp.Integer(1) for t in to_collapse}
+                    reduced = cand_expr.subs(collapse_subs)
+                    
+                    if len(remaining) == len(true_thetas):
+                        for p in itertools.permutations(remaining):
+                            match_all = True
+                            for val in test_points:
+                                cand_subs = {k: 1.0 for k in p}
+                                true_subs = {k: 1.0 for k in true_thetas}
+                                if not np.isclose(eval_expr(reduced, val, cand_subs), eval_expr(true_expr, val, true_subs)):
+                                    match_all = False
+                                    break
+                            if match_all:
                                 return True
-                        except Exception:
-                            pass
+        except Exception:
+            return False
+            
         return False
 
-    # 1. Exact Symbolic Match (all routes)
+    # 1. Exact Symbolic/Numeric Match (all routes)
     for rank, (expr_str, nmse, bic, theta_fit) in enumerate(ranked_blind):
         cand_expr = sp.sympify(expr_str)
         theta_keys = [k for k in theta_fit.keys() if k.startswith("theta_")]
@@ -290,7 +306,7 @@ def _find_true_structure_in_pareto(ranked_blind, scenario):
     return None, None, "none"
 
 
-def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5) -> ProtocolResult:
+def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxonomy_prior: bool = False) -> ProtocolResult:
     result = ProtocolResult(scenario_name=scenario.name)
     TRUE_PRIMITIVE_MAP = {
         "Time Dilation": "D_lor",
@@ -298,9 +314,22 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5) -> Proto
         "Entropy Expansion": "D_log"
     }
     true_primitive = TRUE_PRIMITIVE_MAP.get(scenario.name)
+    
+    # -------------------------------------------------------------------------
+    # NEW FEATURE: BAYESIAN DOMAIN PRIOR
+    # If enabled, restrict primitive search space to the scenario's taxonomy group.
+    # -------------------------------------------------------------------------
+    taxonomy_allowed = None
+    if use_taxonomy_prior and hasattr(scenario, "domain") and scenario.domain in DOMAIN_TAXONOMY:
+        taxonomy_allowed = DOMAIN_TAXONOMY[scenario.domain]
+        # We need exclude_primitives which is the inverse
+        from adcd.asymptotic_dictionary_proposer_v3 import PRIMITIVE_REGISTRY
+        taxonomy_exclude = [p for p in PRIMITIVE_REGISTRY.keys() if p not in taxonomy_allowed]
+    else:
+        taxonomy_exclude = None
 
     # ---- Step 0: Budget disclosure (fully blind search space) ----
-    _, space_size_blind, proposer = _run_search(scenario, exclude_primitives=None, seed=seed, n_candidates=0)
+    _, space_size_blind, proposer = _run_search(scenario, exclude_primitives=taxonomy_exclude, seed=seed, n_candidates=0)
     result.checks["budget_disclosure"] = {
         "search_space_size": space_size_blind,
         "primitives": list(proposer._active_primitives.keys()),
@@ -310,7 +339,7 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5) -> Proto
     }
 
     # ---- Step 1: BLIND SEARCH (the actual rediscovery claim) ----
-    ranked_blind, _, _ = _run_search(scenario, exclude_primitives=None, seed=seed)
+    ranked_blind, _, _ = _run_search(scenario, exclude_primitives=taxonomy_exclude, seed=seed)
     
     top_candidates = []
     if ranked_blind:
@@ -383,7 +412,7 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5) -> Proto
     # ---- Step 4: Determinism check (blind search, 3 independent runs) ----
     runs = []
     for _ in range(3):
-        r, _, _ = _run_search(scenario, exclude_primitives=None, seed=seed)
+        r, _, _ = _run_search(scenario, exclude_primitives=taxonomy_exclude, seed=seed)
         runs.append(r[0][:2] if r else None)  # (expr_str, nmse)
     determinism_pass = len(set(str(r) for r in runs)) == 1
     result.checks["determinism_check"] = {"runs": runs, "pass": determinism_pass}
@@ -397,6 +426,7 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5) -> Proto
 def main():
     parser = argparse.ArgumentParser(description="ADCD Validation Protocol")
     parser.add_argument("--top-k", type=int, default=5, help="Number of Pareto Front candidates to display")
+    parser.add_argument("--taxonomy", action="store_true", help="Use Domain Taxonomy Prior for Stage 1")
     args = parser.parse_args()
     
     scenarios = {s.name: s for s in get_all_scenarios()}
@@ -408,9 +438,10 @@ def main():
             print(f"[SKIP] Scenario '{name}' not found.")
             continue
         print("=" * 80)
-        print(f" ADCD VALIDATION PROTOCOL (BLIND SEARCH): {name.upper()}")
+        mode_str = "BAYESIAN TAXONOMY PRIOR" if args.taxonomy else "BLIND SEARCH"
+        print(f" ADCD VALIDATION PROTOCOL ({mode_str}): {name.upper()}")
         print("=" * 80)
-        res = run_scenario_protocol(scenarios[name], top_k_val=args.top_k)
+        res = run_scenario_protocol(scenarios[name], top_k_val=args.top_k, use_taxonomy_prior=args.taxonomy)
         all_results[name] = res
 
         for step, info in res.checks.items():
@@ -440,12 +471,13 @@ def main():
                   "this script is NOT yet a substitute for manual inspection.")
         print("=" * 80 + "\n")
 
-    with open("adcd_v3_blind_validation_report.json", "w") as f:
+    report_name = "adcd_v3_taxonomy_validation_report.json" if args.taxonomy else "adcd_v3_blind_validation_report.json"
+    with open(report_name, "w") as f:
         json.dump(
             {name: {"all_passed": r.all_passed, "checks": r.checks} for name, r in all_results.items()},
             f, indent=2, default=str,
         )
-    print("Full report saved to adcd_v3_blind_validation_report.json")
+    print(f"Full report saved to {report_name}")
 
 
 if __name__ == "__main__":

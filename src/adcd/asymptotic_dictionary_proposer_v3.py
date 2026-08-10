@@ -53,6 +53,9 @@ _RAW_FORMS: Dict[str, sp.Expr] = {
     "D_exp": sp.exp(-_u),                 # exponential decay (Yukawa, Debye)
     "D_log": sp.log(1 + _u),              # logarithmic (entropy, QED running)
     "D_sqrt_inv": 1 / sp.sqrt(1 + _u),    # inverse-sqrt growth (MOND-like)
+    "D_pow": _u ** 1.5,                   # dummy raw power law (verified limit_u->0 is 0)
+    "D_osc": 1 - sp.cos(_u),              # oscillatory (waves, optics, AC circuits)
+    "D_sat": sp.tanh(_u),                 # saturation (magnetism, sigmoid transitions)
 }
 
 REGULARIZED_FORMS: Dict[str, sp.Expr] = {
@@ -139,6 +142,27 @@ PRIMITIVE_REGISTRY: Dict[str, Primitive] = {
         string_template="(1.0/sqrt(1.0 + {u}) - 1.0)",
         domain_note="u > -1; MOND-like deep regime growth.",
     ),
+    "D_pow": Primitive(
+        name="D_pow",
+        token_cost=6,
+        numpy_form=lambda u: np.abs(u) ** 1.5,
+        string_template="(abs({u}) ** abs(_NEXT_THETA_))",
+        domain_note="Unbounded raw power law. Exponent is an additional free parameter. Base wrapped in abs() to prevent NaN.",
+    ),
+    "D_osc": Primitive(
+        name="D_osc",
+        token_cost=5,
+        numpy_form=lambda u: 1.0 - np.cos(u),
+        string_template="(1.0 - cos({u}))",
+        domain_note="all u; oscillatory behaviors. 1 - cos(0) = 0.",
+    ),
+    "D_sat": Primitive(
+        name="D_sat",
+        token_cost=5,
+        numpy_form=lambda u: np.tanh(u),
+        string_template="tanh({u})",
+        domain_note="all u; saturation and phase transitions. tanh(0) = 0.",
+    ),
 }
 
 
@@ -178,15 +202,19 @@ def enumerate_candidates(
     prims = active_primitives or PRIMITIVE_REGISTRY
     prim_names = list(prims.keys())
     candidates: List[str] = []
-    theta_i = itertools.count(0)
+    def _assign_theta(s: str) -> str:
+        t = itertools.count(0)
+        while "_NEXT_THETA_" in s:
+            s = s.replace("_NEXT_THETA_", f"theta_{next(t)}", 1)
+        return s
 
     def prim_expr(p: str) -> str:
         return prims[p].string_template.format(u=ratio_symbol)
 
     # depth 1: theta_0 * D(u)   [ARC-safe automatically]
     for p in prim_names:
-        t = next(theta_i)
-        cand = f"theta_{t} * {prim_expr(p)}"
+        cand_raw = f"_NEXT_THETA_ * {prim_expr(p)}"
+        cand = _assign_theta(cand_raw)
         if _token_count(cand) <= budget.max_tokens:
             candidates.append(cand)
 
@@ -194,8 +222,8 @@ def enumerate_candidates(
     # primitives — still automatically ARC-safe, no cancellation needed]
     if budget.max_primitives_used >= 2:
         for pa, pb in itertools.combinations(prim_names, 2):
-            t0, t1 = next(theta_i), next(theta_i)
-            cand = f"theta_{t0} * {prim_expr(pa)} + theta_{t1} * {prim_expr(pb)}"
+            cand_raw = f"_NEXT_THETA_ * {prim_expr(pa)} + _NEXT_THETA_ * {prim_expr(pb)}"
+            cand = _assign_theta(cand_raw)
             if _token_count(cand) <= budget.max_tokens:
                 candidates.append(cand)
 
@@ -204,8 +232,8 @@ def enumerate_candidates(
     # of (something->0) and (something finite) -> 0]
     if budget.max_primitives_used >= 2 and budget.max_depth >= 3:
         for pa, pb in itertools.permutations(prim_names, 2):
-            t0, t1 = next(theta_i), next(theta_i)
-            cand = f"theta_{t0} * {prim_expr(pa)} * (1.0 + theta_{t1} * {prim_expr(pb)})"
+            cand_raw = f"_NEXT_THETA_ * {prim_expr(pa)} * (1.0 + _NEXT_THETA_ * {prim_expr(pb)})"
+            cand = _assign_theta(cand_raw)
             if _token_count(cand) <= budget.max_tokens:
                 candidates.append(cand)
 

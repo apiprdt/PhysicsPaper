@@ -155,7 +155,7 @@ def build_arc_regimes(
     return regimes
 
 
-def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
+def _resolve_limit_unsafe(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
     """Compute lim_{variable -> limit_target}(candidate), robust to undetermined-sign parameters
     and featuring a Laurent series fallback for singular/divergent expressions.
     """
@@ -235,11 +235,32 @@ def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
     return res
 
 
+import concurrent.futures
+
+def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
+    """
+    Bungkus _resolve_limit_unsafe dengan timeout tanpa blocking ThreadPoolExecutor 
+    saat hang, untuk mencegah deadlock.
+    """
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(_resolve_limit_unsafe, candidate, variable, limit_target)
+    try:
+        res = future.result(timeout=2.0)
+        executor.shutdown(wait=False)
+        return res
+    except concurrent.futures.TimeoutError:
+        logger.debug(f"Timeout (2s) menghitung limit untuk: {candidate}")
+        executor.shutdown(wait=False, cancel_futures=True)
+        return None
+    except Exception:
+        executor.shutdown(wait=False)
+        return None
+
+
 
 class ARCScorer:
     """
     Mesin utama Stage 1 Gatekeeper untuk menghitung bobot kelayakan
-    struktur asimtotik formula kandidat dari LLM sebelum diteruskan ke graf JAX.
     """
     def __init__(self, regimes: List[AsymptoticRegime]):
         if not regimes:

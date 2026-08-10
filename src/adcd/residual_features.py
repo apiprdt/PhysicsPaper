@@ -3,7 +3,6 @@ residual_features.py (NEW FILE)
 =================================
 WHY THIS FILE EXISTS:
 
-`CorrectionMockProposer.propose()` (llm_proposer.py) contains a whole branch
 of "physics-informed" template-family weighting:
 
     if context.residual_features:
