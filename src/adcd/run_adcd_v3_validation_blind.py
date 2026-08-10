@@ -253,40 +253,26 @@ def _find_true_structure_in_pareto(ranked_blind, scenario):
                     subs_dict[sp.Symbol(k)] = v
                 return float(expr.subs(subs_dict))
                 
-            # If same number of thetas, try permutations of 1.0 (default true thetas are usually 1)
-            if len(theta_keys) == len(true_thetas):
-                for p in itertools.permutations(theta_keys):
-                    match_all = True
-                    for val in test_points:
-                        cand_subs = {k: 1.0 for k in p}
-                        true_subs = {k: 1.0 for k in true_thetas}
-                        if not np.isclose(eval_expr(cand_expr, val, cand_subs), eval_expr(true_expr, val, true_subs)):
-                            match_all = False
-                            break
-                    if match_all:
-                        return True
-                        
-            # If candidate has MORE thetas, collapse extra to 1.0
-            if len(theta_keys) > len(true_thetas):
-                extra = len(theta_keys) - len(true_thetas)
-                for to_collapse in itertools.combinations(theta_keys, extra):
-                    remaining = [t for t in theta_keys if t not in to_collapse]
-                    collapse_subs = {sp.Symbol(t): sp.Integer(1) for t in to_collapse}
-                    reduced = cand_expr.subs(collapse_subs)
+            # If candidate and ground truth match perfectly when all thetas are set to 1.0
+            cand_subs = {k: 1.0 for k in theta_keys}
+            true_subs = {k: 1.0 for k in true_thetas}
+            
+            match_all = True
+            for val in test_points:
+                try:
+                    c_val = eval_expr(cand_expr, val, cand_subs)
+                    t_val = eval_expr(true_expr, val, true_subs)
+                    if not np.isclose(c_val, t_val):
+                        match_all = False
+                        break
+                except Exception:
+                    match_all = False
+                    break
                     
-                    if len(remaining) == len(true_thetas):
-                        for p in itertools.permutations(remaining):
-                            match_all = True
-                            for val in test_points:
-                                cand_subs = {k: 1.0 for k in p}
-                                true_subs = {k: 1.0 for k in true_thetas}
-                                if not np.isclose(eval_expr(reduced, val, cand_subs), eval_expr(true_expr, val, true_subs)):
-                                    match_all = False
-                                    break
-                            if match_all:
-                                return True
+            if match_all:
+                return True
         except Exception:
-            return False
+            pass
             
         return False
 
