@@ -1,4 +1,4 @@
-﻿\documentclass{article}
+\documentclass{article}
 
 \usepackage[dblblindworkshop]{neurips_2026}
 \workshoptitle{New in ML at NeurIPS 2026}
@@ -48,7 +48,7 @@ We present \textbf{ADCD} (Asymptotic Dictionary Correction Discovery), a
 deterministic framework for recovering structured corrections to known physical laws
 from noisy observational data.
 ADCD operates in the correction-first paradigm: given a known classical baseline,
-it searches exclusively for the anomalous residual that must vanish at the classical limit.
+it searches exclusively for the structured correction that vanishes at the classical limit.
 
 The framework rests on three interlocking innovations.
 \emph{First}, algebraically regularized primitive functions enforce exact
@@ -62,7 +62,8 @@ without manual ratio specification.
 inherent in domain expertise: the primitive search space is restricted
 to functional families whose derivation from first principles is documented in the
 physics literature, preventing physically absurd candidates
-(e.g., trigonometric oscillations of charge) without brute-force enumeration.
+(e.g., trigonometric oscillations of charge) without expanding the search space
+to include physically unjustified forms.
 
 Evaluated on three canonical physics scenarios under historical low-signal
 observation windows, ADCD demonstrates distinct epistemic behaviors.
@@ -100,8 +101,9 @@ General-purpose symbolic regression (SR) engines such as PySR~\cite{cranmer2023}
 AI Feynman~\cite{udrescu2020}, and PhySO~\cite{tenachi2023} excel at discovering
 equations from scratch, but face a cluster of difficulties in this correction-first
 setting.
-\emph{Catastrophic cancellation}: as $\Delta \to 0$, floating-point subtraction
-of large nearly-equal terms destroys the gradient signal~\cite{ieee754},
+\emph{Catastrophic cancellation}: as the dimensionless ratio $u\to0$ and the
+correction $\Delta\to0$, naive forms (e.g., $e^{-u}-1$ computed as $1-1$)
+lose all significant digits to floating-point cancellation~\cite{ieee754},
 causing the optimizer to receive misleading feedback precisely where the physics
 is most constrained.
 \emph{Stochastic irreproducibility}: evolutionary and Monte Carlo search
@@ -439,7 +441,8 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
     \textit{Left}: BIC of the correctly-structured candidate (blue) and the
     best alternative with the ground-truth primitive family excluded (gray).
     Lower BIC is preferred.
-    \textit{Right}: $\Delta\mathrm{BIC}$ (correct minus ablated).
+    \textit{Right}: $\Delta\mathrm{BIC}$ (ablated minus correct; positive values
+    favour the correctly-structured candidate).
     Red dashed: Kass--Raftery ``very strong evidence'' threshold
     ($\Delta\mathrm{BIC}=10$)~\cite{kass1995}.
     Both identifiable scenarios exceed this threshold decisively.
@@ -471,8 +474,11 @@ resulting in the principled WITHHELD verdict.
   \small
   \caption{Four-step validation results for all three scenarios.
   PC = Positive Control (pass/fail).
-  $\Delta$BIC = Ablation Control gap (correct minus best-without-correct-primitive).
-  Match level: \textit{exact} = symbolic equivalence verified; \textit{class} = correct functional family, amplitude absorbs unverifiable constants.}
+  $\Delta$BIC = Ablation Control gap (best-without-correct-primitive minus correct;
+  positive values indicate the correct structure is preferred).
+  Match level: \textit{exact} = symbolic equivalence verified;
+  \textit{class} = correct functional family confirmed; amplitude absorbs
+  unverifiable physical constants.}
   \label{tab:results}
   \centering
   \resizebox{\columnwidth}{!}{%
@@ -520,8 +526,9 @@ physical interpretation.
 $\Delta\mathrm{BIC}=14.58>10$ supports IDENTIFIABLE.
 
 \paragraph{Time Dilation: WITHHELD as designed.}
-At $v\le0.3c$, the relativistic correction factor $\gamma-1\approx4.8\%$
-of the classical baseline, while the injected noise level is $1\%$.
+At $v\le0.3c$, the Lorentz factor satisfies $\gamma-1\approx4.8\%$---meaning
+the relativistic correction is only $4.8\%$ of the observed value---while
+the injected noise level is $1\%$.
 The Lorentz structure $D_\mathrm{lor}(v^2/c^2)$ is correctly recovered at Rank~1,
 confirming that the grammar reaches the correct functional form.
 However, the positive control fails (NMSE$=0.41$): even when the search
@@ -540,7 +547,7 @@ the Lorentz structure with statistical confidence.
 
 \subsection{Epistemic strength of the WITHHELD verdict}
 
-The Time Dilation WITHHELD result is frequently misread as a failure.
+The Time Dilation WITHHELD result may be misread as a failure.
 The correct interpretation is the opposite.
 A system that always returns a confident ``best answer'' regardless of data
 sufficiency is epistemically weaker than one that formally distinguishes between
@@ -551,7 +558,7 @@ diagnosing its own identifiability boundary.
 Crucially, this boundary is quantitative and reproducible: a wider velocity
 window, better instrument precision, or a larger dataset would push
 $\Delta\mathrm{BIC}$ above the threshold, and ADCD would then report
-IDENTIFIABLE. The threshold crossing is a falsifiable, reproducible event.
+IDENTIFIABLE---a transition that is itself a falsifiable, reproducible prediction.
 
 \subsection{Taxonomy as Bayesian prior, not hint}
 
@@ -574,11 +581,13 @@ hypotheses that the founding physics literature has already falsified.
 
 \subsection{Comparison with general SR}
 
-ADCD and general SR engines address fundamentally different objectives.
-The meaningful comparison is not search space size or flexibility,
-but epistemic certainty: ADCD explicitly reports when data are insufficient
-to support a structural claim. Table~\ref{tab:comparison} summarizes
-the distinct operational regimes.
+ADCD and general SR engines address fundamentally different objectives:
+the former targets corrections to a known law with explicit identifiability
+guarantees; the latter targets full equation recovery from scratch.
+The meaningful performance axis is therefore not search-space size or
+flexibility, but epistemic certainty---the ability to distinguish ``confirmed''
+from ``data insufficient.'' Table~\ref{tab:comparison} summarizes the
+distinct operational regimes.
 
 \begin{table}[ht]
 \small
