@@ -135,3 +135,11 @@ indo/
 release/
 results/
 outputs/
+
+# Local outputs and logs
+adcd_validation_debug.log
+allcode.txt
+overleaf_submission.zip
+.gemini/
+scratch/
+run_outputs/
