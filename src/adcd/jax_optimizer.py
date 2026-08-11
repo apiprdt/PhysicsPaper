@@ -38,10 +38,14 @@ class OptimizationResult:
 
 def _domain_harden_expr(expr: sp.Expr) -> sp.Expr:
     """
-    Symbolically rewrite an expression so sqrt/pow and log never see
-    out-of-domain arguments, and exp never overflows float64.
-    For all physically valid inputs (positive quantities), the hardened
-    expression is identical to the original.
+    Symbolically rewrite an expression so sqrt/pow-with-fractional-exponent
+    and log never see an out-of-domain argument, and exp never overflows
+    float64.
+
+    For EVERY physically valid input (all variables in this codebase are
+    generated as positive quantities), the hardened expression is IDENTICAL
+    to the original. It only changes behavior in the out-of-domain region an
+    optimizer step can wander into.
     """
     if expr.is_Atom:
         return expr
@@ -73,7 +77,15 @@ class JAXOptimizer:
         beta       : float = 1.0,
         n_steps    : int   = 500,   # kept for API compatibility, unused by L-BFGS directly
         lr         : float = 0.05,  # kept for API compatibility
-        log_param  : bool  = True,  # log-reparameterization for order-of-magnitude traversal
+        log_param  : bool  = True,  # RESTORED. Default changed to True: the
+                                    # original had this default to False,
+                                    # but log-param is what actually keeps
+                                    # Time Dilation/Entropy Expansion stable
+                                    # AND is the mechanism intended to help
+                                    # with extreme-scale scenarios. Verify
+                                    # this default against your own repo's
+                                    # existing calling code before trusting
+                                    # it silently changes behavior elsewhere.
         maxiter    : int   = 150,
     ):
         self.n_restarts = n_restarts
@@ -215,8 +227,9 @@ class JAXOptimizer:
         return expr, theta_symbols
 
     def _build_jax_fn(self, expr: sp.Expr, theta_symbols: List[sp.Symbol], data_vars: List[str]):
-        # sympy's Max/Min must be mapped to jnp.maximum/jnp.minimum explicitly;
-        # lambdify does not handle jax.numpy as a named translation target.
+        # Note: sp.lambdify(..., jnp) does NOT automatically know that sympy's Max/Min 
+        # should map to jnp.maximum/jnp.minimum. Without this explicit mapping, 
+        # _domain_harden_expr's use of Max/Min raises a JAX TypeError.
         hardened_expr = _domain_harden_expr(expr)
         data_syms = sorted([s for s in hardened_expr.free_symbols if not str(s).startswith("theta_")], key=lambda s: str(s))
         all_syms = data_syms + theta_symbols

@@ -40,12 +40,7 @@ ADCD_COLOR = '#083c7d'
 GRAY_ABLAT = '#94a3b8'
 RED_THRESH = '#dc2626'
 
-# Verdict metadata (sourced from blind_validation_output_v3.txt)
-VERDICTS = {
-    "Time Dilation":     {"label": "WITHHELD",     "color": "#d97706", "delta_bic": 13.79},
-    "Screened Coulomb":  {"label": "IDENTIFIABLE", "color": "#16a34a", "delta_bic": 30.65},
-    "Entropy Expansion": {"label": "IDENTIFIABLE", "color": "#16a34a", "delta_bic": 14.58},
-}
+# Verdict metadata is computed dynamically from delta_bic
 
 def add_verdict_badge(ax, verdict_label, color, loc="upper right"):
     """Adds a colored verdict badge to a matplotlib axis."""
@@ -117,7 +112,16 @@ def main():
     for i, name in enumerate(scenario_names):
         ax = axes1[i]
         scenario = next(s for s in all_scenarios if s.name == name)
-        verdict  = VERDICTS[name]
+        idx    = chosen_idx[name]
+        chosen_bic  = report[name]["checks"]["blind_search"]["pareto_front"][idx]["bic"]
+        ablated_bic = report[name]["checks"]["ablation_control"]["ablated_bic"]
+        delta_bic = ablated_bic - chosen_bic
+        
+        if delta_bic >= 10:
+            verdict = {"label": "IDENTIFIABLE", "color": "#16a34a", "delta_bic": delta_bic}
+        else:
+            verdict = {"label": "WITHHELD", "color": "#d97706", "delta_bic": delta_bic}
+
 
         X_noise, y_obs_noise, y_classical, residual_noise = get_scenario_data(scenario, name, noise_level=0.01)
         X_clean, _,           _,           residual_clean = get_scenario_data(scenario, name, noise_level=0.00)
@@ -220,15 +224,27 @@ def main():
 
     # Add verdict badges at top of each x group
     for i, name in enumerate(scenario_names):
-        v = VERDICTS[name]
-        ax1.text(i, 280, v["label"], ha='center', va='center', fontsize=7.5,
+        ablated_bic = report[name]["checks"]["ablation_control"]["ablated_bic"]
+        chosen_bic  = report[name]["checks"]["blind_search"]["pareto_front"][chosen_idx[name]]["bic"]
+        delta_bic = ablated_bic - chosen_bic
+        if delta_bic >= 10:
+            v_label, v_color = "IDENTIFIABLE", "#16a34a"
+        else:
+            v_label, v_color = "WITHHELD", "#d97706"
+            
+        ax1.text(i, 280, v_label, ha='center', va='center', fontsize=7.5,
                  fontweight='bold', color='white',
-                 bbox=dict(boxstyle='round,pad=0.25', facecolor=v["color"],
+                 bbox=dict(boxstyle='round,pad=0.25', facecolor=v_color,
                            edgecolor='none', alpha=0.9))
 
     # Subplot (b): ΔBIC
     delta_bics  = np.array(bics_ablated) - np.array(bics_chosen)
-    bar_colors  = [VERDICTS[n]["color"] for n in scenario_names]
+    bar_colors = []
+    for n in scenario_names:
+        ablated_bic = report[n]["checks"]["ablation_control"]["ablated_bic"]
+        chosen_bic  = report[n]["checks"]["blind_search"]["pareto_front"][chosen_idx[n]]["bic"]
+        delta_bic = ablated_bic - chosen_bic
+        bar_colors.append("#16a34a" if delta_bic >= 10 else "#d97706")
     bars2 = ax2.bar(x, delta_bics, width=0.45, color=bar_colors,
                     edgecolor='black', linewidth=0.5)
 
@@ -271,7 +287,13 @@ def main():
     for i, name in enumerate(scenario_names):
         ax = axes3[i]
         scenario = next(s for s in all_scenarios if s.name == name)
-        verdict  = VERDICTS[name]
+        ablated_bic = report[name]["checks"]["ablation_control"]["ablated_bic"]
+        chosen_bic  = report[name]["checks"]["blind_search"]["pareto_front"][chosen_idx[name]]["bic"]
+        delta_bic = ablated_bic - chosen_bic
+        if delta_bic >= 10:
+            verdict = {"label": "IDENTIFIABLE", "color": "#16a34a"}
+        else:
+            verdict = {"label": "WITHHELD", "color": "#d97706"}
 
         X_clean, _, _, residual_clean = get_scenario_data(scenario, name, noise_level=0.00)
         delta_true = residual_clean

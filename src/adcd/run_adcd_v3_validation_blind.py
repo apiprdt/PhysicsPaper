@@ -44,6 +44,7 @@ from adcd.pipeline import Stage1Pipeline
 from adcd.dimensional_checker import DimensionalChecker, ASTValidator
 from adcd.arc_scorer import ARCScorer, build_arc_regimes
 from adcd.jax_optimizer import JAXOptimizer
+from adcd.mode_detection import detect_correction_mode
 from adcd.metrics import classify_structure, extended_bic_score
 from adcd.constants import NMSE_SUCCESS_THRESHOLD
 from adcd.quickfit import DOMAIN_TAXONOMY
@@ -140,17 +141,30 @@ def _run_search(
 
     pipeline = _make_pipeline(checker, scenario)
     domain_kwargs = DOMAIN_RESTRICTIONS.get(scenario.name, {})
-    X, y_obs, y_classical, residual = scenario.generate_data(
+    X, y_obs, y_classical, _ = scenario.generate_data(
         noise_level=0.01, seed=seed, **domain_kwargs
     )
     for c_name, c_val in scenario.classical_constants.items():
         if c_name not in X:
-            X[c_name] = np.full_like(residual, c_val)
+            X[c_name] = np.full_like(y_obs, c_val)
 
-    if scenario.correction_type == "multiplicative":
-        target_dim_key = "dimensionless"
+    # -------------------------------------------------------------------------
+    # FIX: TARGET LEAKAGE REMOVED
+    # Dynamically detect mode using Spearman correlation instead of reading
+    # the answer key from the scenario. Recompute the residual based on the
+    # detected mode.
+    # -------------------------------------------------------------------------
+    detected_mode, mode_conf = detect_correction_mode(y_obs, y_classical)
+    
+    if detected_mode == "multiplicative":
+        residual = y_obs / y_classical - 1.0
     else:
-        target_dim_key = scenario.variables_with_units.get(scenario.classical_limit_variable, "dimensionless")
+        residual = y_obs - y_classical
+        
+    # GrammarProposerV3 always generates dimensionless shape functions scaled by theta_0.
+    # theta_0 mathematically absorbs whatever units are needed to match the observation (or 1.0 if multiplicative).
+    # Therefore, the target dimensionality for the shape function itself must always be dimensionless.
+    target_dim_key = "dimensionless"
 
     stage1_results = pipeline.execute(
         [(c, True) for c in candidates], target_dim_key, X, residual,
@@ -164,10 +178,22 @@ def _run_search(
         opt = optimizer.optimize(
             expr_str, X, residual, scenario.classical_variables,
             seed=seed, loss_mode="auto", y_classical=y_classical,
-            correction_type=scenario.correction_type,
+            correction_type=detected_mode,
         )
         if not np.isfinite(opt.nmse):
             continue
+            
+        # ---------------------------------------------------------------------
+        # FIX: STRICT POST-FIT ARC ENFORCEMENT (Deferred ARC)
+        # If the candidate bypassed ARC in stage 1 due to parameters,
+        # rigorously re-evaluate ARC at the fitted parameters now.
+        # ---------------------------------------------------------------------
+        if deferred_arc:
+            fitted_expr = sp.sympify(expr_str).subs(opt.theta)
+            post_fit_arc_score = float(pipeline.scorer.score(fitted_expr, constants=scenario.classical_constants))
+            if post_fit_arc_score <= 0.0:
+                continue # Rejected by ARC limit
+                
         n_params = len([k for k in opt.theta if k.startswith("theta_")])
         b = extended_bic_score(opt.nmse, n_params, len(residual), n_candidates=len(candidates))
         ranked.append((expr_str, opt.nmse, b, opt.theta))
@@ -254,14 +280,27 @@ def _find_true_structure_in_pareto(ranked_blind, scenario):
     return None, None, "none"
 
 
+def _guess_true_primitive(expr_str: str) -> Optional[str]:
+    """Dynamically deduce the generating primitive from the ground truth expression."""
+    if not expr_str: return None
+    if "exp(" in expr_str: return "D_exp"
+    if "log(" in expr_str: return "D_log"
+    if "cos(" in expr_str or "sin(" in expr_str: return "D_osc"
+    if "tanh(" in expr_str: return "D_sat"
+    if "sqrt(" in expr_str:
+        if "1 -" in expr_str or "1.0 -" in expr_str: return "D_lor"
+        return "D_sqrt_inv"
+    if "**" in expr_str and not "**2" in expr_str: return "D_pow"
+    if "/" in expr_str: return "D_rat"
+    return None
+
+
 def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxonomy_prior: bool = False) -> ProtocolResult:
     result = ProtocolResult(scenario_name=scenario.name)
-    TRUE_PRIMITIVE_MAP = {
-        "Time Dilation": "D_lor",
-        "Screened Coulomb": "D_exp",
-        "Entropy Expansion": "D_log"
-    }
-    true_primitive = TRUE_PRIMITIVE_MAP.get(scenario.name)
+    
+    # Dynamically extract true primitive from the ground truth functional form
+    # instead of hardcoding by scenario name (Audit Fix #2)
+    true_primitive = _guess_true_primitive(scenario.correction_expr)
     
     # Restrict primitive search space to the scenario's taxonomy group if enabled.
     taxonomy_allowed = None

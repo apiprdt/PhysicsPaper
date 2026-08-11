@@ -1,46 +1,21 @@
 """
-mode_detection.py (NEW FILE -- was MISSING entirely from the submitted codebase)
+mode_detection.py
 ==================================================================================
-WHY THIS FILE EXISTS:
 
-`api.py` line 18 contains:
-
-    from adcd.mode_detection import detect_correction_mode
-
-This is a TOP-LEVEL import, executed the moment `adcd.api` (or `adcd.fit`)
-is imported by anyone, for ANY proposer choice. Grepping every one of the
-18/19 submitted files for a module named `mode_detection` finds nothing --
-this dependency does not exist anywhere in the audited codebase. Confirmed
-empirically during the audit:
-
-    >>> import adcd.api
-    ModuleNotFoundError: No module named 'adcd.mode_detection'
-
-This means `adcd.fit()` -- the ONLY documented public entry point for
-running this tool on a user's own dataset -- could not be imported at all,
-regardless of which proposer or correction_mode a caller requested. This is
-either a genuine gap in the real repository (this file was never written)
-or an omission from the audit bundle; either way, the audited version
-cannot function as a usable tool without it.
-
-WHAT THIS FILE DOES: a minimal, honest, real (not stubbed) implementation
-of additive-vs-multiplicative mode detection. The method: compare the
-residual computed under EACH hypothesis --
+Detects whether a correction is additive or multiplicative.
+The method compares the residual computed under EACH hypothesis:
 
     additive:       residual = y_obs - y_classical
     multiplicative: residual = y_obs / y_classical - 1   (where y_classical != 0)
 
--- and pick whichever residual, once regressed against y_classical's OWN
+It picks whichever residual, once regressed against y_classical's OWN
 magnitude, shows LESS remaining dependence on scale. Rationale: if the true
 generative process is multiplicative (delta scales with y_classical), the
 ADDITIVE residual (y_obs - y_classical) will itself scale with y_classical
 (large where y_classical is large), i.e. show strong correlation between
 |residual| and |y_classical|. The correctly-specified hypothesis should
 show close to NO such correlation (a properly extracted residual should be
-roughly homoscedastic across the range of y_classical). This is a real,
-checkable statistical criterion -- not a guess -- and confidence is reported
-honestly (near 0.5 when the two hypotheses are not well separated, e.g. when
-y_classical barely varies across the dataset).
+roughly homoscedastic across the range of y_classical).
 """
 
 from typing import Tuple
