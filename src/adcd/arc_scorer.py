@@ -159,15 +159,8 @@ def _resolve_limit_unsafe(candidate: sp.Expr, variable: sp.Symbol, limit_target:
     """Compute lim_{variable -> limit_target}(candidate), robust to undetermined-sign parameters
     and featuring a Laurent series fallback for singular/divergent expressions.
     """
-    # 1. Try standard limit first
-    try:
-        res = sp.limit(candidate, variable, limit_target, dir='+')
-        if res is not None and res not in (sp.oo, -sp.oo, sp.zoo):
-            return res
-    except Exception:
-        res = None
-
-    # 2. Retry standard limit assuming free parameters are strictly positive or substituted with 1.0
+    # 1. Evaluate limit assuming free parameters are substituted with 1.0 FIRST.
+    # This prevents sympy's Gruntz limit algorithm from hanging infinitely on undetermined symbols.
     theta_syms = [s for s in candidate.free_symbols if str(s).startswith("theta_")]
     if theta_syms:
         try:
@@ -180,6 +173,14 @@ def _resolve_limit_unsafe(candidate: sp.Expr, variable: sp.Symbol, limit_target:
                 return res_unit
         except Exception:
             pass
+
+    # 2. Try standard limit fallback
+    try:
+        res = sp.limit(candidate, variable, limit_target, dir='+')
+        if res is not None and res not in (sp.oo, -sp.oo, sp.zoo):
+            return res
+    except Exception:
+        res = None
 
     # 3. Laurent Series Fallback (G3-L)
     try:
