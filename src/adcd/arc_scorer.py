@@ -236,26 +236,32 @@ def _resolve_limit_unsafe(candidate: sp.Expr, variable: sp.Symbol, limit_target:
     return res
 
 
-import concurrent.futures
+import threading
 
 def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
     """
-    Bungkus _resolve_limit_unsafe dengan timeout tanpa blocking ThreadPoolExecutor 
-    saat hang, untuk mencegah deadlock.
+    Bungkus _resolve_limit_unsafe dengan daemon thread dan timeout,
+    sehingga thread yang nyangkut (infinite loop) tidak akan menahan
+    proses Python untuk shut down di akhir eksekusi.
     """
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-    future = executor.submit(_resolve_limit_unsafe, candidate, variable, limit_target)
-    try:
-        res = future.result(timeout=2.0)
-        executor.shutdown(wait=False)
-        return res
-    except concurrent.futures.TimeoutError:
+    result = [None]
+    
+    def worker():
+        try:
+            result[0] = _resolve_limit_unsafe(candidate, variable, limit_target)
+        except Exception:
+            pass
+
+    t = threading.Thread(target=worker)
+    t.daemon = True
+    t.start()
+    t.join(timeout=2.0)
+    
+    if t.is_alive():
         logger.debug(f"Timeout (2s) menghitung limit untuk: {candidate}")
-        executor.shutdown(wait=False, cancel_futures=True)
         return None
-    except Exception:
-        executor.shutdown(wait=False)
-        return None
+        
+    return result[0]
 
 
 
