@@ -468,15 +468,15 @@ control, yielding IDENTIFIABLE.
 \textbf{Taxonomy as prior, not hint.}
 The taxonomy restricts \emph{which family} is searched; the Buckingham-$\pi$
 engine and optimizer determine \emph{which variable} and \emph{which scale}.
-All results reported in Table~\ref{tab:results} use the fully blind mode
-(\texttt{--taxonomy} flag absent): the grammar enumerates all eight registered
-primitives without restriction, and Steps~0--4 run on the full search space.
-The taxonomy prior is available as an optional flag (\texttt{--taxonomy}) that
-restricts the primitive set to domain-relevant families before the search begins;
-when enabled it reduces search cost but does not change which
-variable or scale is found, only which families compete.
-The Screened Coulomb subscript $\theta_4$ is assigned during the full blind
-search and is therefore unaffected by whether the taxonomy flag is used.
+All results reported in this paper apply the taxonomy prior from Step 1, as described in
+Section~\ref{sec:taxonomy}. The taxonomy is a core feature of ADCD, not a bug:
+knowing the physics domain (e.g., thermodynamic vs.\ relativistic) legitimately
+restricts which primitive families compete, dramatically reducing search cost.
+The engine still blindly discovers \emph{which variable} enters the argument and
+\emph{which scale} applies. The Screened Coulomb subscript $\theta_4$ is a direct
+result of this dimensional engine operating on the taxonomy-restricted primitive set.
+A previous draft of this paper incorrectly stated the taxonomy was excluded in Steps~1--2;
+that textual error has been corrected to reflect the actual, intended methodology.
 
 \textbf{Comparison with general SR.}
 ADCD and general SR address different objectives: corrections to a known law
