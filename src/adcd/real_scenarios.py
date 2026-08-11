@@ -26,11 +26,7 @@ _LOADERS = {
 
 @dataclass
 class RealAnomalyScenario(AnomalyScenario):
-    """AnomalyScenario that delegates generate_data() to a real physics loader.
-
-    All other pipeline behaviour (proposer context, ARC limit checking,
-    JAX optimisation) is inherited unchanged from AnomalyScenario.
-    """
+    
 
     def generate_data(
         self,

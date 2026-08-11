@@ -1,23 +1,4 @@
-﻿"""
-ADCD Redesign: Rediscovery Test — 3-Way Comparison
-====================================================
-Membandingkan tiga kondisi secara jujur:
-  ARM A: PySR Solo (tanpa ADCD apapun)
-  ARM B: PySR + ADCD Post-Filter (arsitektur lama jujur)
-  ARM C: PySR + ADCD Integrated (arsitektur baru — redesign ini)
-
-Test case: Newton -> Relativistic KE
-  f0(v) = 0.5*v^2  (Newtonian, diketahui)
-  y_obs = 1/sqrt(1-v^2) - 1  (relativistik, dari data)
-  delta = y_obs - f0  (yang ingin ditemukan)
-
-Metrik:
-  M_arc : % kandidat yang lulus ARC (semakin tinggi = lebih efisien)
-  M_best: NMSE of best ARC-verified candidate
-  M_struct: does best expression contain sqrt?
-
-Seeds pre-declared: [0, 42, 123]
-"""
+﻿
 import sys
 sys.path.insert(0, 'src')
 import numpy as np

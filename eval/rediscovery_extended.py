@@ -1,12 +1,4 @@
-﻿"""
-ADCD Integrated: Extended Range Test (v up to 0.99c)
-=====================================================
-Motivasi fisika: di v=0.99c, polynomial PASTI gagal fit data.
-Polynomial memprediksi delta ~ 0.80, relativistik asli delta ~ 5.60.
-PySR dipaksa menemukan bentuk sqrt untuk fit seluruh range.
-
-ARM C only (integrated), 3 seeds.
-"""
+﻿
 import sys
 sys.path.insert(0, 'src')
 import numpy as np

@@ -8,14 +8,7 @@ from adcd.constants import DEFAULT_CONSTANTS  # noqa: F401  (re-exported for bac
 logger = logging.getLogger(__name__)
 
 class CoarseEvaluator:
-    """
-    Evaluates the empirical accuracy (MSE and Normalized MSE) of candidate
-    equations on observed physical datasets using high-speed lambdified numpy arrays.
     
-    Example:
-        >>> evaluator = CoarseEvaluator(X={"x": np.array([1, 2, 3])}, y_obs=np.array([2, 4, 6]))
-        >>> mse, nmse = evaluator.evaluate(sp.sympify("2 * x"))
-    """
     def __init__(self, X: Dict[str, np.ndarray], y_obs: np.ndarray, constants: Dict[str, float] = None):
         if not X:
             raise ValueError("Dataset X tidak boleh kosong.")

@@ -1,7 +1,4 @@
-﻿"""
-Ablation: PySR Solo vs ADCD Integrated, both on extended range
-Tujuan: isolasi kontribusi ADCD vs kontribusi data range semata
-"""
+﻿
 import sys
 sys.path.insert(0, 'src')
 import numpy as np
