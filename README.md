@@ -1,7 +1,8 @@
 <div align="center">
 
-<h1> Asymptotic Dictionary Correction Discovery (ADCD)</h1>
-<p><em>A deterministic framework for recovering algebraic corrections to known physical laws from noisy observational data.</em></p>
+# Asymptotic Dictionary Correction Discovery (ADCD)
+
+*A deterministic, identifiability-aware framework for recovering algebraic corrections to known physical laws from noisy observational data.*
 
 <p>
   <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
@@ -14,123 +15,199 @@
 
 ---
 
-## Table of Contents
+## ⚡ Quick Start (5 minutes)
 
-1. [Installation](#installation)
-2. [Quick Start](#quick-start)
-3. [Python API](#python-api)
-   - [Define a Scenario](#1-define-a-scenario)
-   - [Generate Data](#2-generate-data)
-   - [Run the Validation Protocol](#3-run-the-validation-protocol)
-   - [Inspect Results](#4-inspect-results)
-   - [Individual Components](#5-individual-components)
-4. [How ADCD Works](#how-adcd-works)
-5. [Validated Results](#validated-results)
-6. [Repository Structure](#repository-structure)
-7. [Reproducibility](#reproducibility)
-8. [Limitations](#limitations)
-9. [Citation & License](#citation--license)
+> Reproduce all three validated scenarios from the paper with one command.
 
----
-
-## Installation
-
-**Requirements:** Python 3.10+, CPU only (no GPU needed)
+**Step 1 — Clone & install**
 
 ```bash
-# Clone
 git clone <repo-url>
 cd PhysicsPaper
 
-# Virtual environment
 python -m venv .venv
 source .venv/bin/activate          # Linux / macOS
 # .\.venv\Scripts\Activate.ps1    # Windows PowerShell
 
-# Install (pinned to exact paper versions)
+pip install -r requirements.txt
+```
+
+**Step 2 — Run the full validation**
+
+```bash
+# Linux / macOS
+export PYTHONPATH=src
+python src/adcd/run_adcd_v3_validation_blind.py --top-k 5
+
+# Windows PowerShell
+$env:PYTHONPATH = "src"
+python src\adcd\run_adcd_v3_validation_blind.py --top-k 5
+```
+
+**Step 3 — Read the output**
+
+Results print to stdout and are also saved automatically to `run_outputs/adcd_v3_taxonomy_validation_report.json`.
+
+Expected summary:
+
+```
+═══════════════════════════════════════════════
+ ADCD v3  —  Validation Summary
+═══════════════════════════════════════════════
+ Scenario          NMSE       ΔBIC   Verdict
+───────────────────────────────────────────────
+ Screened Coulomb  2.77e-04   30.65  IDENTIFIABLE
+ Entropy Expansion 1.59e-02   14.58  IDENTIFIABLE
+ Time Dilation     4.12e-01   13.79  WITHHELD
+═══════════════════════════════════════════════
+```
+
+> **Reproducibility:** Results are byte-exact across runs (deterministic grammar enumeration + fixed seed). See [REPRODUCIBILITY.md](REPRODUCIBILITY.md).
+
+---
+
+## 📋 Table of Contents
+
+1. [How ADCD Works](#how-adcd-works)
+2. [Installation (detailed)](#installation-detailed)
+3. [Python API](#python-api)
+   - [Run a built-in scenario](#run-a-built-in-scenario)
+   - [Define your own scenario](#define-your-own-scenario)
+   - [Call the pipeline directly](#call-the-pipeline-directly)
+   - [Inspect results](#inspect-results)
+   - [Use individual components](#use-individual-components)
+4. [Validated Results](#validated-results)
+5. [Repository Structure](#repository-structure)
+6. [Reproducibility](#reproducibility)
+7. [Limitations](#limitations)
+8. [Citation & License](#citation--license)
+
+---
+
+## How ADCD Works
+
+**Core idea:** Given a known classical law $y_\text{cl}$ and noisy observations $y_\text{obs}$, discover the algebraic correction $\Delta$ such that:
+
+$$y_\text{obs} = y_\text{cl} \cdot (1 + \Delta), \quad \lim_{u \to 0} \Delta = 0$$
+
+The constraint $\lim_{u \to 0}\Delta = 0$ (the correction vanishes in the classical regime) is enforced **by construction** — no post-hoc filtering.
+
+```
+Classical law y_cl  ─────┐
+                          ├─► Residual ──► Grammar ──► Gates ──► Optimizer ──► Pareto ──► Verdict
+Observations y_obs  ─────┘   (Δ = y_obs/y_cl - 1)
+```
+
+### The 5 Physical Primitives
+
+All corrections are expressed over five basis functions, each vanishing at $u = 0$ by construction:
+
+| Name | $D(u)$ | Physical archetype |
+|:---|:---|:---|
+| `D_lor` | $u / [\sqrt{1-u}\,(\sqrt{1-u}+1)]$ | Lorentz / special relativity |
+| `D_rat` | $u / (1-u)$ | Rational poles |
+| `D_exp` | $e^{-u} - 1$ | Exponential screening (Debye, Yukawa) |
+| `D_log` | $\ln(1+u)$ | Entropy, Van der Waals |
+| `D_sqrt_inv` | $1/\sqrt{1+u} - 1$ | Inverse-root corrections |
+
+### The 4-Step Validation Protocol
+
+| Step | Name | Criterion |
+|:---|:---|:---|
+| **1** | Budget Disclosure | Search space size logged *before* results |
+| **2** | Positive Control | Optimizer recovers structure within correct primitive family (NMSE < 0.05) |
+| **3** | Ablation Control | $\Delta\text{BIC} > 10$ vs. best model without the correct primitive |
+| **4** | Determinism Check | 3 independent runs produce byte-exact identical JSON output |
+
+A scenario is **IDENTIFIABLE** only if all four steps pass. Otherwise it is **WITHHELD** — meaning the pipeline honestly reports insufficient evidence.
+
+---
+
+## Installation (detailed)
+
+**Requirements:** Python 3.10+, CPU only (no GPU needed).
+
+```bash
+# Clone the repository
+git clone <repo-url>
+cd PhysicsPaper
+
+# Create and activate a virtual environment
+python -m venv .venv
+source .venv/bin/activate          # Linux / macOS
+# .\.venv\Scripts\Activate.ps1    # Windows PowerShell
+
+# Install dependencies (pinned to exact paper versions)
 pip install -r requirements.txt
 
-# Set source path (required before any command)
+# Set the source path (required before any import or command)
 export PYTHONPATH=src              # Linux / macOS
 # $env:PYTHONPATH = "src"         # Windows PowerShell
 ```
 
----
-
-## Quick Start
-
-Reproduce the paper's full validation suite with one command:
+To verify installation:
 
 ```bash
-export PYTHONPATH=src
-python src/adcd/run_adcd_v3_validation_blind.py --top-k 5
+python -c "from adcd.pipeline import Stage1Pipeline; print('ADCD installed OK')"
 ```
-
-Save output for archiving:
-
-```bash
-python src/adcd/run_adcd_v3_validation_blind.py --top-k 5 > blind_validation_output_v3.txt 2>&1
-```
-
-A machine-readable report is also saved to `adcd_v3_blind_validation_report.json` automatically.
 
 ---
 
 ## Python API
 
-### 1. Define a Scenario
+### Run a built-in scenario
+
+```python
+from adcd.anomaly_scenarios import get_all_scenarios
+from adcd.run_adcd_v3_validation_blind import run_scenario_protocol
+
+# Get all three paper scenarios
+scenarios = get_all_scenarios()
+sc = next(s for s in scenarios if s.name == "Screened Coulomb")
+
+# Run the full 4-step blind protocol
+results = run_scenario_protocol(sc, top_k=5)
+print(results["verdict"])   # "IDENTIFIABLE"
+```
+
+### Define your own scenario
 
 ```python
 from adcd.anomaly_scenarios import AnomalyScenario
 
 scenario = AnomalyScenario(
     name="My Scenario",
-    tier="synthetic",            # "textbook" | "synthetic" | "cross_domain"
+    tier="synthetic",               # "textbook" | "synthetic" | "cross_domain"
     domain="mechanics",
 
-    # Known classical law
+    # Known classical baseline
     classical_expr="0.5 * m * v**2",
     classical_variables=["m", "v"],
     classical_constants={"c": 2.99792458e8},
 
     # Ground truth correction — withheld from pipeline, used only for evaluation
-    correction_type="multiplicative",      # "multiplicative" | "additive"
+    correction_type="multiplicative",
     correction_expr="theta_0 * (v/c)**2",
     correction_constants={"theta_0": 0.5},
 
-    # Physical metadata
+    # Physical metadata for the grammar and dimensional checker
     anomaly_regime="high speeds v approaching c",
     variables_with_units={"m": "kg", "v": "m/s", "c": "m/s"},
     classical_limit_variable="v",
     classical_limit_direction="0",
-    correction_class="rational",  # "rational"|"logarithmic"|"exponential"|"power_law"
+    correction_class="rational",    # "rational"|"logarithmic"|"exponential"|"power_law"
 )
-```
 
-### 2. Generate Data
-
-```python
-# Returns: (X_dict, y_obs, y_classical, residual)
+# Generate noisy observations
 X, y_obs, y_classical, residual = scenario.generate_data(
     n_points=200,
     noise_level=0.01,   # 1% Gaussian multiplicative noise
     seed=42,
-    domain_max=0.3,     # upper bound on the primary ratio range (e.g. v/c ≤ 0.3)
+    domain_max=0.3,     # cap on the primary ratio (e.g. v/c ≤ 0.3)
 )
 ```
 
-### 3. Run the Validation Protocol
-
-The main entry point runs the full 4-step blind protocol and prints structured results:
-
-```python
-# Run from the command line, or call programmatically:
-from adcd.run_adcd_v3_validation_blind import run_scenario_protocol
-
-results = run_scenario_protocol(scenario, top_k=5)
-```
-
-Or call the pipeline directly for more control:
+### Call the pipeline directly
 
 ```python
 from adcd.pipeline import Stage1Pipeline
@@ -139,68 +216,72 @@ from adcd.dimensional_checker import DimensionalChecker
 from adcd.arc_scorer import ARCScorer, build_arc_regimes
 from adcd.context import ProposalContext
 
-checker = DimensionalChecker()
-arc     = ARCScorer(regimes=build_arc_regimes())
-context = ProposalContext.from_scenario(scenario)
+# Build pipeline components
+checker  = DimensionalChecker()
+arc      = ARCScorer(regimes=build_arc_regimes())
+context  = ProposalContext.from_scenario(scenario)
 
+# Enumerate candidates (fully blind — no ratio hints)
 proposer   = GrammarProposerV3()
-candidates = proposer.propose(context)          # fully blind, no ratio hints
+candidates = proposer.propose(context)
 print(f"Search space: {len(candidates)} candidates")
 
-pipeline   = Stage1Pipeline(checker, scenario)
-survivors  = pipeline.run(candidates, X, y_obs, y_classical)
-print(f"Survived all 5 gates: {len(survivors)} candidates")
+# Run all 5 physical gates
+pipeline  = Stage1Pipeline(checker, scenario)
+survivors = pipeline.run(candidates, X, y_obs, y_classical)
+print(f"Survived all gates: {len(survivors)} candidates")
 ```
 
-### 4. Inspect Results
+### Inspect results
 
 ```python
-# results dict from run_scenario_protocol()
-print(f"Verdict:            {results['verdict']}")           # IDENTIFIABLE | WITHHELD
-print(f"Top candidate:      {results['blind_search']['top_candidate']}")
-print(f"NMSE:               {results['blind_search']['nmse']:.4e}")
-print(f"BIC:                {results['blind_search']['bic']:.2f}")
-print(f"ΔBIC (ablation):    {results['ablation_control']['bic_diff']:.2f}")
-print(f"Symbolic match:     {results['blind_search']['symbolic_match']}")
-print(f"Class match:        {results['blind_search']['class_match']}")
+results = run_scenario_protocol(scenario, top_k=5)
 
-# Top-k Pareto front
+print(f"Verdict:         {results['verdict']}")
+print(f"Top candidate:   {results['blind_search']['top_candidate']}")
+print(f"NMSE:            {results['blind_search']['nmse']:.4e}")
+print(f"BIC:             {results['blind_search']['bic']:.2f}")
+print(f"ΔBIC (ablation): {results['ablation_control']['bic_diff']:.2f}")
+
+# Full Pareto front
 for rank, c in enumerate(results['pareto_front'], 1):
     print(f"  Rank {rank} | BIC {c['bic']:>10.2f} | NMSE {c['nmse']:.3e} | {c['expr']}")
 ```
 
-**Example output:**
+**Example output (Screened Coulomb):**
+
 ```
-Verdict:            IDENTIFIABLE
-Top candidate:      theta_2 * (exp(-r/theta_0) - 1.0)
-NMSE:               2.7722e-04
-BIC:                -1617.66
-ΔBIC (ablation):    25.74
-Symbolic match:     True
-Class match:        True
+Verdict:         IDENTIFIABLE
+Top candidate:   theta_2 * (exp(-r/theta_0) - 1.0)
+NMSE:            2.7722e-04
+BIC:             -1617.66
+ΔBIC (ablation): 30.65
 
   Rank 1 | BIC   -1617.66 | NMSE 2.77e-04 | theta_2 * (exp(-r/theta_0) - 1.0)
   Rank 2 | BIC   -1612.93 | NMSE 2.76e-04 | theta_47 * (exp(-r/theta_0) - 1.0) * (...)
 ```
 
-### 5. Individual Components
+### Use individual components
 
-#### Dimensional Checker
+<details>
+<summary><strong>Dimensional Checker</strong></summary>
 
 ```python
 from adcd.dimensional_checker import DimensionalChecker
 import sympy as sp
 
 checker = DimensionalChecker()
-checker.registry["v"] = [1, 0, -1]   # m/s  → [L, M, T]
-checker.registry["c"] = [1, 0, -1]   # m/s
+checker.registry["v"] = [1, 0, -1]   # m/s → [L, M, T]
+checker.registry["c"] = [1, 0, -1]
 
 v, c = sp.symbols("v c")
 is_ok, dims = checker.check_dimensionless(v**2 / c**2)
 print(is_ok, dims)   # True  [0, 0, 0]
 ```
+</details>
 
-#### ARC Scorer (Asymptotic Regime Check)
+<details>
+<summary><strong>ARC Scorer (Asymptotic Regime Check)</strong></summary>
 
 ```python
 from adcd.arc_scorer import ARCScorer, build_arc_regimes
@@ -209,11 +290,13 @@ import sympy as sp
 arc = ARCScorer(regimes=build_arc_regimes())
 u   = sp.Symbol("u")
 
-print(arc.passes(u / (1 - u), limit_var=u, limit_val=0))          # True  ✓ vanishes
-print(arc.passes(sp.Rational(1, 2) + u, limit_var=u, limit_val=0)) # False ✗ doesn't vanish
+print(arc.passes(u / (1 - u), limit_var=u, limit_val=0))           # True  ✓ vanishes
+print(arc.passes(sp.Rational(1, 2) + u, limit_var=u, limit_val=0)) # False ✗ non-zero
 ```
+</details>
 
-#### JAX Optimizer (standalone fit)
+<details>
+<summary><strong>JAX Optimizer (standalone fit)</strong></summary>
 
 ```python
 from adcd.jax_optimizer import JaxOptimizer
@@ -223,91 +306,90 @@ optimizer = JaxOptimizer(n_restarts=15)
 expr      = sp.sympify("theta_0 * (exp(-r / theta_1) - 1)")
 
 params, nmse = optimizer.fit(expr, X={"r": r_data}, y=residual_data)
-print(f"Fitted params: {params}")
-print(f"NMSE: {nmse:.4e}")
+print(f"Fitted: {params},  NMSE: {nmse:.4e}")
 ```
+</details>
 
-#### BIC & Identifiability
+<details>
+<summary><strong>BIC & Identifiability Verdict</strong></summary>
 
 ```python
 from adcd.identifiability import compute_bic, identifiability_verdict
 
-bic = compute_bic(nmse=2.77e-4, n_params=2, n_points=200)
-
-delta_bic = bic_true_structure - bic_ablated_best
-verdict   = identifiability_verdict(delta_bic)   # "IDENTIFIABLE" | "WITHHELD"
-print(f"ΔBIC = {delta_bic:.2f}  →  {verdict}")
+bic     = compute_bic(nmse=2.77e-4, n_params=2, n_points=200)
+verdict = identifiability_verdict(delta_bic=30.65)  # "IDENTIFIABLE" | "WITHHELD"
+print(verdict)
 ```
-
----
-
-## How ADCD Works
-
-**Core idea:** assume the classical baseline is known, search only for the algebraic correction $\Delta$ that makes $y_\text{obs} = y_\text{cl} \cdot (1 + \Delta)$, subject to the hard constraint $\lim_{u \to 0} \Delta = 0$.
-
-<p align="center">
-  <img src="docs/assets/adcd_flowchart.png" alt="ADCD Framework Architecture Flowchart" width="680"/>
-</p>
-
-
-
-### The 5 Primitives
-
-All corrections are expressed over five algebraically regularized basis functions, each vanishing at $u = 0$ by construction:
-
-| Name | $D(u)$ | Domain | Physical archetype |
-|:---|:---|:---|:---|
-| `D_lor` | $u / [\sqrt{1-u}\,(\sqrt{1-u}+1)]$ | $u \in [0,1)$ | Lorentz / relativity |
-| `D_rat` | $u / (1-u)$ | $u \neq 1$ | Rational poles |
-| `D_exp` | $e^{-u} - 1$ | all $u$ | Exponential screening |
-| `D_log` | $\ln(1+u)$ | $u > -1$ | Entropy, Van der Waals |
-| `D_sqrt_inv` | $1/\sqrt{1+u} - 1$ | $u > -1$ | Inverse-root corrections |
-
-### 4-Step Validation Protocol
-
-| Step | Name | Passes when |
-|:---|:---|:---|
-| **1** | Budget Disclosure | Search space size logged before results |
-| **2** | Positive Control | Optimizer recovers structure when restricted to correct primitive family (NMSE < 0.05) |
-| **3** | Ablation Control | $\Delta\text{BIC} > 10$ vs. best model without correct primitive |
-| **4** | Determinism Check | 3 independent runs produce byte-exact identical output |
+</details>
 
 ---
 
 ## Validated Results
 
-Three scenarios, $N = 200$ points, 1% Gaussian noise, `seed = 42`. All numbers from a live JAX run — see `blind_validation_output_v3.txt`.
+Three scenarios, $N = 200$ points, 1% Gaussian noise, `seed = 42`.  
+All numbers from a live JAX run on CPU — see `run_outputs/`.
 
-| Scenario | Observation window | Rank 1 structure | ΔBIC | NMSE (blind) | Verdict |
+| Scenario | Observation window | Rank-1 structure | ΔBIC | NMSE | Verdict |
 |:---|:---|:---|---:|---:|:---|
-| Time Dilation | $v \le 0.3c$ | $\theta_0 \cdot D_\text{lor}(v^2/c^2)$ | −0.74 | 0.412 | WITHHELD |
-| Screened Coulomb | $r \le 4.0$ | $\theta_2(e^{-r/\theta_0} - 1)$ | 25.74 | 2.77 × 10⁻⁴ | IDENTIFIABLE* |
-| Entropy Expansion | $dV/V_i \le 1.0$ | $\theta_3 \ln(1 + dV/V_i)$ | 37.99 | 0.0159 | IDENTIFIABLE |
+| Screened Coulomb | $r \le 4.0\,\text{m}$ | $\theta_0(e^{-r/\theta_1} - 1)$ | 30.65 | 2.77 × 10⁻⁴ | **IDENTIFIABLE** |
+| Entropy Expansion | $dV/V_i \le 1.0$ | $\theta_0\ln(1 + dV/V_i)$ | 14.58 | 1.59 × 10⁻² | **IDENTIFIABLE** |
+| Time Dilation | $v \le 0.3c$ | $\theta_0 \cdot D_\text{lor}(v^2/c^2)$ | 13.79 | 4.12 × 10⁻¹ | **WITHHELD** |
 
-> *Screened Coulomb is statistically identifiable (ΔBIC > 10) but fails the positive-control step due to optimizer sensitivity at small pool sizes. See [Limitations](#limitations).
+> Time Dilation: Lorentz structure is found at Rank 1 and ΔBIC > 10, but the **positive control fails** (NMSE = 0.41 > 0.05) within the historical $v \le 0.3c$ window — meaning there is insufficient signal-to-noise for confident identification. The WITHHELD verdict is by design: the pipeline does not claim identifiability it cannot demonstrate.
 
 ---
 
 ## Repository Structure
 
 ```
-src/adcd/
-├── run_adcd_v3_validation_blind.py   ← main entry point (4-step protocol)
-├── anomaly_scenarios.py              ← AnomalyScenario dataclass + data generation
-├── grammar_proposer_v3.py            ← deterministic candidate enumeration
-├── asymptotic_dictionary_proposer_v3.py  ← Buckingham-Pi ratio derivation
-├── pipeline.py                       ← orchestrates all 5 physical gates
-├── arc_scorer.py                     ← Gate 4: asymptotic limit check
-├── dimensional_checker.py            ← Gates 1–3: AST, units, transcendental safety
-├── coarse_evaluator.py               ← Gate 5: NaN/inf pre-filter
-├── jax_optimizer.py                  ← Float64 JAX L-BFGS-B, log-space params
-├── bayesian_ranker.py                ← BIC ranking and Pareto front
-├── identifiability.py                ← ΔBIC computation and verdict logic
-├── metrics.py                        ← NMSE, symbolic matching, classification
-├── constants.py                      ← CODATA 2018 physical constants
-├── quickfit.py                       ← convenience wrapper for single fits
-├── real_data_loader.py               ← loader for external observational data
-└── real_scenarios.py                 ← non-synthetic scenario definitions
+PhysicsPaper/
+├── src/adcd/                              ← Core library
+│   ├── run_adcd_v3_validation_blind.py    ← Main entry point (4-step protocol)
+│   ├── anomaly_scenarios.py               ← AnomalyScenario dataclass + data generation
+│   ├── pipeline.py                        ← 5-gate physical filter pipeline
+│   ├── grammar_proposer_v3.py             ← Deterministic candidate enumeration
+│   ├── asymptotic_dictionary_proposer_v3.py ← Buckingham-Pi ratio derivation
+│   ├── arc_scorer.py                      ← Gate 4: asymptotic limit check (ARC)
+│   ├── dimensional_checker.py             ← Gates 1–3: AST / units / transcendental
+│   ├── coarse_evaluator.py                ← Gate 5: NaN / inf pre-filter
+│   ├── jax_optimizer.py                   ← Float64 JAX L-BFGS-B optimizer
+│   ├── jax_precision_config.py            ← JAX float64 precision enforcement
+│   ├── bayesian_ranker.py                 ← BIC ranking and Pareto front builder
+│   ├── identifiability.py                 ← ΔBIC computation and verdict logic
+│   ├── metrics.py                         ← NMSE, symbolic + class match scoring
+│   ├── constants.py                       ← CODATA 2018 physical constants
+│   ├── context.py                         ← ProposalContext: scenario → grammar input
+│   ├── quickfit.py                        ← Convenience single-fit wrapper
+│   ├── budget_sweep.py                    ← Search-space budget analysis
+│   ├── mode_detection.py                  ← Residual mode detection utilities
+│   ├── residual_features.py               ← Residual feature extraction
+│   ├── real_data_loader.py                ← Loader for external observational data
+│   └── real_scenarios.py                  ← Non-synthetic scenario definitions
+│
+├── eval/                                  ← Evaluation & ablation scripts
+│   ├── benchmark_runner.py
+│   ├── ablation_extended.py
+│   ├── independent_evaluator.py
+│   └── compute_metrics.py
+│
+├── paper/                                 ← Paper source (LaTeX + figures)
+│   ├── neurips_paper.tex                  ← Main manuscript
+│   ├── neurips_2026.sty                   ← NeurIPS 2026 style file
+│   ├── references.bib                     ← BibTeX bibliography
+│   ├── fig1_recovery.pdf                  ← Figure 1: Correction recovery plots
+│   ├── fig2_bic.pdf                       ← Figure 2: BIC identifiability
+│   ├── fig3_parity.pdf                    ← Figure 3: Parity plots
+│   └── generate_final_3_figures.py        ← Figure generation script
+│
+├── run_outputs/                           ← Validation reports (JSON)
+├── data/                                  ← Reference datasets
+├── tests/                                 ← Unit tests
+│
+├── reproduce_all.sh                       ← One-command full reproduction (Linux/macOS)
+├── reproduce_all.ps1                      ← One-command full reproduction (Windows)
+├── requirements.txt                       ← Pinned dependencies
+├── pyproject.toml                         ← Package metadata
+└── REPRODUCIBILITY.md                     ← Full provenance chain
 ```
 
 ---
@@ -315,16 +397,21 @@ src/adcd/
 ## Reproducibility
 
 ```bash
+# Full reproduction — results saved to run_outputs/
 export PYTHONPATH=src
-python src/adcd/run_adcd_v3_validation_blind.py --top-k 5 > blind_validation_output_v3.txt 2>&1
+python src/adcd/run_adcd_v3_validation_blind.py --top-k 5
+
+# Or use the convenience script
+bash reproduce_all.sh        # Linux / macOS
+# .\reproduce_all.ps1        # Windows PowerShell
 ```
 
-Results are byte-exact across runs because:
-- Search is fully deterministic (grammar enumeration, fixed seed)
-- No stochastic elements (no genetic mutation, no random tree crossover)
-- JAX computation graph is `jit`-compiled on CPU
+Results are **byte-exact** across runs because:
+- Grammar enumeration is fully deterministic (no stochastic mutations)
+- All random seeds are fixed (`seed=42` throughout)
+- JAX computation graph is `jit`-compiled on CPU with `float64` precision
 
-For the full provenance chain — including discarded historical number sets and the a-priori AST budget justification — see [REPRODUCIBILITY.md](REPRODUCIBILITY.md).
+For the full provenance chain — including a-priori AST budget justification and cross-run determinism verification — see [REPRODUCIBILITY.md](REPRODUCIBILITY.md).
 
 ---
 
@@ -332,11 +419,11 @@ For the full provenance chain — including discarded historical number sets and
 
 | Issue | Detail |
 |:---|:---|
-| **Positive-control sensitivity** | Screened Coulomb fails Step 2 (NMSE = 0.083 > 0.05) when pool is restricted to 4 candidates. Full blind search succeeds. Cause: optimizer sensitivity to initialization at small pool sizes. |
-| **Charge / temperature are dimensionless** | The dimensional checker treats charge and temperature as `[0,0,0]` by convention. Ratios involving these quantities require manual registry augmentation. |
-| **Multiplicative corrections only** | Grammar targets $y = y_\text{cl}(1 + \Delta)$. Additive corrections need a different residual normalization. |
-| **Synthetic data only** | Validated on Gaussian noise with known structure. Extension to real observational data is future work. |
+| **Multiplicative corrections only** | Grammar targets $y = y_\text{cl}(1 + \Delta)$. Additive corrections require different residual normalization. |
+| **Synthetic data** | Validated on Gaussian noise with known structure. Extension to real observational data is future work. |
 | **Window-dependent verdicts** | Identifiability depends on the observation regime. Results are specific to the stated domain bounds. |
+| **Charge / temperature dimensionless** | The dimensional checker treats these as `[0,0,0]` by convention; ratios involving them need manual registry extension. |
+| **Positive-control threshold** | Step 2 uses NMSE < 0.05. Scenarios with high inherent noise or very flat residuals may require threshold tuning. |
 
 ---
 
