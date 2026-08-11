@@ -180,9 +180,9 @@ def main():
     x      = np.arange(len(x_labels_short))
     width  = 0.32
 
-    rects1 = ax1.bar(x - width/2, bics_chosen,  width, label='True Structure (Pareto)',
+    rects1 = ax1.bar(x - width/2, bics_chosen,  width, label='Rank-1 candidate (blind search)',
                      color='#1e3a8a', edgecolor='black', linewidth=0.5)
-    rects2 = ax1.bar(x + width/2, bics_ablated, width, label='Best Alternative (Ablated)',
+    rects2 = ax1.bar(x + width/2, bics_ablated, width, label='Best alternative (ablated)',
                      color='#94a3b8', edgecolor='black', linewidth=0.5)
 
     ax1.set_ylabel('BIC (lower is better)', fontsize=11, labelpad=8)
@@ -230,7 +230,7 @@ def main():
     ax2.axhspan(0.8, 10, color='#fef3c7', alpha=0.45, zorder=0,
                 label='$\\Delta$BIC < 10 (below evidence threshold)')
 
-    ax2.set_ylabel(r'$\Delta\mathrm{BIC}$ (ablated $-$ true structure)', fontsize=11, labelpad=8)
+    ax2.set_ylabel(r'$\Delta\mathrm{BIC}$ (ablated $-$ Rank-1)', fontsize=11, labelpad=8)
     ax2.set_title(r'(b) Identifiability Evidence ($\Delta\mathrm{BIC}$)',
                   fontsize=12, fontweight='bold', pad=12)
     ax2.set_xticks(x)
@@ -279,7 +279,7 @@ def main():
         hi = max(np.max(delta_true), np.max(delta_pred))
         margin = (hi - lo) * 0.05
         ax.plot([lo-margin, hi+margin], [lo-margin, hi+margin],
-                color='black', linestyle='--', linewidth=1.2, zorder=2, label='Ideal 1:1')
+                color='black', linestyle='--', linewidth=1.2, zorder=2, label='1:1 reference')
 
         ax.set_xlabel(r'True correction $\Delta_{\mathrm{true}}$', fontsize=10)
         if i == 0:
