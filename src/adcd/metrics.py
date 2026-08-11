@@ -1,14 +1,18 @@
 """
-metrics.py
-==========
-Evaluation metrics for ADCD: NMSE, BIC, structural classification,
-and parameter recovery.
+Metrics and evaluation utilities for ADCD.
 
-Parameter recovery uses permutation search over theta assignments
-rather than alphabetical pairing, so discovered expressions with
-different theta orderings are matched by role, not by name.
-When an exact symbolic permutation is found, structural_match=True;
-otherwise the numerically closest pairing is used with structural_match=False.
+Key functions:
+  compute_nmse        – Normalized Mean Squared Error on residual predictions
+  classify_structure  – Functional class of a sympy expression
+  match_parameters    – Best-permutation assignment of fitted to true parameters;
+                        uses symbolic verification when possible, numeric otherwise
+  evaluate_correction – Full evaluation of a candidate against a scenario
+
+Note on match_parameters: positional pairing of theta indices is unreliable
+(indices are assigned independently on the discovered and ground-truth sides).
+This function tries all permutations and uses the assignment that minimizes
+total relative error, flagging structural_match=True only when symbolic
+exact equality is confirmed.
 """
 
 import itertools
@@ -28,13 +32,14 @@ class CorrectionEvaluation:
     ast_edit_distance: int
     parameter_error: Dict[str, float]
     bic: float
-    # Honesty flags for parameter_error numbers.
-    parameter_match_structural: bool = False   # True only if a symbolic-exact permutation was found
+    # NEW: honesty flags for the parameter-error numbers above.
+    parameter_match_structural: bool = False   # True only if a symbolic-exact
+    # permutation was found
     parameter_count_mismatch: bool = False     # True if #true_params != #fit_params
 
 
 def classify_structure(expr: Union[str, sp.Expr], theta_fit: Optional[Dict[str, float]] = None) -> str:
-    """Classify correction expression into a functional family (rational, exponential, etc.)."""
+    """Return the functional class of a correction expression."""
     if isinstance(expr, str):
         try:
             expr = sp.sympify(expr)

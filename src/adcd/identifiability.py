@@ -1,46 +1,19 @@
 """
-identifiability.py (AUDIT-HARDENED)
-=====================================
-FIX LOG:
+Identifiability analysis for ADCD correction candidates.
 
-BUG FOUND (empirically confirmed -- see audit report reproduction): SNR was
-computed as
+Key functions:
+  compute_bic              – BIC score for a fitted candidate
+  identifiability_verdict  – IDENTIFIABLE / WITHHELD from ΔBIC
+  is_identifiable          – Full SNR + weight-ratio identifiability report
 
-    noise_magnitude = noise_level * np.std(y_classical) + 1e-15
-    snr = np.std(residual) / noise_magnitude
-
-For any scenario whose classical baseline is a CONSTANT across all data
-points (e.g. "Entropy Expansion": classical_expr = "S_i", a literal constant
-15.0 broadcast to every row), `np.std(y_classical) == 0.0` EXACTLY. The
-"+1e-15" floor then dominates completely, so `noise_magnitude` collapses to
-1e-15 regardless of the scenario's actual noise_level -- even at 30%+ noise.
-This inflates SNR to an astronomically large, meaningless number and makes
-`is_identifiable` always report True for any constant-baseline scenario, no
-matter how noisy the data actually is. Reproduced numerically:
-
-    np.std(np.full(200, 15.0)) == 0.0
-    noise_magnitude = 0.30 * 0.0 + 1e-15 == 1e-15   (regardless of noise_level!)
-
-WHY THE ORIGINAL DESIGN WAS WRONG: noise in this codebase's data generator
-(`anomaly_scenarios.py`) is applied MULTIPLICATIVELY relative to y_true
-(`y_obs = y_true * (1 + N(0, noise_level))`), not relative to y_classical.
-Using std(y_classical) as the noise-scale reference is only correct by
-coincidence when y_classical varies a lot across the dataset and the
-correction is small; it fails completely whenever the baseline itself
-carries no variance (additive-offset scenarios, or any scenario where the
-"classical" prediction is a constant reference value).
-
-FIX: reference the noise scale against `y_classical + residual`
-(reconstructing y_obs directly from the two arrays this function already
-receives -- for multiplicative-correction scenarios the caller must instead
-pass `y_classical * (1 + residual)`; a `correction_type` parameter has been
-added so this function can do the right reconstruction itself instead of
-assuming additive). If even THAT reference is degenerate (a dataset with
-zero variance in y_obs itself -- a genuinely pathological input), the
-function now returns `failure_mode="degenerate_reference"` and a
-NaN/±inf-safe SNR of exactly 0.0 (treated as "cannot claim identifiable")
-rather than silently fabricating an infinite SNR.
+Note on SNR computation: noise scale is referenced against the observed signal
+(y_classical + residual), not against std(y_classical). The latter collapses
+to zero for constant-baseline scenarios and produces meaningless infinite SNR.
+When even the observed signal has zero variance (degenerate input), the function
+returns failure_mode="degenerate_reference" and SNR=0 rather than fabricating
+a verdict.
 """
+
 
 from dataclasses import dataclass
 from typing import Optional, Dict, Tuple, List

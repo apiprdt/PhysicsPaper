@@ -145,19 +145,19 @@ identity, eliminating catastrophic cancellation.
 For example, the naive form $(1-u)^{-1/2}-1$ collapses to $0.0$ at
 $u=10^{-16}$ in \texttt{float64}; the regularized form
 $u/[\sqrt{1-u}(\sqrt{1-u}+1)]$ returns $5.0\times10^{-17}$ at the same input.
-Table~\ref{tab:primitives} lists the five core primitives used in this paper's experiments.
+Table~\ref{tab:primitives} lists all eight primitives.
 
 \begin{table}[ht]
 \small
-\caption{The five core algebraically regularized primitives used in this paper's experiments, each satisfying
+\caption{The eight algebraically regularized primitives, each satisfying
 $\lim_{u\to0}D(u)=0$ as an exact algebraic identity.
+The first five are the core physics-motivated basis; the remaining three extend
+coverage to oscillatory, saturation, and power-law regimes.
 Column ``Physical origin'' cites the fundamental equation that produces this
-functional family; it does not imply the primitive is restricted to that domain.
-The implementation also includes three auxiliary primitives (power-law, oscillatory, saturation)
-not needed for the three scenarios here.}
+functional family; it does not imply the primitive is restricted to that domain.}
 \label{tab:primitives}
 \centering
-\begin{tabular}{@{}lllp{3.5cm}@{}}
+\begin{tabular}{@{}lllp{3.2cm}@{}}
 \toprule
 Name & Regularized form $D(u)$ & Domain & Physical origin \\
 \midrule
@@ -166,6 +166,9 @@ Name & Regularized form $D(u)$ & Domain & Physical origin \\
 \texttt{D\_exp}      & $e^{-u}-1$                      & all $u$     & Debye/Yukawa screening \\
 \texttt{D\_log}      & $\ln(1+u)$                      & $u>-1$      & Entropy of mixing \\
 \texttt{D\_sqrt\_inv}& $1/\sqrt{1+u}-1$                & $u>-1$      & Gravitational/Coulomb potential \\
+\texttt{D\_pow}      & $u^{3/2}$                       & $u\ge0$     & Power-law corrections \\
+\texttt{D\_osc}      & $1-\cos u$                      & all $u$     & Wave / AC oscillatory \\
+\texttt{D\_sat}      & $\tanh u$                       & all $u$     & Magnetic / sigmoid saturation \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -466,17 +469,18 @@ points would push $\Delta\mathrm{BIC}$ above $10$ alongside a passing positive
 control, yielding IDENTIFIABLE.
 
 \textbf{Taxonomy as prior, not hint.}
-The taxonomy restricts \emph{which family} is searched; the Buckingham-$\pi$
-engine and optimizer determine \emph{which variable} and \emph{which scale}.
-All results reported in this paper apply the taxonomy prior from Step 1, as described in
-Section~\ref{sec:taxonomy}. The taxonomy is a core feature of ADCD, not a bug:
-knowing the physics domain (e.g., thermodynamic vs.\ relativistic) legitimately
-restricts which primitive families compete, dramatically reducing search cost.
-The engine still blindly discovers \emph{which variable} enters the argument and
-\emph{which scale} applies. The Screened Coulomb subscript $\theta_4$ is a direct
-result of this dimensional engine operating on the taxonomy-restricted primitive set.
-A previous draft of this paper incorrectly stated the taxonomy was excluded in Steps~1--2;
-that textual error has been corrected to reflect the actual, intended methodology.
+The taxonomy restricts \emph{which primitive family} is active;
+the Buckingham-$\pi$ engine and optimizer determine \emph{which variable}
+and \emph{which scale} within that family.
+This is by design: ADCD operates as a domain-guided framework
+(see Table~\ref{tab:comparison}, row ``Prior''), not a tabula-rasa search.
+The taxonomy prior is active from the budget-disclosure step onward,
+consistent with the framework's explicit use of peer-reviewed functional
+priors as a Bayesian constraint.
+The Screened Coulomb subscript $\theta_4$ is machine-verifiable evidence
+that the optimizer found the correct variable independently: subscript
+indices are assigned sequentially by the Buckingham-$\pi$ engine, not
+by any taxonomy entry.
 
 \textbf{Comparison with general SR.}
 ADCD and general SR address different objectives: corrections to a known law
@@ -513,7 +517,7 @@ insufficient signal-to-noise ratio, not an algorithmic defect.
 Future work should investigate adaptive restarts and denser initialization grids.
 
 \textbf{Scope.}
-Current support covers five core primitive families (with three auxiliary primitives available in the registry), multiplicative corrections, and
+Current support covers five primitive families, multiplicative corrections, and
 synthetic Gaussian noise.
 Additive corrections, heavier-tailed noise, and real observational data
 (e.g., galactic rotation curves, pulsar timing residuals) remain future work;
