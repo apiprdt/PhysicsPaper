@@ -161,9 +161,11 @@ def main():
         # Verdict badge
         add_verdict_badge(ax, verdict["label"], verdict["color"], loc="upper right")
 
-        # NMSE annotation bottom-right
-        ax.text(0.97, 0.05, f'NMSE={nmse:.2e}',
-                transform=ax.transAxes, fontsize=8, ha='right', va='bottom',
+        # NMSE annotation: bottom-left for Screened Coulomb, bottom-right for others
+        nmse_x = 0.03 if name == "Screened Coulomb" else 0.97
+        nmse_ha = 'left' if name == "Screened Coulomb" else 'right'
+        ax.text(nmse_x, 0.05, f'NMSE={nmse:.2e}',
+                transform=ax.transAxes, fontsize=8, ha=nmse_ha, va='bottom',
                 color='#374151',
                 bbox=dict(facecolor='white', alpha=0.8, edgecolor='#cbd5e1', pad=2))
 
