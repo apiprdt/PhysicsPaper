@@ -236,31 +236,40 @@ def _resolve_limit_unsafe(candidate: sp.Expr, variable: sp.Symbol, limit_target:
     return res
 
 
-import threading
+import multiprocessing
 
-def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
-    """
-    Wraps _resolve_limit_unsafe with a daemon thread and timeout
-    to prevent hanging limit evaluations from blocking the main process.
-    """
-    result = [None]
-    
-    def worker():
-        try:
-            result[0] = _resolve_limit_unsafe(candidate, variable, limit_target)
-        except Exception:
-            pass
+def _limit_worker(queue, candidate, variable, limit_target):
+    try:
+        res = _resolve_limit_unsafe(candidate, variable, limit_target)
+        queue.put(res)
+    except Exception:
+        queue.put(None)
 
-    t = threading.Thread(target=worker)
-    t.daemon = True
-    t.start()
-    t.join(timeout=2.0)
+def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any, timeout: float = 2.0):
+    """
+    Wraps _resolve_limit_unsafe with OS-level multiprocessing.
+    Prevents zombie threads and memory leaks caused by Python's GIL 
+    when SymPy's Gruntz algorithm hits an infinite loop.
+    """
+    queue = multiprocessing.Queue()
+    p = multiprocessing.Process(
+        target=_limit_worker, 
+        args=(queue, candidate, variable, limit_target)
+    )
     
-    if t.is_alive():
-        logger.debug(f"Timeout (2s) evaluating limit for: {candidate}")
+    p.start()
+    p.join(timeout=timeout)
+    
+    if p.is_alive():
+        logger.debug(f"Timeout ({timeout}s) - Force killing limit computation for: {candidate}")
+        p.terminate()  
+        p.join()       
         return None
         
-    return result[0]
+    if not queue.empty():
+        return queue.get()
+        
+    return None
 
 
 
