@@ -290,7 +290,7 @@ def _guess_true_primitive(expr_str: str) -> Optional[str]:
     if "sqrt(" in expr_str:
         if "1 -" in expr_str or "1.0 -" in expr_str: return "D_lor"
         return "D_sqrt_inv"
-    if "**" in expr_str and not "**2" in expr_str: return "D_pow"
+    if "**" in expr_str and "**2" not in expr_str: return "D_pow"
     if "/" in expr_str: return "D_rat"
     return None
 
@@ -476,3 +476,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
