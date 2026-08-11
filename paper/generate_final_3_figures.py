@@ -161,13 +161,20 @@ def main():
         # Verdict badge
         add_verdict_badge(ax, verdict["label"], verdict["color"], loc="upper right")
 
-        # NMSE annotation: bottom-left for Screened Coulomb, bottom-right for others
-        nmse_x = 0.03 if name == "Screened Coulomb" else 0.97
-        nmse_ha = 'left' if name == "Screened Coulomb" else 'right'
-        ax.text(nmse_x, 0.05, f'NMSE={nmse:.2e}',
+        # NMSE annotation — placed in the area cleared by the curve shape:
+        # Screened Coulomb: exponential decay fills top-left→bottom-right,
+        #   so middle-right (above where curve ends) is the safe zone.
+        # Time Dilation & Entropy Expansion: monotone rising, bottom-right is free.
+        nmse_pos = {
+            "Time Dilation":     (0.97, 0.05, 'right'),
+            "Screened Coulomb":  (0.97, 0.55, 'right'),
+            "Entropy Expansion": (0.97, 0.05, 'right'),
+        }
+        nmse_x, nmse_y, nmse_ha = nmse_pos[name]
+        ax.text(nmse_x, nmse_y, f'NMSE={nmse:.2e}',
                 transform=ax.transAxes, fontsize=8, ha=nmse_ha, va='bottom',
                 color='#374151',
-                bbox=dict(facecolor='white', alpha=0.8, edgecolor='#cbd5e1', pad=2))
+                bbox=dict(facecolor='white', alpha=0.9, edgecolor='#cbd5e1', pad=2))
 
     plt.tight_layout()
     os.makedirs("paper", exist_ok=True)
