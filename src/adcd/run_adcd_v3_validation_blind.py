@@ -277,7 +277,7 @@ def _guess_true_primitive(expr_str: str) -> Optional[str]:
     return None
 
 
-def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxonomy_prior: bool = False) -> ProtocolResult:
+def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxonomy_prior: bool = True) -> ProtocolResult:
     result = ProtocolResult(scenario_name=scenario.name)
     
     # Dynamically extract true primitive from the ground truth functional form
@@ -329,7 +329,7 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
         symbolic_match = (match_level == "exact")
         class_match = (match_level in ["exact", "class_only"])
 
-        result.checks["blind_search"] = {
+        result.checks["primary_search"] = {
             "top_candidate": expr_str,
             "nmse": nmse,
             "bic": bic,
@@ -343,7 +343,7 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
             "pareto_front": top_candidates,
         }
     else:
-        result.checks["blind_search"] = {"pass": False, "note": "No candidate survived the full pipeline."}
+        result.checks["primary_search"] = {"pass": False, "note": "No candidate survived the full pipeline."}
 
     # ---- Step 2: Positive control (calibration -- primitive isolated, ratio still auto-derived) ----
     ranked_isolated, space_size_isolated, _ = _run_search(
@@ -402,7 +402,8 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
 def main():
     parser = argparse.ArgumentParser(description="ADCD Validation Protocol")
     parser.add_argument("--top-k", type=int, default=5, help="Number of Pareto Front candidates to display")
-    parser.add_argument("--taxonomy", action="store_true", help="Use Domain Taxonomy Prior for Stage 1")
+    parser.add_argument("--no-taxonomy", action="store_false", dest="taxonomy", help="Disable Domain Taxonomy Prior for Stage 1")
+    parser.set_defaults(taxonomy=True)
     args = parser.parse_args()
     
     scenarios = {s.name: s for s in get_all_scenarios()}
@@ -426,7 +427,7 @@ def main():
             info_to_print = {k: v for k, v in info.items() if k != "pareto_front"}
             print(f"[{status:^6}] {step.upper():<20} | {info_to_print}")
             
-            if step == "blind_search" and "pareto_front" in info:
+            if step == "primary_search" and "pareto_front" in info:
                 print("\n" + " "*10 + "--- TOP-K PARETO FRONT ---")
                 print(" "*10 + f"{'Rank':<5} | {'BIC':<8} | {'NMSE':<10} | {'Class':<15} | {'Equation'}")
                 print(" "*10 + "-" * 70)
