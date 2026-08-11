@@ -1,25 +1,3 @@
-"""
-Pre-Registered Benchmark Runner for ADCD.
-FIXED VERSION — replaces the invalidated 2026-07-31 run.
-
-Fixes applied:
-1. PySR now actually runs (was run_pysr=False before — invalidated all prior data)
-2. Level B correctly computes residual: target = y_noisy - f0(x), not y directly
-3. ARC limit points physically correct:
-   - Level A (Feynman equations): ARC DISABLED — these are full physics quantities, not corrections
-   - Level B (Correction-First): limit x1 → +∞ — all synthetic corrections decay to zero
-4. FPRR (M2) now tracked per run: false positives = NMSE < threshold but gate fails
-5. ARM C added: PySR fits y_total directly (baseline for M4 correction-first comparison)
-6. Physical constants normalized to 1.0 in Level A expressions to avoid domain errors
-
-Experiment arms per Level B scenario:
-  ARM-A: GrammarProposer + Gate    (lightweight ADCD)
-  ARM-B: PySR + Gate               (plug-in mode, correction-first residual target)
-  ARM-C: PySR + Gate, direct fit   (baseline, fits y_total not residual — for M4)
-  
-Level A only runs ARM-A (complexity gate test).
-"""
-
 import sys
 import os
 import re

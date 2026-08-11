@@ -1,21 +1,3 @@
-"""
-ADCD v3 validation entry point.
-
-Runs the four-step validation protocol for each scenario:
-  Step 0 – Budget disclosure: report search space size before any results
-  Step 1 – Domain-guided search: find correction using taxonomy prior
-  Step 2 – Positive control: optimizer convergence check (restricted to true family)
-  Step 3 – Ablation control: ΔBIC > 10 with true family excluded
-  Step 4 – Determinism: three independent runs produce byte-exact identical output
-
-Usage:
-  python src/adcd/run_adcd_v3_validation_blind.py --top-k 5
-  python src/adcd/run_adcd_v3_validation_blind.py --top-k 5 --taxonomy
-
-The --taxonomy flag activates the domain prior (default behavior for paper results).
-Without it, the search runs over all primitives simultaneously.
-"""
-
 from __future__ import annotations
 
 import json

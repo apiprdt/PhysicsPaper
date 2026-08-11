@@ -1,16 +1,3 @@
-"""
-Statistical Analysis Script for ADCD Pre-Registered Benchmark.
-Computes M1 (PVR), M2 (FPRR), M3 (VRR), M4 (correction-first vs direct),
-and runs Wilcoxon signed-rank tests as pre-registered.
-
-Pre-registered success criteria:
-  M1: Gate arm PVR > No-gate arm, p < 0.05
-  M2: Gate reduces false positives >= 15%
-  M4: Correction-first VRR >= Direct VRR (at medium noise)
-
-Run this AFTER benchmark_runner.py has completed.
-"""
-
 import os
 import json
 import numpy as np

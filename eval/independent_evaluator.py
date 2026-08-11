@@ -1,9 +1,3 @@
-"""
-Independent Evaluator for ADCD Pre-Registered Benchmark Runs.
-Decoupled from adcd codebase. Evaluates candidate formulas on held-out test points
-and computes tree edit distance against ground truth.
-"""
-
 import sympy as sp
 import numpy as np
 from typing import Dict, Any

@@ -13,8 +13,8 @@ Test case: Newton -> Relativistic KE
 
 Metrik:
   M_arc : % kandidat yang lulus ARC (semakin tinggi = lebih efisien)
-  M_best: NMSE kandidat terbaik yang lulus ARC
-  M_struct: apakah ekspresi terbaik mengandung sqrt?
+  M_best: NMSE of best ARC-verified candidate
+  M_struct: does best expression contain sqrt?
 
 Seeds pre-declared: [0, 42, 123]
 """

@@ -1,31 +1,3 @@
-"""
-AsymptoticDictionaryProposer v3 — Regularized Primitives
-==========================================================
-THE CORE FIX (read this before anything else):
-
-Earlier version (v2) used RAW primitives: D_lor(u) = 1/sqrt(1-u), which
-diverges as u->1 and is *finite but nonzero* at u->0 (D_lor(0) = 1). To
-build a correction that vanishes at the classical limit (u->0), the
-optimizer had to find coefficients that EXACTLY CANCEL divergent/nonzero
-terms against each other (e.g. 2.0 and -2.0 in the true Relativistic-KE
-correction). This is an ill-conditioned optimization landscape — small
-coefficient errors get amplified without bound as u->0 — and it is why
-JAXOptimizer got stuck at NMSE=0.04 instead of finding the exact structure,
-regardless of how good the optimizer itself is.
-
-THE FIX: every primitive is now REGULARIZED — defined as D(u) - D(0), so
-it is EXACTLY ZERO at the classical limit BY ALGEBRAIC CONSTRUCTION, not by
-the optimizer discovering a magic cancellation. This is not a numerical
-trick; it is the correction-first philosophy applied one layer deeper than
-before — previously correction-first only shaped the TARGET (Delta = y_obs/
-y_classical - 1), now it also shapes the SEARCH BASIS itself.
-
-Consequence: sp.limit(D(u), u, 0) == 0 for every primitive, always,
-provably, via SymPy — checkable once at import time (see
-`_verify_regularization` below), not something that has to work out
-numerically at fit time.
-"""
-
 from __future__ import annotations
 
 import itertools

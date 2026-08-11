@@ -1,8 +1,3 @@
-"""
-Contamination Check Script for ADCD Pre-Registration Lock.
-Scans the codebase to ensure zero pre-registered benchmark equations appear in any Python files.
-"""
-
 import sys
 import os
 import re

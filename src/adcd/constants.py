@@ -1,17 +1,3 @@
-"""Centralized physical constants for ADCD.
-
-Single source of truth for all physical constants used across the package
-(data generation, evaluation, dimensional registries, plotting).
-
-All values are CODATA / IAU recommended values. Importing from this module
-instead of redefining constants locally prevents the silent inconsistencies
-that previously existed (e.g. ``G`` was 6.674e-11 in some loaders and
-6.6743e-11 in others; ``k_B`` appeared as 1.38e-23, 1.380649e-23, and
-1.381e-23 across different files).
-
-Reference: CODATA 2018 recommended values.
-"""
-
 from __future__ import annotations
 
 # ── CODATA 2018 recommended values ───────────────────────────────────────────

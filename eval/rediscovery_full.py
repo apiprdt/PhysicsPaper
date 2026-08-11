@@ -1,20 +1,3 @@
-"""
-ADCD Full Test: 3-Arm Final Comparison
-=======================================
-ARM A: PySR Solo (no ADCD, baseline)
-ARM B: ADCD Basic (correction-first + ARC anchor only, v1)
-ARM C: ADCD Full (all 3 mitigations: adaptive weights + dual-ARC + adaptive f0)
-
-Physics test case: Newton -> Relativistic KE, extended range v=[0.05, 0.99c]
-f0_candidates: {"none": 0, "newton": 0.5*v^2}
-
-Pre-registered:
-  seeds=[0, 42, 123]
-  noise=0.02
-  primary metric: fraction of seeds finding sqrt
-  secondary metric: dual-ARC pass rate
-  null result reported identically to positive result
-"""
 import sys
 sys.path.insert(0, 'src')
 import numpy as np

@@ -1,5 +1,5 @@
 ﻿"""
-Ablation: PySR Solo vs ADCD Integrated, keduanya pada extended range
+Ablation: PySR Solo vs ADCD Integrated, both on extended range
 Tujuan: isolasi kontribusi ADCD vs kontribusi data range semata
 """
 import sys

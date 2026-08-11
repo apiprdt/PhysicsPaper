@@ -1,14 +1,3 @@
-"""
-Real experimental data loaders for ADCD v2.0.
-
-Each loader generates "synthetic-real hybrid" data — using real physical constants
-and parameters from actual experiments, but computing the data programmatically.
-The physics is correct and the noise models are realistic.
-
-All loaders return (X_dict, y_obs, y_classical, residual), matching the format
-from AnomalyScenario.generate_data().
-"""
-
 import numpy as np
 from typing import Dict, Tuple
 

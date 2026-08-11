@@ -1,37 +1,3 @@
-"""
-ADCD REDISCOVERY TEST — Real Physics, Zero Circularity
-=======================================================
-Ground truth = fisika nyata (bukan yang kita desain sendiri)
-
-TRADE-OFF ANALYSIS DAN FIX UNTUK 2 KELEMAHAN:
-----------------------------------------------
-KELEMAHAN 1: Dimensional gate — single-variable loophole
-  Original: if 1 physical symbol -> auto PASS (terlalu longgar)
-  Fix: Natural units (c=1, m=1) membuat semua variabel dimensionless
-       -> Tidak ada ambiguitas unit, loophole tidak relevan
-  Trade-off: Hasil hanya valid dalam natural units, bukan SI units
-             Disclosed eksplisit di paper
-
-KELEMAHAN 2: Level B circularity (CF corrections didesain agar ARC satisfied)
-  Fix: Test ini menggunakan fisika NYATA (Newton, Coulomb)
-       Ground truth ditentukan oleh alam, bukan kita
-  Trade-off: TIDAK ADA. Ini solusi bersih.
-
-COMPLEXITY GATE — deliberate relaxation untuk discovery:
-  Benchmark (filtering): depth<=7, tokens<=20
-  Rediscovery (discovery): depth<=12, tokens<=35
-  Justifikasi: 1/sqrt(1-v^2)-1-v^2/2 adalah ekspresi yang inherently
-               kompleks — bukan karena overfitting, tapi karena fisikanya.
-               Menghukum kompleksitas genuine adalah salah secara ilmiah.
-  Disclosed: YES, di paper Limitations
-
-Anti-cheat:
-  - PySR = black box, tidak dimodifikasi
-  - Semua seeds pre-declared di awal
-  - Null results dilaporkan sama eksplisitnya
-  - Semua kandidat (passed & rejected) di-log
-"""
-
 import sys
 sys.path.insert(0, 'src')
 import numpy as np

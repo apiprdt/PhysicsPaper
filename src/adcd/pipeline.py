@@ -1,20 +1,3 @@
-"""
-Stage 1 physical gate pipeline for ADCD.
-
-Applies five sequential symbolic gates to candidate correction expressions:
-  Gate 1 – AST safety (no forbidden ops, depth limit)
-  Gate 2 – Dimensional consistency (dimensionless ratio check)
-  Gate 3 – Transcendental argument safety (args must be dimensionless)
-  Gate 4 – ARC (asymptotic regime check: lim_{u→0} D(u) = 0)
-  Gate 5 – Coarse numerical pre-filter (no NaN/inf on training data)
-
-Note on Gate 4 for parametric candidates: when the classical-limit test
-cannot be verified at theta=1 (because cancellation requires fitted values),
-the candidate is flagged deferred_arc=True and allowed to Stage 2.
-Stage 2 re-verifies ARC at the fitted theta and drops any remaining failures.
-GateStats reports deferred_arc counts for full transparency.
-"""
-
 import sympy as sp
 import numpy as np
 from dataclasses import dataclass, fields, asdict

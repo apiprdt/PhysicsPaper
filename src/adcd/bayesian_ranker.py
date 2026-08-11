@@ -1,14 +1,3 @@
-"""
-Bayesian posterior estimation over discovered correction candidates.
-
-Uses BIC weight approximation: posterior_i proportional to exp(-delta_BIC_i / 2)
-This is the well-established Schwarz approximation to Bayes factors
-(Kass & Raftery 1995, JASA; Burnham & Anderson 2002).
-
-Does NOT require MCMC or new infrastructure -- uses BIC scores
-already computed by the pipeline.
-"""
-
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Optional
 import numpy as np

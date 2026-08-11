@@ -1,20 +1,3 @@
-"""
-Identifiability analysis for ADCD correction candidates.
-
-Key functions:
-  compute_bic              – BIC score for a fitted candidate
-  identifiability_verdict  – IDENTIFIABLE / WITHHELD from ΔBIC
-  is_identifiable          – Full SNR + weight-ratio identifiability report
-
-Note on SNR computation: noise scale is referenced against the observed signal
-(y_classical + residual), not against std(y_classical). The latter collapses
-to zero for constant-baseline scenarios and produces meaningless infinite SNR.
-When even the observed signal has zero variance (degenerate input), the function
-returns failure_mode="degenerate_reference" and SNR=0 rather than fabricating
-a verdict.
-"""
-
-
 from dataclasses import dataclass
 from typing import Optional, Dict, Tuple, List
 import numpy as np

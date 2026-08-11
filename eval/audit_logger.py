@@ -1,8 +1,3 @@
-"""
-Append-Only JSON Audit Logger for ADCD Benchmark Runs.
-Ensures transparent logging of all experiment runs without overwriting past results.
-"""
-
 import os
 import json
 import datetime

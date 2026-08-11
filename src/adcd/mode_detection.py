@@ -1,23 +1,3 @@
-"""
-mode_detection.py
-==================================================================================
-
-Detects whether a correction is additive or multiplicative.
-The method compares the residual computed under EACH hypothesis:
-
-    additive:       residual = y_obs - y_classical
-    multiplicative: residual = y_obs / y_classical - 1   (where y_classical != 0)
-
-It picks whichever residual, once regressed against y_classical's OWN
-magnitude, shows LESS remaining dependence on scale. Rationale: if the true
-generative process is multiplicative (delta scales with y_classical), the
-ADDITIVE residual (y_obs - y_classical) will itself scale with y_classical
-(large where y_classical is large), i.e. show strong correlation between
-|residual| and |y_classical|. The correctly-specified hypothesis should
-show close to NO such correlation (a properly extracted residual should be
-roughly homoscedastic across the range of y_classical).
-"""
-
 from typing import Tuple
 import numpy as np
 

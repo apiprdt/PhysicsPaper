@@ -1,12 +1,3 @@
-"""
-AnomalyScenario wrappers for real experimental data (ADCD v2.0).
-
-RealAnomalyScenario subclasses AnomalyScenario and overrides generate_data()
-to call the actual physics loaders from adcd.real_data_loader instead of the
-generic uniform-random fallback.  The rest of the pipeline (proposer, physics
-gates, JAX optimizer) is unchanged.
-"""
-
 from dataclasses import dataclass
 from typing import Dict, Tuple
 

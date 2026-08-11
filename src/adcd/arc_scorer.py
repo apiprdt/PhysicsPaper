@@ -4,7 +4,7 @@ from typing import List, Union, Any, Dict, Sequence
 import numpy as np
 import sympy as sp
 
-# Konfigurasi Logging Terstruktur
+# Structured Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ARCScorer")
 
@@ -12,16 +12,16 @@ logger = logging.getLogger("ARCScorer")
 @dataclass
 class AsymptoticRegime:
     """
-    Representasi formal dari kondisi batas fisik asimtotik (Regime Bounds).
+    Formal representation of asymptotic physical boundary conditions (Regime Bounds).
     R_k = (variable, limit_target, ground_truth_expression, importance_weight)
     """
     variable: Union[str, sp.Symbol]
-    limit_target: Any  # Bisa angka numerik (0, 1) or sp.oo / -sp.oo
+    limit_target: Any  # Can be numeric (0, 1) or sp.oo / -sp.oo
     ground_truth_expr: Union[str, sp.Expr]
     weight: float = 1.0
 
     def __post_init__(self):
-        # Konversi string ke objek simbolik SymPy secara otomatis jika diperlukan
+        # Automatically convert strings to SymPy symbolic objects if needed
         if isinstance(self.variable, str):
             self.variable = sp.Symbol(self.variable)
         if isinstance(self.ground_truth_expr, str):
@@ -30,10 +30,10 @@ class AsymptoticRegime:
 
 def calculate_similarity(expr1: sp.Expr, expr2: sp.Expr) -> float:
     """
-    Mengevaluasi kesamaan matematis struktural antara dua ekspresi aljabar
-    menggunakan arsitektur verifikasi Three-Tier (Symbolic -> Divergence -> Numerical).
+    Evaluates the structural mathematical similarity between two algebraic expressions
+    using a Three-Tier verification architecture (Symbolic -> Divergence -> Numerical).
     """
-    # --- TIER 1: VERIFIKASI SIMBOLIK EKSAK ---
+    # --- TIER 1: EXACT SYMBOLIC VERIFICATION ---
     try:
         diff = sp.simplify(expr1 - expr2)
         if diff == 0:
@@ -41,8 +41,8 @@ def calculate_similarity(expr1: sp.Expr, expr2: sp.Expr) -> float:
     except Exception as e:
         logger.debug(f"Tier 1 simplification split failed: {e}")
 
-    # --- TIER 3: DETEKSI DIVERGENSI (HARD FAILURE GATE) ---
-    # Jika salah satu menuju tak hingga/tak terdefinisi sedangkan yang lain bernilai konstan
+    # --- TIER 3: DIVERGENCE DETECTION (HARD FAILURE GATE) ---
+    # If one expression diverges to infinity/undefined while the other is constant
     inf_tokens = [sp.oo, -sp.oo, sp.zoo]
     is_inf1 = expr1 in inf_tokens or getattr(expr1, "is_infinite", False)
     is_inf2 = expr2 in inf_tokens or getattr(expr2, "is_infinite", False)
@@ -52,9 +52,9 @@ def calculate_similarity(expr1: sp.Expr, expr2: sp.Expr) -> float:
     if is_inf1 and is_inf2:
         return 1.0 if expr1 == expr2 else 0.0
 
-    # --- TIER 2: EVALUASI KEDEKATAN NUMERIK (FALLBACK STRATEGY) ---
-    # Jika penyederhanaan aljabar buntu akibat fungsi transendental non-elementer,
-    # lakukan sampling 100 titik acak pada variabel konstanta fisis tersisa (e.g., m, c, G, M).
+    # --- TIER 2: NUMERICAL PROXIMITY EVALUATION (FALLBACK STRATEGY) ---
+    # If algebraic simplification fails due to non-elementary transcendental functions,
+    # sample 100 random points across the remaining physical constants (e.g., m, c, G, M).
     free_symbols = expr1.free_symbols.union(expr2.free_symbols)
     
     if not free_symbols:
@@ -71,13 +71,13 @@ def calculate_similarity(expr1: sp.Expr, expr2: sp.Expr) -> float:
         except Exception:
             return 0.0
 
-    # Generator angka acak yang konsisten (seeded untuk stabilitas testing)
+    # Consistent random number generator (seeded for testing stability)
     rng = np.random.default_rng(42)
     symbols_list = list(free_symbols)
     errors = []
 
     for _ in range(100):
-        # Berikan nilai fisis positif acak yang masuk akal [0.5, 2.0] untuk parameter tersisa
+        # Assign reasonable random positive physical values [0.5, 2.0] for remaining parameters
         sample_vals = rng.uniform(0.5, 2.0, size=len(symbols_list))
         subs_dict = dict(zip(symbols_list, sample_vals))
         
@@ -240,9 +240,8 @@ import threading
 
 def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
     """
-    Bungkus _resolve_limit_unsafe dengan daemon thread dan timeout,
-    sehingga thread yang nyangkut (infinite loop) tidak akan menahan
-    proses Python untuk shut down di akhir eksekusi.
+    Wraps _resolve_limit_unsafe with a daemon thread and timeout
+    to prevent hanging limit evaluations from blocking the main process.
     """
     result = [None]
     
@@ -258,7 +257,7 @@ def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
     t.join(timeout=2.0)
     
     if t.is_alive():
-        logger.debug(f"Timeout (2s) menghitung limit untuk: {candidate}")
+        logger.debug(f"Timeout (2s) evaluating limit for: {candidate}")
         return None
         
     return result[0]
@@ -267,18 +266,18 @@ def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any):
 
 class ARCScorer:
     """
-    Mesin utama Stage 1 Gatekeeper untuk menghitung bobot kelayakan
+    Core engine for Stage 1 Gatekeeper to compute feasibility weights
     """
     def __init__(self, regimes: List[AsymptoticRegime]):
         if not regimes:
-            raise ValueError("Daftar kondisi batas (regimes) tidak boleh kosong.")
+            raise ValueError("Regimes boundary list cannot be empty.")
         self.regimes = regimes
         self.total_weight = sum(r.weight for r in regimes)
 
     def score(self, candidate_expr: Union[str, sp.Expr], constants: Dict[str, float] = None) -> float:
         """
-        Menghitung nilai akhir ARC Score untuk satu kandidat fungsi.
-        Menggunakan evaluasi limit matematis murni tanpa pencocokan string biasa.
+        Computes the final ARC Score for a candidate expression.
+        Utilizes pure mathematical limit evaluation without basic string matching.
         """
         try:
             candidate = sp.sympify(candidate_expr)
@@ -287,7 +286,7 @@ class ARCScorer:
                 if subs_dict:
                     candidate = candidate.subs(subs_dict)
         except Exception as e:
-            logger.error(f"Gagal memproses sintaks ekspresi kandidat: {e}")
+            logger.error(f"Failed to process candidate expression syntax: {e}")
             return 0.0
 
         weighted_similarity_sum = 0.0
@@ -295,10 +294,10 @@ class ARCScorer:
         for r in self.regimes:
             evaluated_limit = _resolve_limit(candidate, r.variable, r.limit_target)
             if evaluated_limit is None:
-                # Kasus kegagalan matematis kritis (seperti PoleError) langsung diberi penalti 0
-                logger.warning(f"Kegagalan komputasi limit pada variabel {r.variable}")
+                # Critical mathematical failures (e.g., PoleError) are immediately penalized with 0
+                logger.warning(f"Limit computation failure for variable {r.variable}")
                 continue
-            # Hitung skor kedekatan fisis limit kandidat vs ground truth boundary
+            # Compute physical proximity score of candidate limit vs ground truth boundary
             similarity = calculate_similarity(evaluated_limit, r.ground_truth_expr)
             weighted_similarity_sum += r.weight * similarity
             logger.debug(f"Regime {r.variable}->{r.limit_target} | Limit: {evaluated_limit} | Sim: {similarity}")

@@ -1,10 +1,3 @@
-"""
-budget_sweep.py
-=================
-
-FOR DIAGNOSTIC USE ONLY — do not use sweep results to select the budget used in the paper.
-"""
-
 from __future__ import annotations
 import json
 from dataclasses import dataclass
