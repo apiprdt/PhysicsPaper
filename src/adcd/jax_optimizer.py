@@ -38,16 +38,10 @@ class OptimizationResult:
 
 def _domain_harden_expr(expr: sp.Expr) -> sp.Expr:
     """
-    Symbolically rewrite an expression so sqrt/pow-with-fractional-exponent
-    and log never see an out-of-domain argument, and exp never overflows
-    float64. UNCHANGED from the previously-audited version -- this part was
-    never the source of the regression the user found; it is independent of
-    log-parameterization and is re-validated identically here.
-
-    For EVERY physically valid input (all variables in this codebase are
-    generated as positive quantities), the hardened expression is IDENTICAL
-    to the original. It only changes behavior in the out-of-domain region an
-    optimizer step can wander into.
+    Symbolically rewrite an expression so sqrt/pow and log never see
+    out-of-domain arguments, and exp never overflows float64.
+    For all physically valid inputs (positive quantities), the hardened
+    expression is identical to the original.
     """
     if expr.is_Atom:
         return expr
@@ -79,15 +73,7 @@ class JAXOptimizer:
         beta       : float = 1.0,
         n_steps    : int   = 500,   # kept for API compatibility, unused by L-BFGS directly
         lr         : float = 0.05,  # kept for API compatibility
-        log_param  : bool  = True,  # RESTORED. Default changed to True: the
-                                    # original had this default to False,
-                                    # but log-param is what actually keeps
-                                    # Time Dilation/Entropy Expansion stable
-                                    # AND is the mechanism intended to help
-                                    # with extreme-scale scenarios. Verify
-                                    # this default against your own repo's
-                                    # existing calling code before trusting
-                                    # it silently changes behavior elsewhere.
+        log_param  : bool  = True,  # log-reparameterization for order-of-magnitude traversal
         maxiter    : int   = 150,
     ):
         self.n_restarts = n_restarts
@@ -229,18 +215,8 @@ class JAXOptimizer:
         return expr, theta_symbols
 
     def _build_jax_fn(self, expr: sp.Expr, theta_symbols: List[sp.Symbol], data_vars: List[str]):
-        # FIX (confirmed necessary by real-JAX testing, not by me -- see
-        # module docstring self-correction note): sp.lambdify(..., jnp) does
-        # NOT automatically know that sympy's Max/Min should map to
-        # jnp.maximum/jnp.minimum -- the names differ ("Max" vs "maximum"),
-        # and jax.numpy is not one of sympy's built-in-translation-aware
-        # target modules the way plain "numpy" is. Without this explicit
-        # mapping, _domain_harden_expr's use of Max/Min raises a JAX
-        # TypeError/TracerArrayConversionError at lambdify-call time, which
-        # was being silently swallowed by the try/except in optimize() and
-        # reported as a generic non-finite/inf failure -- indistinguishable
-        # from a genuine numerical failure unless you go looking for it, as
-        # was done during this audit.
+        # sympy's Max/Min must be mapped to jnp.maximum/jnp.minimum explicitly;
+        # lambdify does not handle jax.numpy as a named translation target.
         hardened_expr = _domain_harden_expr(expr)
         data_syms = sorted([s for s in hardened_expr.free_symbols if not str(s).startswith("theta_")], key=lambda s: str(s))
         all_syms = data_syms + theta_symbols

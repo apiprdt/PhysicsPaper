@@ -1,54 +1,21 @@
 """
-pipeline.py (AUDIT-HARDENED)
-=============================
-FIX LOG:
+pipeline.py
+===========
+Stage 1 cascading filter pipeline for ADCD candidate screening.
 
-BUG FOUND (critical -- defeats the ARC classical-limit safety gate):
-Original code:
+Five gates applied in sequence:
+  1. Parse          -- sympy.sympify succeeds
+  2. AST            -- depth and token-count within budget
+  3. Dimensional    -- expression is dimensionless under unit registry
+  4. Transcendental -- arguments of exp/log/sqrt are dimensionally safe
+  5. ARC            -- expression vanishes at the classical limit (u -> 0)
 
-    if arc_score <= 0.0:
-        if has_params:
-            arc_score = 1.0     # <-- BYPASS: treated as a PERFECT score
-        else:
-            reject
-
-`has_params` is True whenever the candidate contains ANY free theta_N symbol
-(set upstream by `_substitute_thetas`, which is True for essentially every
-candidate CorrectionMockProposer ever emits -- virtually all of its templates
-start with "theta_0 * ..."). The consequence: candidates that fail to vanish
-at the classical limit even at theta=1 were not just given a second chance,
-they were handed the BEST POSSIBLE arc_score (1.0) and then never re-checked.
-
-The comment claimed "This will be rigorously checked again AFTER Stage 2
-optimization" -- but grep across the entire 18-file codebase confirms no
-such re-check exists anywhere. `arc_score` is simply carried forward
-unchanged from Stage 1 all the way to the final BIC ranking. This means the
-single most important physical constraint this whole project is built
-around -- "a correction MUST vanish at the classical limit" -- is, for
-virtually every real candidate, never actually verified against the FITTED
-parameters. Only the untested theta=1 probe (which is not what the model
-claims at the end) goes through the gate at all, and even that is discarded
-in favor of an automatic pass.
-
-FIX:
-1. `has_params` no longer forces arc_score to 1.0. Instead the candidate is
-   marked `deferred_arc=True` and allowed to proceed to Stage 2 UNSCORED
-   (arc_score stays at its true, computed value, which may be 0). This
-   preserves the legitimate original intent (some ground-truth corrections
-   need exact cancellation between two terms that theta=1 cannot produce,
-   e.g. 2*(c/v)^2*(...) - 1) without pretending that intent has already been
-   satisfied.
-2. `GateStats` gains `deferred_arc` and `arc_relaxed_dim` counters so every
-   run reports exactly how many candidates were waved through pending
-   Stage-2 re-verification -- this number must now be reported alongside
-   any "success" claim.
-3. The actual Stage-2 re-verification is implemented in
-   `correction_orchestrator_fixed.py` (`_reverify_arc_at_fitted_theta`),
-   which recomputes the ARC score at the FITTED theta and drops any
-   candidate that still fails to vanish at the classical limit. This file
-   only prepares the honest bookkeeping; the enforcement lives where the
-   fitted theta actually exists.
+Candidates that fail Gate 5 at theta=1 but contain free parameters are
+marked deferred_arc=True and passed downstream unscored. The ARC
+constraint must be re-verified at the fitted theta after Stage 2
+optimisation before a candidate can be reported as a discovery.
 """
+
 
 import sympy as sp
 import numpy as np
@@ -72,9 +39,9 @@ class GateStats:
     coarse_reject: int = 0
     output_count: int = 0
 
-    # NEW: honest bookkeeping for candidates waved through pending re-verification
-    deferred_arc: int = 0          # arc_score was 0 at theta=1 but candidate has free params
-    arc_relaxed_dim: int = 0       # passed dimensional check only via theta-scaling relaxation
+    # Candidates deferred at ARC gate (arc_score=0 at theta=1, re-verified after Stage 2)
+    deferred_arc: int = 0
+    arc_relaxed_dim: int = 0       # passed dimensional check via theta-scaling relaxation
 
     grammar_input: int = 0
     grammar_output: int = 0
@@ -124,8 +91,6 @@ class GateStats:
             "arc": rate(self.after_arc, self.after_transcendental),
             "coarse": rate(self.output_count, self.after_arc),
             "overall": rate(self.output_count, self.input_count),
-            # NEW: fraction of the FINAL output pool that was never actually
-            # ARC-verified and is only pending Stage-2 re-check.
             "fraction_output_deferred_arc": (
                 self.deferred_arc / self.output_count if self.output_count > 0 else 0.0
             ),
@@ -227,14 +192,9 @@ class Stage1Pipeline:
                     stats.arc_reject += 1
                 continue
 
-            deferred_arc = False
-            if arc_score <= 0.0:
-                if has_params:
-                    # FIXED: do NOT fabricate a perfect score. Mark as deferred
-                    # and let it through UNSCORED (arc_score stays 0.0) so that
-                    # BIC/likelihood ranking downstream does not treat it as
-                    # ARC-verified. It must clear `_reverify_arc_at_fitted_theta`
-                    # after Stage 2 or it gets dropped there.
+                    # Candidate fails ARC at theta=1 but has free params that may
+                    # achieve cancellation after fitting. Mark deferred; rank with
+                    # neutral score 0.5 so it competes in Stage 2.
                     deferred_arc = True
                     if stats is not None:
                         stats.deferred_arc += 1
@@ -252,10 +212,8 @@ class Stage1Pipeline:
                         stats.coarse_reject += 1
                     continue
 
-            # For deferred candidates, use a neutral placeholder (0.5) for the
-            # coarse ranking pass ONLY -- never report this as the final
-            # arc_score. It exists purely so the candidate isn't sorted to the
-            # very bottom before Stage 2 gets a chance to fit it properly.
+            # Deferred candidates use 0.5 as a neutral placeholder for the coarse
+            # ranking pass only — the final arc_score stays at its computed value.
             ranking_arc_score = 0.5 if deferred_arc else arc_score
             combined_score = ranking_arc_score * float(np.exp(-beta * nmse))
             screened_candidates.append((raw_cand, combined_score, mse, arc_score, deferred_arc))

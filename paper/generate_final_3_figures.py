@@ -72,7 +72,7 @@ def get_scenario_data(scenario, name, noise_level=0.01):
 
 
 def main():
-    with open('run_outputs/adcd_v3_taxonomy_validation_report.json', 'r') as f:
+    with open('run_outputs/adcd_v3_blind_validation_report.json', 'r') as f:
         report = json.load(f)
 
     scenario_names = ["Time Dilation", "Screened Coulomb", "Entropy Expansion"]

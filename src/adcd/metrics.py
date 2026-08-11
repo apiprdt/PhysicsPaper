@@ -1,42 +1,14 @@
 """
-metrics.py (AUDIT-HARDENED)
-=============================
-FIX LOG:
+metrics.py
+==========
+Evaluation metrics for ADCD: NMSE, BIC, structural classification,
+and parameter recovery.
 
-BUG FOUND (metric-rigor bug): parameter recovery error was computed as
-
-    sorted_true_keys = sorted(scenario.correction_constants.keys())
-    sorted_fit_keys  = sorted([k for k in theta_fit if k.startswith("theta_")])
-    for i, true_k in enumerate(sorted_true_keys):
-        fit_k = sorted_fit_keys[i]                      # <-- positional pairing
-        err = abs(theta_fit[fit_k] - true_v) / abs(true_v)
-
-This pairs the i-th ALPHABETICALLY-SORTED true parameter name with the i-th
-alphabetically-sorted DISCOVERED parameter name. Nothing guarantees these
-play the same physical role. Ground-truth scenarios and discovered
-candidates assign theta indices independently (by template-slot order for
-the discovered side, by however the scenario author wrote the ground-truth
-string for the true side). A discovered expression that is an ALGEBRAICALLY
-CORRECT rediscovery of the physics, just written with a different variable
-ordering (e.g. true = "theta_0 * (v/c)**2" vs discovered = "(v/theta_1)**2 *
-theta_0" where here theta_0 plays the role of the ORIGINAL denominator scale,
-not the coefficient) will silently produce a huge, meaningless "parameter
-error" -- or worse, a small one that is coincidentally close for the wrong
-reason. Either way, the number reported is not measuring what it claims to.
-
-FIX: `match_parameters()` below tries every permutation of the discovered
-theta symbols against the true theta symbols (fine for the ~1-4 parameter
-regime this project uses -- factorial cost is trivial there) and reports
-the assignment that minimizes total relative error, exactly like solving a
-small assignment problem. When the discovered expression is available, it
-ALSO attempts a symbolic verification: does `sp.simplify(discovered.subs(perm)
-- true_expr) == 0` for some permutation? If yes, that permutation is
-EXACT and is used with a flag `structural_match=True`. If no permutation
-gives exact structural equality, the numerically-best permutation is used
-but flagged `structural_match=False` -- "heuristic pairing, not a
-confirmed correspondence" -- so nobody over-trusts a number that is only a
-best guess. Mismatched parameter counts are reported explicitly rather than
-silently truncated by `zip`.
+Parameter recovery uses permutation search over theta assignments
+rather than alphabetical pairing, so discovered expressions with
+different theta orderings are matched by role, not by name.
+When an exact symbolic permutation is found, structural_match=True;
+otherwise the numerically closest pairing is used with structural_match=False.
 """
 
 import itertools
@@ -56,16 +28,13 @@ class CorrectionEvaluation:
     ast_edit_distance: int
     parameter_error: Dict[str, float]
     bic: float
-    # NEW: honesty flags for the parameter-error numbers above.
-    parameter_match_structural: bool = False   # True only if a symbolic-exact
-    # permutation was found
+    # Honesty flags for parameter_error numbers.
+    parameter_match_structural: bool = False   # True only if a symbolic-exact permutation was found
     parameter_count_mismatch: bool = False     # True if #true_params != #fit_params
 
 
 def classify_structure(expr: Union[str, sp.Expr], theta_fit: Optional[Dict[str, float]] = None) -> str:
-    """Unchanged from the audited original -- no bug found in this function
-    beyond the priority-ordering note in the audit report (documented, not
-    a silent bug: it is a deliberate, uniformly-applied convention)."""
+    """Classify correction expression into a functional family (rational, exponential, etc.)."""
     if isinstance(expr, str):
         try:
             expr = sp.sympify(expr)

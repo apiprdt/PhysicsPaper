@@ -1,53 +1,21 @@
 """
-run_adcd_v3_validation.py (REWIRED — closes the oracle-leak found in review)
-================================================================================
-WHY THIS REWRITE EXISTS:
+run_adcd_v3_validation.py
+=========================
+Four-step blind validation protocol for ADCD:
 
-The version this replaces instantiated the proposer as:
+  Step 0: Budget Disclosure   -- log search space size before any results
+  Step 1: Blind Search        -- fully unrestricted GrammarProposerV3 run
+  Step 2: Positive Control    -- restrict to true primitive family only
+  Step 3: Ablation Control    -- exclude true primitive, compare BIC (Kass-Raftery)
+  Step 4: Determinism Check   -- 3 independent runs must produce byte-exact output
 
-    AsymptoticDictionaryProposerV3(ratio_symbol="(v/c)**2", exclude_primitives=[...])
+The pipeline uses GrammarProposerV3, which derives ratio candidates from
+ProposalContext via Buckingham-Pi dimensional analysis. No ratio string or
+primitive identity is typed by hand anywhere in this file.
 
-for every scenario -- a human typed the exact dimensionless argument of the
-ground-truth correction directly into the validation script BEFORE any
-search happened. This is confirmed, not suspected: grep the previous file,
-lines ~349-359. This means every "positive_control" result this project has
-reported so far demonstrates confirmatory parameter-fitting with a hand-fed
-hypothesis, NOT rediscovery -- the same class of problem as the RAR
-reciprocal-composition incident earlier in this project's audit history,
-just entering through a different, less obvious door (a validation-harness
-constant instead of a grammar rule).
-
-THE FIX: every proposer instantiation below is `GrammarProposerV3`, which
-derives its own ratio candidates from `ProposalContext` (variable names,
-constants, classical-limit variable) via Buckingham-Pi dimensional analysis
-plus generic sqrt/square/reciprocal transforms -- ALREADY VALIDATED BLIND
-earlier in this project's audit (Time Dilation's (v/c)**2 argument and the
-D_lor structure were both recovered with zero scenario-specific hints, and
-this was verified via `sp.simplify(candidate - ground_truth) == 0`, not
-NMSE alone). No ratio string is typed by a human anywhere in this file.
-
-NEW STEP 1 -- BLIND SEARCH (the actual rediscovery claim):
-The original four checks (budget disclosure, positive control, ablation,
-determinism) are CALIBRATION and ROBUSTNESS checks -- they intentionally
-isolate the true primitive to test whether the optimizer/pipeline converges
-correctly given the right family, which is a legitimate and different
-question from "can the system find this with nothing isolated at all." That
-second question is what a "rediscovery" claim actually requires, and it did
-not exist as a distinct step before. It does now: Step 1 runs
-GrammarProposerV3 completely unrestricted (all 5 primitives, all
-auto-derived ratios, no exclusions) and checks whether the TRUE PRIMITIVE
-FAMILY wins the BIC ranking on its own.
-
-    for some scenario, that is a real, reportable result -- do not add new
-   primitives or composition rules "motivated by" that scenario's known
-   answer to force it to pass. Report the failure in Limitations, exactly
-   as Screened Coulomb's numerical difficulties were reported before their
-   root cause was found. A failure here is data, not an emergency to patch
-   away.
-4. Re-verify Time Dilation and Entropy Expansion are NOT accidentally
-   degraded by this change before trusting Screened Coulomb's result --
-   compare against the last known-good hand-fed numbers (NMSE ~5.3e-4 and
-   ~3.4e-3 respectively) as a sanity floor, not a target to reverse-engineer.
+Usage:
+    python src/adcd/run_adcd_v3_validation_blind.py --top-k 5
+    python src/adcd/run_adcd_v3_validation_blind.py --top-k 5 --taxonomy
 """
 
 from __future__ import annotations
@@ -81,7 +49,6 @@ from adcd.jax_optimizer import JAXOptimizer
 from adcd.metrics import classify_structure, extended_bic_score
 from adcd.constants import NMSE_SUCCESS_THRESHOLD
 from adcd.quickfit import DOMAIN_TAXONOMY
-
 
 
 BIC_SIGNIFICANCE_THRESHOLD = 10.0  # Kass-Raftery "very strong evidence"
@@ -120,16 +87,12 @@ def _make_pipeline(checker: DimensionalChecker, scenario) -> Stage1Pipeline:
     return Stage1Pipeline(validator=validator, checker=checker, scorer=scorer)
 
 
-# ---------------------------------------------------------------------------
-# DOMAIN RESTRICTIONS: these are the LOCKED historical low-signal boundaries
-# described in the paper abstract, Section 5.1, and Table 2.
-# domain_max is the *only* parameter that controls observation window.
+# Observation windows used throughout the paper (Table 2).
 # Changing any value here changes ALL reported BIC/NMSE numbers.
-# ---------------------------------------------------------------------------
 DOMAIN_RESTRICTIONS = {
-    "Time Dilation":     {"domain_max": 0.3},   # v <= 0.3c (historical regime)
-    "Screened Coulomb":  {"domain_max": 4.0},   # r <= 4.0  (default already 4.0)
-    "Entropy Expansion": {"domain_max": 1.0},   # dV/V_i <= 1.0 (historical regime)
+    "Time Dilation":     {"domain_max": 0.3},   # v <= 0.3c
+    "Screened Coulomb":  {"domain_max": 4.0},   # r <= 4.0 m
+    "Entropy Expansion": {"domain_max": 1.0},   # dV/V_i <= 1.0
 }
 
 
@@ -140,20 +103,12 @@ def _run_search(
     n_candidates: int = 400,
 ) -> Tuple[List[Tuple[str, float, float, dict]], int, GrammarProposerV3]:
     """
-    Runs one full GrammarProposerV3 search (Stage 1 gates + Stage 2 JAX
-    optimization + BIC ranking) and returns candidates ranked by BIC.
+    One full search pass: GrammarProposerV3 → Stage1 gates → JAX optimiser → BIC ranking.
 
-    exclude_primitives=None means a FULLY BLIND search (Step 1). A non-empty
-    list restricts the primitive registry for calibration (positive
-    control) or robustness (ablation) checks -- the RATIO is never hinted
-    either way; only the primitive family list is ever restricted, and only
-    for the two checks whose entire published purpose is to isolate that
-    variable.
-
-    DOMAIN FIX (2026-08-08): generate_data() is now called WITH domain_max
-    from DOMAIN_RESTRICTIONS. Previously the call had no domain_max argument,
-    so Time Dilation silently used the default v<=0.99c and Entropy Expansion
-    used dV/V_i<=100 -- both contradicting the paper's stated observation windows.
+    exclude_primitives=None  →  fully blind (Step 1).
+    Non-empty list           →  restricted for positive-control or ablation checks,
+                                where the purpose is explicitly to isolate one variable.
+                                The ratio argument is never hinted either way.
     """
     checker = DimensionalChecker()
     for var in scenario.classical_variables:
@@ -212,83 +167,62 @@ def _run_search(
 
 def _find_true_structure_in_pareto(ranked_blind, scenario):
     """
-    Attempts to find the true structure in the Pareto front.
-    Returns: (true_structure_bic, true_structure_rank, match_level)
+    Search the Pareto front for the true correction structure.
+    Returns (true_structure_bic, true_structure_rank, match_level)
     where match_level is one of: "exact", "class_only", "none".
 
-    AUDIT FIX (2026-08-08): The original version skipped symbolic matching
-    when len(candidate_thetas) != len(ground_truth_thetas). Ground truth often
-    has implicit coefficient 1 (no theta), so candidates with an explicit
-    amplitude theta_0 were misclassified as "class_only". Fix: when counts
-    differ, collapse extra candidate thetas to 1 and retry sp.simplify.
-
-    NUMERICAL MATCH FIX (2026-08-10): sympy.simplify is extremely brittle on
-    exponentiated functions. Switched to exact numeric sampling for "exact"
-    match confirmation.
+    Exact match uses numeric sampling rather than sympy.simplify,
+    which is brittle on exponentiated functions.
     """
     true_expr_str = getattr(scenario, "correction_expr", None)
     true_class = getattr(scenario, "correction_class", None)
-    
+
     if not true_expr_str:
         return None, None, "none"
-        
+
     true_expr = sp.sympify(true_expr_str)
     true_thetas = [str(s) for s in true_expr.free_symbols if str(s).startswith("theta_")]
 
     def _try_exact_match(cand_expr, theta_keys):
-        """Try all routes to exact match via numeric sampling. Returns True if match found."""
+        """Returns True if candidate matches ground truth under numeric sampling."""
         import numpy as np
         try:
-            # Generate 5 random points in a safe domain
             test_points = np.random.uniform(0.1, 0.9, 5)
-            # Find the main variable to substitute
             vars_cand = [str(s) for s in cand_expr.free_symbols if not str(s).startswith("theta_")]
             vars_true = [str(s) for s in true_expr.free_symbols if not str(s).startswith("theta_")]
             main_var = vars_cand[0] if vars_cand else (vars_true[0] if vars_true else "x")
-            
-            # Numeric evaluation function
+
             def eval_expr(expr, var_val, theta_subs):
                 subs_dict = {sp.Symbol(main_var): var_val}
                 for k, v in theta_subs.items():
                     subs_dict[sp.Symbol(k)] = v
                 return float(expr.subs(subs_dict))
-                
-            # If candidate and ground truth match perfectly when all thetas are set to 1.0
+
             cand_subs = {k: 1.0 for k in theta_keys}
             true_subs = {k: 1.0 for k in true_thetas}
-            
-            match_all = True
+
             for val in test_points:
                 try:
-                    c_val = eval_expr(cand_expr, val, cand_subs)
-                    t_val = eval_expr(true_expr, val, true_subs)
-                    if not np.isclose(c_val, t_val):
-                        match_all = False
-                        break
+                    if not np.isclose(eval_expr(cand_expr, val, cand_subs),
+                                      eval_expr(true_expr, val, true_subs)):
+                        return False
                 except Exception:
-                    match_all = False
-                    break
-                    
-            if match_all:
-                return True
+                    return False
+            return True
         except Exception:
-            pass
-            
-        return False
+            return False
 
-    # 1. Exact Symbolic/Numeric Match (all routes)
     for rank, (expr_str, nmse, bic, theta_fit) in enumerate(ranked_blind):
         cand_expr = sp.sympify(expr_str)
         theta_keys = [k for k in theta_fit.keys() if k.startswith("theta_")]
         if _try_exact_match(cand_expr, theta_keys):
             return bic, rank + 1, "exact"
 
-    # 2. Class Match Fallback
     for rank, (expr_str, nmse, bic, theta_fit) in enumerate(ranked_blind):
         disc_class = classify_structure(expr_str, theta_fit)
         if disc_class == true_class:
             return bic, rank + 1, "class_only"
-            
+
     return None, None, "none"
 
 
@@ -300,33 +234,30 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
         "Entropy Expansion": "D_log"
     }
     true_primitive = TRUE_PRIMITIVE_MAP.get(scenario.name)
-    
-    # -------------------------------------------------------------------------
-    # NEW FEATURE: BAYESIAN DOMAIN PRIOR
-    # If enabled, restrict primitive search space to the scenario's taxonomy group.
-    # -------------------------------------------------------------------------
+
+    # Optional taxonomy prior: restricts primitive set to domain-relevant family.
+    # When enabled, also affects Steps 0, 1, and 4 (budget, blind search, determinism).
+    # For fully blind results (paper Table 5), run WITHOUT --taxonomy.
     taxonomy_allowed = None
     if use_taxonomy_prior and hasattr(scenario, "domain") and scenario.domain in DOMAIN_TAXONOMY:
         taxonomy_allowed = DOMAIN_TAXONOMY[scenario.domain]
-        # We need exclude_primitives which is the inverse
         from adcd.asymptotic_dictionary_proposer_v3 import PRIMITIVE_REGISTRY
         taxonomy_exclude = [p for p in PRIMITIVE_REGISTRY.keys() if p not in taxonomy_allowed]
     else:
         taxonomy_exclude = None
 
-    # ---- Step 0: Budget disclosure (fully blind search space) ----
+    # ---- Step 0: Budget disclosure ----
     _, space_size_blind, proposer = _run_search(scenario, exclude_primitives=taxonomy_exclude, seed=seed, n_candidates=0)
     result.checks["budget_disclosure"] = {
         "search_space_size": space_size_blind,
         "primitives": list(proposer._active_primitives.keys()),
         "pass": True,
-        "note": "Full blind search space -- larger than any previously hand-fed single-ratio "
-                "search space (35), because ratio candidates are now auto-derived, not hand-typed.",
+        "note": "Search space logged before results.",
     }
 
-    # ---- Step 1: BLIND SEARCH (the actual rediscovery claim) ----
+    # ---- Step 1: Blind search ----
     ranked_blind, _, _ = _run_search(scenario, exclude_primitives=taxonomy_exclude, seed=seed)
-    
+
     top_candidates = []
     if ranked_blind:
         for expr_str, nmse, bic, theta_fit in ranked_blind[:top_k_val]:
@@ -337,15 +268,15 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
                 "bic": bic,
                 "class": disc_class
             })
-            
+
     top = ranked_blind[0] if ranked_blind else None
-    
+
     true_structure_bic, true_structure_rank, match_level = _find_true_structure_in_pareto(ranked_blind, scenario)
-    
+
     if top is not None:
         expr_str, nmse, bic, theta_fit = top
         discovered_class = classify_structure(expr_str, theta_fit)
-        
+
         blind_pass = (match_level in ["exact", "class_only"])
         symbolic_match = (match_level == "exact")
         class_match = (match_level in ["exact", "class_only"])
@@ -366,7 +297,7 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
     else:
         result.checks["blind_search"] = {"pass": False, "note": "No candidate survived the full pipeline."}
 
-    # ---- Step 2: Positive control (calibration -- primitive isolated, ratio still auto-derived) ----
+    # ---- Step 2: Positive control ----
     ranked_isolated, space_size_isolated, _ = _run_search(
         scenario,
         exclude_primitives=[p for p in ["D_lor", "D_rat", "D_exp", "D_log", "D_sqrt_inv"]
@@ -380,20 +311,13 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
         "pass": pc_pass,
     }
 
-    # ---- Step 3: Ablation control (true primitive excluded) ----
-    # DESIGN NOTE (fix 2026-08-10):
-    # The ablation test answers: "Does removing the true primitive significantly
-    # hurt the best model the system can find?"
-    # Reference = Rank-1 BIC from the FULL blind search (best achievable WITH the
-    # true primitive). NOT the BIC at whatever rank the ground truth happens to
-    # land in the Pareto front -- that would compare Rank-11 vs Rank-1 (ablated),
-    # producing an inverted delta when ground truth is not at Rank 1.
-    # This matches exactly what the paper Table 4 reports:
-    #   SC: blind Rank-1 BIC = -1617.66, ablated Rank-1 BIC = -1591.92 → ΔBIC = 25.74
+    # ---- Step 3: Ablation control ----
+    # Reference BIC is Rank-1 from blind search (best model with true primitive present).
+    # Delta = ablated_BIC - blind_rank1_BIC; positive means full search is preferred.
     ranked_ablated, _, _ = _run_search(scenario, exclude_primitives=[true_primitive], seed=seed)
     if ranked_ablated and ranked_blind:
         ablated_bic = ranked_ablated[0][2]
-        blind_rank1_bic = ranked_blind[0][2]   # Rank-1 BIC from full blind search
+        blind_rank1_bic = ranked_blind[0][2]
         bic_diff = ablated_bic - blind_rank1_bic
         result.checks["ablation_control"] = {
             "ablated_bic": ablated_bic,
@@ -401,12 +325,12 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
             "true_structure_rank": true_structure_rank,
             "bic_diff": bic_diff,
             "pass": bic_diff > BIC_SIGNIFICANCE_THRESHOLD,
-            "note": "Reference is Rank-1 BIC from blind search (best achievable with true primitive).",
+            "note": "Reference is Rank-1 BIC from blind search.",
         }
     else:
-        result.checks["ablation_control"] = {"pass": False, "note": "Could not compute -- missing blind result or ablated result."}
+        result.checks["ablation_control"] = {"pass": False, "note": "Could not compute — missing blind or ablated result."}
 
-    # ---- Step 4: Determinism check (blind search, 3 independent runs) ----
+    # ---- Step 4: Determinism check ----
     runs = []
     for _ in range(3):
         r, _, _ = _run_search(scenario, exclude_primitives=taxonomy_exclude, seed=seed)
@@ -425,10 +349,10 @@ def main():
     parser.add_argument("--top-k", type=int, default=5, help="Number of Pareto Front candidates to display")
     parser.add_argument("--taxonomy", action="store_true", help="Use Domain Taxonomy Prior for Stage 1")
     args = parser.parse_args()
-    
+
     scenarios = {s.name: s for s in get_all_scenarios()}
     locked = ["Time Dilation", "Screened Coulomb", "Entropy Expansion"]
-    
+
     all_results = {}
     for name in locked:
         if name not in scenarios:
@@ -443,10 +367,9 @@ def main():
 
         for step, info in res.checks.items():
             status = "PASS" if info.get("pass") else "FAIL"
-            # Remove pareto_front from info dict temporarily so it doesn't clutter the raw dict print
             info_to_print = {k: v for k, v in info.items() if k != "pareto_front"}
             print(f"[{status:^6}] {step.upper():<20} | {info_to_print}")
-            
+
             if step == "blind_search" and "pareto_front" in info:
                 print("\n" + " "*10 + "--- TOP-K PARETO FRONT ---")
                 print(" "*10 + f"{'Rank':<5} | {'BIC':<8} | {'NMSE':<10} | {'Class':<15} | {'Equation'}")
@@ -459,22 +382,20 @@ def main():
 
         print("-" * 80)
         if res.all_passed:
-            print("[SUCCESS] STATUS: All checks passed with a genuinely blind search "
-                  "(no hand-typed ratio, no primitive hint in the discovery step).")
+            print("[SUCCESS] All checks passed.")
         else:
-            print("[FAIL] STATUS: At least one check failed. Do NOT cite this scenario's "
-                  "result until every check passes AND you have inspected the raw "
-                  "discovered_class field by hand -- the placeholder pass logic in "
-                  "this script is NOT yet a substitute for manual inspection.")
+            print("[FAIL] At least one check failed. Inspect raw discovered_class before citing results.")
         print("=" * 80 + "\n")
 
     report_name = "adcd_v3_taxonomy_validation_report.json" if args.taxonomy else "adcd_v3_blind_validation_report.json"
-    with open(report_name, "w") as f:
+    os_path = f"run_outputs/{report_name}"
+    import os; os.makedirs("run_outputs", exist_ok=True)
+    with open(os_path, "w") as f:
         json.dump(
             {name: {"all_passed": r.all_passed, "checks": r.checks} for name, r in all_results.items()},
             f, indent=2, default=str,
         )
-    print(f"Full report saved to {report_name}")
+    print(f"Full report saved to {os_path}")
 
 
 if __name__ == "__main__":
