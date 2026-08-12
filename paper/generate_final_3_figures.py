@@ -117,7 +117,8 @@ def main():
         ablated_bic = report[name]["checks"]["ablation_control"]["ablated_bic"]
         delta_bic = ablated_bic - chosen_bic
         
-        if delta_bic >= 10:
+        pc_pass = report[name]["checks"]["positive_control"]["pass"]
+        if delta_bic >= 10 and pc_pass:
             verdict = {"label": "IDENTIFIABLE", "color": "#16a34a", "delta_bic": delta_bic}
         else:
             verdict = {"label": "WITHHELD", "color": "#d97706", "delta_bic": delta_bic}
@@ -227,7 +228,8 @@ def main():
         ablated_bic = report[name]["checks"]["ablation_control"]["ablated_bic"]
         chosen_bic  = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]["bic"]
         delta_bic = ablated_bic - chosen_bic
-        if delta_bic >= 10:
+        pc_pass = report[name]["checks"]["positive_control"]["pass"]
+        if delta_bic >= 10 and pc_pass:
             v_label, v_color = "IDENTIFIABLE", "#16a34a"
         else:
             v_label, v_color = "WITHHELD", "#d97706"
@@ -244,7 +246,8 @@ def main():
         ablated_bic = report[n]["checks"]["ablation_control"]["ablated_bic"]
         chosen_bic  = report[n]["checks"]["primary_search"]["pareto_front"][chosen_idx[n]]["bic"]
         delta_bic = ablated_bic - chosen_bic
-        bar_colors.append("#16a34a" if delta_bic >= 10 else "#d97706")
+        pc_pass = report[n]["checks"]["positive_control"]["pass"]
+        bar_colors.append("#16a34a" if (delta_bic >= 10 and pc_pass) else "#d97706")
     bars2 = ax2.bar(x, delta_bics, width=0.45, color=bar_colors,
                     edgecolor='black', linewidth=0.5)
 
@@ -290,7 +293,8 @@ def main():
         ablated_bic = report[name]["checks"]["ablation_control"]["ablated_bic"]
         chosen_bic  = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]["bic"]
         delta_bic = ablated_bic - chosen_bic
-        if delta_bic >= 10:
+        pc_pass = report[name]["checks"]["positive_control"]["pass"]
+        if delta_bic >= 10 and pc_pass:
             verdict = {"label": "IDENTIFIABLE", "color": "#16a34a"}
         else:
             verdict = {"label": "WITHHELD", "color": "#d97706"}
