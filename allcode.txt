@@ -1,811 +1,33 @@
-# ADCD — All Core Source Code
+# ADCD — All Core Source Code & Results
+# Generated: 2026-08-12 19:40:09
+
+TABLE OF CONTENTS:
+- paper/generate_final_3_figures.py
+- run_outputs/adcd_v3_taxonomy_validation_report.json
+- src/adcd/__init__.py
+- src/adcd/anomaly_scenarios.py
+- src/adcd/arc_scorer.py
+- src/adcd/asymptotic_dictionary_proposer_v3.py
+- src/adcd/bayesian_ranker.py
+- src/adcd/budget_sweep.py
+- src/adcd/coarse_evaluator.py
+- src/adcd/constants.py
+- src/adcd/context.py
+- src/adcd/dimensional_checker.py
+- src/adcd/grammar_proposer_v3.py
+- src/adcd/identifiability.py
+- src/adcd/jax_optimizer.py
+- src/adcd/jax_precision_config.py
+- src/adcd/metrics.py
+- src/adcd/mode_detection.py
+- src/adcd/pipeline.py
+- src/adcd/quickfit.py
+- src/adcd/real_data_loader.py
+- src/adcd/real_scenarios.py
+- src/adcd/residual_features.py
+- src/adcd/run_adcd_v3_validation_blind.py
 
 ================================================================================
-FILE: reproduce_all.ps1
-================================================================================
-# ADCD full reproduction script (Windows PowerShell)
-# Usage: .\reproduce_all.ps1
-
-$ErrorActionPreference = "Stop"
-Set-Location $PSScriptRoot
-
-Write-Host "=== ADCD Reproduction Pipeline ===" -ForegroundColor Cyan
-
-pip install -e ".[dev]" | Out-Null
-
-Write-Host "`n[1/8] Unit tests..." -ForegroundColor Yellow
-py -3.11 -m pytest tests/ -q --tb=short
-
-Write-Host "`n[2/8] Standard benchmark..." -ForegroundColor Yellow
-py -3.11 run_correction_discovery.py --proposer mock
-
-Write-Host "`n[3/8] Real-world benchmark..." -ForegroundColor Yellow
-py -3.11 run_real_data_benchmark.py
-
-Write-Host "`n[4/8] PySR baselines..." -ForegroundColor Yellow
-py -3.11 run_pysr_baseline.py --profile fast
-py -3.11 run_pysr_baseline.py --profile fair
-
-Write-Host "`n[5/8] Ablation + oracle..." -ForegroundColor Yellow
-py -3.11 run_ablation.py
-py -3.11 run_oracle_ablation.py
-
-Write-Host "`n[6/8] Correction scaling..." -ForegroundColor Yellow
-py -3.11 run_correction_scaling.py
-
-Write-Host "`n[7/8] Reports + figures..." -ForegroundColor Yellow
-py -3.11 scripts/generate_experiment_report.py
-py -3.11 scripts/generate_efficiency_table.py
-py -3.11 scripts/validate_results.py
-py -3.11 generate_figures.py
-
-Write-Host "`n[8/8] Mercury real-data smoke test..." -ForegroundColor Yellow
-py -3.11 -m pytest tests/test_real_data.py -k mercury -q --tb=short
-
-Write-Host "`n=== Reproduction complete ===" -ForegroundColor Green
-
-
-================================================================================
-FILE: run_all.ps1
-================================================================================
-
-.venv\Scripts\python.exe src\adcd\run_adcd_v3_validation_blind.py --taxonomy
-.venv\Scripts\python.exe paper\generate_final_3_figures.py
-Write-Output 'ALL_DONE_SUCCESSFULLY'
-
-
-
-================================================================================
-FILE: audit/entropy_sweep.py
-================================================================================
-import sys
-import json
-import logging
-import numpy as np
-import sympy as sp
-from adcd.run_adcd_v3_validation import run_full_protocol
-from adcd.anomaly_scenarios import AnomalyScenario
-
-logging.basicConfig(level=logging.INFO)
-
-u_max_values = [5, 10, 20, 50, 100]
-results_map = {}
-
-original_generate_data = AnomalyScenario.generate_data
-
-for u_max in u_max_values:
-    print(f"\n==============================================")
-    print(f"RUNNING ENTROPY SWEEP: u_max = {u_max}")
-    print(f"==============================================\n")
-    
-    def mocked_generate_data(self, n_points=500, noise_level=0.01, seed=42, v_max_over_c=None):
-        if self.name == "Entropy Expansion":
-            rng = np.random.default_rng(seed)
-            V_i = rng.uniform(1.0, 10.0, size=n_points)
-            dV = rng.uniform(0.1, float(u_max), size=n_points) * V_i
-            S_i = np.full_like(V_i, 15.0)
-            N = np.full_like(V_i, 1.0)
-            k_B = 1.380649e-23
-            X = {"V_i": V_i, "dV": dV, "S_i": S_i, "N": N, "k_B": np.full_like(V_i, k_B)}
-            
-            input_vars = list(self.variables_with_units.keys())
-            from sympy import lambdify
-            syms = tuple(sp.Symbol(name) for name in input_vars)
-            
-            # Classical
-            classical_expr_str = self.classical_expr
-            for k, v in self.classical_constants.items():
-                classical_expr_str = classical_expr_str.replace(k, str(v))
-            f_class = lambdify(syms, sp.sympify(classical_expr_str), modules=["numpy"])
-            y_classical = f_class(*(X[var] for var in input_vars))
-            if isinstance(y_classical, (int, float)):
-                y_classical = np.full_like(V_i, y_classical)
-            
-            # Full
-            full_expr_str = f"({self.classical_expr}) * (1 + {self.correction_expr})"
-            for k, v in self.correction_constants.items():
-                full_expr_str = full_expr_str.replace(k, str(v))
-            for k, v in self.classical_constants.items():
-                full_expr_str = full_expr_str.replace(k, str(v))
-            f_full = lambdify(syms, sp.sympify(full_expr_str), modules=["numpy"])
-            y_true = f_full(*(X[var] for var in input_vars))
-            
-            noise = rng.normal(0, noise_level * np.abs(y_true))
-            y_obs = y_true + noise
-            residual = y_obs - y_classical
-            
-            return X, y_obs, y_classical, residual
-        else:
-            return original_generate_data(self, n_points, noise_level, seed, v_max_over_c)
-            
-    AnomalyScenario.generate_data = mocked_generate_data
-    
-    try:
-        res = run_full_protocol(
-            scenario_name="Entropy Expansion",
-            ratio_symbol="dV / V_i",
-            ground_truth_primitive="D_log",
-            seed=42
-        )
-        
-        ablation_ratio = None
-        competing_primitive = None
-        for r in res:
-            if r.check_name == "ablation_control":
-                import re
-                m = re.search(r"Ablation Ratio = ([\d\.]+)", r.detail)
-                if m:
-                    ablation_ratio = float(m.group(1))
-                m2 = re.search(r"Best alternative NMSE = .*? \((D_[a-z_]+)", r.detail)
-                if m2:
-                    competing_primitive = m2.group(1)
-                elif "Fallback" in r.detail:
-                    m3 = re.search(r"Fallback: (D_[a-z_]+)", r.detail)
-                    if m3:
-                        competing_primitive = m3.group(1)
-        
-        results_map[u_max] = {
-            "ablation_ratio": ablation_ratio,
-            "competing_primitive": competing_primitive
-        }
-        print(f"--> RESULT u_max={u_max}: Ratio={ablation_ratio}, Competitor={competing_primitive}")
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print(f"FAILED for u_max={u_max}: {e}")
-
-print("\n\nFINAL SWEEP RESULTS:")
-print(json.dumps(results_map, indent=2))
-
-
-================================================================================
-FILE: audit/fix_positive_control_isolation.py
-================================================================================
-"""
-fix_positive_control_isolation.py
-====================================
-CONFIRMED BUG (from cross-referencing adcd_v3_validation_report.json and
-identifiability_sweep_report_*.json against the actual source code):
-
-positive_control() in run_adcd_v3_validation.py did this:
-
-    proposer = AsymptoticDictionaryProposerV3(ratio_symbol=ratio_symbol)
-    proposer.budget.allowed_primitives = [ground_truth_primitive]
-
-GrammarBudget has no `allowed_primitives` field. Python silently created an
-unused instance attribute -- enumerate_candidates() never reads it. So
-"positive control" was actually running the FULL 5-primitive search, not a
-search isolated to the ground-truth primitive.
-
-DIRECT EVIDENCE: the reported Blind-4 "positive control" winning expression
-
-    1.11e-17*theta_25*v**2*(theta_26*(-1.0 + 1.0/(1.0 - 1.11e-17*v**2)) + 1.0)
-      / (sqrt(1.0 - 1.11e-17*v**2)*(sqrt(1.0 - 1.11e-17*v**2) + 1.0))
-
-contains BOTH the D_lor rationalized form (the sqrt(1-u)*(sqrt(1-u)+1)
-denominator) AND the D_rat form (1.0/(1.0-u) inside the parentheses) at
-once -- proof the search was never restricted to D_lor alone.
-
-CONSEQUENCE: every "ratio = ablated_nmse / positive_control_nmse" reported
-so far compares "full 5-primitive pool" vs "full pool minus one primitive"
--- NOT "isolated ground truth" vs "ground truth removed", which is what the
-protocol document (Section: MANDATORY VALIDATION PROTOCOL) actually
-specifies. This explains the repeated EXACT ratio=1.0 entries in both
-identifiability_sweep_report_D_lor_ablated.json and
-..._D_rat_ablated.json: whenever the unrestricted search's BIC-preferred
-candidate happens not to use the "ablated" primitive at all, positive and
-ablated runs converge on the identical expression by construction, not by
-coincidence.
-
-FIX: replace the no-op attribute assignment with exclude_primitives set to
-every OTHER primitive -- the mechanism that is actually implemented and
-already used correctly by ablation_control().
-
-ACTION REQUIRED: every ratio reported in
-  - adcd_v3_validation_report.json
-  - identifiability_sweep_report_D_lor_ablated.json
-  - identifiability_sweep_report_D_rat_ablated.json
-must be treated as INVALID until re-run with the fixed function below.
-Do not average, cite, or plot the old numbers alongside new ones -- rerun
-the full sweep from scratch with this fix and report only the new numbers.
-"""
-
-import sympy as sp
-
-from run_adcd_v3_validation import (
-    ValidationResult,
-    run_pipeline,
-)
-from asymptotic_dictionary_proposer_v3 import (
-    AsymptoticDictionaryProposerV3,
-    PRIMITIVE_REGISTRY,
-)
-
-
-def positive_control_fixed(
-    scenario, ratio_symbol: str, ground_truth_primitive: str, seed: int = 42
-) -> ValidationResult:
-    """
-    Correct positive control: ONLY the ground-truth primitive is available
-    to the search (every other primitive excluded). This is the genuine
-    "if the true structure is available in isolation, is it recovered"
-    test -- the isolation that the original code's `allowed_primitives`
-    line intended but failed to implement.
-    """
-    all_other_primitives = [p for p in PRIMITIVE_REGISTRY if p != ground_truth_primitive]
-    if not all_other_primitives:
-        raise ValueError(
-            f"'{ground_truth_primitive}' not found in PRIMITIVE_REGISTRY "
-            f"(available: {list(PRIMITIVE_REGISTRY.keys())}) -- check spelling "
-            f"before trusting any result."
-        )
-
-    proposer = AsymptoticDictionaryProposerV3(
-        ratio_symbol=ratio_symbol,
-        exclude_primitives=all_other_primitives,
-    )
-    result = run_pipeline(scenario, proposer, seed=seed)
-
-    passed = False
-    detail = "no candidate reached acceptable NMSE"
-    symbolic_match = False
-    if result.best_expr is not None:
-        try:
-            diff = sp.simplify(
-                sp.sympify(result.best_expr) - sp.sympify(scenario.correction_expr)
-            )
-            symbolic_match = (diff == 0)
-        except Exception as e:
-            detail = f"could not symbolically compare: {e}"
-
-        nmse_ok = result.best_nmse_residual is not None and result.best_nmse_residual < 0.20
-        passed = nmse_ok
-        detail = (
-            f"nmse_residual={result.best_nmse_residual}, "
-            f"symbolic_exact_match={symbolic_match}, "
-            f"TRULY isolated to '{ground_truth_primitive}' "
-            f"({len(all_other_primitives)} other primitives excluded, "
-            f"search_space_size={proposer.search_space_size()})"
-        )
-
-    return ValidationResult(
-        scenario_name=scenario.name,
-        check_name="positive_control",
-        passed=passed,
-        detail=detail,
-        search_space_size=proposer.search_space_size(),
-        best_expr=result.best_expr,
-        best_nmse_residual=result.best_nmse_residual,
-    )
-
-
-def ablation_control_fixed(
-    scenario, ratio_symbol: str, ground_truth_primitive: str, seed: int = 42
-) -> ValidationResult:
-    """
-    Ablation control, now correctly compared against the FIXED (isolated)
-    positive control -- not against a positive control that shares the
-    same contaminated full-pool search space as this ablated run.
-    """
-    proposer = AsymptoticDictionaryProposerV3(
-        ratio_symbol=ratio_symbol,
-        exclude_primitives=[ground_truth_primitive],
-    )
-    result = run_pipeline(scenario, proposer, seed=seed)
-
-    pos = positive_control_fixed(scenario, ratio_symbol, ground_truth_primitive, seed=seed)
-    pos_nmse = pos.best_nmse_residual if pos.best_nmse_residual is not None else float("inf")
-    abl_nmse = result.best_nmse_residual if result.best_nmse_residual is not None else float("inf")
-
-    passed = (abl_nmse > 3 * pos_nmse) or (abl_nmse > 0.20)
-
-    return ValidationResult(
-        scenario_name=scenario.name,
-        check_name="ablation_control",
-        passed=passed,
-        detail=(
-            f"excluded={ground_truth_primitive} only (4 primitives still "
-            f"available, matches original intent), ablated_nmse={abl_nmse}, "
-            f"TRULY-isolated positive_control_nmse={pos_nmse}, "
-            f"ratio={abl_nmse / max(pos_nmse, 1e-12):.2f}"
-        ),
-        search_space_size=proposer.search_space_size(),
-        best_expr=result.best_expr,
-        best_nmse_residual=result.best_nmse_residual,
-    )
-
-
-if __name__ == "__main__":
-    from adcd.anomaly_scenarios import get_all_scenarios
-
-    scenario = next(
-        s for s in get_all_scenarios() if s.name == "Blind-4: Relativistic Pendulum"
-    )
-
-    print("=" * 70)
-    print("RE-RUNNING WITH FIXED ISOLATION")
-    print("=" * 70)
-    pos = positive_control_fixed(scenario, "(v/c)**2", "D_lor")
-    print(f"[{'PASS' if pos.passed else 'FAIL'}] positive_control (fixed): {pos.detail}")
-
-    abl = ablation_control_fixed(scenario, "(v/c)**2", "D_lor")
-    print(f"[{'PASS' if abl.passed else 'FAIL'}] ablation_control (fixed): {abl.detail}")
-
-    print()
-    print("Compare pos.best_expr against the OLD contaminated result:")
-    print(f"  OLD (contaminated): mixed D_lor+D_rat expression")
-    print(f"  NEW (isolated)    : {pos.best_expr}")
-    print()
-    print(
-        "If the NEW positive-control expression is now PURELY D_lor-shaped "
-        "(no D_rat term mixed in), the fix worked as intended. If it's "
-        "still mixed, something else is leaking primitives across the "
-        "exclude_primitives boundary -- investigate "
-        "AsymptoticDictionaryProposerV3._active_primitives construction next."
-    )
-
-
-================================================================================
-FILE: audit/verify_threshold_provenance.py
-================================================================================
-import subprocess
-import sympy as sp
-
-
-def get_depth(expr: sp.Expr) -> int:
-    if not expr.args:
-        return 1
-    return 1 + max(get_depth(a) for a in expr.args)
-
-
-def get_tokens(expr: sp.Expr) -> int:
-    return len(list(sp.preorder_traversal(expr)))
-
-
-def q1_find_default_introduction():
-    """When did max_depth=7, max_tokens=25 first appear as ASTValidator defaults?"""
-    print("=" * 70)
-    print("Q1: git history of ASTValidator default values")
-    print("=" * 70)
-    try:
-        out = subprocess.run(
-            ["git", "log", "-p", "-S", "max_depth: int = 7", "--",
-             "src/adcd/dimensional_checker.py"],
-            capture_output=True, text=True, check=False,
-        )
-        print(out.stdout[:4000] if out.stdout else "(no matches -- try a different search string)")
-        if out.stderr:
-            print("stderr:", out.stderr[:500])
-    except FileNotFoundError:
-        print("git not available in this environment -- run manually and paste output.")
-
-
-def q2_check_if_leaky_function_was_ever_called():
-    """Search full history for ANY call site of set_threshold_relative_to,
-    not just its definition -- a defined-but-never-called function cannot
-    have contaminated the shipped defaults."""
-    print("\n" + "=" * 70)
-    print("Q2: was set_threshold_relative_to() ever actually CALLED anywhere?")
-    print("=" * 70)
-    try:
-        out = subprocess.run(
-            ["git", "log", "-p", "-S", "set_threshold_relative_to("],
-            capture_output=True, text=True, check=False,
-        )
-        # Filter to lines that look like a CALL (has an opening paren with an
-        # argument), not the `def` line itself
-        call_lines = [
-            line for line in out.stdout.splitlines()
-            if "set_threshold_relative_to(" in line
-            and "def set_threshold_relative_to" not in line
-        ]
-        if call_lines:
-            print(f"Found {len(call_lines)} non-definition occurrence(s):")
-            for line in call_lines[:20]:
-                print(" ", line.strip())
-        else:
-            print(
-                "No call sites found anywhere in history -- this function "
-                "appears to have been DEFINED but NEVER CALLED. If true, it "
-                "could not have contaminated the shipped default values; "
-                "it was dead code, still worth removing (which was already "
-                "done), but not proof of an actual leak into the numbers "
-                "used in any reported result."
-            )
-    except FileNotFoundError:
-        print("git not available -- run manually.")
-
-
-def q3_check_coincidence_with_scenarios():
-    """Do 7/25 match target_depth+2 / target_tokens+5 for the project's
-    actual scenario ground truths? Checked independently of git history --
-    this is a pure math check anyone can rerun."""
-    print("\n" + "=" * 70)
-    print("Q3: does 7/25 match (ground_truth_depth+2)/(ground_truth_tokens+5) "
-          "for actual scenarios?")
-    print("=" * 70)
-    try:
-        from adcd.anomaly_scenarios import get_all_scenarios
-    except ImportError:
-        print("Could not import anomaly_scenarios -- run with PYTHONPATH=src.")
-        return
-
-    matches = []
-    for s in get_all_scenarios():
-        try:
-            expr = sp.sympify(s.correction_expr)
-            d = get_depth(expr)
-            t = get_tokens(expr)
-            implied_depth = d + 2
-            implied_tokens = t + 5
-            is_match = (implied_depth == 7 and implied_tokens == 25)
-            print(
-                f"{s.name:<40} depth={d:<3} tokens={t:<3} "
-                f"-> implied_max_depth={implied_depth:<3} "
-                f"implied_max_tokens={implied_tokens:<3}  "
-                f"{'** MATCHES SHIPPED DEFAULTS **' if is_match else ''}"
-            )
-            if is_match:
-                matches.append(s.name)
-        except Exception as e:
-            print(f"{s.name:<40} (could not parse: {e})")
-
-    print()
-    if len(matches) == 0:
-        print(
-            "CONCLUSION: no scenario's ground truth, run through the leaky "
-            "formula, produces exactly 7/25. This weakens the 'defaults were "
-            "derived from this function' theory -- more likely 7/25 were "
-            "chosen independently (e.g. round numbers, or tuned against a "
-            "DIFFERENT scenario not in the current set, or just a generic "
-            "engineering choice)."
-        )
-    elif len(matches) == 1:
-        print(
-            f"CONCLUSION: exactly one scenario ({matches[0]}) matches. "
-            f"Plausible this WAS the scenario used to set the leaky "
-            f"defaults during development -- worth specifically disclosing "
-            f"in the paper as a limitation for that scenario, without "
-            f"necessarily implying ALL scenarios' thresholds are tainted."
-        )
-    else:
-        print(
-            f"CONCLUSION: {len(matches)} scenarios match simultaneously "
-            f"({matches}). This is much harder to explain as coincidence -- "
-            f"strengthens the case that these ARE the scenarios the "
-            f"threshold was originally tuned against."
-        )
-
-
-if __name__ == "__main__":
-    q1_find_default_introduction()
-    q2_check_if_leaky_function_was_ever_called()
-    q3_check_coincidence_with_scenarios()
-
-
-================================================================================
-FILE: eval/audit_logger.py
-================================================================================
-import os
-import json
-import datetime
-from typing import Any, Dict
-
-
-class AuditLogger:
-
-    def __init__(self, log_filepath: str):
-        self.log_filepath = log_filepath
-        os.makedirs(os.path.dirname(log_filepath), exist_ok=True)
-
-    def log_experiment(self, run_data: Dict[str, Any]):
-        entry = {
-            "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
-            **run_data
-        }
-        with open(self.log_filepath, "a", encoding="utf-8") as f:
-            f.write(json.dumps(entry) + "\n")
-
-
-================================================================================
-FILE: eval/compute_metrics.py
-================================================================================
-import os
-import json
-import numpy as np
-from collections import defaultdict
-from scipy import stats
-
-AUDIT_LOG_PATH = os.path.join(os.path.dirname(__file__), "..", "results", "preregistered_audit.jsonl")
-
-
-def load_audit_data() -> list[dict]:
-    entries = []
-    if not os.path.exists(AUDIT_LOG_PATH):
-        print(f"[ERROR] Audit log not found: {AUDIT_LOG_PATH}")
-        return entries
-    with open(AUDIT_LOG_PATH, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                try:
-                    entries.append(json.loads(line))
-                except json.JSONDecodeError:
-                    continue
-    return entries
-
-
-def wilcoxon_test(a: list[float], b: list[float], label: str) -> dict:
-    """Paired Wilcoxon signed-rank test with effect size (Cohen's d)."""
-    a, b = np.array(a), np.array(b)
-    n = min(len(a), len(b))
-    if n < 5:
-        return {"label": label, "n": n, "skipped": True, "reason": "n < 5"}
-
-    diff = a[:n] - b[:n]
-    try:
-        stat, p = stats.wilcoxon(diff, alternative="greater", zero_method="wilcox")
-    except ValueError:
-        stat, p = float("nan"), float("nan")
-
-    # Cohen's d on the difference
-    pooled_std = np.std(np.concatenate([a, b])) + 1e-9
-    cohens_d = float(np.mean(diff) / pooled_std)
-
-    return {
-        "label": label,
-        "n_pairs": n,
-        "mean_a": float(np.mean(a[:n])),
-        "mean_b": float(np.mean(b[:n])),
-        "mean_diff (a-b)": float(np.mean(diff)),
-        "wilcoxon_stat": float(stat),
-        "p_value": float(p),
-        "cohens_d": cohens_d,
-        "significant (p<0.05)": bool(p < 0.05),
-    }
-
-
-def print_section(title: str):
-    bar = "=" * 60
-    print(f"\n{bar}")
-    print(f"  {title}")
-    print(bar)
-
-
-def main():
-    entries = load_audit_data()
-    if not entries:
-        print("[ERROR] No entries to analyze.")
-        return
-
-    print(f"[INFO] Loaded {len(entries)} audit entries")
-
-    # Check for PySR entries
-    pysr_entries = [e for e in entries if e.get("proposer") == "PySR"]
-    gp_entries = [e for e in entries if e.get("proposer") == "GrammarProposer"]
-    print(f"[INFO] PySR entries: {len(pysr_entries)}, GrammarProposer entries: {len(gp_entries)}")
-
-    if not pysr_entries:
-        print("[WARN] No PySR entries found — M2/M3/M4 will be computed from GrammarProposer only.")
-        print("[WARN] Re-run benchmark_runner.py with PySR enabled to get the primary experiment data.")
-
-    # ── M1: Physical Validity Rate (PVR) ─────────────────────────────────
-    print_section("M1: Physical Validity Rate (PVR) — by arm, level, noise")
-
-    pvr_by_key = defaultdict(list)
-    for e in entries:
-        key = (e["level"], e.get("arm", "ARM-A"), e["noise"])
-        pvr_by_key[key].append(e["pvr"])
-
-    for (level, arm, noise), pvrs in sorted(pvr_by_key.items()):
-        print(f"  {level} | {arm} | noise={noise:.2f}  →  "
-              f"PVR={np.mean(pvrs)*100:.1f}% ± {np.std(pvrs)*100:.1f}%  (n={len(pvrs)})")
-
-    # ── M2: False Positive Reduction Rate (FPRR) ─────────────────────────
-    print_section("M2: False Positive Reduction Rate (FPRR)")
-
-    fprr_by_key = defaultdict(list)
-    for e in entries:
-        fprr = e.get("fprr")
-        if fprr is not None:  # None when no good-fitting candidates exist
-            key = (e["level"], e.get("arm", "ARM-A"), e["proposer"])
-            fprr_by_key[key].append(fprr)
-
-    if fprr_by_key:
-        for (level, arm, proposer), fprrs in sorted(fprr_by_key.items()):
-            n_valid = len([f for f in fprrs if not np.isnan(f)])
-            if n_valid == 0:
-                print(f"  {level} | {arm} | {proposer}  →  FPRR: N/A (no good-fitting candidates)")
-            else:
-                valid_fprrs = [f for f in fprrs if not np.isnan(f)]
-                print(f"  {level} | {arm} | {proposer}  →  "
-                      f"FPRR={np.mean(valid_fprrs)*100:.1f}% ± {np.std(valid_fprrs)*100:.1f}%  "
-                      f"(n={n_valid})")
-    else:
-        print("  [NOTE] FPRR not computed (no entries with fprr field or no good-fitting candidates)")
-        print("  This means no proposer generated candidates with NMSE < 0.10 on test data.")
-        print("  → For PySR entries, FPRR should be non-zero. Check if PySR ran.")
-
-    # ── M3: Valid Recovery Rate (VRR) ────────────────────────────────────
-    print_section("M3: Valid Recovery Rate (VRR) — structural similarity to ground truth")
-
-    vrr_by_key = defaultdict(list)
-    for e in entries:
-        vrr = e.get("vrr", 0.0)
-        key = (e["level"], e.get("arm", "ARM-A"), e["proposer"])
-        vrr_by_key[key].append(vrr)
-
-    for (level, arm, proposer), vrrs in sorted(vrr_by_key.items()):
-        print(f"  {level} | {arm} | {proposer}  →  "
-              f"VRR={np.mean(vrrs)*100:.1f}% ± {np.std(vrrs)*100:.1f}%  (n={len(vrrs)})")
-
-    # ── M4: Correction-First vs Direct Fit (Level B only) ───────────────
-    print_section("M4: Correction-First (ARM-B) vs Direct-Fit (ARM-C) — Level B")
-
-    b_vrr_by_noise = defaultdict(list)
-    c_vrr_by_noise = defaultdict(list)
-
-    for e in entries:
-        if e["level"] != "Level B":
-            continue
-        arm = e.get("arm", "")
-        vrr = e.get("vrr", 0.0)
-        noise = e["noise"]
-        if "ARM-B" in arm:
-            b_vrr_by_noise[noise].append(vrr)
-        elif "ARM-C" in arm:
-            c_vrr_by_noise[noise].append(vrr)
-
-    if b_vrr_by_noise and c_vrr_by_noise:
-        for noise in sorted(b_vrr_by_noise.keys()):
-            b_vrrs = b_vrr_by_noise[noise]
-            c_vrrs = c_vrr_by_noise.get(noise, [])
-            if b_vrrs and c_vrrs:
-                print(f"  noise={noise:.2f}  →  "
-                      f"ARM-B (correction-first): VRR={np.mean(b_vrrs)*100:.1f}%  |  "
-                      f"ARM-C (direct-fit): VRR={np.mean(c_vrrs)*100:.1f}%")
-    else:
-        print("  [NOTE] ARM-B and/or ARM-C data not available yet.")
-        print("  Ensure PySR runs completed in benchmark_runner.py")
-
-    # ── Statistical Tests ─────────────────────────────────────────────────
-    print_section("Statistical Tests — Wilcoxon Signed-Rank (pre-registered)")
-
-    # Test 1: PySR ARM-B PVR vs GrammarProposer ARM-A PVR (Level B)
-    b_pvrs = [e["pvr"] for e in entries
-              if e["level"] == "Level B" and "ARM-B" in e.get("arm", "")]
-    a_pvrs = [e["pvr"] for e in entries
-              if e["level"] == "Level B" and e.get("arm", "ARM-A") == "ARM-A"
-              and e.get("proposer") == "GrammarProposer"]
-
-    if b_pvrs and a_pvrs:
-        result = wilcoxon_test(b_pvrs, a_pvrs,
-                               "ARM-B (PySR+gate) PVR > ARM-A (Grammar+gate) PVR")
-        print(f"\n  Test: {result['label']}")
-        if result.get("skipped"):
-            print(f"    Skipped: {result['reason']}")
-        else:
-            print(f"    n_pairs={result['n_pairs']}, mean_B={result['mean_a']:.3f}, "
-                  f"mean_A={result['mean_b']:.3f}")
-            print(f"    Wilcoxon p={result['p_value']:.4f}, Cohen's d={result['cohens_d']:.3f}")
-            print(f"    Significant (p<0.05): {result['significant (p<0.05)']}")
-
-    # Test 2: Correction-first VRR > Direct-fit VRR (Level B, medium noise)
-    b_vrrs_med = [e.get("vrr", 0.0) for e in entries
-                  if e["level"] == "Level B" and "ARM-B" in e.get("arm", "")
-                  and e["noise"] == 0.05]
-    c_vrrs_med = [e.get("vrr", 0.0) for e in entries
-                  if e["level"] == "Level B" and "ARM-C" in e.get("arm", "")
-                  and e["noise"] == 0.05]
-
-    if b_vrrs_med and c_vrrs_med:
-        result2 = wilcoxon_test(b_vrrs_med, c_vrrs_med,
-                                "M4: Correction-first VRR > Direct-fit VRR (noise=0.05)")
-        print(f"\n  Test: {result2['label']}")
-        if result2.get("skipped"):
-            print(f"    Skipped: {result2['reason']}")
-        else:
-            print(f"    n_pairs={result2['n_pairs']}, mean_CF={result2['mean_a']:.3f}, "
-                  f"mean_Direct={result2['mean_b']:.3f}")
-            print(f"    Wilcoxon p={result2['p_value']:.4f}, Cohen's d={result2['cohens_d']:.3f}")
-            print(f"    Significant (p<0.05): {result2['significant (p<0.05)']}")
-
-    # ── Overall Summary ───────────────────────────────────────────────────
-    print_section("OVERALL SUMMARY")
-    total = len(entries)
-    n_pysr = len(pysr_entries)
-    n_gp = len(gp_entries)
-    print(f"  Total benchmark entries logged : {total}")
-    print(f"  GrammarProposer entries        : {n_gp}")
-    print(f"  PySR entries                   : {n_pysr}")
-
-    overall_pvr = np.mean([e["pvr"] for e in entries]) if entries else 0.0
-    print(f"  Overall PVR (all arms)         : {overall_pvr*100:.2f}%")
-
-    # Pre-registered success criteria check
-    print("\n  Pre-Registered Criteria Check:")
-    print("  ──────────────────────────────")
-
-    # M2: FPRR >= 15%
-    all_fprr = [e["fprr"] for e in pysr_entries if e.get("fprr") is not None]
-    if all_fprr:
-        mean_fprr = np.mean([f for f in all_fprr if not np.isnan(f)])
-        status = "✓ PASS" if mean_fprr >= 0.15 else "✗ FAIL"
-        print(f"  M2 FPRR >= 15% : {mean_fprr*100:.1f}%  →  {status}")
-    else:
-        print("  M2 FPRR >= 15% : NOT YET MEASURABLE (PySR data pending)")
-
-    # M4: VRR_CF >= VRR_direct
-    if b_vrrs_med and c_vrrs_med:
-        mean_b = np.mean(b_vrrs_med)
-        mean_c = np.mean(c_vrrs_med)
-        status4 = "✓ PASS" if mean_b >= mean_c else "✗ FAIL"
-        print(f"  M4 CF>=Direct  : CF={mean_b*100:.1f}% >= Direct={mean_c*100:.1f}%  →  {status4}")
-    else:
-        print("  M4 CF>=Direct  : NOT YET MEASURABLE (PySR ARM-B/C data pending)")
-
-    print("\n[INFO] Run benchmark_runner.py to populate PySR entries before final analysis.")
-
-
-if __name__ == "__main__":
-    main()
-
-
-================================================================================
-FILE: eval/contamination_check.py
-================================================================================
-import sys
-import os
-import re
-
-BENCHMARK_SPEC_PATH = os.path.join(os.path.dirname(__file__), "..", "preregistration", "benchmark_spec.txt")
-SRC_DIR = os.path.join(os.path.dirname(__file__), "..", "src")
-
-
-def run_contamination_check() -> bool:
-    if not os.path.exists(BENCHMARK_SPEC_PATH):
-        print(f"[ERROR] Benchmark spec not found at: {BENCHMARK_SPEC_PATH}")
-        return False
-
-    with open(BENCHMARK_SPEC_PATH, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-
-    equations = []
-    for line in lines:
-        if ":" in line and not line.startswith("#"):
-            eq = line.split(":", 1)[1].strip()
-            if eq:
-                equations.append(eq)
-
-    print(f"[INFO] Loaded {len(equations)} benchmark equations for contamination check.")
-
-    contaminated = False
-    for root, _, files in os.walk(SRC_DIR):
-        for file in files:
-            if file.endswith(".py"):
-                filepath = os.path.join(root, file)
-                with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
-                    content = f.read()
-
-                for eq in equations:
-                    # Clean string comparison
-                    eq_clean = eq.replace(" ", "")
-                    if len(eq_clean) > 8 and eq_clean in content.replace(" ", ""):
-                        print(f"[WARNING] Potential contamination detected in {file} for equation: {eq}")
-                        contaminated = True
-
-    if not contaminated:
-        print("[SUCCESS] Zero contamination detected across codebase for pre-registered benchmarks!")
-        return True
-    else:
-        print("[FAIL] Contamination check failed!")
-        return False
-
-
-if __name__ == "__main__":
-    success = run_contamination_check()
-    sys.exit(0 if success else 1)
-
 
 ================================================================================
 FILE: paper/generate_final_3_figures.py
@@ -929,7 +151,8 @@ def main():
         ablated_bic = report[name]["checks"]["ablation_control"]["ablated_bic"]
         delta_bic = ablated_bic - chosen_bic
         
-        if delta_bic >= 10:
+        pc_pass = report[name]["checks"]["positive_control"]["pass"]
+        if delta_bic >= 10 and pc_pass:
             verdict = {"label": "IDENTIFIABLE", "color": "#16a34a", "delta_bic": delta_bic}
         else:
             verdict = {"label": "WITHHELD", "color": "#d97706", "delta_bic": delta_bic}
@@ -1039,7 +262,8 @@ def main():
         ablated_bic = report[name]["checks"]["ablation_control"]["ablated_bic"]
         chosen_bic  = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]["bic"]
         delta_bic = ablated_bic - chosen_bic
-        if delta_bic >= 10:
+        pc_pass = report[name]["checks"]["positive_control"]["pass"]
+        if delta_bic >= 10 and pc_pass:
             v_label, v_color = "IDENTIFIABLE", "#16a34a"
         else:
             v_label, v_color = "WITHHELD", "#d97706"
@@ -1056,7 +280,8 @@ def main():
         ablated_bic = report[n]["checks"]["ablation_control"]["ablated_bic"]
         chosen_bic  = report[n]["checks"]["primary_search"]["pareto_front"][chosen_idx[n]]["bic"]
         delta_bic = ablated_bic - chosen_bic
-        bar_colors.append("#16a34a" if delta_bic >= 10 else "#d97706")
+        pc_pass = report[n]["checks"]["positive_control"]["pass"]
+        bar_colors.append("#16a34a" if (delta_bic >= 10 and pc_pass) else "#d97706")
     bars2 = ax2.bar(x, delta_bics, width=0.45, color=bar_colors,
                     edgecolor='black', linewidth=0.5)
 
@@ -1102,7 +327,8 @@ def main():
         ablated_bic = report[name]["checks"]["ablation_control"]["ablated_bic"]
         chosen_bic  = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]["bic"]
         delta_bic = ablated_bic - chosen_bic
-        if delta_bic >= 10:
+        pc_pass = report[name]["checks"]["positive_control"]["pass"]
+        if delta_bic >= 10 and pc_pass:
             verdict = {"label": "IDENTIFIABLE", "color": "#16a34a"}
         else:
             verdict = {"label": "WITHHELD", "color": "#d97706"}
@@ -1149,140 +375,272 @@ if __name__ == "__main__":
 
 
 ================================================================================
-FILE: scripts/generate_flowchart.py
+FILE: run_outputs/adcd_v3_taxonomy_validation_report.json
 ================================================================================
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import os
+{
+  "Time Dilation": {
+    "all_passed": false,
+    "checks": {
+      "budget_disclosure": {
+        "search_space_size": 10,
+        "primitives": [
+          "D_lor"
+        ],
+        "pass": true,
+        "note": "Full blind search space -- larger than any previously hand-fed single-ratio search space (35), because ratio candidates are now auto-derived, not hand-typed."
+      },
+      "primary_search": {
+        "top_candidate": "theta_0 * (v**2/c**2 / (sqrt(1.0 - v**2/c**2) * (1.0 + sqrt(1.0 - v**2/c**2))))",
+        "nmse": 0.4121022732674186,
+        "bic": -167.39325731788833,
+        "discovered_class": "rational",
+        "match_level": "class_only",
+        "symbolic_match": false,
+        "class_match": true,
+        "true_structure_rank": 1,
+        "pass": true,
+        "note": "Match level: class_only at rank 1",
+        "pareto_front": [
+          {
+            "expr_str": "theta_0 * (v**2/c**2 / (sqrt(1.0 - v**2/c**2) * (1.0 + sqrt(1.0 - v**2/c**2))))",
+            "nmse": 0.4121022732674186,
+            "bic": -167.39325731788833,
+            "class": "rational"
+          },
+          {
+            "expr_str": "theta_0 * (v**2/theta_3 / (sqrt(1.0 - v**2/theta_3) * (1.0 + sqrt(1.0 - v**2/theta_3))))",
+            "nmse": 0.4120987003795705,
+            "bic": -162.09667393999712,
+            "class": "rational"
+          },
+          {
+            "expr_str": "theta_0 * (v/theta_2 / (sqrt(1.0 - v/theta_2) * (1.0 + sqrt(1.0 - v/theta_2))))",
+            "nmse": 0.41486197346587594,
+            "bic": -160.76007670716373,
+            "class": "rational"
+          },
+          {
+            "expr_str": "theta_0 * (v/c / (sqrt(1.0 - v/c) * (1.0 + sqrt(1.0 - v/c))))",
+            "nmse": 0.4876104572988232,
+            "bic": -133.74419947444142,
+            "class": "rational"
+          }
+        ]
+      },
+      "positive_control": {
+        "search_space_size": 10,
+        "nmse": 0.4121022732674186,
+        "pass": false
+      },
+      "ablation_control": {
+        "ablated_bic": -153.60215424753298,
+        "true_structure_bic": -167.39325731788833,
+        "true_structure_rank": 1,
+        "bic_diff": 13.791103070355348,
+        "pass": true,
+        "note": "Reference is Rank-1 BIC from blind search (best achievable with true primitive)."
+      },
+      "determinism_check": {
+        "runs": [
+          [
+            "theta_0 * (v**2/c**2 / (sqrt(1.0 - v**2/c**2) * (1.0 + sqrt(1.0 - v**2/c**2))))",
+            0.4121022732674186
+          ],
+          [
+            "theta_0 * (v**2/c**2 / (sqrt(1.0 - v**2/c**2) * (1.0 + sqrt(1.0 - v**2/c**2))))",
+            0.4121022732674186
+          ],
+          [
+            "theta_0 * (v**2/c**2 / (sqrt(1.0 - v**2/c**2) * (1.0 + sqrt(1.0 - v**2/c**2))))",
+            0.4121022732674186
+          ]
+        ],
+        "pass": true
+      }
+    }
+  },
+  "Screened Coulomb": {
+    "all_passed": true,
+    "checks": {
+      "budget_disclosure": {
+        "search_space_size": 60,
+        "primitives": [
+          "D_rat",
+          "D_exp"
+        ],
+        "pass": true,
+        "note": "Full blind search space -- larger than any previously hand-fed single-ratio search space (35), because ratio candidates are now auto-derived, not hand-typed."
+      },
+      "primary_search": {
+        "top_candidate": "theta_0 * (exp(-r/theta_4) - 1.0)",
+        "nmse": 0.00027721519856638115,
+        "bic": -1619.3579687961649,
+        "discovered_class": "exponential",
+        "match_level": "exact",
+        "symbolic_match": true,
+        "class_match": true,
+        "true_structure_rank": 1,
+        "pass": true,
+        "note": "Match level: exact at rank 1",
+        "pareto_front": [
+          {
+            "expr_str": "theta_0 * (exp(-r/theta_4) - 1.0)",
+            "nmse": 0.00027721519856638115,
+            "bic": -1619.3579687961649,
+            "class": "exponential"
+          },
+          {
+            "expr_str": "theta_0 * (exp(-r**2/theta_5) - 1.0)",
+            "nmse": 0.10147480553634856,
+            "bic": -438.80362266827336,
+            "class": "exponential"
+          },
+          {
+            "expr_str": "theta_0 * (exp(-k_e/theta_6) - 1.0)",
+            "nmse": 0.999999000001,
+            "bic": 18.785123857640265,
+            "class": "exponential"
+          },
+          {
+            "expr_str": "theta_0 * (k_e**2/theta_7 / (1.0 - k_e**2/theta_7))",
+            "nmse": 0.999999000001,
+            "bic": 18.785123857640265,
+            "class": "rational"
+          },
+          {
+            "expr_str": "theta_0 * (exp(-k_e**2/theta_7) - 1.0)",
+            "nmse": 0.999999000001,
+            "bic": 18.785123857640265,
+            "class": "exponential"
+          }
+        ]
+      },
+      "positive_control": {
+        "search_space_size": 12,
+        "nmse": 0.00027721519856638115,
+        "pass": true
+      },
+      "ablation_control": {
+        "ablated_bic": -1588.7034674793915,
+        "true_structure_bic": -1619.3579687961649,
+        "true_structure_rank": 1,
+        "bic_diff": 30.65450131677335,
+        "pass": true,
+        "note": "Reference is Rank-1 BIC from blind search (best achievable with true primitive)."
+      },
+      "determinism_check": {
+        "runs": [
+          [
+            "theta_0 * (exp(-r/theta_4) - 1.0)",
+            0.00027721519856638115
+          ],
+          [
+            "theta_0 * (exp(-r/theta_4) - 1.0)",
+            0.00027721519856638115
+          ],
+          [
+            "theta_0 * (exp(-r/theta_4) - 1.0)",
+            0.00027721519856638115
+          ]
+        ],
+        "pass": true
+      }
+    }
+  },
+  "Entropy Expansion": {
+    "all_passed": true,
+    "checks": {
+      "budget_disclosure": {
+        "search_space_size": 40,
+        "primitives": [
+          "D_exp",
+          "D_log"
+        ],
+        "pass": true,
+        "note": "Full blind search space -- larger than any previously hand-fed single-ratio search space (35), because ratio candidates are now auto-derived, not hand-typed."
+      },
+      "primary_search": {
+        "top_candidate": "theta_0 * log(1.0 + dV/V_i)",
+        "nmse": 0.015942129281883224,
+        "bic": -815.081930424143,
+        "discovered_class": "logarithmic",
+        "match_level": "class_only",
+        "symbolic_match": false,
+        "class_match": true,
+        "true_structure_rank": 1,
+        "pass": true,
+        "note": "Match level: class_only at rank 1",
+        "pareto_front": [
+          {
+            "expr_str": "theta_0 * log(1.0 + dV/V_i)",
+            "nmse": 0.015942129281883224,
+            "bic": -815.081930424143,
+            "class": "logarithmic"
+          },
+          {
+            "expr_str": "theta_0 * log(1.0 + dV/V_i) * (1.0 + theta_1 * (exp(-dV/V_i) - 1.0))",
+            "nmse": 0.015937881937111938,
+            "bic": -809.8369046924976,
+            "class": "exponential"
+          },
+          {
+            "expr_str": "theta_0 * (exp(-dV/V_i) - 1.0) + theta_1 * log(1.0 + dV/V_i)",
+            "nmse": 0.015942129281883186,
+            "bic": -809.7836130575956,
+            "class": "exponential"
+          },
+          {
+            "expr_str": "theta_0 * (exp(-dV/V_i) - 1.0)",
+            "nmse": 0.019371283803735897,
+            "bic": -776.1166288887343,
+            "class": "exponential"
+          },
+          {
+            "expr_str": "theta_0 * (exp(-dV/V_i) - 1.0) * (1.0 + theta_1 * log(1.0 + dV/V_i))",
+            "nmse": 0.019371283803701105,
+            "bic": -770.8183115225456,
+            "class": "exponential"
+          }
+        ]
+      },
+      "positive_control": {
+        "search_space_size": 8,
+        "nmse": 0.015942129281883224,
+        "pass": true
+      },
+      "ablation_control": {
+        "ablated_bic": -800.3781166118101,
+        "true_structure_bic": -815.081930424143,
+        "true_structure_rank": 1,
+        "bic_diff": 14.703813812332896,
+        "pass": true,
+        "note": "Reference is Rank-1 BIC from blind search (best achievable with true primitive)."
+      },
+      "determinism_check": {
+        "runs": [
+          [
+            "theta_0 * log(1.0 + dV/V_i)",
+            0.015942129281883224
+          ],
+          [
+            "theta_0 * log(1.0 + dV/V_i)",
+            0.015942129281883224
+          ],
+          [
+            "theta_0 * log(1.0 + dV/V_i)",
+            0.015942129281883224
+          ]
+        ],
+        "pass": true
+      }
+    }
+  }
+}
 
-def create_adcd_flowchart():
-    fig, ax = plt.subplots(figsize=(9.5, 13.5), dpi=300)
-    ax.set_xlim(0, 10)
-    ax.set_ylim(0, 14)
-    ax.axis('off')
-    
-    # Background
-    bg_color = "#ffffff"
-    fig.patch.set_facecolor(bg_color)
-    ax.set_facecolor(bg_color)
-    
-    # Neutral Palette (Clean Minimalist Technical Palette)
-    box_neutral = "#f8fafc"
-    border_neutral = "#cbd5e1"
-    text_dark = "#0f172a"
-    text_muted = "#475569"
-    arrow_color = "#64748b"
-
-    # Accent Colors (ONLY for Important Outlines / Decision Outcomes)
-    border_gate = "#3b82f6"       # Subtle Blue for Core Physical Gates
-    text_gate = "#1d4ed8"
-    
-    box_green = "#f0fdf4"          # Green for IDENTIFIABLE
-    border_green = "#16a34a"
-    text_green = "#15803d"
-    
-    box_red = "#fff1f2"            # Red for WITHHELD
-    border_red = "#e11d48"
-    text_red = "#be123c"
-
-    def draw_box(x, y, w, h, bg, border, title, desc=None, text_color=text_dark, rx=0.2, title_size=10.5):
-        box = patches.FancyBboxPatch(
-            (x - w/2, y - h/2), w, h,
-            boxstyle=f"round,pad=0.08,rounding_size={rx}",
-            linewidth=1.2, edgecolor=border, facecolor=bg
-        )
-        ax.add_patch(box)
-        
-        if desc:
-            ax.text(x, y + h*0.22, title, fontsize=title_size, fontweight='bold', ha='center', va='center', color=text_color)
-            ax.text(x, y - h*0.18, desc, fontsize=8.5, ha='center', va='center', color=text_muted, multialignment='center')
-        else:
-            ax.text(x, y, title, fontsize=title_size, fontweight='bold', ha='center', va='center', color=text_color)
-
-    def draw_arrow(x1, y1, x2, y2, label=None, color=arrow_color):
-        ax.annotate(
-            "", xy=(x2, y2), xytext=(x1, y1),
-            arrowprops=dict(arrowstyle="->,head_width=0.35,head_length=0.55", lw=1.5, color=color)
-        )
-        if label:
-            mx, my = (x1 + x2)/2, (y1 + y2)/2
-            ax.text(mx + 0.15, my, label, fontsize=8.5, fontweight='bold', color=color, va='center')
-
-    # Title Banner (Minimal & Clean)
-    ax.text(5, 13.4, "ADCD Framework Architecture", fontsize=14, fontweight='bold', ha='center', color=text_dark)
-    ax.text(5, 13.05, "Deterministic & Identifiability-Aware Physics Discovery Pipeline", fontsize=9, ha='center', color=text_muted)
-
-    # 1. Inputs
-    draw_box(5, 12.2, 7.8, 0.85, box_neutral, border_neutral, 
-             "1. Observational Data & Classical Baseline", 
-             "Inputs: X, y_obs, y_cl  |  Metadata: Units [L, M, T] & Limit Regime")
-    
-    draw_arrow(5, 11.77, 5, 11.18)
-
-    # 2. Candidate Generation
-    draw_box(5, 10.6, 7.8, 1.05, box_neutral, border_neutral, 
-             "2. Candidate Enumeration (GrammarProposerV3)", 
-             "• Buckingham-π Auto-derived Dimensionless Ratios\n• 5 Asymptotic Primitives  |  Generation Budget ≤ 25 Tokens\n• Candidate Pool Size |C| ≈ 140 – 260")
-
-    draw_arrow(5, 10.07, 5, 9.48, label="|C| Candidates")
-
-    # 3. Physical Gate Cascade
-    cascade_bg = patches.FancyBboxPatch(
-        (1.1, 4.75), 7.8, 4.4,
-        boxstyle="round,pad=0.08,rounding_size=0.25",
-        linewidth=1.2, edgecolor=border_gate, facecolor="#ffffff", linestyle="--"
-    )
-    ax.add_patch(cascade_bg)
-    ax.text(5, 8.9, "3. FIVE-GATE PHYSICAL CASCADE (Pre-fitting Filter)", fontsize=9.5, fontweight='bold', ha='center', color=text_gate)
-
-    gates = [
-        ("Gate 1: AST Complexity", "SymPy Depth ≤ 12, Nodes ≤ 50"),
-        ("Gate 2: Dimensional Check", "SI Unit Vectors Must Balance"),
-        ("Gate 3: Transcendental Safety", "log(u>0), sqrt(u≥0) Domain Check"),
-        ("Gate 4: Asymptotic Check (ARC)", "Hard Constraint: lim(u→0) Δ = 0"),
-        ("Gate 5: Coarse Pre-Filter", "Discard NaN / inf Candidate Fits")
-    ]
-    
-    gate_y = 8.35
-    for i, (g_title, g_desc) in enumerate(gates):
-        # ARC gate subtle highlight
-        b_color = border_gate if i == 3 else border_neutral
-        t_color = text_gate if i == 3 else text_dark
-        
-        draw_box(5, gate_y - i*0.75, 7.2, 0.58, box_neutral, b_color, g_title + " — " + g_desc, text_color=t_color, rx=0.12, title_size=9.5)
-        if i < 4:
-            draw_arrow(5, gate_y - i*0.75 - 0.29, 5, gate_y - (i+1)*0.75 + 0.29, color=arrow_color)
-
-    draw_arrow(5, 4.75, 5, 4.15, label="~10–50 Survivors")
-
-    # 4. JAX L-BFGS-B Optimization
-    draw_box(5, 3.6, 7.8, 1.05, box_neutral, border_neutral, 
-             "4. Float64 JAX L-BFGS-B Numerical Optimizer", 
-             "• Parameters in Log-Space: θ_i = s_i · exp(u_i)\n• Multi-Start Optimization (n_restarts = 15 per candidate)\n• High-Precision Loss Evaluation on Residuals")
-
-    draw_arrow(5, 3.07, 5, 2.48)
-
-    # 5. Model Selection & BIC Ranking
-    draw_box(5, 1.9, 7.8, 0.95, box_neutral, border_neutral, 
-             "5. Bayesian Model Selection & Pareto Front", 
-             "• BIC = k ln N - 2 ln L̂  |  Parsimony-vs-Fitness Ranking\n• True Structure vs. Ablated Best Search Comparison")
-
-    draw_arrow(5, 1.42, 2.8, 0.73, color=border_green)
-    draw_arrow(5, 1.42, 7.2, 0.73, color=border_red)
-
-    # 6. Final Outputs (Decision Branches - Accented Colors for Highlight)
-    draw_box(2.8, 0.45, 3.8, 0.58, box_green, border_green, "IDENTIFIABLE (ΔBIC > 10)", text_color=text_green, title_size=10)
-    draw_box(7.2, 0.45, 3.8, 0.58, box_red, border_red, "WITHHELD (ΔBIC ≤ 10)", text_color=text_red, title_size=10)
-
-    os.makedirs("docs/assets", exist_ok=True)
-    out_path = "docs/assets/adcd_flowchart.png"
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=300, bbox_inches='tight', facecolor=bg_color)
-    plt.close()
-    print(f"Minimalist Flowchart successfully generated at: {out_path}")
-
-if __name__ == "__main__":
-    create_adcd_flowchart()
+================================================================================
+FILE: src/adcd/__init__.py
+================================================================================
+# ADCD V3 - Asymptotic Dictionary Correction Discovery
 
 
 ================================================================================
@@ -2191,40 +1549,32 @@ def _resolve_limit_unsafe(candidate: sp.Expr, variable: sp.Symbol, limit_target:
     return res
 
 
-import multiprocessing
-
-def _limit_worker(queue, candidate, variable, limit_target):
-    try:
-        res = _resolve_limit_unsafe(candidate, variable, limit_target)
-        queue.put(res)
-    except Exception:
-        queue.put(None)
+import threading
 
 def _resolve_limit(candidate: sp.Expr, variable: sp.Symbol, limit_target: Any, timeout: float = 2.0):
     """
-    Wraps _resolve_limit_unsafe with OS-level multiprocessing.
-    Prevents zombie threads and memory leaks caused by Python's GIL 
-    when SymPy's Gruntz algorithm hits an infinite loop.
+    Wraps _resolve_limit_unsafe with threading.
+    Prevents blocking the main pipeline if SymPy's Gruntz algorithm hits an infinite loop.
+    Uses daemon threads so abandoned threads won't block program exit.
     """
-    queue = multiprocessing.Queue()
-    p = multiprocessing.Process(
-        target=_limit_worker, 
-        args=(queue, candidate, variable, limit_target)
-    )
+    result = [None]
     
-    p.start()
-    p.join(timeout=timeout)
+    def worker():
+        try:
+            res = _resolve_limit_unsafe(candidate, variable, limit_target)
+            result[0] = res
+        except Exception:
+            pass
+
+    t = threading.Thread(target=worker, daemon=True)
+    t.start()
+    t.join(timeout=timeout)
     
-    if p.is_alive():
-        logger.debug(f"Timeout ({timeout}s) - Force killing limit computation for: {candidate}")
-        p.terminate()  
-        p.join()       
+    if t.is_alive():
+        logger.debug(f"Timeout ({timeout}s) - limit computation abandoned for: {candidate}")
         return None
         
-    if not queue.empty():
-        return queue.get()
-        
-    return None
+    return result[0]
 
 
 
@@ -5932,6 +5282,7 @@ FILE: src/adcd/run_adcd_v3_validation_blind.py
 from __future__ import annotations
 
 import json
+import os
 import argparse
 import logging
 from dataclasses import dataclass, field
@@ -5951,7 +5302,7 @@ logging.captureWarnings(True)
 
 from adcd.anomaly_scenarios import get_all_scenarios
 from adcd.grammar_proposer_v3 import GrammarProposerV3
-from adcd.asymptotic_dictionary_proposer_v3 import GrammarBudget
+from adcd.asymptotic_dictionary_proposer_v3 import GrammarBudget, PRIMITIVE_REGISTRY
 from adcd.context import ProposalContext
 from adcd.pipeline import Stage1Pipeline
 from adcd.dimensional_checker import DimensionalChecker, ASTValidator
@@ -6219,7 +5570,6 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
     taxonomy_allowed = None
     if use_taxonomy_prior and hasattr(scenario, "domain") and scenario.domain in DOMAIN_TAXONOMY:
         taxonomy_allowed = DOMAIN_TAXONOMY[scenario.domain]
-        from adcd.asymptotic_dictionary_proposer_v3 import PRIMITIVE_REGISTRY
         taxonomy_exclude = [p for p in PRIMITIVE_REGISTRY.keys() if p not in taxonomy_allowed]
     else:
         taxonomy_exclude = None
@@ -6380,7 +5730,8 @@ def main():
                   "this script is NOT yet a substitute for manual inspection.")
         print("=" * 80 + "\n")
 
-    report_name = "adcd_v3_taxonomy_validation_report.json" if args.taxonomy else "adcd_v3_blind_validation_report.json"
+    os.makedirs("run_outputs", exist_ok=True)
+    report_name = os.path.join("run_outputs", "adcd_v3_taxonomy_validation_report.json") if args.taxonomy else os.path.join("run_outputs", "adcd_v3_blind_validation_report.json")
     with open(report_name, "w") as f:
         json.dump(
             {name: {"all_passed": r.all_passed, "checks": r.checks} for name, r in all_results.items()},
@@ -6392,22 +5743,5 @@ def main():
 if __name__ == "__main__":
     main()
 
-
-
-================================================================================
-FILE: src/adcd/__init__.py
-================================================================================
-# ADCD V3 - Asymptotic Dictionary Correction Discovery
-
-
-================================================================================
-FILE: tests/test_placeholder.py
-================================================================================
-"""
-Placeholder test to ensure pytest runs successfully.
-"""
-
-def test_placeholder():
-    assert True
 
 
