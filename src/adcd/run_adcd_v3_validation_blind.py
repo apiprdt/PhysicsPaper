@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import argparse
 import logging
 from dataclasses import dataclass, field
@@ -20,7 +21,7 @@ logging.captureWarnings(True)
 
 from adcd.anomaly_scenarios import get_all_scenarios
 from adcd.grammar_proposer_v3 import GrammarProposerV3
-from adcd.asymptotic_dictionary_proposer_v3 import GrammarBudget
+from adcd.asymptotic_dictionary_proposer_v3 import GrammarBudget, PRIMITIVE_REGISTRY
 from adcd.context import ProposalContext
 from adcd.pipeline import Stage1Pipeline
 from adcd.dimensional_checker import DimensionalChecker, ASTValidator
@@ -288,7 +289,6 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
     taxonomy_allowed = None
     if use_taxonomy_prior and hasattr(scenario, "domain") and scenario.domain in DOMAIN_TAXONOMY:
         taxonomy_allowed = DOMAIN_TAXONOMY[scenario.domain]
-        from adcd.asymptotic_dictionary_proposer_v3 import PRIMITIVE_REGISTRY
         taxonomy_exclude = [p for p in PRIMITIVE_REGISTRY.keys() if p not in taxonomy_allowed]
     else:
         taxonomy_exclude = None
@@ -449,7 +449,8 @@ def main():
                   "this script is NOT yet a substitute for manual inspection.")
         print("=" * 80 + "\n")
 
-    report_name = "adcd_v3_taxonomy_validation_report.json" if args.taxonomy else "adcd_v3_blind_validation_report.json"
+    os.makedirs("run_outputs", exist_ok=True)
+    report_name = os.path.join("run_outputs", "adcd_v3_taxonomy_validation_report.json") if args.taxonomy else os.path.join("run_outputs", "adcd_v3_blind_validation_report.json")
     with open(report_name, "w") as f:
         json.dump(
             {name: {"all_passed": r.all_passed, "checks": r.checks} for name, r in all_results.items()},

@@ -57,7 +57,7 @@ Expected summary:
  Scenario          NMSE       ΔBIC   Verdict
 ───────────────────────────────────────────────
  Screened Coulomb  2.77e-04   30.65  IDENTIFIABLE
- Entropy Expansion 1.59e-02   14.58  IDENTIFIABLE
+ Entropy Expansion 1.59e-02   14.70  IDENTIFIABLE
  Time Dilation     4.12e-01   13.79  WITHHELD
 ═══════════════════════════════════════════════
 ```
@@ -332,7 +332,7 @@ All numbers from a live JAX run on CPU — see `run_outputs/`.
 | Scenario | Observation window | Rank-1 structure | ΔBIC | NMSE | Verdict |
 |:---|:---|:---|---:|---:|:---|
 | Screened Coulomb | $r \le 4.0\,\text{m}$ | $\theta_0(e^{-r/\theta_1} - 1)$ | 30.65 | 2.77 × 10⁻⁴ | **IDENTIFIABLE** |
-| Entropy Expansion | $dV/V_i \le 1.0$ | $\theta_0\ln(1 + dV/V_i)$ | 14.58 | 1.59 × 10⁻² | **IDENTIFIABLE** |
+| Entropy Expansion | $dV/V_i \le 1.0$ | $\theta_0\ln(1 + dV/V_i)$ | 14.70 | 1.59 × 10⁻² | **IDENTIFIABLE** |
 | Time Dilation | $v \le 0.3c$ | $\theta_0 \cdot D_\text{lor}(v^2/c^2)$ | 13.79 | 4.12 × 10⁻¹ | **WITHHELD** |
 
 > Time Dilation: Lorentz structure is found at Rank 1 and ΔBIC > 10, but the **positive control fails** (NMSE = 0.41 > 0.05) within the historical $v \le 0.3c$ window — meaning there is insufficient signal-to-noise for confident identification. The WITHHELD verdict is by design: the pipeline does not claim identifiability it cannot demonstrate.
