@@ -279,15 +279,16 @@ adopted identifiability threshold.
 
 The pipeline issues an IDENTIFIABLE verdict only when all four checks pass:
 \begin{enumerate}[noitemsep,leftmargin=*]
-  \item \textbf{Budget disclosure.} The full search space size $|\mathcal{C}|$
-        and the primitive list are reported before any results are seen.
+  \item \textbf{Budget disclosure.} The complete size of the domain-guided
+        search space $|\mathcal{C}|$ and the primitive list are reported before any results are seen.
   \item \textbf{Positive control.} Restricted to the ground-truth primitive
         family alone, the system must recover the correct structure
         (NMSE $<0.05$; i.e., less than $5\%$ unexplained variance).
-  \item \textbf{Ablation control.} With the ground-truth family excluded,
-        the BIC gap $\Delta\mathrm{BIC}>10$ (Kass--Raftery ``very strong
-        evidence'') between the best full-search and best ablated Rank-1
-        candidates.
+  \item \textbf{Ablation control.} With the ground-truth family excluded from
+        an otherwise unrestricted search over the full eight-primitive
+        registry, the BIC gap $\Delta\mathrm{BIC}>10$ (Kass--Raftery ``very
+        strong evidence'') must hold between the domain-guided Rank-1
+        candidate (Step~1) and the best Rank-1 candidate found under ablation.
   \item \textbf{Determinism.} Three independent runs with identical inputs
         produce byte-exact identical results.
 \end{enumerate}
@@ -380,8 +381,8 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
     true correction ($\Delta_\mathrm{true}$) for $N=200$ data points.
     Black dashed: 1:1 reference line.
     The near-perfect diagonal for Screened Coulomb
-    ($\mathrm{NMSE}=2.77\times10^{-4}$) illustrates a clean exact match
-    achieving a clean exact match through domain-guided search.
+    ($\mathrm{NMSE}=2.77\times10^{-4}$) illustrates the clean exact match
+    achieved through domain-guided search.
     Scatter for Time Dilation ($\mathrm{NMSE}=0.41$) reflects the
     insufficient signal-to-noise ratio at $v\le0.3c$.
   }
