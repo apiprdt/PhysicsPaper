@@ -90,7 +90,7 @@ def main():
 
     for name in scenario_names:
         data   = report[name]["checks"]
-        pareto = data["blind_search"]["pareto_front"]
+        pareto = data["primary_search"]["pareto_front"]
         idx    = chosen_idx[name]
 
         chosen_bic  = pareto[idx]["bic"]
@@ -113,7 +113,7 @@ def main():
         ax = axes1[i]
         scenario = next(s for s in all_scenarios if s.name == name)
         idx    = chosen_idx[name]
-        chosen_bic  = report[name]["checks"]["blind_search"]["pareto_front"][idx]["bic"]
+        chosen_bic  = report[name]["checks"]["primary_search"]["pareto_front"][idx]["bic"]
         ablated_bic = report[name]["checks"]["ablation_control"]["ablated_bic"]
         delta_bic = ablated_bic - chosen_bic
         
@@ -143,7 +143,7 @@ def main():
         delta_true_sorted  = delta_true[sort_idx]
         residual_noise_sorted = residual_noise[sort_idx]
 
-        nmse      = report[name]["checks"]["blind_search"]["pareto_front"][chosen_idx[name]]["nmse"]
+        nmse      = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]["nmse"]
         noise_std = np.sqrt(nmse * np.var(delta_true))
         np.random.seed(42)
         delta_pred_sorted = delta_true_sorted + np.random.normal(0, noise_std, size=len(delta_true))
@@ -225,7 +225,7 @@ def main():
     # Add verdict badges at top of each x group
     for i, name in enumerate(scenario_names):
         ablated_bic = report[name]["checks"]["ablation_control"]["ablated_bic"]
-        chosen_bic  = report[name]["checks"]["blind_search"]["pareto_front"][chosen_idx[name]]["bic"]
+        chosen_bic  = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]["bic"]
         delta_bic = ablated_bic - chosen_bic
         if delta_bic >= 10:
             v_label, v_color = "IDENTIFIABLE", "#16a34a"
@@ -242,7 +242,7 @@ def main():
     bar_colors = []
     for n in scenario_names:
         ablated_bic = report[n]["checks"]["ablation_control"]["ablated_bic"]
-        chosen_bic  = report[n]["checks"]["blind_search"]["pareto_front"][chosen_idx[n]]["bic"]
+        chosen_bic  = report[n]["checks"]["primary_search"]["pareto_front"][chosen_idx[n]]["bic"]
         delta_bic = ablated_bic - chosen_bic
         bar_colors.append("#16a34a" if delta_bic >= 10 else "#d97706")
     bars2 = ax2.bar(x, delta_bics, width=0.45, color=bar_colors,
@@ -288,7 +288,7 @@ def main():
         ax = axes3[i]
         scenario = next(s for s in all_scenarios if s.name == name)
         ablated_bic = report[name]["checks"]["ablation_control"]["ablated_bic"]
-        chosen_bic  = report[name]["checks"]["blind_search"]["pareto_front"][chosen_idx[name]]["bic"]
+        chosen_bic  = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]["bic"]
         delta_bic = ablated_bic - chosen_bic
         if delta_bic >= 10:
             verdict = {"label": "IDENTIFIABLE", "color": "#16a34a"}
@@ -298,7 +298,7 @@ def main():
         X_clean, _, _, residual_clean = get_scenario_data(scenario, name, noise_level=0.00)
         delta_true = residual_clean
 
-        nmse      = report[name]["checks"]["blind_search"]["pareto_front"][chosen_idx[name]]["nmse"]
+        nmse      = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]["nmse"]
         noise_std = np.sqrt(nmse * np.var(delta_true))
         np.random.seed(42)
         delta_pred = delta_true + np.random.normal(0, noise_std, size=len(delta_true))

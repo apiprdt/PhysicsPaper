@@ -345,11 +345,12 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
     else:
         result.checks["primary_search"] = {"pass": False, "note": "No candidate survived the full pipeline."}
 
-    # ---- Step 2: Positive control (calibration -- primitive isolated, ratio still auto-derived) ----
+    # Use dynamic exclusion from the live PRIMITIVE_REGISTRY so this stays
+    # correct even when new primitives are added — avoids the stale-hardcode
+    # regression documented in audit/fix_positive_control_isolation.py.
     ranked_isolated, space_size_isolated, _ = _run_search(
         scenario,
-        exclude_primitives=[p for p in ["D_lor", "D_rat", "D_exp", "D_log", "D_sqrt_inv"]
-                            if p != true_primitive],
+        exclude_primitives=[p for p in PRIMITIVE_REGISTRY if p != true_primitive],
         seed=seed,
     )
     pc_pass = len(ranked_isolated) > 0 and ranked_isolated[0][1] < NMSE_SUCCESS_THRESHOLD
