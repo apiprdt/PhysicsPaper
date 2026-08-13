@@ -443,9 +443,11 @@ A manually supplied ratio would be pinned to subscript~$0$ by convention.
 $\Delta\mathrm{BIC}=30.65$ far exceeds the threshold of~10.
 
 \paragraph{Entropy Expansion.}
-Recovered $\theta_0\ln(1+dV/V_i)$ matches the ground truth
-$\frac{nR}{S_i}\ln(1+dV/V_i)$ at class level: $\theta_0$ absorbs $nR/S_i$,
-which is unverifiable without independent measurements of $n$, $R$, $S_i$.
+Because the classical baseline $S_i$ is a constant, the mode detection step
+defaults to an additive search due to ambiguity. Thus, the recovered additive
+correction $\theta_0\ln(1+dV/V_i)$ matches the additive ground truth
+$nR\ln(1+dV/V_i)$ at class level: $\theta_0$ legitimately absorbs the additive
+amplitude $nR \approx 8.314$, rather than the multiplicative ratio $nR/S_i$.
 ADCD labels this \texttt{class\_only}---explicit epistemic qualification absent
 from unconstrained SR outputs.
 $\Delta\mathrm{BIC}=14.70>10$ supports IDENTIFIABLE.

@@ -65,7 +65,7 @@ def get_scenario_data(scenario, name, noise_level=0.01):
         domain_max=domain_limits[name]
     )
 
-def evaluate_candidate_prediction(cand, X_clean, delta_true, scenario):
+def evaluate_candidate_prediction(cand, X_clean, delta_true, scenario, y_classical):
     import numpy as np
     import sympy as sp
     
@@ -87,18 +87,16 @@ def evaluate_candidate_prediction(cand, X_clean, delta_true, scenario):
         else:
             delta_pred = np.zeros_like(delta_true) + float(expr)
 
-        # SCALE FIX (2026-08-13): the optimizer absorbs classical constants
-        # (e.g. nR=8.314 for Entropy Expansion) into theta_0, so delta_pred
-        # can be systematically off-scale vs delta_true which already embeds
-        # those constants via generate_data(). If RMS ratio is large (>3x),
-        # rescale to match delta_true's RMS so the SHAPE is correctly displayed.
-        # The NMSE annotation still reports the value from the optimization context.
-        pred_rms = np.sqrt(np.mean(delta_pred**2))
-        true_rms = np.sqrt(np.mean(delta_true**2))
-        if pred_rms > 0 and true_rms > 0:
-            ratio = pred_rms / true_rms
-            if ratio > 3.0 or ratio < 1/3.0:
-                delta_pred = delta_pred * (true_rms / pred_rms)
+        # MODE DETECTION FIX (2026-08-13): 
+        # If the scenario is multiplicative but the classical baseline has zero variance 
+        # (like Entropy Expansion where S_i is constant), mode_detection.py legitimately 
+        # falls back to additive mode (see paper Section 3.1). 
+        # This means the optimizer was fitting an additive residual (y_obs - y_cl) 
+        # and delta_pred is additive. To compare it correctly against the multiplicative 
+        # delta_true on the plots, we must convert it back by dividing by y_classical.
+        if scenario.correction_type == "multiplicative" and np.std(y_classical) < 1e-15:
+            delta_pred = delta_pred / y_classical
+            
         return delta_pred
     else:
         # Fallback for old JSONs that didn't serialize theta_fit
@@ -159,8 +157,9 @@ def main():
         ablated_bic = report[name]["checks"]["ablation_control"]["ablated_bic"]
         delta_bic = ablated_bic - chosen_bic
         
-        pc_pass = report[name]["checks"]["positive_control"]["pass"]
-        if delta_bic >= 10 and pc_pass:
+        all_passed = report[name]["all_passed"]
+        
+        if all_passed:
             verdict = {"label": "IDENTIFIABLE", "color": "#16a34a", "delta_bic": delta_bic}
         else:
             verdict = {"label": "WITHHELD", "color": "#d97706", "delta_bic": delta_bic}
@@ -188,7 +187,7 @@ def main():
 
         cand = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]
         nmse = cand["nmse"]  # used for NMSE annotation below
-        delta_pred = evaluate_candidate_prediction(cand, X_clean, delta_true, scenario)
+        delta_pred = evaluate_candidate_prediction(cand, X_clean, delta_true, scenario, y_classical)
         delta_pred_sorted = delta_pred[sort_idx]
 
         ax.scatter(x_val, residual_noise, color='#94a3b8', alpha=0.35,
@@ -335,8 +334,9 @@ def main():
         ablated_bic = report[name]["checks"]["ablation_control"]["ablated_bic"]
         chosen_bic  = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]["bic"]
         delta_bic = ablated_bic - chosen_bic
-        pc_pass = report[name]["checks"]["positive_control"]["pass"]
-        if delta_bic >= 10 and pc_pass:
+        all_passed = report[name]["all_passed"]
+        
+        if all_passed:
             verdict = {"label": "IDENTIFIABLE", "color": "#16a34a"}
         else:
             verdict = {"label": "WITHHELD", "color": "#d97706"}
@@ -346,7 +346,7 @@ def main():
 
         cand = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]
         nmse = cand["nmse"]  # used for NMSE annotation below
-        delta_pred = evaluate_candidate_prediction(cand, X_clean, delta_true, scenario)
+        delta_pred = evaluate_candidate_prediction(cand, X_clean, delta_true, scenario, y_classical)
 
         ax.scatter(delta_true, delta_pred, alpha=0.6, color=ADCD_COLOR,
                    edgecolor='white', linewidth=0.3, s=35, zorder=3)
