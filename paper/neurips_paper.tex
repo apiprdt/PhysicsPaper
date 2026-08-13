@@ -337,8 +337,8 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
     Correction recovery for the three scenarios.
     \textit{Gray dots}: observed residual $\Delta$ at 1\% Gaussian noise.
     \textit{Blue solid}: ground truth.
-    \textit{Red dashed} (``ADCD Recovery''): a noise-scaled surrogate derived
-    from the pipeline's reported NMSE, visualizing fit precision;
+    \textit{Red dashed} (``ADCD Recovery''): the exact symbolic expression
+    discovered by ADCD, evaluated with the fitted parameters $\boldsymbol{\theta}$;
     see Table~\ref{tab:results} for exact NMSE values.
     Screened Coulomb (IDENTIFIABLE): exact symbolic match,
     $\mathrm{NMSE}=2.77\times10^{-4}$.
@@ -378,8 +378,9 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
   \includegraphics[width=\textwidth]{fig3_parity.pdf}
   \caption{%
     Parity plots: exact analytical recovered correction ($\Delta_\mathrm{rec}$,
-    computed as ground truth plus noise scaled by the reported NMSE) vs.\
-    true correction ($\Delta_\mathrm{true}$) for $N=200$ data points.
+    evaluated directly from the discovered symbolic expression with fitted
+    parameters $\boldsymbol{\theta}$) vs.\ true correction
+    ($\Delta_\mathrm{true}$) for $N=200$ data points.
     Black dashed: 1:1 reference line.
     The near-perfect diagonal for Screened Coulomb
     ($\mathrm{NMSE}=2.77\times10^{-4}$) illustrates the clean exact match
