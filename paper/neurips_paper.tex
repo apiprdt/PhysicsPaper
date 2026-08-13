@@ -173,20 +173,18 @@ Name & Regularized form $D(u)$ & Domain & Physical origin \\
 \end{tabular}
 \end{table}
 
-\subsection{Five-dimensional Buckingham-\texorpdfstring{$\pi$}{pi} ratio generation}
+\subsection{Dimensional grouping and free-scale generation}
 \label{sec:buckingham}
 
-ADCD employs a 5D (MLT$\Theta$Q) Buckingham-$\pi$ engine representing each
+ADCD employs a 5D (MLT$\Theta$Q) dimensional engine representing each
 variable as $\mathbf{d}\in\mathbb{Z}^5$ over the SI base dimensions M, L, T,
 $\Theta$, and Q.
-Dimensionless $\pi$-groups are found by computing the rational nullspace of the
-dimension matrix.
+Rather than computing the full rational nullspace, dimensionless arguments are generated via a two-pass domain heuristic: 
+first, it groups physical variables with identical dimensions into pairwise ratios (e.g., $q_1/q_2$); 
+second, any remaining unpaired variable is normalized by a free-scale parameter $\theta_k$ (e.g., $r/\theta_k$).
 Extending from the conventional 3D MLT to 5D is essential for correctness:
-in a 3D engine charges $q_1,q_2$ are dimensionless scalars, so $r/\theta$
-emerges immediately as the primary ratio candidate;
-in the 5D engine, charge carries genuine Charge dimension (Q), and the engine
-enumerates all charge-dimensional ratio candidates before it reaches the
-distance-ratio $r/\theta$.
+in a 3D engine charges $q_1,q_2$ are dimensionless scalars and incorrectly bypass the ratio generation;
+in the 5D engine, charge carries genuine Charge dimension (Q), ensuring $q_1/q_2$ is correctly grouped before distances are paired with length-scale parameters.
 Because four charge-dimensional candidates are enumerated first, that ratio
 receives subscript $\theta_4$, not $\theta_0$.
 This subscript is machine-verifiable evidence of automated discovery:
@@ -310,19 +308,19 @@ classical predictions, dimensional variable definitions, and the taxonomy key ar
 \begin{table}[ht]
 \small
 \caption{Experimental scenarios with domains, historical observation windows,
-taxonomy keys, and target primitive families.}
+taxonomy keys, targets, and the full domain-guided search space size ($|\mathcal{C}|$).}
 \label{tab:scenarios}
 \centering
-\begin{tabular}{@{}lllll@{}}
+\begin{tabular}{@{}llllll@{}}
 \toprule
-Scenario & Domain & Window & Taxonomy key & Target \\
+Scenario & Domain & Window & Taxonomy key & Target & $|\mathcal{C}|$ \\
 \midrule
 Time Dilation     & Relativity      & $v\le0.3c$       &
-  \texttt{lorentz\_special\_relativity} & \texttt{D\_lor} \\
+  \texttt{lorentz\_special\_relativity} & \texttt{D\_lor} & 10 \\
 Screened Coulomb  & Electrostatics  & $r\le4.0$~m      &
-  \texttt{yukawa\_debye\_screening}     & \texttt{D\_exp} \\
+  \texttt{yukawa\_debye\_screening}     & \texttt{D\_exp} & 60 \\
 Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
-  \texttt{boltzmann\_thermodynamics}   & \texttt{D\_log} \\
+  \texttt{boltzmann\_thermodynamics}   & \texttt{D\_log} & 40 \\
 \bottomrule
 \end{tabular}
 \end{table}
