@@ -225,7 +225,8 @@ def main():
     plt.tight_layout()
     os.makedirs("paper", exist_ok=True)
     fig1.savefig('paper/fig1_recovery.pdf')
-    print("Saved paper/fig1_recovery.pdf")
+    fig1.savefig('paper/fig1_recovery.png', dpi=150)
+    print("Saved paper/fig1_recovery.pdf and png")
 
     # =========================================================================
     # FIGURE 2: BIC Comparison & Statistical Evidence
@@ -319,7 +320,8 @@ def main():
 
     plt.subplots_adjust(wspace=0.28, bottom=0.18, top=0.88, left=0.07, right=0.97)
     fig2.savefig('paper/fig2_bic.pdf')
-    print("Saved paper/fig2_bic.pdf")
+    fig2.savefig('paper/fig2_bic.png', dpi=150)
+    print("Saved paper/fig2_bic.pdf and png")
 
     # =========================================================================
     # FIGURE 3: Parity Plots
@@ -341,7 +343,7 @@ def main():
         else:
             verdict = {"label": "WITHHELD", "color": "#d97706"}
 
-        X_clean, _, _, residual_clean = get_scenario_data(scenario, name, noise_level=0.00)
+        X_clean, _, y_classical, residual_clean = get_scenario_data(scenario, name, noise_level=0.00)
         delta_true = residual_clean
 
         cand = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]
@@ -372,7 +374,8 @@ def main():
 
     plt.tight_layout()
     fig3.savefig('paper/fig3_parity.pdf')
-    print("Saved paper/fig3_parity.pdf")
+    fig3.savefig('paper/fig3_parity.png', dpi=150)
+    print("Saved paper/fig3_parity.pdf and png")
 
     print("\nAll 3 figures saved to paper/")
 
