@@ -36,6 +36,18 @@ from adcd.quickfit import DOMAIN_TAXONOMY
 
 BIC_SIGNIFICANCE_THRESHOLD = 10.0  # Kass-Raftery "very strong evidence"
 
+# AUDIT FIX (2026-08-13): the four-step protocol as published in Section 3.8
+# of the paper is EXACTLY these four checks -- no more, no fewer.
+# `primary_search` is intentionally NOT included -- it is computed by comparing
+# against scenario.correction_expr (hidden ground truth) and must never gate
+# the formal IDENTIFIABLE/WITHHELD verdict.
+FORMAL_PROTOCOL_CHECKS = (
+    "budget_disclosure",
+    "positive_control",
+    "ablation_control",
+    "determinism_check",
+)
+
 
 @dataclass
 class ProtocolResult:
@@ -314,7 +326,11 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
                 "expr_str": expr_str,
                 "nmse": nmse,
                 "bic": bic,
-                "class": disc_class
+                "class": disc_class,
+                # AUDIT FIX (2026-08-13): serialize theta_fit so figure
+                # generation can evaluate the ACTUAL fitted curve instead of
+                # fabricating a surrogate from ground_truth + NMSE-scaled noise.
+                "theta_fit": theta_fit,
             })
             
     top = ranked_blind[0] if ranked_blind else None
@@ -333,13 +349,19 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
             "top_candidate": expr_str,
             "nmse": nmse,
             "bic": bic,
+            "theta_fit": theta_fit,
             "discovered_class": discovered_class,
             "match_level": match_level,
             "symbolic_match": symbolic_match,
             "class_match": class_match,
             "true_structure_rank": true_structure_rank,
-            "pass": blind_pass,
-            "note": f"Match level: {match_level} at rank {true_structure_rank}",
+            # AUDIT FIX (2026-08-13): renamed from "pass" to make explicit
+            # this is a DIAGNOSTIC ONLY field computed against known ground
+            # truth. It does NOT gate the formal verdict (see FORMAL_PROTOCOL_CHECKS).
+            "ground_truth_match_diagnostic_only": blind_pass,
+            "counts_toward_verdict": False,
+            "note": f"Match level: {match_level} at rank {true_structure_rank}. "
+                    f"DIAGNOSTIC ONLY -- does not gate the formal verdict.",
             "pareto_front": top_candidates,
         }
     else:
@@ -394,8 +416,14 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
     determinism_pass = len(set(str(r) for r in runs)) == 1
     result.checks["determinism_check"] = {"runs": runs, "pass": determinism_pass}
 
+    # AUDIT FIX (2026-08-13): aggregate over ONLY the four formally-published
+    # checks. Previously this swept in primary_search.pass which secretly
+    # consulted scenario.correction_expr (ground truth), contradicting the
+    # "genuinely blind search" claim.
     result.all_passed = all(
-        c.get("pass", False) for c in result.checks.values() if "pass" in c
+        result.checks[name].get("pass", False)
+        for name in FORMAL_PROTOCOL_CHECKS
+        if name in result.checks
     )
     return result
 
