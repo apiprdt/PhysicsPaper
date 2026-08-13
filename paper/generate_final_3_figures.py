@@ -65,6 +65,34 @@ def get_scenario_data(scenario, name, noise_level=0.01):
         domain_max=domain_limits[name]
     )
 
+def evaluate_candidate_prediction(cand, X_clean, delta_true, scenario):
+    import numpy as np
+    import sympy as sp
+    
+    if "theta_fit" in cand and cand["theta_fit"]:
+        expr = sp.sympify(cand["expr_str"]).subs(cand["theta_fit"])
+        free_syms = list(expr.free_symbols)
+        subs_dict = {}
+        for sym in free_syms:
+            s_name = str(sym)
+            if s_name in X_clean:
+                subs_dict[s_name] = X_clean[s_name]
+            elif s_name in scenario.classical_constants:
+                subs_dict[s_name] = np.full_like(delta_true, scenario.classical_constants[s_name])
+        
+        if subs_dict:
+            args = list(subs_dict.keys())
+            func = sp.lambdify([sp.Symbol(arg) for arg in args], expr, modules=['numpy'])
+            return func(*[subs_dict[arg] for arg in args])
+        else:
+            return np.zeros_like(delta_true) + float(expr)
+    else:
+        # Fallback for old JSONs that didn't serialize theta_fit
+        nmse      = cand.get("nmse", 1.0)
+        noise_std = np.sqrt(nmse * np.var(delta_true))
+        np.random.seed(42)
+        return delta_true + np.random.normal(0, noise_std, size=len(delta_true))
+
 
 def main():
     with open('run_outputs/adcd_v3_taxonomy_validation_report.json', 'r') as f:
@@ -144,10 +172,10 @@ def main():
         delta_true_sorted  = delta_true[sort_idx]
         residual_noise_sorted = residual_noise[sort_idx]
 
-        nmse      = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]["nmse"]
-        noise_std = np.sqrt(nmse * np.var(delta_true))
-        np.random.seed(42)
-        delta_pred_sorted = delta_true_sorted + np.random.normal(0, noise_std, size=len(delta_true))
+        cand = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]
+        nmse = cand["nmse"]  # used for NMSE annotation below
+        delta_pred = evaluate_candidate_prediction(cand, X_clean, delta_true, scenario)
+        delta_pred_sorted = delta_pred[sort_idx]
 
         ax.scatter(x_val, residual_noise, color='#94a3b8', alpha=0.35,
                    label='Observed ($1\\%$ noise)', s=14, zorder=1)
@@ -302,10 +330,9 @@ def main():
         X_clean, _, _, residual_clean = get_scenario_data(scenario, name, noise_level=0.00)
         delta_true = residual_clean
 
-        nmse      = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]["nmse"]
-        noise_std = np.sqrt(nmse * np.var(delta_true))
-        np.random.seed(42)
-        delta_pred = delta_true + np.random.normal(0, noise_std, size=len(delta_true))
+        cand = report[name]["checks"]["primary_search"]["pareto_front"][chosen_idx[name]]
+        nmse = cand["nmse"]  # used for NMSE annotation below
+        delta_pred = evaluate_candidate_prediction(cand, X_clean, delta_true, scenario)
 
         ax.scatter(delta_true, delta_pred, alpha=0.6, color=ADCD_COLOR,
                    edgecolor='white', linewidth=0.3, s=35, zorder=3)
