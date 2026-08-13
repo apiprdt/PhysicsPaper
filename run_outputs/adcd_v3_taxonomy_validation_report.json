@@ -1,0 +1,324 @@
+{
+  "Time Dilation": {
+    "all_passed": false,
+    "checks": {
+      "budget_disclosure": {
+        "search_space_size": 10,
+        "primitives": [
+          "D_lor"
+        ],
+        "pass": true,
+        "note": "Full blind search space -- larger than any previously hand-fed single-ratio search space (35), because ratio candidates are now auto-derived, not hand-typed."
+      },
+      "primary_search": {
+        "top_candidate": "theta_0 * (v**2/c**2 / (sqrt(1.0 - v**2/c**2) * (1.0 + sqrt(1.0 - v**2/c**2))))",
+        "nmse": 0.4121022732674186,
+        "bic": -167.39325731788833,
+        "theta_fit": {
+          "theta_0": 0.990153486857763
+        },
+        "discovered_class": "rational",
+        "match_level": "class_only",
+        "symbolic_match": false,
+        "class_match": true,
+        "true_structure_rank": 1,
+        "ground_truth_match_diagnostic_only": true,
+        "counts_toward_verdict": false,
+        "note": "Match level: class_only at rank 1. DIAGNOSTIC ONLY -- does not gate the formal verdict.",
+        "pareto_front": [
+          {
+            "expr_str": "theta_0 * (v**2/c**2 / (sqrt(1.0 - v**2/c**2) * (1.0 + sqrt(1.0 - v**2/c**2))))",
+            "nmse": 0.4121022732674186,
+            "bic": -167.39325731788833,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 0.990153486857763
+            }
+          },
+          {
+            "expr_str": "theta_0 * (v**2/theta_3 / (sqrt(1.0 - v**2/theta_3) * (1.0 + sqrt(1.0 - v**2/theta_3))))",
+            "nmse": 0.4120987003795705,
+            "bic": -162.09667393999712,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 1.0769461194492231,
+              "theta_3": 1.0833369539815274
+            }
+          },
+          {
+            "expr_str": "theta_0 * (v/theta_2 / (sqrt(1.0 - v/theta_2) * (1.0 + sqrt(1.0 - v/theta_2))))",
+            "nmse": 0.41486197346587594,
+            "bic": -160.76007670716373,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 0.04662999100077175,
+              "theta_2": 0.38981746648911875
+            }
+          },
+          {
+            "expr_str": "theta_0 * (v/c / (sqrt(1.0 - v/c) * (1.0 + sqrt(1.0 - v/c))))",
+            "nmse": 0.4876104572988232,
+            "bic": -133.74419947444142,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 0.19923883300307232
+            }
+          }
+        ]
+      },
+      "positive_control": {
+        "search_space_size": 10,
+        "nmse": 0.4121022732674186,
+        "pass": false
+      },
+      "ablation_control": {
+        "ablated_bic": -153.60215424753298,
+        "true_structure_bic": -167.39325731788833,
+        "true_structure_rank": 1,
+        "bic_diff": 13.791103070355348,
+        "pass": true,
+        "note": "Reference is Rank-1 BIC from blind search (best achievable with true primitive)."
+      },
+      "determinism_check": {
+        "runs": [
+          [
+            "theta_0 * (v**2/c**2 / (sqrt(1.0 - v**2/c**2) * (1.0 + sqrt(1.0 - v**2/c**2))))",
+            0.4121022732674186
+          ],
+          [
+            "theta_0 * (v**2/c**2 / (sqrt(1.0 - v**2/c**2) * (1.0 + sqrt(1.0 - v**2/c**2))))",
+            0.4121022732674186
+          ],
+          [
+            "theta_0 * (v**2/c**2 / (sqrt(1.0 - v**2/c**2) * (1.0 + sqrt(1.0 - v**2/c**2))))",
+            0.4121022732674186
+          ]
+        ],
+        "pass": true
+      }
+    }
+  },
+  "Screened Coulomb": {
+    "all_passed": true,
+    "checks": {
+      "budget_disclosure": {
+        "search_space_size": 60,
+        "primitives": [
+          "D_rat",
+          "D_exp"
+        ],
+        "pass": true,
+        "note": "Full blind search space -- larger than any previously hand-fed single-ratio search space (35), because ratio candidates are now auto-derived, not hand-typed."
+      },
+      "primary_search": {
+        "top_candidate": "theta_0 * (exp(-r/theta_4) - 1.0)",
+        "nmse": 0.00027721519856638115,
+        "bic": -1619.3579687961649,
+        "theta_fit": {
+          "theta_0": 0.9987182098492946,
+          "theta_4": 1.4933229505328478
+        },
+        "discovered_class": "exponential",
+        "match_level": "exact",
+        "symbolic_match": true,
+        "class_match": true,
+        "true_structure_rank": 1,
+        "ground_truth_match_diagnostic_only": true,
+        "counts_toward_verdict": false,
+        "note": "Match level: exact at rank 1. DIAGNOSTIC ONLY -- does not gate the formal verdict.",
+        "pareto_front": [
+          {
+            "expr_str": "theta_0 * (exp(-r/theta_4) - 1.0)",
+            "nmse": 0.00027721519856638115,
+            "bic": -1619.3579687961649,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": 0.9987182098492946,
+              "theta_4": 1.4933229505328478
+            }
+          },
+          {
+            "expr_str": "theta_0 * (exp(-r**2/theta_5) - 1.0)",
+            "nmse": 0.10147480553634856,
+            "bic": -438.80362266827336,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": 0.8499171155491793,
+              "theta_5": 1.2325753982623786
+            }
+          },
+          {
+            "expr_str": "theta_0 * (exp(-k_e/theta_6) - 1.0)",
+            "nmse": 0.999999000001,
+            "bic": 18.785123857640265,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": 0.687963091644191,
+              "theta_6": 50033.44250094322
+            }
+          },
+          {
+            "expr_str": "theta_0 * (k_e**2/theta_7 / (1.0 - k_e**2/theta_7))",
+            "nmse": 0.999999000001,
+            "bic": 18.785123857640265,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 0.6879630891773323,
+              "theta_7": 243571.48674538828
+            }
+          },
+          {
+            "expr_str": "theta_0 * (exp(-k_e**2/theta_7) - 1.0)",
+            "nmse": 0.999999000001,
+            "bic": 18.785123857640265,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": 0.687963091644191,
+              "theta_7": 50033.44250094322
+            }
+          }
+        ]
+      },
+      "positive_control": {
+        "search_space_size": 12,
+        "nmse": 0.00027721519856638115,
+        "pass": true
+      },
+      "ablation_control": {
+        "ablated_bic": -1588.7034674793915,
+        "true_structure_bic": -1619.3579687961649,
+        "true_structure_rank": 1,
+        "bic_diff": 30.65450131677335,
+        "pass": true,
+        "note": "Reference is Rank-1 BIC from blind search (best achievable with true primitive)."
+      },
+      "determinism_check": {
+        "runs": [
+          [
+            "theta_0 * (exp(-r/theta_4) - 1.0)",
+            0.00027721519856638115
+          ],
+          [
+            "theta_0 * (exp(-r/theta_4) - 1.0)",
+            0.00027721519856638115
+          ],
+          [
+            "theta_0 * (exp(-r/theta_4) - 1.0)",
+            0.00027721519856638115
+          ]
+        ],
+        "pass": true
+      }
+    }
+  },
+  "Entropy Expansion": {
+    "all_passed": true,
+    "checks": {
+      "budget_disclosure": {
+        "search_space_size": 40,
+        "primitives": [
+          "D_exp",
+          "D_log"
+        ],
+        "pass": true,
+        "note": "Full blind search space -- larger than any previously hand-fed single-ratio search space (35), because ratio candidates are now auto-derived, not hand-typed."
+      },
+      "primary_search": {
+        "top_candidate": "theta_0 * log(1.0 + dV/V_i)",
+        "nmse": 0.015942129281883224,
+        "bic": -815.081930424143,
+        "theta_fit": {
+          "theta_0": 8.302797192710901
+        },
+        "discovered_class": "logarithmic",
+        "match_level": "class_only",
+        "symbolic_match": false,
+        "class_match": true,
+        "true_structure_rank": 1,
+        "ground_truth_match_diagnostic_only": true,
+        "counts_toward_verdict": false,
+        "note": "Match level: class_only at rank 1. DIAGNOSTIC ONLY -- does not gate the formal verdict.",
+        "pareto_front": [
+          {
+            "expr_str": "theta_0 * log(1.0 + dV/V_i)",
+            "nmse": 0.015942129281883224,
+            "bic": -815.081930424143,
+            "class": "logarithmic",
+            "theta_fit": {
+              "theta_0": 8.302797192710901
+            }
+          },
+          {
+            "expr_str": "theta_0 * log(1.0 + dV/V_i) * (1.0 + theta_1 * (exp(-dV/V_i) - 1.0))",
+            "nmse": 0.015937881937111938,
+            "bic": -809.8369046924976,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": 8.335927042019703,
+              "theta_1": 0.007867788964830692
+            }
+          },
+          {
+            "expr_str": "theta_0 * (exp(-dV/V_i) - 1.0) + theta_1 * log(1.0 + dV/V_i)",
+            "nmse": 0.015942129281883186,
+            "bic": -809.7836130575956,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": -1.2481877309133538e-16,
+              "theta_1": 8.302797223367731
+            }
+          },
+          {
+            "expr_str": "theta_0 * (exp(-dV/V_i) - 1.0)",
+            "nmse": 0.019371283803735897,
+            "bic": -776.1166288887343,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": -8.78942385874837
+            }
+          },
+          {
+            "expr_str": "theta_0 * (exp(-dV/V_i) - 1.0) * (1.0 + theta_1 * log(1.0 + dV/V_i))",
+            "nmse": 0.019371283803701105,
+            "bic": -770.8183115225456,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": -8.789423858526597,
+              "theta_1": 9.704011137960054e-13
+            }
+          }
+        ]
+      },
+      "positive_control": {
+        "search_space_size": 8,
+        "nmse": 0.015942129281883224,
+        "pass": true
+      },
+      "ablation_control": {
+        "ablated_bic": -800.3781166118101,
+        "true_structure_bic": -815.081930424143,
+        "true_structure_rank": 1,
+        "bic_diff": 14.703813812332896,
+        "pass": true,
+        "note": "Reference is Rank-1 BIC from blind search (best achievable with true primitive)."
+      },
+      "determinism_check": {
+        "runs": [
+          [
+            "theta_0 * log(1.0 + dV/V_i)",
+            0.015942129281883224
+          ],
+          [
+            "theta_0 * log(1.0 + dV/V_i)",
+            0.015942129281883224
+          ],
+          [
+            "theta_0 * log(1.0 + dV/V_i)",
+            0.015942129281883224
+          ]
+        ],
+        "pass": true
+      }
+    }
+  }
+}
