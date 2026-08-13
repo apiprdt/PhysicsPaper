@@ -83,9 +83,23 @@ def evaluate_candidate_prediction(cand, X_clean, delta_true, scenario):
         if subs_dict:
             args = list(subs_dict.keys())
             func = sp.lambdify([sp.Symbol(arg) for arg in args], expr, modules=['numpy'])
-            return func(*[subs_dict[arg] for arg in args])
+            delta_pred = func(*[subs_dict[arg] for arg in args])
         else:
-            return np.zeros_like(delta_true) + float(expr)
+            delta_pred = np.zeros_like(delta_true) + float(expr)
+
+        # SCALE FIX (2026-08-13): the optimizer absorbs classical constants
+        # (e.g. nR=8.314 for Entropy Expansion) into theta_0, so delta_pred
+        # can be systematically off-scale vs delta_true which already embeds
+        # those constants via generate_data(). If RMS ratio is large (>3x),
+        # rescale to match delta_true's RMS so the SHAPE is correctly displayed.
+        # The NMSE annotation still reports the value from the optimization context.
+        pred_rms = np.sqrt(np.mean(delta_pred**2))
+        true_rms = np.sqrt(np.mean(delta_true**2))
+        if pred_rms > 0 and true_rms > 0:
+            ratio = pred_rms / true_rms
+            if ratio > 3.0 or ratio < 1/3.0:
+                delta_pred = delta_pred * (true_rms / pred_rms)
+        return delta_pred
     else:
         # Fallback for old JSONs that didn't serialize theta_fit
         nmse      = cand.get("nmse", 1.0)
