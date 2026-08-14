@@ -1,4 +1,4 @@
-\begin{thebibliography}{18}
+\begin{thebibliography}{19}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -132,6 +132,12 @@ Gideon Schwarz.
 \newblock \emph{The Annals of Statistics}, 6\penalty0 (2):\penalty0 461--464,
   1978.
 \newblock \doi{10.1214/aos/1176344136}.
+
+\bibitem[Chen and Chen(2008)]{chen2008}
+Jiahua Chen and Zehua Chen.
+\newblock Extended bayesian information criteria for model selection with large
+  model spaces.
+\newblock \emph{Biometrika}, 95\penalty0 (3):\penalty0 759--771, 2008.
 
 \bibitem[Kass and Raftery(1995)]{kass1995}
 Robert~E. Kass and Adrian~E. Raftery.

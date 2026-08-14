@@ -269,7 +269,7 @@ Surviving candidates are optimized via L-BFGS-B (JAX, \texttt{float64}).
 Parameters are log-reparameterized ($\theta_i{=}s_i e^{u_i}$,
 $s_i{\in}\{-1,+1\}$) for order-of-magnitude traversal; multiple restarts
 reduce sensitivity to local optima.
-Model selection uses an Extended BIC~\cite{schwarz1978}: $\mathrm{BIC}=k\ln N - 2\ln\hat{L} + 2\ln|\mathcal{C}|$,
+Model selection uses an Extended BIC~\cite{schwarz1978,chen2008}: $\mathrm{BIC}=k\ln N - 2\ln\hat{L} + 2\ln|\mathcal{C}|$,
 incorporating a multiple-testing penalty over the search space size $|\mathcal{C}|$.
 By the Kass--Raftery scale~\cite{kass1995}, $\Delta\mathrm{BIC}>10$ is the
 adopted identifiability threshold.
