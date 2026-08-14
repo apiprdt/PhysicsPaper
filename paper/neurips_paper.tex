@@ -143,7 +143,7 @@ $\hat{\Delta}\to0$ as the relevant dimensionless ratio $u\to0$.
 Each primitive $D(u)$ satisfies $\lim_{u\to 0} D(u) = 0$ as an exact algebraic
 identity, eliminating catastrophic cancellation.
 For example, the naive form $(1-u)^{-1/2}-1$ collapses to $0.0$ at
-$u=10^{-16}$ in \texttt{float64}; the regularized form
+$u=10^{-16}$ in \texttt{float32}; the regularized form
 $u/[\sqrt{1-u}(\sqrt{1-u}+1)]$ returns $5.0\times10^{-17}$ at the same input.
 Table~\ref{tab:primitives} lists all eight primitives.
 
@@ -269,7 +269,8 @@ Surviving candidates are optimized via L-BFGS-B (JAX, \texttt{float64}).
 Parameters are log-reparameterized ($\theta_i{=}s_i e^{u_i}$,
 $s_i{\in}\{-1,+1\}$) for order-of-magnitude traversal; multiple restarts
 reduce sensitivity to local optima.
-Model selection uses BIC~\cite{schwarz1978}: $\mathrm{BIC}=k\ln N - 2\ln\hat{L}$.
+Model selection uses an Extended BIC~\cite{schwarz1978}: $\mathrm{BIC}=k\ln N - 2\ln\hat{L} + 2\ln|\mathcal{C}|$,
+incorporating a multiple-testing penalty over the search space size $|\mathcal{C}|$.
 By the Kass--Raftery scale~\cite{kass1995}, $\Delta\mathrm{BIC}>10$ is the
 adopted identifiability threshold.
 
@@ -431,7 +432,7 @@ its positive control fails within the historical $v\le0.3c$ observation window.
 
 \paragraph{Screened Coulomb.}
 Recovered $\theta_0(e^{-r/\theta_4}-1)$ is an exact symbolic match to the
-ground truth $\theta_0(e^{-r/\lambda_D}-1)$, with $\theta_4\approx1.50$~m
+ground truth $\theta_0(e^{-r/\lambda_D}-1)$, with $\theta_4\approx1.49$~m
 recovering the Debye length $\lambda_D=1.50$~m.
 Subscript $4$ (not $0$) is machine-verifiable evidence of automated discovery:
 the engine assigned this subscript by enumerating four charge-dimensional
