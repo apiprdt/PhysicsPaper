@@ -30,6 +30,7 @@ class BayesianCorrectionOutput:
 
 class BayesianReranker:
     """
+    EXPERIMENTAL — NOT USED IN REPORTED RESULTS.
     Converts BIC-ranked candidates to Bayesian posterior distribution.
 
     The BIC weight approximation is:

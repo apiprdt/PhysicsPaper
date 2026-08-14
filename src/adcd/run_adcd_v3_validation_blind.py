@@ -299,7 +299,8 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
     
     # Restrict primitive search space to the scenario's taxonomy group if enabled.
     taxonomy_allowed = None
-    if use_taxonomy_prior and hasattr(scenario, "domain") and scenario.domain in DOMAIN_TAXONOMY:
+    if use_taxonomy_prior:
+        assert hasattr(scenario, "domain") and scenario.domain in DOMAIN_TAXONOMY, f"unknown domain {getattr(scenario, 'domain', 'None')}"
         taxonomy_allowed = DOMAIN_TAXONOMY[scenario.domain]
         taxonomy_exclude = [p for p in PRIMITIVE_REGISTRY.keys() if p not in taxonomy_allowed]
     else:

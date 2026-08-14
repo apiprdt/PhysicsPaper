@@ -230,7 +230,7 @@ def validate_transcendental_args(expr: sp.Expr, checker: DimensionalChecker) -> 
 
 
 class ASTValidator:
-    def __init__(self, max_depth: int = 7, max_tokens: int = 25):
+    def __init__(self, max_depth: int = 12, max_tokens: int = 50):
         self.max_depth = max_depth
         self.max_tokens = max_tokens
         self.locals = {s: sp.Symbol(s) for s in DIMENSIONS}

@@ -16,6 +16,10 @@ class IdentifiabilityReport:
 
 
 class IdentifiabilityAnalyzer:
+    """
+    EXPERIMENTAL — NOT USED IN REPORTED RESULTS.
+    This class is not currently instantiated in the main validation pipeline.
+    """
 
     SNR_THRESHOLD = 1.0
     WEIGHT_RATIO_THRESHOLD = 3.0
