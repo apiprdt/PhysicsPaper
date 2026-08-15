@@ -172,40 +172,54 @@ print(results["verdict"])   # "IDENTIFIABLE"
 
 ### Define your own scenario
 
+For real observational data (CSV), ADCD provides a strictly deterministic ingestion layer (`auto_scenario.py`) backed by `pint` for robust physical unit parsing:
+
+```python
+from adcd.auto_scenario import build_scenario_from_csv
+
+# Loads CSV, parses physical units automatically (e.g., from column 'velocity [km/s]'),
+# checks dimensions, and calculates residuals safely.
+scenario = build_scenario_from_csv(
+    csv_path="data/my_observational_data.csv",
+    scenario_name="Custom Orbit Anomaly",
+    target_col="acceleration [m/s**2]",
+    classical_expr="velocity**2 / radius",
+    domain="gravity_orbital",  # strictly validated against DOMAIN_TAXONOMY
+    classical_limit_variable="velocity",
+)
+
+# Extract ready-to-use numpy arrays
+X, y_obs, y_classical, residual = scenario.generate_data()
+```
+
+For purely synthetic testing, you can construct an `AnomalyScenario` directly:
+
+<details>
+<summary><strong>Show synthetic scenario example</strong></summary>
+
 ```python
 from adcd.anomaly_scenarios import AnomalyScenario
 
 scenario = AnomalyScenario(
     name="My Scenario",
-    tier="synthetic",               # "textbook" | "synthetic" | "cross_domain"
+    tier="synthetic",
     domain="mechanics",
-
-    # Known classical baseline
     classical_expr="0.5 * m * v**2",
     classical_variables=["m", "v"],
     classical_constants={"c": 2.99792458e8},
-
-    # Ground truth correction — withheld from pipeline, used only for evaluation
     correction_type="multiplicative",
     correction_expr="theta_0 * (v/c)**2",
     correction_constants={"theta_0": 0.5},
-
-    # Physical metadata for the grammar and dimensional checker
     anomaly_regime="high speeds v approaching c",
     variables_with_units={"m": "kg", "v": "m/s", "c": "m/s"},
     classical_limit_variable="v",
     classical_limit_direction="0",
-    correction_class="rational",    # "rational"|"logarithmic"|"exponential"|"power_law"
+    correction_class="rational",
 )
 
-# Generate noisy observations
-X, y_obs, y_classical, residual = scenario.generate_data(
-    n_points=200,
-    noise_level=0.01,   # 1% Gaussian multiplicative noise
-    seed=42,
-    domain_max=0.3,     # cap on the primary ratio (e.g. v/c ≤ 0.3)
-)
+X, y_obs, y_classical, residual = scenario.generate_data(n_points=200, noise_level=0.01, seed=42)
 ```
+</details>
 
 ### Call the pipeline directly
 
@@ -359,6 +373,7 @@ PhysicsPaper/
 │   ├── metrics.py                         ← NMSE, symbolic + class match scoring
 │   ├── constants.py                       ← CODATA 2018 physical constants
 │   ├── context.py                         ← ProposalContext: scenario → grammar input
+│   ├── auto_scenario.py                   ← Deterministic CSV ingestion with pint units
 │   ├── quickfit.py                        ← Convenience single-fit wrapper
 │   ├── budget_sweep.py                    ← Search-space budget analysis
 │   ├── mode_detection.py                  ← Residual mode detection utilities
@@ -420,7 +435,7 @@ For the full provenance chain — including a-priori AST budget justification an
 | Issue | Detail |
 |:---|:---|
 | **Multiplicative corrections only** | Grammar targets $y = y_\text{cl}(1 + \Delta)$. Additive corrections require different residual normalization. |
-| **Synthetic data** | Validated on Gaussian noise with known structure. Extension to real observational data is future work. |
+| **Synthetic benchmarking** | The core validations use synthetic noise for strict ground-truth comparison. Real data is supported via `auto_scenario.py`, but extensive real-world benchmarking is ongoing. |
 | **Window-dependent verdicts** | Identifiability depends on the observation regime. Results are specific to the stated domain bounds. |
 | **Charge / temperature dimensionless** | The dimensional checker treats these as `[0,0,0]` by convention; ratios involving them need manual registry extension. |
 | **Positive-control threshold** | Step 2 uses NMSE < 0.05. Scenarios with high inherent noise or very flat residuals may require threshold tuning. |
