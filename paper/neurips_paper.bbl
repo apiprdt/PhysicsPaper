@@ -1,4 +1,4 @@
-\begin{thebibliography}{30}
+\begin{thebibliography}{31}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -235,5 +235,12 @@ Robert~E. Kass and Adrian~E. Raftery.
 \newblock \emph{Journal of the American Statistical Association}, 90\penalty0
   (430):\penalty0 773--795, 1995.
 \newblock \doi{10.1080/01621459.1995.10476572}.
+
+\bibitem[Shalyt et~al.(2026)Shalyt, Regev, Solja{\v{c}}i{\'c}, and
+  Kaminer]{shalyt2026}
+Michael Shalyt, Nathan Regev, Marin Solja{\v{c}}i{\'c}, and Ido Kaminer.
+\newblock Can {AI} follow in {Einstein}'s footsteps?
+\newblock \emph{arXiv preprint arXiv:2607.27794}, 2026.
+\newblock \doi{10.48550/arXiv.2607.27794}.
 
 \end{thebibliography}
