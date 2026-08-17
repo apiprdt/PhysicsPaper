@@ -1,9 +1,29 @@
-\begin{thebibliography}{19}
+\begin{thebibliography}{30}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Carleo et~al.(2019)Carleo, Cirac, Cranmer, Daudet, Schmied, Rossi,
+  Sala, and Zdeborov{\'a}]{carleo2019}
+Giuseppe Carleo, Ignacio Cirac, Kyle Cranmer, Laurent Daudet, Matteo Schmied,
+  Stefano Rossi, Giusi Sala, and Lenka Zdeborov{\'a}.
+\newblock Machine learning and the physical sciences.
+\newblock \emph{Reviews of Modern Physics}, 91\penalty0 (4):\penalty0 045002,
+  2019.
+\newblock \doi{10.1103/RevModPhys.91.045002}.
+
+\bibitem[Wang et~al.(2023)Wang, Fu, Du, Gao, Huang, Liu, Chandak, Roohani,
+  Abu-El-Haija, Wei, Gomez-Bombarelli, Leskovec, Coley, Sun, and
+  Zitnik]{wang2023}
+Hanchen Wang, Tianfan Fu, Yuanqi Du, Wenhao Gao, Kexin Huang, Ziming Liu, Payal
+  Chandak, Shengchao Roohani, Sami Abu-El-Haija, Jeffrey Wei, Rafael
+  Gomez-Bombarelli, Jure Leskovec, Connor~W. Coley, Jian Sun, and Marinka
+  Zitnik.
+\newblock Scientific discovery in the age of artificial intelligence.
+\newblock \emph{Nature}, 620\penalty0 (7972):\penalty0 47--60, 2023.
+\newblock \doi{10.1038/s41586-023-06221-2}.
 
 \bibitem[Einstein(1905)]{einstein1905}
 Albert Einstein.
@@ -23,6 +43,14 @@ Herbert~B. Callen.
 \newblock \emph{Thermodynamics and an Introduction to Thermostatistics}.
 \newblock Wiley, 2nd edition, 1985.
 \newblock ISBN 978-0-471-86256-7.
+
+\bibitem[Cranmer et~al.(2020)Cranmer, Sanchez-Gonzalez, Battaglia, Xu, Cranmer,
+  Spergel, and Ho]{cranmer2020}
+Miles Cranmer, Alvaro Sanchez-Gonzalez, Peter Battaglia, Rui Xu, Kyle Cranmer,
+  David Spergel, and Shirley Ho.
+\newblock Discovering symbolic models from deep learning with inductive biases.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~33, pages 17429--17442, 2020.
 
 \bibitem[Cranmer(2023)]{cranmer2023}
 Miles Cranmer.
@@ -73,6 +101,52 @@ William La~Cava, Patryk Orzechowski, Bogdan Burlacu, Fabr{\'i}cio~Olivetti
   on Datasets and Benchmarks}, 1, 2021.
 \newblock URL \url{https://arxiv.org/abs/2107.14351}.
 
+\bibitem[Messeri and Crockett(2024)]{messeri2024}
+Lisa Messeri and M.~J. Crockett.
+\newblock Artificial intelligence and illusions of understanding in scientific
+  research.
+\newblock \emph{Nature}, 627\penalty0 (8002):\penalty0 49--58, 2024.
+\newblock \doi{10.1038/s41586-024-07146-0}.
+
+\bibitem[Krenn et~al.(2022)Krenn, Pollice, H{\"a}se, Friederich, and
+  Aspuru-Guzik]{krenn2022}
+Mario Krenn, Robert Pollice, Florian H{\"a}se, Pascal Friederich, and Al{\'a}n
+  Aspuru-Guzik.
+\newblock On scientific understanding with artificial intelligence.
+\newblock \emph{Nature Reviews Physics}, 4\penalty0 (12):\penalty0 761--769,
+  2022.
+\newblock \doi{10.1038/s42254-022-00518-3}.
+
+\bibitem[Langley et~al.(1987)Langley, Simon, Bradshaw, and Zytkow]{langley1987}
+Pat Langley, Herbert~A. Simon, Gary~L. Bradshaw, and Jan~M. Zytkow.
+\newblock \emph{Scientific Discovery: Computational Explorations of the
+  Creative Process}.
+\newblock MIT Press, Cambridge, MA, 1987.
+
+\bibitem[Kramer et~al.(2026)Kramer, Cerrato, Brugger, D{\v{z}}eroski, and
+  King]{kramer2026}
+Stefan Kramer, Marco Cerrato, Jannis Brugger, Sa{\v{s}}o D{\v{z}}eroski, and
+  Ross~D. King.
+\newblock Automated scientific discovery: From equation discovery to autonomous
+  discovery systems.
+\newblock \emph{Machine Learning}, 115:\penalty0 109, 2026.
+\newblock \doi{10.1007/s10994-025-06721-6}.
+
+\bibitem[Makke and Chawla(2024)]{makke2024}
+Nour Makke and Sanjay Chawla.
+\newblock A perspective on symbolic machine learning in physical sciences.
+\newblock In \emph{NeurIPS 2024 Workshop on Machine Learning and the Physical
+  Sciences}, 2024.
+
+\bibitem[Karagiorgi et~al.(2022)Karagiorgi, Kasieczka, Kravitz, Nachman, and
+  Shih]{karagiorgi2022}
+Georgia Karagiorgi, Gregor Kasieczka, Scott Kravitz, Benjamin Nachman, and
+  David Shih.
+\newblock Machine learning in the search for new fundamental physics.
+\newblock \emph{Nature Reviews Physics}, 4\penalty0 (6):\penalty0 399--412,
+  2022.
+\newblock \doi{10.1038/s42254-022-00455-1}.
+
 \bibitem[Udrescu et~al.(2020)Udrescu, Tan, Feng, Neto, Wu, and
   Tegmark]{udrescu2020b}
 Silviu-Marian Udrescu, Andrew Tan, Jiahai Feng, Orisvaldo Neto, Tailin Wu, and
@@ -117,6 +191,15 @@ Cristina Cornelio, Subhajit Dash, Vernon Austel, Tyler~R. Josephson, Joao
 \newblock \emph{Nature Communications}, 14\penalty0 (1):\penalty0 1777, 2023.
 \newblock \doi{10.1038/s41467-023-37236-y}.
 
+\bibitem[Cory-Wright et~al.(2024)Cory-Wright, Cornelio, Dash, Fardad, and
+  Horesh]{corywright2024}
+Ryan Cory-Wright, Cristina Cornelio, Sanjeeb Dash, Maryam Fardad, and Lior
+  Horesh.
+\newblock Evolving scientific discovery by unifying data and background
+  knowledge with {AI Hilbert}.
+\newblock \emph{Nature Communications}, 15:\penalty0 5922, 2024.
+\newblock \doi{10.1038/s41467-024-50143-6}.
+
 \bibitem[Petersen et~al.(2021)Petersen, Larma, Mundhenk, Santiago, Kim, and
   Kim]{petersen2021}
 Brenden~K. Petersen, Mikel~Landajuela Larma, T.~Nathan Mundhenk, Claudio~P.
@@ -125,6 +208,13 @@ Brenden~K. Petersen, Mikel~Landajuela Larma, T.~Nathan Mundhenk, Claudio~P.
   data via risk-seeking policy gradients.
 \newblock In \emph{International Conference on Learning Representations}, 2021.
 \newblock URL \url{https://openreview.net/forum?id=m5Qsh0kBQG}.
+
+\bibitem[Otto et~al.(2025)Otto, Zolman, Kutz, and Brunton]{otto2025}
+Samuel~E. Otto, Nicholas Zolman, J.~Nathan Kutz, and Steven~L. Brunton.
+\newblock A unified framework to enforce, discover, and promote symmetry in
+  machine learning.
+\newblock \emph{Journal of Machine Learning Research}, 26:\penalty0 1--83,
+  2025.
 
 \bibitem[Schwarz(1978)]{schwarz1978}
 Gideon Schwarz.

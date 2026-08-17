@@ -1,39 +1,45 @@
-# ADCD — All Core Source Code (2026-08-13 18:19:11)
+# ADCD — All Core Source Code (2026-08-17 17:49:54)
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+ 1. src/adcd/__init__.py
+ 2. src/adcd/anomaly_scenarios.py
+ 3. src/adcd/arc_scorer.py
+ 4. src/adcd/asymptotic_dictionary_proposer_v3.py
+ 5. src/adcd/auto_scenario.py
+ 6. src/adcd/bayesian_ranker.py
+ 7. src/adcd/budget_sweep.py
+ 8. src/adcd/coarse_evaluator.py
+ 9. src/adcd/constants.py
+10. src/adcd/context.py
+11. src/adcd/dimensional_checker.py
+12. src/adcd/grammar_proposer_v3.py
+13. src/adcd/identifiability.py
+14. src/adcd/jax_optimizer.py
+15. src/adcd/jax_precision_config.py
+16. src/adcd/metrics.py
+17. src/adcd/mode_detection.py
+18. src/adcd/pipeline.py
+19. src/adcd/quickfit.py
+20. src/adcd/real_data_loader.py
+21. src/adcd/real_scenarios.py
+22. src/adcd/residual_features.py
+23. src/adcd/run_adcd_v3_validation_blind.py
+24. eval/audit_logger.py
+25. eval/compute_metrics.py
+26. paper/generate_final_3_figures.py
+27. run_outputs/adcd_v3_taxonomy_validation_report.json
+================================================================================
 
-TABLE OF CONTENTS:
-- src/adcd/anomaly_scenarios.py
-- src/adcd/arc_scorer.py
-- src/adcd/asymptotic_dictionary_proposer_v3.py
-- src/adcd/bayesian_ranker.py
-- src/adcd/budget_sweep.py
-- src/adcd/coarse_evaluator.py
-- src/adcd/constants.py
-- src/adcd/context.py
-- src/adcd/dimensional_checker.py
-- src/adcd/grammar_proposer_v3.py
-- src/adcd/identifiability.py
-- src/adcd/jax_optimizer.py
-- src/adcd/jax_precision_config.py
-- src/adcd/metrics.py
-- src/adcd/mode_detection.py
-- src/adcd/pipeline.py
-- src/adcd/quickfit.py
-- src/adcd/real_data_loader.py
-- src/adcd/real_scenarios.py
-- src/adcd/residual_features.py
-- src/adcd/run_adcd_v3_validation_blind.py
-- src/adcd/__init__.py
-- eval/audit_logger.py
-- eval/compute_metrics.py
-- eval/contamination_check.py
-- paper/generate_final_3_figures.py
-- run_outputs/adcd_v3_taxonomy_validation_report.json
-- paper/neurips_paper.tex
+================================================================================
+FILE: src/adcd/__init__.py
+================================================================================
+# ADCD V3 - Asymptotic Dictionary Correction Discovery
 
 
-================================================================
+================================================================================
 FILE: src/adcd/anomaly_scenarios.py
-================================================================
+================================================================================
 import numpy as np
 import sympy as sp
 from dataclasses import dataclass
@@ -695,9 +701,10 @@ def get_mv_scenario(name: str) -> AnomalyScenario:
             return scenario
     raise KeyError(f"Unknown multivariable scenario: {name}")
 
-================================================================
+
+================================================================================
 FILE: src/adcd/arc_scorer.py
-================================================================
+================================================================================
 import logging
 from dataclasses import dataclass
 from typing import List, Union, Any, Dict, Sequence
@@ -1005,9 +1012,10 @@ class ARCScorer:
 
         return weighted_similarity_sum / self.total_weight
 
-================================================================
+
+================================================================================
 FILE: src/adcd/asymptotic_dictionary_proposer_v3.py
-================================================================
+================================================================================
 from __future__ import annotations
 
 import itertools
@@ -1310,9 +1318,526 @@ guaranteed result — report whatever actually happens):
     quietly drop this file if it doesn't work.
 """
 
-================================================================
+
+================================================================================
+FILE: src/adcd/auto_scenario.py
+================================================================================
+"""
+auto_scenario.py -- Zero-Leakage Deterministic Scenario Builder for ADCD (v2, hardened)
+
+This module implements a strictly deterministic, rule-based ingestion layer for
+converting raw CSV observational data into valid ADCD AnomalyScenario instances,
+with NO learned neural weights and NO generative LLM involvement anywhere in the
+pipeline.
+
+Changes from v1 (see accompanying audit report for full rationale):
+  Bug #1 (critical): verify_name_invariance previously scrambled headers using
+      the CANONICAL unit string instead of the raw matched token, causing the
+      audit itself to report false negatives for suffix-style headers
+      (e.g. "radius_km") -- exactly the format used in production. Fixed by
+      threading the raw matched token through parse_header() and scrambling
+      with THAT, not with the normalized output.
+  Bug #2 (critical): unrecognized units silently fell back to "dimensionless"
+      with scale=1.0, and the variable name was left uncleaned. This let
+      out-of-vocabulary units pass Gate 2 (dimensional consistency) as if they
+      were validated dimensionless quantities. Fixed: parse_header() now
+      raises UnitParseError by default (fail loud). A strict=False escape
+      hatch exists for callers that want to surface ambiguity to a human
+      instead of crashing.
+  Bug #3: AutoCSVScenario.generate_data() computed the multiplicative residual
+      as y_obs/y_classical instead of y_obs/y_classical - 1, which does not
+      match the Delta definition in ADCD's own Eq. 1. Fixed.
+  Bug #4: short ambiguous suffix tokens (min, m, s, g, k, n, c, e, hr, day)
+      could silently collide with ordinary English word endings in variable
+      names (e.g. "sample_min" parsed as minutes). These are now only
+      resolved via explicit bracket notation, never via bare suffix matching.
+  Bug #5: only the FIRST bracket group in a header was checked; if it wasn't
+      a recognized unit, later valid bracket groups were ignored entirely.
+      Fixed: all bracket groups are tried in order.
+  New: unit resolution is now backed by `pint` (a mature, deterministic,
+      non-ML unit-algebra library) instead of a hand-maintained dictionary,
+      to get close to universal coverage of unit strings/prefixes without
+      manually enumerating every combination. ADCD's own 5D (M,L,T,Theta,Q)
+      dimensional representation is preserved exactly -- pint is used only
+      to resolve arbitrary unit strings down to SI base units; the mapping
+      from SI base units to ADCD's charge-based 5D vector is done by ADCD's
+      own deterministic linear transform (A = Q/T), not by pint.
+  New: domain string is validated against DOMAIN_TAXONOMY at construction
+      time (fail loud) instead of silently disabling the taxonomy prior,
+      closing the same class of silent-fallback bug found in the hand-written
+      scenario definitions.
+"""
+
+from __future__ import annotations
+
+import re
+import warnings
+import numpy as np
+import pandas as pd
+import sympy as sp
+from typing import Dict, List, Optional, Tuple, Set
+
+from adcd.anomaly_scenarios import AnomalyScenario
+from adcd.quickfit import DOMAIN_TAXONOMY
+
+# --- Fix (dependency hygiene): fail with an actionable message at import
+# time instead of a bare ModuleNotFoundError deep inside a call stack.
+try:
+    import pint
+except ImportError as e:
+    raise ImportError(
+        "auto_scenario.py requires the 'pint' package for near-universal "
+        "unit parsing. Install it with:\n"
+        "    pip install pint --break-system-packages\n"
+        "and add 'pint' to requirements.txt / pyproject.toml before "
+        "distributing this module."
+    ) from e
+
+
+# ============================================================================
+# 0. ERRORS
+# ============================================================================
+
+class UnitParseError(ValueError):
+    """Raised when a header's unit cannot be resolved with confidence.
+    Deliberately NOT caught anywhere in this module -- the caller (a human,
+    or an explicit strict=False call site) must decide what to do next.
+    """
+    pass
+
+
+class UnsupportedDimensionError(UnitParseError):
+    """Raised when a unit resolves fine (pint recognizes it) but involves a
+    dimension ADCD's 5D (M,L,T,Theta,Q) engine cannot represent (mol,
+    candela). Distinct from UnitParseError (genuinely unrecognized string)
+    because the correct handling differs: an unsupported-dimension column
+    can be gracefully excluded from the dimensional pipeline rather than
+    aborting ingestion of the whole CSV (see AutoCSVScenario.__init__).
+    """
+    pass
+
+
+class DomainTaxonomyError(ValueError):
+    """Raised when `domain` does not match any DOMAIN_TAXONOMY key, which
+    would otherwise silently disable the taxonomy prior (see Section 5,
+    Discussion, "Taxonomy as prior, not hint" -- silent bypass of this
+    mechanism defeats the entire point of a domain-guided search).
+    """
+    pass
+
+
+# ============================================================================
+# 1. UNIT RESOLUTION (pint-backed, near-universal, still zero learned weights)
+# ============================================================================
+
+_UREG = pint.UnitRegistry()
+
+# Tokens that are only resolved via EXPLICIT bracket/paren notation, never
+# via bare underscore-suffix matching, because they collide with common
+# English word endings in variable names (Bug #4).
+AMBIGUOUS_BARE_SUFFIXES = {
+    "m", "s", "g", "k", "n", "c", "e", "min", "hr", "day", "a", "j", "t",
+}
+
+# Underscore-style compound notation ("km_s", "m_s2") that pint does not
+# parse natively (pint expects "km/s", "m/s**2"). This table normalizes the
+# small, closed set of compound patterns ADCD scenarios actually use before
+# handing the string to pint. Anything not covered here that still contains
+# an underscore falls through to bare single-token suffix matching.
+_COMPOUND_SUFFIX_TO_PINT = {
+    "m_s": "m/s", "km_s": "km/s", "km_h": "km/h", "kms": "km/s", "kmh": "km/h",
+    "m_s2": "m/s**2", "m_s_2": "m/s**2", "km_s2": "km/s**2",
+    "ms2": "m/s**2", "ms_2": "m/s**2",
+}
+
+
+def _pint_dimensionality_to_adcd_5d(quantity) -> Tuple[int, int, int, int, int]:
+    """
+    Deterministic linear transform from pint's 7-base-SI dimensionality to
+    ADCD's charge-based 5D (M, L, T, Theta, Q) vector.
+
+    pint treats electrical dimension via [current] (Ampere-based, SI's actual
+    7th base unit). ADCD's dimensional_checker.py instead treats charge [Q]
+    as the fundamental axis (see paper Sec. 3.3 -- this is what makes the
+    q1/q2 pairing and the theta_4 subscript story for Screened Coulomb work).
+
+    The two are related exactly by A = Q / T (current = charge / time), so
+    for any dimensionality with exponents (m, l, t, i, theta, n, lum):
+        M     = m
+        L     = l
+        T_adcd = t - i      (substituting A^i = Q^i * T^-i)
+        Theta = theta
+        Q     = i
+    This is exact dimensional algebra, not an approximation -- verified
+    against Newton, Joule, Tesla, Volt, Ohm, Farad in the accompanying tests.
+
+    Raises UnitParseError if the unit involves [substance] (mol) or
+    [luminous_intensity] (candela), which ADCD's 5D engine does not model.
+    """
+    d = quantity.dimensionality
+    m_dim = d.get("[mass]", 0)
+    l_dim = d.get("[length]", 0)
+    t_dim = d.get("[time]", 0)
+    i_dim = d.get("[current]", 0)
+    theta_dim = d.get("[temperature]", 0)
+    n_dim = d.get("[substance]", 0)
+    lum_dim = d.get("[luminous_intensity]", 0)
+
+    if n_dim != 0 or lum_dim != 0:
+        raise UnsupportedDimensionError(
+            f"Unit has mol/candela dimensionality ({d}), which ADCD's 5D "
+            f"(M,L,T,Theta,Q) engine does not model. This column will be "
+            f"excluded from the dimensional pipeline rather than blocking "
+            f"the whole CSV -- see AutoCSVScenario for graceful handling."
+        )
+
+    M, L, T, Theta, Q = m_dim, l_dim, (t_dim - i_dim), theta_dim, i_dim
+    return (M, L, T, Theta, Q)
+
+
+class UnitExtractor:
+    """
+    Deterministic unit extraction from column header strings.
+
+    Resolution order (each step tried in order, first match wins):
+      1. ALL bracket/paren/brace groups in the header, tried left to right
+         (fixes Bug #5 -- previously only the first group was tried).
+      2. Underscore-suffix compound notation via a small closed lookup
+         (km_s, m_s2, ...) normalized to pint syntax.
+      3. Underscore-suffix single-token notation via bare pint lookup,
+         EXCLUDING ambiguous short tokens (fixes Bug #4).
+      4. Whole-string match.
+      5. UnitParseError (fail loud) -- or, if strict=False, an explicit
+         "AMBIGUOUS" sentinel for the caller to route to a human.
+
+    No numeric data is ever read by this class -- only header strings.
+    """
+
+    @staticmethod
+    def _find_all_brackets(header: str) -> List[str]:
+        return re.findall(r"[\(\[\{]([^\)\]\}]+)[\)\]\}]", header)
+
+    @staticmethod
+    def _strip_all_brackets(header: str) -> str:
+        return re.sub(r"[\(\[\{][^\)\]\}]*[\)\]\}]", "", header).strip().rstrip("_").strip()
+
+    @staticmethod
+    def _try_pint(token: str):
+        """Returns (5d_vector, scale_to_si, canonical_si_str) or None."""
+        try:
+            q = _UREG(token)
+        except Exception:
+            return None
+        try:
+            vec = _pint_dimensionality_to_adcd_5d(q)
+        except UnitParseError:
+            raise
+        base = q.to_base_units()
+        return vec, float(base.magnitude), str(base.units)
+
+    @staticmethod
+    def parse_header(
+        header: str,
+        strict: bool = True,
+        trusted_bare_suffixes: Optional[Set[str]] = None,
+    ):
+        """
+        Returns (clean_var_name, canonical_si_unit, dim_vector_5d, scale_to_si,
+                 raw_matched_token).
+
+        raw_matched_token is the literal substring that was resolved (e.g.
+        "km/s", not "m/s") -- this is threaded through specifically so
+        verify_name_invariance() can scramble using the SAME raw token the
+        real parser would see, instead of a post-normalization artifact
+        (this was the root cause of Bug #1).
+
+        trusted_bare_suffixes: explicit, per-call opt-in for short tokens
+        that are normally refused (Bug #4 mitigation). Bracket notation
+        ("radius [m]") is always unambiguous and never needs this. This
+        parameter exists because blanket-refusing ALL bare short suffixes
+        makes perfectly ordinary headers like "radius_m" or "time_s" fail,
+        which is a real UX cost -- see accompanying trade-off discussion.
+        Passing e.g. {"m", "s"} tells the parser "in THIS dataset's naming
+        convention, I know these bare suffixes are units, not word endings."
+        Every use emits a warning so it is visible in logs, not silent.
+        """
+        header_clean = header.strip()
+        trusted = trusted_bare_suffixes or set()
+
+        # 1. All bracket groups, in order (fix Bug #5) -- always unambiguous,
+        # never subject to the short-token restriction.
+        for unit_str in UnitExtractor._find_all_brackets(header_clean):
+            token = unit_str.strip()
+            result = UnitExtractor._try_pint(token)
+            if result is not None:
+                vec, scale, canon = result
+                var_name = UnitExtractor._strip_all_brackets(header_clean)
+                return var_name, canon, vec, scale, token
+
+        # 2 & 3. Underscore suffix (compound lookup, then bare single token)
+        if "_" in header_clean:
+            parts = header_clean.split("_")
+            for k in range(len(parts) - 1, 0, -1):
+                suffix = "_".join(parts[-k:]).strip().lower()
+
+                if suffix in _COMPOUND_SUFFIX_TO_PINT:
+                    pint_token = _COMPOUND_SUFFIX_TO_PINT[suffix]
+                    result = UnitExtractor._try_pint(pint_token)
+                    if result is not None:
+                        vec, scale, canon = result
+                        var_name = "_".join(parts[:-k]).strip().rstrip("_")
+                        return var_name, canon, vec, scale, suffix
+
+                if k == 1 and suffix in AMBIGUOUS_BARE_SUFFIXES:
+                    if suffix in trusted:
+                        result = UnitExtractor._try_pint(suffix)
+                        if result is not None:
+                            vec, scale, canon = result
+                            var_name = "_".join(parts[:-k]).strip().rstrip("_")
+                            warnings.warn(
+                                f"Header '{header}': resolved ambiguous bare "
+                                f"suffix '{suffix}' as a unit because it was "
+                                f"explicitly trusted via trusted_bare_suffixes. "
+                                f"Verify this is correct for every column using "
+                                f"this suffix in this dataset.",
+                                stacklevel=2,
+                            )
+                            return var_name, canon, vec, scale, suffix
+                    continue  # refuse to guess on collision-prone bare tokens (fix Bug #4)
+
+                if k == 1:
+                    result = UnitExtractor._try_pint(suffix)
+                    if result is not None:
+                        vec, scale, canon = result
+                        var_name = "_".join(parts[:-k]).strip().rstrip("_")
+                        return var_name, canon, vec, scale, suffix
+
+        # 4. Whole-string match
+        result = UnitExtractor._try_pint(header_clean)
+        if result is not None:
+            vec, scale, canon = result
+            return header_clean, canon, vec, scale, header_clean
+
+        # 5. Fail loud (fix Bug #2)
+        var_name_cleaned = UnitExtractor._strip_all_brackets(header_clean) or header_clean
+        if strict:
+            raise UnitParseError(
+                f"Could not resolve a unit for header '{header}'. Refusing to "
+                f"silently default to dimensionless. Options:\n"
+                f"  1. Rename the column to use bracket notation, e.g. "
+                f"'{var_name_cleaned} [unit]' (always unambiguous).\n"
+                f"  2. If this header ends in a short suffix ({sorted(AMBIGUOUS_BARE_SUFFIXES)}) "
+                f"that you are certain denotes a unit in this dataset, pass "
+                f"trusted_bare_suffixes={{'<suffix>'}} explicitly."
+            )
+        return var_name_cleaned, "AMBIGUOUS", None, None, None
+
+
+def verify_name_invariance(headers: List[str]) -> bool:
+    """
+    Feynman-style falsification audit (fixed -- see Bug #1).
+
+    Replaces every variable name with an arbitrary gibberish token while
+    preserving the RAW matched unit token (not its post-normalization form),
+    then verifies UnitExtractor produces an identical (dim_vector, scale)
+    regardless of whether the name is a physics word ('velocity') or noise
+    ('xJ9'). This is a genuine test of "does the parser look at the name at
+    all", unlike the v1 version, which accidentally could not pass for the
+    project's own primary header format (suffix-style, no brackets).
+    """
+    originals = [UnitExtractor.parse_header(h, strict=False) for h in headers]
+
+    scrambled_headers = []
+    for i, (_, _, _, _, raw_token) in enumerate(originals):
+        if raw_token is None:
+            scrambled_headers.append(f"token_{i}")
+        else:
+            scrambled_headers.append(f"token_{i}_{raw_token}")
+
+    scrambled = [UnitExtractor.parse_header(h, strict=False) for h in scrambled_headers]
+
+    for (_, canon_o, vec_o, scale_o, _), (_, canon_s, vec_s, scale_s, _) in zip(originals, scrambled):
+        if canon_o != canon_s or vec_o != vec_s or scale_o != scale_s:
+            return False
+    return True
+
+
+# ============================================================================
+# 2. DETERMINISTIC AUTO-SCENARIO FROM CSV
+# ============================================================================
+
+class AutoCSVScenario(AnomalyScenario):
+    """A 100% deterministic AnomalyScenario backed directly by a real CSV dataset."""
+
+    def __init__(
+        self,
+        name: str,
+        csv_path: str,
+        target_col: str,
+        classical_expr: str,
+        domain: str,
+        classical_constants: Optional[Dict[str, float]] = None,
+        classical_limit_variable: str = "x",
+        classical_limit_direction: str = "0",
+        correction_type: str = "additive",
+        correction_class: str = "polynomial",
+        anomaly_regime: str = "observational_data",
+        strict_units: bool = True,
+        trusted_bare_suffixes: Optional[Set[str]] = None,
+    ):
+        # `domain` is now REQUIRED (no silent default) and validated (fix:
+        # the same silent-taxonomy-bypass class of bug found in the
+        # hand-written scenarios -- see audit report).
+        if domain not in DOMAIN_TAXONOMY:
+            raise DomainTaxonomyError(
+                f"domain='{domain}' does not match any DOMAIN_TAXONOMY key "
+                f"({sorted(DOMAIN_TAXONOMY.keys())}). Using an unrecognized "
+                f"domain string would silently disable the taxonomy prior "
+                f"instead of raising -- refusing to proceed. Pick a "
+                f"registered key or add a new taxonomy entry with a "
+                f"peer-reviewed justification first."
+            )
+
+        self.csv_path = csv_path
+        self.target_col_raw = target_col
+
+        df = pd.read_csv(csv_path)
+        self._df_raw = df
+
+        parsed_cols = {}
+        variables_with_units = {}
+        self._scale_factors = {}
+        self._canonical_cols = {}
+        self.excluded_columns: Dict[str, str] = {}  # col -> reason, for graceful degradation
+
+        for col in df.columns:
+            try:
+                clean_name, canon_unit, dim_vec, scale, _raw = UnitExtractor.parse_header(
+                    col, strict=strict_units, trusted_bare_suffixes=trusted_bare_suffixes
+                )
+            except UnsupportedDimensionError as e:
+                # Graceful degradation (mitigates trade-off #2): a column
+                # with mol/candela dimensionality doesn't abort ingestion of
+                # the whole CSV. It's excluded from the dimensional pipeline
+                # and cannot be used in classical_expr; everything else
+                # proceeds. If the excluded column IS actually needed by
+                # classical_expr, that fails later, explicitly, at
+                # expression-evaluation time -- not silently here.
+                if col == target_col:
+                    raise UnitParseError(
+                        f"Target column '{col}' has mol/candela dimensionality, "
+                        f"which ADCD's 5D engine cannot represent as a target. "
+                        f"This cannot be gracefully degraded -- choose a "
+                        f"different target or extend dimensional_checker.py."
+                    ) from e
+                warnings.warn(
+                    f"Column '{col}' excluded from dimensional analysis: {e}",
+                    stacklevel=2,
+                )
+                self.excluded_columns[col] = str(e)
+                continue
+
+            valid_name = re.sub(r"\W|^\d", "_", clean_name)
+            parsed_cols[col] = valid_name
+            variables_with_units[valid_name] = canon_unit
+            self._scale_factors[valid_name] = scale if scale is not None else 1.0
+            self._canonical_cols[col] = valid_name
+
+        feature_cols = [v for k, v in parsed_cols.items() if k != target_col]
+
+        super().__init__(
+            name=name,
+            tier="observational",
+            domain=domain,
+            classical_expr=classical_expr,
+            classical_variables=feature_cols,
+            classical_constants=classical_constants or {},
+            correction_type=correction_type,
+            correction_expr="0.0",  # ground truth not assumed for real data
+            correction_constants={},
+            anomaly_regime=anomaly_regime,
+            variables_with_units=variables_with_units,
+            classical_limit_variable=classical_limit_variable,
+            classical_limit_direction=classical_limit_direction,
+            correction_class=correction_class,
+        )
+
+    def generate_data(
+        self, n_points: int = 200, noise_level: float = 0.0, seed: int = 42, domain_max: float = None
+    ) -> Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
+        df = self._df_raw.copy()
+        X = {}
+
+        for raw_col, clean_name in self._canonical_cols.items():
+            if raw_col == self.target_col_raw:
+                continue
+            values = df[raw_col].to_numpy(dtype=float)
+            scale = self._scale_factors.get(clean_name, 1.0)
+            X[clean_name] = values * scale
+
+        all_vars = {**X, **self.classical_constants}
+        expr = sp.sympify(self.classical_expr)
+        f_lamb = sp.lambdify(list(all_vars.keys()), expr, modules="numpy")
+        y_classical = np.array(f_lamb(**all_vars), dtype=float)
+        if y_classical.shape == ():
+            y_classical = np.full(len(df), y_classical)
+
+        target_clean = self._canonical_cols.get(self.target_col_raw, self.target_col_raw)
+        target_scale = self._scale_factors.get(target_clean, 1.0)
+        y_obs = df[self.target_col_raw].to_numpy(dtype=float) * target_scale
+
+        if self.correction_type == "multiplicative":
+            # Delta = y_obs / y_classical - 1  (matches paper Eq. 1 -- fix Bug #3,
+            # v1 was missing the "- 1" and returned a raw ratio instead of a
+            # correction that vanishes at the classical limit)
+            residual = np.where(y_classical != 0, y_obs / y_classical - 1.0, y_obs)
+        else:
+            residual = y_obs - y_classical
+
+        return X, y_obs, y_classical, residual
+
+
+def build_scenario_from_csv(
+    csv_path: str,
+    scenario_name: str,
+    target_col: str,
+    classical_expr: str,
+    domain: str,
+    classical_constants: Optional[Dict[str, float]] = None,
+    classical_limit_variable: str = "x",
+    classical_limit_direction: str = "0",
+    strict_units: bool = True,
+    trusted_bare_suffixes: Optional[Set[str]] = None,
+) -> AutoCSVScenario:
+    """Factory function to construct an AutoCSVScenario from a raw CSV file.
+
+    `domain` is required and must be a valid DOMAIN_TAXONOMY key -- this is
+    the one input that stays firmly in human hands (see prior discussion:
+    domain/taxonomy selection is the highest-leverage point for accidental
+    semantic leakage, so it is never inferred automatically).
+
+    `trusted_bare_suffixes`: optional explicit opt-in for short ambiguous
+    unit suffixes (e.g. {"m", "s"}) for datasets whose naming convention you
+    already know is unambiguous. Leave unset to require bracket notation
+    for anything short/ambiguous -- the safer default.
+    """
+    return AutoCSVScenario(
+        name=scenario_name,
+        csv_path=csv_path,
+        target_col=target_col,
+        classical_expr=classical_expr,
+        domain=domain,
+        classical_constants=classical_constants,
+        classical_limit_variable=classical_limit_variable,
+        classical_limit_direction=classical_limit_direction,
+        strict_units=strict_units,
+        trusted_bare_suffixes=trusted_bare_suffixes,
+    )
+
+
+================================================================================
 FILE: src/adcd/bayesian_ranker.py
-================================================================
+================================================================================
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Optional
 import numpy as np
@@ -1345,6 +1870,7 @@ class BayesianCorrectionOutput:
 
 class BayesianReranker:
     """
+    EXPERIMENTAL — NOT USED IN REPORTED RESULTS.
     Converts BIC-ranked candidates to Bayesian posterior distribution.
 
     The BIC weight approximation is:
@@ -1471,9 +1997,10 @@ class BayesianReranker:
             best_weight=float(weights_norm[0]),
         )
 
-================================================================
+
+================================================================================
 FILE: src/adcd/budget_sweep.py
-================================================================
+================================================================================
 from __future__ import annotations
 import json
 from dataclasses import dataclass
@@ -1621,9 +2148,10 @@ if __name__ == "__main__":
         json.dump(all_sweeps, f, indent=2, default=str)
     print("Full sweep saved to budget_sweep_report.json")
 
-================================================================
+
+================================================================================
 FILE: src/adcd/coarse_evaluator.py
-================================================================
+================================================================================
 import sympy as sp
 import numpy as np
 import logging
@@ -1724,9 +2252,10 @@ class CoarseEvaluator:
             logger.debug(f"[CoarseEvaluator] Exception for {expr}: {e}")
             return float('inf'), float('inf')
 
-================================================================
+
+================================================================================
 FILE: src/adcd/constants.py
-================================================================
+================================================================================
 from __future__ import annotations
 
 # ── CODATA 2018 recommended values ───────────────────────────────────────────
@@ -1805,9 +2334,10 @@ __all__ = [
 # ── Validation Thresholds ────────────────────────────────────────────────────
 NMSE_SUCCESS_THRESHOLD = 0.05
 
-================================================================
+
+================================================================================
 FILE: src/adcd/context.py
-================================================================
+================================================================================
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Optional, Any
 import numpy as np
@@ -1847,9 +2377,10 @@ class ProposalContext:
     X_data: Optional[Dict[str, np.ndarray]] = None
     residual_data: Optional[np.ndarray] = None
 
-================================================================
+
+================================================================================
 FILE: src/adcd/dimensional_checker.py
-================================================================
+================================================================================
 import sympy as sp
 from typing import Dict, Union, List, Optional
 
@@ -2082,7 +2613,7 @@ def validate_transcendental_args(expr: sp.Expr, checker: DimensionalChecker) -> 
 
 
 class ASTValidator:
-    def __init__(self, max_depth: int = 7, max_tokens: int = 25):
+    def __init__(self, max_depth: int = 12, max_tokens: int = 50):
         self.max_depth = max_depth
         self.max_tokens = max_tokens
         self.locals = {s: sp.Symbol(s) for s in DIMENSIONS}
@@ -2101,9 +2632,10 @@ class ASTValidator:
         except Exception:
             return False
 
-================================================================
+
+================================================================================
 FILE: src/adcd/grammar_proposer_v3.py
-================================================================
+================================================================================
 from typing import List, Optional, Dict
 from adcd.context import BaseProposer, ProposalContext
 from adcd.asymptotic_dictionary_proposer_v3 import GrammarBudget, enumerate_candidates, PRIMITIVE_REGISTRY
@@ -2175,9 +2707,10 @@ class GrammarProposerV3(BaseProposer):
                 self._build_candidates(ProposalContext(variable_names=list(self.variables_with_units.keys()), target_name="", data_statistics={}))
         return len(self._candidates)
 
-================================================================
+
+================================================================================
 FILE: src/adcd/identifiability.py
-================================================================
+================================================================================
 from dataclasses import dataclass
 from typing import Optional, Dict, Tuple, List
 import numpy as np
@@ -2196,6 +2729,10 @@ class IdentifiabilityReport:
 
 
 class IdentifiabilityAnalyzer:
+    """
+    EXPERIMENTAL — NOT USED IN REPORTED RESULTS.
+    This class is not currently instantiated in the main validation pipeline.
+    """
 
     SNR_THRESHOLD = 1.0
     WEIGHT_RATIO_THRESHOLD = 3.0
@@ -2394,9 +2931,10 @@ class IdentifiabilityAnalyzer:
             )
         return "Unknown identifiability status."
 
-================================================================
+
+================================================================================
 FILE: src/adcd/jax_optimizer.py
-================================================================
+================================================================================
 import os
 os.environ["JAX_PLATFORM_NAME"] = "cpu"
 
@@ -2828,15 +3366,17 @@ class JAXOptimizer:
             converged=False, n_params=n_params, expr_str=expr_str, error=error
         )
 
-================================================================
+
+================================================================================
 FILE: src/adcd/jax_precision_config.py
-================================================================
+================================================================================
 import jax
 jax.config.update("jax_enable_x64", True)
 
-================================================================
+
+================================================================================
 FILE: src/adcd/metrics.py
-================================================================
+================================================================================
 import itertools
 import sympy as sp
 import numpy as np
@@ -3168,9 +3708,10 @@ def evaluate_correction(
         parameter_count_mismatch=count_mismatch,
     )
 
-================================================================
+
+================================================================================
 FILE: src/adcd/mode_detection.py
-================================================================
+================================================================================
 from typing import Tuple
 import numpy as np
 
@@ -3238,9 +3779,10 @@ def detect_correction_mode(
         confidence = 0.5 + 0.5 * (dep_additive - dep_multiplicative) / total
         return "multiplicative", float(np.clip(confidence, 0.5, 1.0))
 
-================================================================
+
+================================================================================
 FILE: src/adcd/pipeline.py
-================================================================
+================================================================================
 import sympy as sp
 import numpy as np
 from dataclasses import dataclass, fields, asdict
@@ -3461,9 +4003,10 @@ class Stage1Pipeline:
 
         return sorted(screened_candidates, key=lambda x: x[1], reverse=True)
 
-================================================================
+
+================================================================================
 FILE: src/adcd/quickfit.py
-================================================================
+================================================================================
 from __future__ import annotations
 
 import logging
@@ -4067,9 +4610,10 @@ class BuckinghamPiEngine:
             ratios.append(pi * theta)
         return ratios
 
-================================================================
+
+================================================================================
 FILE: src/adcd/real_data_loader.py
-================================================================
+================================================================================
 import numpy as np
 from typing import Dict, Tuple
 
@@ -4363,9 +4907,10 @@ def load_all_real_data() -> Dict[str, Tuple[Dict[str, np.ndarray], np.ndarray, n
         "Real: Binary Pulsar Decay": load_binary_pulsar_decay(),
     }
 
-================================================================
+
+================================================================================
 FILE: src/adcd/real_scenarios.py
-================================================================
+================================================================================
 from dataclasses import dataclass
 from typing import Dict, Tuple
 
@@ -4517,9 +5062,10 @@ def get_real_scenarios():
         ),
     ]
 
-================================================================
+
+================================================================================
 FILE: src/adcd/residual_features.py
-================================================================
+================================================================================
 from dataclasses import dataclass
 import numpy as np
 
@@ -4644,9 +5190,10 @@ def compute_residual_features(leading_var: np.ndarray, residual: np.ndarray) -> 
         leading_exponent=leading_exponent,
     )
 
-================================================================
+
+================================================================================
 FILE: src/adcd/run_adcd_v3_validation_blind.py
-================================================================
+================================================================================
 from __future__ import annotations
 
 import json
@@ -4948,7 +5495,8 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
     
     # Restrict primitive search space to the scenario's taxonomy group if enabled.
     taxonomy_allowed = None
-    if use_taxonomy_prior and hasattr(scenario, "domain") and scenario.domain in DOMAIN_TAXONOMY:
+    if use_taxonomy_prior:
+        assert hasattr(scenario, "domain") and scenario.domain in DOMAIN_TAXONOMY, f"unknown domain {getattr(scenario, 'domain', 'None')}"
         taxonomy_allowed = DOMAIN_TAXONOMY[scenario.domain]
         taxonomy_exclude = [p for p in PRIMITIVE_REGISTRY.keys() if p not in taxonomy_allowed]
     else:
@@ -5140,14 +5688,9 @@ if __name__ == "__main__":
     main()
 
 
-================================================================
-FILE: src/adcd/__init__.py
-================================================================
-# ADCD V3 - Asymptotic Dictionary Correction Discovery
-
-================================================================
+================================================================================
 FILE: eval/audit_logger.py
-================================================================
+================================================================================
 import os
 import json
 import datetime
@@ -5168,9 +5711,10 @@ class AuditLogger:
         with open(self.log_filepath, "a", encoding="utf-8") as f:
             f.write(json.dumps(entry) + "\n")
 
-================================================================
+
+================================================================================
 FILE: eval/compute_metrics.py
-================================================================
+================================================================================
 import os
 import json
 import numpy as np
@@ -5411,64 +5955,10 @@ def main():
 if __name__ == "__main__":
     main()
 
-================================================================
-FILE: eval/contamination_check.py
-================================================================
-import sys
-import os
-import re
 
-BENCHMARK_SPEC_PATH = os.path.join(os.path.dirname(__file__), "..", "preregistration", "benchmark_spec.txt")
-SRC_DIR = os.path.join(os.path.dirname(__file__), "..", "src")
-
-
-def run_contamination_check() -> bool:
-    if not os.path.exists(BENCHMARK_SPEC_PATH):
-        print(f"[ERROR] Benchmark spec not found at: {BENCHMARK_SPEC_PATH}")
-        return False
-
-    with open(BENCHMARK_SPEC_PATH, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-
-    equations = []
-    for line in lines:
-        if ":" in line and not line.startswith("#"):
-            eq = line.split(":", 1)[1].strip()
-            if eq:
-                equations.append(eq)
-
-    print(f"[INFO] Loaded {len(equations)} benchmark equations for contamination check.")
-
-    contaminated = False
-    for root, _, files in os.walk(SRC_DIR):
-        for file in files:
-            if file.endswith(".py"):
-                filepath = os.path.join(root, file)
-                with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
-                    content = f.read()
-
-                for eq in equations:
-                    # Clean string comparison
-                    eq_clean = eq.replace(" ", "")
-                    if len(eq_clean) > 8 and eq_clean in content.replace(" ", ""):
-                        print(f"[WARNING] Potential contamination detected in {file} for equation: {eq}")
-                        contaminated = True
-
-    if not contaminated:
-        print("[SUCCESS] Zero contamination detected across codebase for pre-registered benchmarks!")
-        return True
-    else:
-        print("[FAIL] Contamination check failed!")
-        return False
-
-
-if __name__ == "__main__":
-    success = run_contamination_check()
-    sys.exit(0 if success else 1)
-
-================================================================
+================================================================================
 FILE: paper/generate_final_3_figures.py
-================================================================
+================================================================================
 import json
 import os
 import numpy as np
@@ -5854,9 +6344,10 @@ def main():
 if __name__ == "__main__":
     main()
 
-================================================================
+
+================================================================================
 FILE: run_outputs/adcd_v3_taxonomy_validation_report.json
-================================================================
+================================================================================
 {
   "Time Dilation": {
     "all_passed": false,
@@ -6181,598 +6672,4 @@ FILE: run_outputs/adcd_v3_taxonomy_validation_report.json
     }
   }
 }
-
-================================================================
-FILE: paper/neurips_paper.tex
-================================================================
-\documentclass{article}
-
-\usepackage[dblblindworkshop]{neurips_2026}
-\workshoptitle{New in ML at NeurIPS 2026}
-
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{hyperref}
-\usepackage{url}
-\usepackage{booktabs}
-\usepackage{amsfonts}
-\usepackage{nicefrac}
-\usepackage{microtype}
-\usepackage{xcolor}
-\usepackage{amsmath,amssymb}
-\usepackage{graphicx}
-\usepackage{cleveref}
-\usepackage{caption}
-\usepackage{subcaption}
-\usepackage{listings}
-\usepackage{enumitem}
-
-\hypersetup{
-    colorlinks=true,
-    linkcolor=black,
-    citecolor=black,
-    urlcolor=black
-}
-
-\captionsetup{font=small, labelfont=bf, skip=4pt}
-
-\title{Asymptotic Dictionary Correction Discovery:\\ A Deterministic, Identifiability-Aware Framework\\
-for Recovering Physical Corrections from Observational Data}
-
-\author{%
-  Anonymous Author(s) \\
-  Affiliation \\
-  Address \\
-  \texttt{email} \\
-}
-
-\begin{document}
-
-\maketitle
-
-\begin{abstract}
-We present \textbf{ADCD} (Asymptotic Dictionary Correction Discovery), a
-deterministic framework for recovering structured corrections to known physical
-laws from noisy data.
-Given a classical baseline, ADCD searches for the residual correction that
-vanishes exactly at the classical limit, using three interlocking mechanisms:
-algebraically regularized primitives that enforce asymptotic vanishing as an
-exact algebraic identity; a five-dimensional (MLT$\Theta$Q) Buckingham-$\pi$
-engine that auto-derives dimensionless ratio arguments without manual
-specification; and a Phenomenon-Specific Taxonomy encoding peer-reviewed
-functional priors for each physics domain.
-A four-step validation protocol---budget disclosure, positive control, BIC-based
-ablation control, and determinism check---issues one of two verdicts:
-IDENTIFIABLE or WITHHELD.
-On three canonical scenarios at historical low-signal windows, Screened Coulomb
-($\Delta\mathrm{BIC}=30.65$, exact symbolic match) and Entropy Expansion
-($\Delta\mathrm{BIC}=14.70$, class-level match) are IDENTIFIABLE;
-Time Dilation at $v\le0.3c$ is WITHHELD because the $4.8\%$ correction is
-indistinguishable from 1\% noise---the intended, epistemically honest behavior.
-All results are byte-exact deterministic.
-
-\vspace{0.3em}
-\noindent\textbf{Keywords:} symbolic regression; correction discovery;
-dimensional analysis; Bayesian prior; model selection; identifiability
-\end{abstract}
-
-% ---------------------------------------------------------------
-\section{Introduction}
-% ---------------------------------------------------------------
-
-Physical laws frequently take a correction-first form: a known classical baseline
-extended by a term that vanishes at the classical
-limit~\cite{einstein1905,debye1923,callen1985}.
-Recovering that correction from observational data is distinct from full equation
-discovery: the baseline is fixed, only the residual must be identified, and that
-residual must vanish exactly where classical physics holds.
-
-General-purpose symbolic regression (SR) engines such as
-PySR~\cite{cranmer2023}, AI Feynman~\cite{udrescu2020}, and
-PhySO~\cite{tenachi2023} excel at equation discovery from scratch but face
-three difficulties in the correction-first setting:
-(i)~\emph{catastrophic cancellation}: floating-point precision collapses as
-$u\to0$, corrupting optimizer feedback~\cite{ieee754};
-(ii)~\emph{stochastic irreproducibility}: evolutionary search cannot guarantee
-byte-identical results across runs~\cite{bongard2007,schmidt2009}; and
-(iii)~\emph{silent overclaiming}: a single best-fit equation is returned
-regardless of whether the data carry sufficient power to distinguish competing
-structures~\cite{lacava2021}.
-ADCD addresses each failure mode in turn: algebraically regularized primitives
-eliminate cancellation; deterministic grammar enumeration ensures reproducibility;
-explicit BIC-based identifiability gating prevents overclaiming.
-
-% ---------------------------------------------------------------
-\section{Related Work}
-% ---------------------------------------------------------------
-
-General SR engines (Eureqa~\cite{schmidt2009}, PySR~\cite{cranmer2023},
-AI Feynman~\cite{udrescu2020,udrescu2020b}, PhySO~\cite{tenachi2023})
-target unconstrained equation recovery and do not enforce classical-limit
-constraints algebraically.
-SINDy~\cite{brunton2016} shares our library-based approach but discovers
-governing equations rather than corrections.
-PINNs~\cite{raissi2019,karniadakis2021} embed physical laws as soft loss penalties;
-ADCD imposes them as hard algebraic identities before any numerical computation.
-AI-Descartes~\cite{cornelio2023} combines SR with axiomatic theory derivation,
-but does not address catastrophic cancellation or provide identifiability gating.
-While dimensional analysis has been integrated into SR~\cite{tenachi2023,petersen2021},
-ADCD extends this with a full five-dimensional (MLT$\Theta$Q) Buckingham-$\pi$ engine,
-transcendental argument safety, and BIC-based identifiability reporting
-in a single pre-fitting gate cascade.
-To our knowledge, ADCD is the first framework to combine deterministic grammar
-enumeration, algebraic classical-limit enforcement, phenomenon-specific Bayesian
-priors, and explicit identifiability gating for the correction-first paradigm.
-
-% ---------------------------------------------------------------
-\section{Methods}
-% ---------------------------------------------------------------
-
-\subsection{Problem formulation}
-
-Let $y_\mathrm{obs}$ and $y_\mathrm{cl}$ be the observed target and classical
-prediction. The correction residual is:
-\begin{equation}
-  \Delta =
-  \begin{cases}
-    y_\mathrm{obs}/y_\mathrm{cl} - 1 & \text{(multiplicative)} \\
-    y_\mathrm{obs} - y_\mathrm{cl}   & \text{(additive)}
-  \end{cases}
-\end{equation}
-The multiplicative form is selected when its residual shows lower Spearman rank
-correlation with $y_\mathrm{cl}$ than the additive residual, with a
-confidence-gated default to additive under high ambiguity.
-ADCD searches for $\hat{\Delta}(\mathbf{x};\boldsymbol{\theta})$ such that
-$\hat{\Delta}\to0$ as the relevant dimensionless ratio $u\to0$.
-
-\subsection{Algebraically regularized primitive dictionary}
-
-Each primitive $D(u)$ satisfies $\lim_{u\to 0} D(u) = 0$ as an exact algebraic
-identity, eliminating catastrophic cancellation.
-For example, the naive form $(1-u)^{-1/2}-1$ collapses to $0.0$ at
-$u=10^{-16}$ in \texttt{float64}; the regularized form
-$u/[\sqrt{1-u}(\sqrt{1-u}+1)]$ returns $5.0\times10^{-17}$ at the same input.
-Table~\ref{tab:primitives} lists all eight primitives.
-
-\begin{table}[ht]
-\small
-\caption{The eight algebraically regularized primitives, each satisfying
-$\lim_{u\to0}D(u)=0$ as an exact algebraic identity.
-The first five are the core physics-motivated basis; the remaining three extend
-coverage to oscillatory, saturation, and power-law regimes.
-Column ``Physical origin'' cites the fundamental equation that produces this
-functional family; it does not imply the primitive is restricted to that domain.}
-\label{tab:primitives}
-\centering
-\begin{tabular}{@{}lllp{3.2cm}@{}}
-\toprule
-Name & Regularized form $D(u)$ & Domain & Physical origin \\
-\midrule
-\texttt{D\_lor}      & $u/[\sqrt{1-u}(\sqrt{1-u}+1)]$ & $u\in[0,1)$ & Lorentz factor ($\gamma-1$) \\
-\texttt{D\_rat}      & $u/(1-u)$                       & $u\neq 1$   & Yukawa/Fermi pole \\
-\texttt{D\_exp}      & $e^{-u}-1$                      & all $u$     & Debye/Yukawa screening \\
-\texttt{D\_log}      & $\ln(1+u)$                      & $u>-1$      & Entropy of mixing \\
-\texttt{D\_sqrt\_inv}& $1/\sqrt{1+u}-1$                & $u>-1$      & Gravitational/Coulomb potential \\
-\texttt{D\_pow}      & $u^{3/2}$                       & $u\ge0$     & Power-law corrections \\
-\texttt{D\_osc}      & $1-\cos u$                      & all $u$     & Wave / AC oscillatory \\
-\texttt{D\_sat}      & $\tanh u$                       & all $u$     & Magnetic / sigmoid saturation \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Five-dimensional Buckingham-\texorpdfstring{$\pi$}{pi} ratio generation}
-\label{sec:buckingham}
-
-ADCD employs a 5D (MLT$\Theta$Q) Buckingham-$\pi$ engine representing each
-variable as $\mathbf{d}\in\mathbb{Z}^5$ over the SI base dimensions M, L, T,
-$\Theta$, and Q.
-Dimensionless $\pi$-groups are found by computing the rational nullspace of the
-dimension matrix.
-Extending from the conventional 3D MLT to 5D is essential for correctness:
-in a 3D engine charges $q_1,q_2$ are dimensionless scalars, so $r/\theta$
-emerges immediately as the primary ratio candidate;
-in the 5D engine, charge carries genuine Charge dimension (Q), and the engine
-enumerates all charge-dimensional ratio candidates before it reaches the
-distance-ratio $r/\theta$.
-Because four charge-dimensional candidates are enumerated first, that ratio
-receives subscript $\theta_4$, not $\theta_0$.
-This subscript is machine-verifiable evidence of automated discovery:
-a manually supplied ratio would be pinned to $\theta_0$ by convention,
-not assigned by enumeration.
-
-\subsection{Phenomenon-specific taxonomy as Bayesian prior}
-\label{sec:taxonomy}
-
-Each physics phenomenon maps to a named set of permitted primitive families
-derived exclusively from its fundamental equations.
-For example, \texttt{yukawa\_debye\_screening} permits only \texttt{D\_exp}
-and \texttt{D\_rat}: the Klein-Gordon equation yields $V\propto e^{-mr}/r$ and
-Debye-H\"{u}ckel theory yields $\phi\propto e^{-r/\lambda_D}/r$; both involve
-only exponential and rational families.
-The taxonomy restricts \emph{which family} is searched; it says nothing about
-\emph{which variable} enters the argument or \emph{what the scale is}---both
-are determined by the Buckingham-$\pi$ engine and numerical optimizer.
-Including a physically unjustified primitive acts as a noise sponge, collapsing
-the Ablation Control BIC gap and destroying identifiability.
-Table~\ref{tab:taxonomy} lists entries for our three experiments.
-
-\begin{table}[ht]
-\small
-\caption{Phenomenon-specific taxonomy entries used in experiments,
-with physical justification for the primitive set.}
-\label{tab:taxonomy}
-\centering
-\begin{tabular}{@{}p{4.3cm}p{2.0cm}p{6.5cm}@{}}
-\toprule
-Phenomenon key & Primitives & Justification \\
-\midrule
-\texttt{yukawa\_debye\_screening} & \texttt{D\_exp}, \texttt{D\_rat} &
-  Klein-Gordon / Debye-H\"{u}ckel: fundamental form is $e^{-mr}/r$. \\
-\texttt{lorentz\_special\_relativity} & \texttt{D\_lor} &
-  Lorentz invariance of Maxwell equations uniquely selects the $\gamma-1$ form. \\
-\texttt{boltzmann\_thermodynamics} & \texttt{D\_exp}, \texttt{D\_log} &
-  Boltzmann partition function and entropy of mixing involve $e^{-\beta\epsilon}$ and $\ln$. \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Grammar enumeration and theta-intact constraint}
-
-Candidates take the form $\hat{\Delta}=\theta_0\cdot D_i(u_{ij})$, optionally
-extended with a secondary additive term (composition budget: depth $\le3$).
-Dimensionless arguments are auto-generated by the Buckingham-$\pi$ engine
-(up to 12 candidate ratios per scenario).
-All gates (Table~\ref{tab:gates}) are evaluated on the \emph{theta-intact}
-expression---the fully parameterized symbolic form before any $\theta_i$ is
-assigned the value $1$---because early substitution collapses dimensionful scale
-parameters (e.g., $r/\theta_4$ representing a Debye length) to dimensionless
-constants, falsifying the dimensional consistency check.
-
-\subsection{Physical gate cascade}
-\label{sec:gates}
-
-Before fitting, each candidate must pass a five-gate cascade
-(Table~\ref{tab:gates}) applied to the theta-intact expression.
-
-\begin{table}[ht]
-\small
-\caption{The five-gate pre-fitting physical cascade.}
-\label{tab:gates}
-\centering
-\begin{tabular}{@{}p{3.5cm}p{9cm}@{}}
-\toprule
-Gate & Rejection criterion \\
-\midrule
-1. AST complexity & SymPy tree depth $>12$ or token count $>50$. \\
-2. Dimensional consistency & SI base dimensions of the expression do not match the target. \\
-3. Transcendental safety & Arguments to $\exp$, $\ln$, $\sqrt{\cdot}$ are not dimensionless. \\
-4. Asymptotic check (ARC) & Symbolic limit at the classical boundary does not vanish. \\
-5. Coarse numerical fitness & Evaluation at $\boldsymbol{\theta}=\mathbf{1}$ produces \texttt{NaN}/\texttt{Inf}. \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Parameter optimization and model selection}
-
-Surviving candidates are optimized via L-BFGS-B (JAX, \texttt{float64}).
-Parameters are log-reparameterized ($\theta_i{=}s_i e^{u_i}$,
-$s_i{\in}\{-1,+1\}$) for order-of-magnitude traversal; multiple restarts
-reduce sensitivity to local optima.
-Model selection uses BIC~\cite{schwarz1978}: $\mathrm{BIC}=k\ln N - 2\ln\hat{L}$.
-By the Kass--Raftery scale~\cite{kass1995}, $\Delta\mathrm{BIC}>10$ is the
-adopted identifiability threshold.
-
-\subsection{Four-step validation protocol}
-\label{sec:protocol}
-
-The pipeline issues an IDENTIFIABLE verdict only when all four checks pass:
-\begin{enumerate}[noitemsep,leftmargin=*]
-  \item \textbf{Budget disclosure.} The complete size of the domain-guided
-        search space $|\mathcal{C}|$ and the primitive list are reported before any results are seen.
-  \item \textbf{Positive control.} Restricted to the ground-truth primitive
-        family alone, the system must recover the correct structure
-        (NMSE $<0.05$; i.e., less than $5\%$ unexplained variance).
-  \item \textbf{Ablation control.} With the ground-truth family excluded from
-        an otherwise unrestricted search over the full eight-primitive
-        registry, the BIC gap $\Delta\mathrm{BIC}>10$ (Kass--Raftery ``very
-        strong evidence'') must hold between the domain-guided Rank-1
-        candidate (Step~1) and the best Rank-1 candidate found under ablation.
-  \item \textbf{Determinism.} Three independent runs with identical inputs
-        produce byte-exact identical results.
-\end{enumerate}
-Failure of any check yields WITHHELD.
-
-% ---------------------------------------------------------------
-\section{Experiments}
-% ---------------------------------------------------------------
-
-\subsection{Setup}
-
-Table~\ref{tab:scenarios} summarizes the three scenarios.
-All use 1\% Gaussian multiplicative noise, $N=200$ points, seed~42.
-Observation windows reflect historical low-signal regimes.
-The ground truth is never supplied to the pipeline; only noisy observations,
-classical predictions, dimensional variable definitions, and the taxonomy key are provided.
-
-\begin{table}[ht]
-\small
-\caption{Experimental scenarios with domains, historical observation windows,
-taxonomy keys, and target primitive families.}
-\label{tab:scenarios}
-\centering
-\begin{tabular}{@{}lllll@{}}
-\toprule
-Scenario & Domain & Window & Taxonomy key & Target \\
-\midrule
-Time Dilation     & Relativity      & $v\le0.3c$       &
-  \texttt{lorentz\_special\_relativity} & \texttt{D\_lor} \\
-Screened Coulomb  & Electrostatics  & $r\le4.0$~m      &
-  \texttt{yukawa\_debye\_screening}     & \texttt{D\_exp} \\
-Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
-  \texttt{boltzmann\_thermodynamics}   & \texttt{D\_log} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Results}
-\label{sec:results}
-
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=\textwidth]{fig1_recovery.pdf}
-  \caption{%
-    Correction recovery for the three scenarios.
-    \textit{Gray dots}: observed residual $\Delta$ at 1\% Gaussian noise.
-    \textit{Blue solid}: ground truth.
-    \textit{Red dashed} (``ADCD Recovery''): the exact symbolic expression
-    discovered by ADCD, evaluated with the fitted parameters $\boldsymbol{\theta}$;
-    see Table~\ref{tab:results} for exact NMSE values.
-    Screened Coulomb (IDENTIFIABLE): exact symbolic match,
-    $\mathrm{NMSE}=2.77\times10^{-4}$.
-    Entropy Expansion (IDENTIFIABLE): class-level match,
-    $\mathrm{NMSE}=1.59\times10^{-2}$.
-    Time Dilation (WITHHELD): Lorentz structure found at Rank~1,
-    $\mathrm{NMSE}=0.41$;
-    positive control fails within the historical $v\le0.3c$ observation window.
-  }
-  \label{fig:recovery}
-\end{figure*}
-
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=\textwidth]{fig2_bic.pdf}
-  \caption{%
-    BIC identifiability comparison.
-    \textit{Left (a)}: absolute BIC of the Rank-1 domain-guided search candidate
-    (dark blue) and the best alternative produced with the ground-truth
-    primitive family excluded (gray).
-    \textit{Right (b)}: $\Delta\mathrm{BIC} = \mathrm{BIC}_{\mathrm{ablated}} -
-    \mathrm{BIC}_{\mathrm{best}}$ on a log scale; positive values indicate
-    the full-primitive Rank-1 candidate is preferred over the ablated best.
-    Red dashed: Kass--Raftery ``very strong evidence'' threshold
-    ($\Delta\mathrm{BIC}=10$)~\cite{kass1995}.
-    All three scenarios exceed this threshold, yet Time Dilation is WITHHELD
-    because its positive control fails (Step~2, Positive Control, of the
-    four-step protocol; see Table~\ref{tab:results}): a positive
-    $\Delta\mathrm{BIC}$ is necessary but not sufficient for an IDENTIFIABLE
-    verdict.
-  }
-  \label{fig:bic}
-\end{figure*}
-
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=\textwidth]{fig3_parity.pdf}
-  \caption{%
-    Parity plots: exact analytical recovered correction ($\Delta_\mathrm{rec}$,
-    evaluated directly from the discovered symbolic expression with fitted
-    parameters $\boldsymbol{\theta}$) vs.\ true correction
-    ($\Delta_\mathrm{true}$) for $N=200$ data points.
-    Black dashed: 1:1 reference line.
-    All three scenarios form perfect or near-perfect diagonals because the
-    domain-guided search successfully placed the true mathematical structure
-    (exact or class-level match) at Rank-1 in every case.
-    Crucially, Time Dilation achieves structural parity here, yet is still
-    WITHHELD by the system: its high fit error ($\mathrm{NMSE}=0.41$) on the
-    \emph{noisy} observational data (Figure~\ref{fig:recovery}a) causes it to
-    fail the Positive Control, demonstrating ADCD's epistemic safety against
-    claiming discoveries from insufficient signal-to-noise ratios.
-  }
-  \label{fig:parity}
-\end{figure*}
-
-Table~\ref{tab:results} summarizes the quantitative results.
-Two of three scenarios are IDENTIFIABLE; Time Dilation is WITHHELD because
-its positive control fails within the historical $v\le0.3c$ observation window.
-
-\begin{table}[ht]
-  \small
-  \caption{Four-step validation results for all three scenarios.
-  PC = Positive Control (pass/fail).
-  $\Delta\mathrm{BIC} = \mathrm{BIC}_{\mathrm{ablated}} - \mathrm{BIC}_{\mathrm{best}}$,
-  where $\mathrm{BIC}_{\mathrm{best}}$ is the Rank-1 domain-guided search BIC;
-  positive values indicate the full-primitive set is preferred over the ablated set.
-  Match level: \textit{exact} = symbolic equivalence verified;
-  \textit{class} = correct functional family confirmed; amplitude absorbs
-  unverifiable physical constants.}
-  \label{tab:results}
-  \centering
-  \resizebox{\columnwidth}{!}{%
-    \begin{tabular}{@{}llcccrcl@{}}
-    \toprule
-    \textbf{Scenario} & \textbf{Discovered structure} &
-    \textbf{Rank} & \textbf{NMSE} & \textbf{PC} &
-    \textbf{$\Delta$BIC} & \textbf{Match} & \textbf{Verdict} \\
-    \midrule
-    Screened Coulomb ($r\le4$~m) &
-      $\theta_0(e^{-r/\theta_4}-1)$ &
-      1 & $2.77\times10^{-4}$ & PASS & $30.65$ & exact & \textbf{IDENTIFIABLE} \\
-    Entropy Expansion ($dV/V_i\le1$) &
-      $\theta_0\ln(1+dV/V_i)$ &
-      1 & $1.59\times10^{-2}$ & PASS & $14.70$ & class & \textbf{IDENTIFIABLE} \\
-    Time Dilation ($v\le0.3c$) &
-      $\theta_0\frac{v^2/c^2}{\sqrt{1{-}v^2/c^2}(1{+}\sqrt{1{-}v^2/c^2})}$ &
-      1 & $0.41$ & FAIL & $13.79$ & class & \textbf{WITHHELD} \\
-    \bottomrule
-    \end{tabular}%
-  }
-\end{table}
-
-\paragraph{Screened Coulomb.}
-Recovered $\theta_0(e^{-r/\theta_4}-1)$ is an exact symbolic match to the
-ground truth $\theta_0(e^{-r/\lambda_D}-1)$, with $\theta_4\approx1.50$~m
-recovering the Debye length $\lambda_D=1.50$~m.
-Subscript $4$ (not $0$) is machine-verifiable evidence of automated discovery:
-the engine assigned this subscript by enumerating four charge-dimensional
-candidates before reaching the distance-ratio $r/\theta$, which was indexed
-as the fifth candidate ($\theta_4$).
-A manually supplied ratio would be pinned to subscript~$0$ by convention.
-$\Delta\mathrm{BIC}=30.65$ far exceeds the threshold of~10.
-
-\paragraph{Entropy Expansion.}
-Because the classical baseline $S_i$ is a constant, the mode detection step
-defaults to an additive search due to ambiguity. Thus, the recovered additive
-correction $\theta_0\ln(1+dV/V_i)$ matches the additive ground truth
-$nR\ln(1+dV/V_i)$ at class level: $\theta_0$ legitimately absorbs the additive
-amplitude $nR \approx 8.314$, rather than the multiplicative ratio $nR/S_i$.
-ADCD labels this \texttt{class\_only}---explicit epistemic qualification absent
-from unconstrained SR outputs.
-$\Delta\mathrm{BIC}=14.70>10$ supports IDENTIFIABLE.
-
-\paragraph{Time Dilation.}
-At $v\le0.3c$, the Lorentz correction $\gamma-1\approx4.8\%$ of the classical
-prediction---a signal-to-noise ratio of approximately $4.8\!:\!1$ against the
-$1\%$ noise floor, which is insufficient for reliable isolation.
-The grammar recovers the Lorentz structure $D_\mathrm{lor}(v^2/c^2)$ at
-Rank~1, but the positive control fails (NMSE$=0.41$): even with the
-search space restricted to \texttt{D\_lor} alone, the optimizer cannot
-isolate the $4.8\%$ correction from the $1\%$ noise.
-The system outputs WITHHELD.
-
-% ---------------------------------------------------------------
-\section{Discussion}
-% ---------------------------------------------------------------
-
-\textbf{WITHHELD is not failure.}
-A system that always returns a structural claim regardless of data sufficiency
-is epistemically weaker than one that formally distinguishes
-\emph{found and confirmed} (IDENTIFIABLE) from
-\emph{data insufficient for a structural claim} (WITHHELD).
-ADCD's WITHHELD verdict on Time Dilation is the system correctly locating
-its own identifiability boundary---a boundary that is quantitative and
-testable: a wider velocity window, better measurement precision, or more data
-points would push $\Delta\mathrm{BIC}$ above $10$ alongside a passing positive
-control, yielding IDENTIFIABLE.
-
-\textbf{Taxonomy as prior, not hint.}
-The taxonomy restricts \emph{which primitive family} is active;
-the Buckingham-$\pi$ engine and optimizer determine \emph{which variable}
-and \emph{which scale} within that family.
-This is by design: ADCD operates as a domain-guided framework
-(see Table~\ref{tab:comparison}, row ``Prior''), not a tabula-rasa search.
-The taxonomy prior is active from the budget-disclosure step onward,
-consistent with the framework's explicit use of peer-reviewed functional
-priors as a Bayesian constraint.
-The Screened Coulomb subscript $\theta_4$ is machine-verifiable evidence
-that the optimizer found the correct variable independently: subscript
-indices are assigned sequentially by the Buckingham-$\pi$ engine, not
-by any taxonomy entry.
-
-\textbf{Comparison with general SR.}
-ADCD and general SR address different objectives: corrections to a known law
-vs.\ full equation discovery from scratch.
-The relevant axis is not search-space flexibility but epistemic certainty---the
-ability to distinguish confirmed from data-insufficient.
-Table~\ref{tab:comparison} summarises the operational regimes.
-
-\begin{table}[ht]
-\small
-\caption{Operational comparison: ADCD vs.\ unconstrained symbolic regression.}
-\label{tab:comparison}
-\centering
-\begin{tabular}{@{}p{2.8cm}p{3.5cm}p{4.2cm}@{}}
-\toprule
-Property & ADCD & General SR \\
-\midrule
-Target & Corrections to known laws & Full equations from scratch \\
-Prior & Phenomenon-specific taxonomy & None (tabula rasa) \\
-Dimensional engine & 5D MLT$\Theta$Q & Varies (often 3D or none) \\
-Classical limit & Algebraic guarantee & Soft loss penalty \\
-Identifiability & Explicit; WITHHELD if insufficient & Absent or post-hoc \\
-Reproducibility & Byte-exact deterministic & Stochastic \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Limitations}
-\label{sec:limitations}
-
-\textbf{Weak-signal convergence.}
-Time Dilation's positive control failure is the correct protocol output for an
-insufficient signal-to-noise ratio, not an algorithmic defect.
-Future work should investigate adaptive restarts and denser initialization grids.
-
-\textbf{Scope.}
-Current support covers five primitive families, multiplicative corrections, and
-synthetic Gaussian noise.
-Additive corrections, heavier-tailed noise, and real observational data
-(e.g., galactic rotation curves, pulsar timing residuals) remain future work;
-real data require preprocessing for heteroscedastic uncertainties not yet modelled.
-
-\textbf{Taxonomy coverage.}
-Each new entry requires a peer-reviewed derivation for every admitted family---a
-deliberate constraint preventing unchecked hypothesis-space expansion.
-
-\textbf{Safety--expressivity trade-off.}
-ADCD constrains its hypothesis space relative to general-purpose SR: candidates
-failing dimensional consistency or outside the phenomenon-specific primitive set
-are rejected before fitting.
-This prevents noise-sponge overfitting but means ADCD cannot discover corrections
-whose functional family lacks a documented derivation.
-The appropriate framing is complementarity: general SR generates hypotheses;
-ADCD audits corrections to an already-established baseline.
-
-% ---------------------------------------------------------------
-\section{Conclusion}
-% ---------------------------------------------------------------
-
-ADCD is a deterministic, correction-first framework combining algebraically
-regularized primitives, a 5D (MLT$\Theta$Q) Buckingham-$\pi$ engine, and
-a Phenomenon-Specific Taxonomy.
-On three canonical scenarios, two yield IDENTIFIABLE results
-(Screened Coulomb: $\Delta\mathrm{BIC}=30.65$, exact match;
-Entropy Expansion: $\Delta\mathrm{BIC}=14.70$, class-level match)
-and one yields a principled WITHHELD verdict (Time Dilation at $v\le0.3c$),
-where the historical signal is insufficient for a confident structural claim.
-Within its deliberate scope---known classical baseline, multiplicative
-correction, Gaussian noise---ADCD provides stronger reproducibility and
-identifiability guarantees than general-purpose SR, and furnishes an explicit
-WITHHELD verdict (with associated $\Delta\mathrm{BIC}$) when those
-guarantees cannot be met.
-
-% ---------------------------------------------------------------
-\section*{Use of AI-Assisted Tools}
-% ---------------------------------------------------------------
-
-During the preparation of this work, the author used AI-assisted tools
-for software implementation, figure scripting, and manuscript drafting.
-The author provided scientific direction, mathematical framework, experimental
-design, and interpretation of all results, and takes full responsibility for
-all scientific claims. No AI tool is listed as an author.
-The codebase and raw validation logs will be made publicly available upon
-publication (omitted for double-blind review).
-
-% ---------------------------------------------------------------
-\section*{Data Availability}
-% ---------------------------------------------------------------
-
-All data used in this paper are synthetically generated from known physical
-formulas; generation code is included in the public repository.
-No proprietary or restricted datasets are used.
-
-% ---------------------------------------------------------------
-\bibliographystyle{unsrtnat}
-\bibliography{references}
-
-\end{document}
 

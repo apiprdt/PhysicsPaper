@@ -73,7 +73,8 @@ dimensional analysis; Bayesian prior; model selection; identifiability
 \section{Introduction}
 % ---------------------------------------------------------------
 
-Physical laws frequently take a correction-first form: a known classical baseline
+In the expanding landscape of machine learning for the physical sciences~\cite{carleo2019,wang2023},
+physical laws frequently take a correction-first form: a known classical baseline
 extended by a term that vanishes at the classical
 limit~\cite{einstein1905,debye1923,callen1985}.
 Recovering that correction from observational data is distinct from full equation
@@ -81,7 +82,7 @@ discovery: the baseline is fixed, only the residual must be identified, and that
 residual must vanish exactly where classical physics holds.
 
 General-purpose symbolic regression (SR) engines such as
-PySR~\cite{cranmer2023}, AI Feynman~\cite{udrescu2020}, and
+PySR~\cite{cranmer2020,cranmer2023}, AI Feynman~\cite{udrescu2020}, and
 PhySO~\cite{tenachi2023} excel at equation discovery from scratch but face
 three difficulties in the correction-first setting:
 (i)~\emph{catastrophic cancellation}: floating-point precision collapses as
@@ -90,7 +91,8 @@ $u\to0$, corrupting optimizer feedback~\cite{ieee754};
 byte-identical results across runs~\cite{bongard2007,schmidt2009}; and
 (iii)~\emph{silent overclaiming}: a single best-fit equation is returned
 regardless of whether the data carry sufficient power to distinguish competing
-structures~\cite{lacava2021}.
+structures~\cite{lacava2021}, generating what recent meta-science critiques identify
+as an illusion of understanding~\cite{messeri2024,krenn2022}.
 ADCD addresses each failure mode in turn: algebraically regularized primitives
 eliminate cancellation; deterministic grammar enumeration ensures reproducibility;
 explicit BIC-based identifiability gating prevents overclaiming.
@@ -99,7 +101,10 @@ explicit BIC-based identifiability gating prevents overclaiming.
 \section{Related Work}
 % ---------------------------------------------------------------
 
-General SR engines (Eureqa~\cite{schmidt2009}, PySR~\cite{cranmer2023},
+Automated scientific discovery traces back to pioneering heuristic systems such as
+BACON~\cite{langley1987} and has evolved toward modern autonomous equation
+discovery~\cite{kramer2026,makke2024,karagiorgi2022}.
+General SR engines (Eureqa~\cite{schmidt2009}, PySR~\cite{cranmer2020,cranmer2023},
 AI Feynman~\cite{udrescu2020,udrescu2020b}, PhySO~\cite{tenachi2023})
 target unconstrained equation recovery and do not enforce classical-limit
 constraints algebraically.
@@ -107,9 +112,12 @@ SINDy~\cite{brunton2016} shares our library-based approach but discovers
 governing equations rather than corrections.
 PINNs~\cite{raissi2019,karniadakis2021} embed physical laws as soft loss penalties;
 ADCD imposes them as hard algebraic identities before any numerical computation.
-AI-Descartes~\cite{cornelio2023} combines SR with axiomatic theory derivation,
-but does not address catastrophic cancellation or provide identifiability gating.
-While dimensional analysis has been integrated into SR~\cite{tenachi2023,petersen2021},
+Recent systems combining data with background knowledge and axiomatic reasoning,
+such as AI-Descartes~\cite{cornelio2023} and AI~Hilbert~\cite{corywright2024},
+highlight the importance of theory-grounded discovery, but do not address
+catastrophic cancellation near asymptotic limits or provide formal identifiability gating.
+While dimensional analysis and symmetry constraints have been integrated into
+SR and dynamical learning~\cite{tenachi2023,petersen2021,otto2025},
 ADCD extends this with a full five-dimensional (MLT$\Theta$Q) Buckingham-$\pi$ engine,
 transcendental argument safety, and BIC-based identifiability reporting
 in a single pre-fitting gate cascade.
