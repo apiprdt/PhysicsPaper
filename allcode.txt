@@ -115,26 +115,6 @@ print(sc.correction_expr)
 
 
 ================================================================================
-FILE: debug_gate_c.jl
-================================================================================
-using Pkg; Pkg.activate("ADCDEngine"); using JSON3, ADCDEngine, ADCDEngine.FilterCascade, ADCDEngine.ConstantFitter, ADCDEngine.CorrectionProposer
-data = JSON3.read(read("debug_data.json", String))
-y_cl = Float64.(data["y_cl"])
-y_obs = Float64.(data["y_obs"])
-vars_data = Dict("v" => Float64.(data["v"]), "c" => Float64.(data["c"]), "r" => Float64.(data["r"]))
-constants = Dict("c" => 3e8, "k_e" => 8.99e9)
-prop_config = ProposalConfig("lorentz_special_relativity", ["v", "c"], 3, true, true)
-proposals = propose_corrections(prop_config)
-for p in proposals
-    if p.primitives == [:D_lor]
-        println("Proposal: ", p.expr)
-        res = ConstantFitter.fit_constants(p.expr, y_cl, y_obs, vars_data, constants, p.n_params; n_restarts=1, rng_seed=0, correction_type="multiplicative")
-        println("NMSE: ", res.nmse, " Theta: ", res.theta)
-    end
-end
-
-
-================================================================================
 FILE: diagnose_td.py
 ================================================================================
 import sys
@@ -2822,23 +2802,8 @@ function _compute_delta_bic(
     sigma2_null = sum(resid_null .^ 2) / n
     ll_null = sigma2_null > 0 ? -0.5 * n * log(2 * pi * sigma2_null) - n / 2.0 : -Inf
 
-    bic_null = if config.groups !== nothing
-        n_eff = length(config.groups)
-        # Proper hierarchical likelihood using the effective sample size directly
-        ll_null_eff = sigma2_null > 0 ? -0.5 * n_eff * log(2 * pi * sigma2_null) - n_eff / 2.0 : -Inf
-        hierarchical_bic(n_eff, 0, ll_null_eff)
-    else
-        bic_score(n, 0, ll_null)
-    end
-
-    bic_corr = if config.groups !== nothing
-        n_eff = length(config.groups)
-        sigma2_corr = sum(fine.residuals .^ 2) / length(fine.residuals)
-        ll_corr_eff = sigma2_corr > 0 ? -0.5 * n_eff * log(2 * pi * sigma2_corr) - n_eff / 2.0 : -Inf
-        hierarchical_bic(n_eff, fine.n_params, ll_corr_eff)
-    else
-        bic_score(n, fine.n_params, fine.likelihood)
-    end
+    bic_null = bic_score(n, 0, ll_null)
+    bic_corr = bic_score(n, fine.n_params, fine.likelihood)
 
     return bic_null - bic_corr  # positive = correction is better
 end
@@ -2973,23 +2938,7 @@ function bic_score(n_points::Int, n_params::Int, log_likelihood::Float64)::Float
     log(n_points) * n_params - 2.0 * log_likelihood
 end
 
-"""
-    hierarchical_bic(groups, n_params, log_likelihood) -> Float64
 
-BIC corrected for hierarchical/grouped data (Bergmann et al. 2017).
-Uses n_groups as effective n instead of total n_points.
-
-This fixes the auditor-identified weakness where Python ADCD used
-n_points=2696 for SPARC instead of n_groups=147, making BIC
-artificially confident.
-"""
-function hierarchical_bic(
-    n_groups::Int,
-    n_params::Int,
-    log_likelihood::Float64
-)::Float64
-    log(n_groups) * n_params - 2.0 * log_likelihood
-end
 
 """
     identifiability_gate(fit_result, y_classical, y_obs;
@@ -3031,29 +2980,14 @@ function identifiability_gate(
     end
 
     # BIC for null model
-    if groups !== nothing
-        n_eff = length(groups)
-        # Proper hierarchical likelihood: recompute log-likelihood as if we only have n_eff samples
-        ll_null_eff = -0.5 * n_eff * log(2π * sigma2_classical) - n_eff/2.0
-        bic_null = hierarchical_bic(n_eff, 0, ll_null_eff)
-    else
-        ll_classical = -0.5 * n * log(2π * sigma2_classical) - n/2.0
-        bic_null = bic_score(n, 0, ll_classical)
-    end
+    ll_classical = -0.5 * n * log(2π * sigma2_classical) - n/2.0
+    bic_null = bic_score(n, 0, ll_classical)
 
     # BIC for correction model
     !fit_result.converged && return WITHHELD
     !isfinite(fit_result.likelihood) && return WITHHELD
 
-    if groups !== nothing
-        n_eff = length(groups)
-        # Proper hierarchical likelihood using the fit_result's residuals
-        sigma2_corr = mean(fit_result.residuals.^2)
-        ll_corr_eff = sigma2_corr > 0 ? -0.5 * n_eff * log(2π * sigma2_corr) - n_eff/2.0 : -Inf
-        bic_correction = hierarchical_bic(n_eff, fit_result.n_params, ll_corr_eff)
-    else
-        bic_correction = bic_score(n, fit_result.n_params, fit_result.likelihood)
-    end
+    bic_correction = bic_score(n, fit_result.n_params, fit_result.likelihood)
 
     delta_bic = bic_null - bic_correction  # positive = correction is better
 
@@ -6770,15 +6704,16 @@ def verify_name_invariance(headers: List[str]) -> bool:
         return ''.join(random.choices(string.ascii_lowercase, k=n))
 
     scrambled_headers = []
-    for i, (_, _, _, _, raw_token) in enumerate(originals):
-        if raw_token is None:
+    for (clean_var_name, _, _, _, raw_token), original_header in zip(originals, headers):
+        if raw_token is None or clean_var_name not in original_header:
             scrambled_headers.append(f"col_{_random_gibberish()}")
         else:
             # Hide the token behind a random variable name to test invariance
-            # e.g., if token is "km/s", name becomes "x{random}_km/s"
-            # This ensures the parser isn't just succeeding because the name
-            # is "token_{i}".
-            scrambled_headers.append(f"x{_random_gibberish()}_{raw_token}")
+            # Replace the clean var name with gibberish, leaving everything else
+            # (including brackets, underscores, and the raw unit token) intact.
+            gibberish = f"x{_random_gibberish()}"
+            scrambled = original_header.replace(clean_var_name, gibberish)
+            scrambled_headers.append(scrambled)
 
     scrambled = [UnitExtractor.parse_header(h, strict=False) for h in scrambled_headers]
 
@@ -8783,6 +8718,10 @@ class ADCDJuliaEngine:
             try:
                 cmd = ["julia", f"--project={_ADCD_ENGINE_PATH}", cli_script, cfg_path, dat_path, out_path]
                 subprocess.run(cmd, capture_output=True, text=True, check=True)
+            except subprocess.CalledProcessError as e:
+                print("Julia Engine Crash Stderr:", e.stderr)
+                raise
+            try:
                 with open(out_path, "r", encoding="utf-8") as f_res:
                     raw = json.load(f_res)
             finally:
@@ -8912,6 +8851,8 @@ def config_from_scenario(scenario: Any, threshold_cfg=None, X: dict = None) -> J
         n_restarts      = int(getattr(scenario, "n_restarts", 15)),
         max_proposals   = 500,
         groups          = groups,
+        correction_type = getattr(scenario, "correction_type", "multiplicative"),
+        classical_limit_direction = getattr(scenario, "classical_limit_direction", "0"),
     )
 
 
@@ -11096,7 +11037,7 @@ def _run_search(
         data = JuliaEngineData(
             y_classical=y_classical,
             y_obs=y_obs,
-            vars=X,
+            vars={k: X[k] for k in scenario.classical_variables},
         )
         engine_jl = ADCDJuliaEngine()
         result = engine_jl.run(config, data)

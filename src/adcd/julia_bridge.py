@@ -271,6 +271,10 @@ class ADCDJuliaEngine:
             try:
                 cmd = ["julia", f"--project={_ADCD_ENGINE_PATH}", cli_script, cfg_path, dat_path, out_path]
                 subprocess.run(cmd, capture_output=True, text=True, check=True)
+            except subprocess.CalledProcessError as e:
+                print("Julia Engine Crash Stderr:", e.stderr)
+                raise
+            try:
                 with open(out_path, "r", encoding="utf-8") as f_res:
                     raw = json.load(f_res)
             finally:
@@ -400,6 +404,8 @@ def config_from_scenario(scenario: Any, threshold_cfg=None, X: dict = None) -> J
         n_restarts      = int(getattr(scenario, "n_restarts", 15)),
         max_proposals   = 500,
         groups          = groups,
+        correction_type = getattr(scenario, "correction_type", "multiplicative"),
+        classical_limit_direction = getattr(scenario, "classical_limit_direction", "0"),
     )
 
 

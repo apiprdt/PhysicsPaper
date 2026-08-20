@@ -269,7 +269,7 @@ def _run_search(
         data = JuliaEngineData(
             y_classical=y_classical,
             y_obs=y_obs,
-            vars=X,
+            vars={k: X[k] for k in scenario.classical_variables},
         )
         engine_jl = ADCDJuliaEngine()
         result = engine_jl.run(config, data)

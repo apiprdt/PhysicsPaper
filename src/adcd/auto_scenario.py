@@ -330,15 +330,16 @@ def verify_name_invariance(headers: List[str]) -> bool:
         return ''.join(random.choices(string.ascii_lowercase, k=n))
 
     scrambled_headers = []
-    for i, (_, _, _, _, raw_token) in enumerate(originals):
-        if raw_token is None:
+    for (clean_var_name, _, _, _, raw_token), original_header in zip(originals, headers):
+        if raw_token is None or clean_var_name not in original_header:
             scrambled_headers.append(f"col_{_random_gibberish()}")
         else:
             # Hide the token behind a random variable name to test invariance
-            # e.g., if token is "km/s", name becomes "x{random}_km/s"
-            # This ensures the parser isn't just succeeding because the name
-            # is "token_{i}".
-            scrambled_headers.append(f"x{_random_gibberish()}_{raw_token}")
+            # Replace the clean var name with gibberish, leaving everything else
+            # (including brackets, underscores, and the raw unit token) intact.
+            gibberish = f"x{_random_gibberish()}"
+            scrambled = original_header.replace(clean_var_name, gibberish)
+            scrambled_headers.append(scrambled)
 
     scrambled = [UnitExtractor.parse_header(h, strict=False) for h in scrambled_headers]
 

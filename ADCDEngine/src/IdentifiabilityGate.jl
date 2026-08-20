@@ -11,23 +11,7 @@ function bic_score(n_points::Int, n_params::Int, log_likelihood::Float64)::Float
     log(n_points) * n_params - 2.0 * log_likelihood
 end
 
-"""
-    hierarchical_bic(groups, n_params, log_likelihood) -> Float64
 
-BIC corrected for hierarchical/grouped data (Bergmann et al. 2017).
-Uses n_groups as effective n instead of total n_points.
-
-This fixes the auditor-identified weakness where Python ADCD used
-n_points=2696 for SPARC instead of n_groups=147, making BIC
-artificially confident.
-"""
-function hierarchical_bic(
-    n_groups::Int,
-    n_params::Int,
-    log_likelihood::Float64
-)::Float64
-    log(n_groups) * n_params - 2.0 * log_likelihood
-end
 
 """
     identifiability_gate(fit_result, y_classical, y_obs;
@@ -69,29 +53,14 @@ function identifiability_gate(
     end
 
     # BIC for null model
-    if groups !== nothing
-        n_eff = length(groups)
-        # Proper hierarchical likelihood: recompute log-likelihood as if we only have n_eff samples
-        ll_null_eff = -0.5 * n_eff * log(2π * sigma2_classical) - n_eff/2.0
-        bic_null = hierarchical_bic(n_eff, 0, ll_null_eff)
-    else
-        ll_classical = -0.5 * n * log(2π * sigma2_classical) - n/2.0
-        bic_null = bic_score(n, 0, ll_classical)
-    end
+    ll_classical = -0.5 * n * log(2π * sigma2_classical) - n/2.0
+    bic_null = bic_score(n, 0, ll_classical)
 
     # BIC for correction model
     !fit_result.converged && return WITHHELD
     !isfinite(fit_result.likelihood) && return WITHHELD
 
-    if groups !== nothing
-        n_eff = length(groups)
-        # Proper hierarchical likelihood using the fit_result's residuals
-        sigma2_corr = mean(fit_result.residuals.^2)
-        ll_corr_eff = sigma2_corr > 0 ? -0.5 * n_eff * log(2π * sigma2_corr) - n_eff/2.0 : -Inf
-        bic_correction = hierarchical_bic(n_eff, fit_result.n_params, ll_corr_eff)
-    else
-        bic_correction = bic_score(n, fit_result.n_params, fit_result.likelihood)
-    end
+    bic_correction = bic_score(n, fit_result.n_params, fit_result.likelihood)
 
     delta_bic = bic_null - bic_correction  # positive = correction is better
 

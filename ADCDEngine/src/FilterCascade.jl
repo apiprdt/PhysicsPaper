@@ -155,23 +155,8 @@ function _compute_delta_bic(
     sigma2_null = sum(resid_null .^ 2) / n
     ll_null = sigma2_null > 0 ? -0.5 * n * log(2 * pi * sigma2_null) - n / 2.0 : -Inf
 
-    bic_null = if config.groups !== nothing
-        n_eff = length(config.groups)
-        # Proper hierarchical likelihood using the effective sample size directly
-        ll_null_eff = sigma2_null > 0 ? -0.5 * n_eff * log(2 * pi * sigma2_null) - n_eff / 2.0 : -Inf
-        hierarchical_bic(n_eff, 0, ll_null_eff)
-    else
-        bic_score(n, 0, ll_null)
-    end
-
-    bic_corr = if config.groups !== nothing
-        n_eff = length(config.groups)
-        sigma2_corr = sum(fine.residuals .^ 2) / length(fine.residuals)
-        ll_corr_eff = sigma2_corr > 0 ? -0.5 * n_eff * log(2 * pi * sigma2_corr) - n_eff / 2.0 : -Inf
-        hierarchical_bic(n_eff, fine.n_params, ll_corr_eff)
-    else
-        bic_score(n, fine.n_params, fine.likelihood)
-    end
+    bic_null = bic_score(n, 0, ll_null)
+    bic_corr = bic_score(n, fine.n_params, fine.likelihood)
 
     return bic_null - bic_corr  # positive = correction is better
 end
