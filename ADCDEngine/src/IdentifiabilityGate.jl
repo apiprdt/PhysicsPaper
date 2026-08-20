@@ -44,7 +44,7 @@ function identifiability_gate(
     if correction_type == "additive"
         resid_classical = y_obs .- y_classical
     else
-        resid_classical = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+        resid_classical = (y_obs .- y_classical) ./ (y_classical .+ 1e-15)
     end
     
     sigma2_classical = mean(resid_classical.^2)

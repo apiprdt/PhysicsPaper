@@ -60,7 +60,7 @@ function evaluate_expr(
             for a in args[2:end]; result = result .* _eval(a); end
             return result
         end
-        if op == "div";  return _eval(args[1]) ./ (_eval(args[2]) .+ 1e-300); end
+        if op == "div";  return _eval(args[1]) ./ (_eval(args[2]) .+ 1e-15); end
         if op == "pow"
             base = _eval(args[1])
             exp_v = _eval(args[2])
@@ -69,7 +69,7 @@ function evaluate_expr(
         if op == "neg";  return -_eval(args[1]); end
         if op == "sqrt"; return sqrt.(max.(_eval(args[1]), 0.0)); end
         if op == "exp";  return exp.(clamp.(_eval(args[1]), -700.0, 700.0)); end
-        if op == "log";  return log.(max.(_eval(args[1]), 1e-300)); end
+        if op == "log";  return log.(max.(_eval(args[1]), 1e-15)); end
         if op == "sin";  return sin.(_eval(args[1])); end
         if op == "cos";  return cos.(_eval(args[1])); end
         if op == "tan";  return tan.(_eval(args[1])); end
@@ -137,10 +137,10 @@ function fit_constants(
             if correction_type == "additive"
                 resid_obs = y_obs .- y_classical
             else
-                resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+                resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-15)
             end
             delta_residuals = resid_obs .- delta
-            nmse_val = mean(delta_residuals.^2) / (var(resid_obs) + 1e-300)
+            nmse_val = mean(delta_residuals.^2) / (var(resid_obs) + 1e-15)
             return delta_residuals, nmse_val
         end
 
@@ -167,7 +167,7 @@ function fit_constants(
             if correction_type == "additive"
                 resid_obs = y_obs .- y_classical
             else
-                resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+                resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-15)
             end
             delta_residuals = resid_obs .- delta
             
@@ -180,7 +180,7 @@ function fit_constants(
                 y_pred = make_pred(delta)
                 return mean(((y_obs .- y_pred) ./ sigma_y).^2)
             else
-                return mean(delta_residuals.^2) / (var(resid_obs) + 1e-300)
+                return mean(delta_residuals.^2) / (var(resid_obs) + 1e-15)
             end
         catch
             return 1e10
@@ -230,7 +230,7 @@ function fit_constants(
         if correction_type == "additive"
             resid_obs = y_obs .- y_classical
         else
-            resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+            resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-15)
         end
         delta_residuals = resid_obs .- delta
         

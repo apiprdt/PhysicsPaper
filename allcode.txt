@@ -2118,7 +2118,7 @@ function evaluate_expr(
             for a in args[2:end]; result = result .* _eval(a); end
             return result
         end
-        if op == "div";  return _eval(args[1]) ./ (_eval(args[2]) .+ 1e-300); end
+        if op == "div";  return _eval(args[1]) ./ (_eval(args[2]) .+ 1e-15); end
         if op == "pow"
             base = _eval(args[1])
             exp_v = _eval(args[2])
@@ -2127,7 +2127,7 @@ function evaluate_expr(
         if op == "neg";  return -_eval(args[1]); end
         if op == "sqrt"; return sqrt.(max.(_eval(args[1]), 0.0)); end
         if op == "exp";  return exp.(clamp.(_eval(args[1]), -700.0, 700.0)); end
-        if op == "log";  return log.(max.(_eval(args[1]), 1e-300)); end
+        if op == "log";  return log.(max.(_eval(args[1]), 1e-15)); end
         if op == "sin";  return sin.(_eval(args[1])); end
         if op == "cos";  return cos.(_eval(args[1])); end
         if op == "tan";  return tan.(_eval(args[1])); end
@@ -2195,10 +2195,10 @@ function fit_constants(
             if correction_type == "additive"
                 resid_obs = y_obs .- y_classical
             else
-                resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+                resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-15)
             end
             delta_residuals = resid_obs .- delta
-            nmse_val = mean(delta_residuals.^2) / (var(resid_obs) + 1e-300)
+            nmse_val = mean(delta_residuals.^2) / (var(resid_obs) + 1e-15)
             return delta_residuals, nmse_val
         end
 
@@ -2225,7 +2225,7 @@ function fit_constants(
             if correction_type == "additive"
                 resid_obs = y_obs .- y_classical
             else
-                resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+                resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-15)
             end
             delta_residuals = resid_obs .- delta
             
@@ -2238,7 +2238,7 @@ function fit_constants(
                 y_pred = make_pred(delta)
                 return mean(((y_obs .- y_pred) ./ sigma_y).^2)
             else
-                return mean(delta_residuals.^2) / (var(resid_obs) + 1e-300)
+                return mean(delta_residuals.^2) / (var(resid_obs) + 1e-15)
             end
         catch
             return 1e10
@@ -2288,7 +2288,7 @@ function fit_constants(
         if correction_type == "additive"
             resid_obs = y_obs .- y_classical
         else
-            resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+            resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-15)
         end
         delta_residuals = resid_obs .- delta
         
@@ -2796,7 +2796,7 @@ function _compute_delta_bic(
     if config.correction_type == "additive"
         resid_null = y_obs .- y_classical
     else
-        resid_null = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+        resid_null = (y_obs .- y_classical) ./ (y_classical .+ 1e-15)
     end
     
     sigma2_null = sum(resid_null .^ 2) / n
@@ -2971,7 +2971,7 @@ function identifiability_gate(
     if correction_type == "additive"
         resid_classical = y_obs .- y_classical
     else
-        resid_classical = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+        resid_classical = (y_obs .- y_classical) ./ (y_classical .+ 1e-15)
     end
     
     sigma2_classical = mean(resid_classical.^2)
@@ -6076,9 +6076,9 @@ _RAW_FORMS: Dict[str, sp.Expr] = {
     "D_lor": 1 / sp.sqrt(1 - _u),        # Lorentz-like (relativity, GR)
     "D_rat": 1 / (1 - _u),                # simple pole (screening, RC circuits)
     "D_exp": sp.exp(-_u),                 # exponential decay (Yukawa, Debye)
-    "D_log": sp.log(1 + _u),              # logarithmic (entropy, QED running)
-    "D_sqrt_inv": sp.sqrt(_u) / (1 + sp.sqrt(_u)),    # inverse-sqrt growth (MOND-like)
-    "D_pow": sp.sqrt(_u) * (1 - sp.exp(-_u)),         # anomalous diffusion power law
+    "D_log": sp.log(1 + sp.Abs(_u)),              # logarithmic (entropy, QED running)
+    "D_sqrt_inv": sp.sqrt(sp.Abs(_u)) / (1 + sp.sqrt(sp.Abs(_u))),    # inverse-sqrt growth (MOND-like)
+    "D_pow": sp.sqrt(sp.Abs(_u)) * (1 - sp.exp(-sp.Abs(_u))),         # anomalous diffusion power law
     "D_osc": 1 - sp.cos(_u),              # oscillatory (waves, optics, AC circuits)
     "D_sat": sp.tanh(_u),                 # saturation (magnetism, sigmoid transitions)
 }
@@ -6156,9 +6156,9 @@ PRIMITIVE_REGISTRY: Dict[str, Primitive] = {
     "D_log": Primitive(
         name="D_log",
         token_cost=5,
-        numpy_form=lambda u: np.log1p(np.clip(u, -0.999, None)) - 0.0,  # log1p(0)=0 already
-        string_template="log(1.0 + {u})",  # already 0 at u=0, no extra "-1" needed
-        domain_note="u > -1; already regularized (log(1+0)=0) without subtraction.",
+        numpy_form=lambda u: np.log1p(np.abs(u)),
+        string_template="log(1.0 + Abs({u}))",
+        domain_note="all u; already regularized (log(1+0)=0) without subtraction.",
     ),
     "D_sqrt_inv": Primitive(
         name="D_sqrt_inv",
@@ -6200,7 +6200,7 @@ PRIMITIVE_REGISTRY: Dict[str, Primitive] = {
         token_cost=7,
         # u is regularized internally by Julia, here we just do a safe python limit
         numpy_form=lambda u: np.exp(-np.sqrt(np.abs(u) + 1e-15)) / np.maximum(1.0 - np.exp(-np.sqrt(np.abs(u) + 1e-15)), 1e-12),
-        string_template="(exp(-sqrt(Abs({u}))) / (1.0 - exp(-sqrt(Abs({u})))))",
+        string_template="(exp(-sqrt(Abs({u}) + 1e-15)) / Max(1.0 - exp(-sqrt(Abs({u}) + 1e-15)), 1e-12))",
         domain_note="u >= 0; Exact McGaugh-Lelli-Schombert (2016) RAR. Diverges at 0.",
     ),
 }

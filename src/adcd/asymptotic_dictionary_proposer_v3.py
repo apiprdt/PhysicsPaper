@@ -23,9 +23,9 @@ _RAW_FORMS: Dict[str, sp.Expr] = {
     "D_lor": 1 / sp.sqrt(1 - _u),        # Lorentz-like (relativity, GR)
     "D_rat": 1 / (1 - _u),                # simple pole (screening, RC circuits)
     "D_exp": sp.exp(-_u),                 # exponential decay (Yukawa, Debye)
-    "D_log": sp.log(1 + _u),              # logarithmic (entropy, QED running)
-    "D_sqrt_inv": sp.sqrt(_u) / (1 + sp.sqrt(_u)),    # inverse-sqrt growth (MOND-like)
-    "D_pow": sp.sqrt(_u) * (1 - sp.exp(-_u)),         # anomalous diffusion power law
+    "D_log": sp.log(1 + sp.Abs(_u)),              # logarithmic (entropy, QED running)
+    "D_sqrt_inv": sp.sqrt(sp.Abs(_u)) / (1 + sp.sqrt(sp.Abs(_u))),    # inverse-sqrt growth (MOND-like)
+    "D_pow": sp.sqrt(sp.Abs(_u)) * (1 - sp.exp(-sp.Abs(_u))),         # anomalous diffusion power law
     "D_osc": 1 - sp.cos(_u),              # oscillatory (waves, optics, AC circuits)
     "D_sat": sp.tanh(_u),                 # saturation (magnetism, sigmoid transitions)
 }
@@ -103,9 +103,9 @@ PRIMITIVE_REGISTRY: Dict[str, Primitive] = {
     "D_log": Primitive(
         name="D_log",
         token_cost=5,
-        numpy_form=lambda u: np.log1p(np.clip(u, -0.999, None)) - 0.0,  # log1p(0)=0 already
-        string_template="log(1.0 + {u})",  # already 0 at u=0, no extra "-1" needed
-        domain_note="u > -1; already regularized (log(1+0)=0) without subtraction.",
+        numpy_form=lambda u: np.log1p(np.abs(u)),
+        string_template="log(1.0 + Abs({u}))",
+        domain_note="all u; already regularized (log(1+0)=0) without subtraction.",
     ),
     "D_sqrt_inv": Primitive(
         name="D_sqrt_inv",
@@ -147,7 +147,7 @@ PRIMITIVE_REGISTRY: Dict[str, Primitive] = {
         token_cost=7,
         # u is regularized internally by Julia, here we just do a safe python limit
         numpy_form=lambda u: np.exp(-np.sqrt(np.abs(u) + 1e-15)) / np.maximum(1.0 - np.exp(-np.sqrt(np.abs(u) + 1e-15)), 1e-12),
-        string_template="(exp(-sqrt(Abs({u}))) / (1.0 - exp(-sqrt(Abs({u})))))",
+        string_template="(exp(-sqrt(Abs({u}) + 1e-15)) / Max(1.0 - exp(-sqrt(Abs({u}) + 1e-15)), 1e-12))",
         domain_note="u >= 0; Exact McGaugh-Lelli-Schombert (2016) RAR. Diverges at 0.",
     ),
 }

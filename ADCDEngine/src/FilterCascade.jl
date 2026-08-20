@@ -149,7 +149,7 @@ function _compute_delta_bic(
     if config.correction_type == "additive"
         resid_null = y_obs .- y_classical
     else
-        resid_null = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+        resid_null = (y_obs .- y_classical) ./ (y_classical .+ 1e-15)
     end
     
     sigma2_null = sum(resid_null .^ 2) / n
