@@ -290,3 +290,39 @@ def load_all_real_data() -> Dict[str, Tuple[Dict[str, np.ndarray], np.ndarray, n
         "Real: Muon g-2": load_muon_g2(),
         "Real: Binary Pulsar Decay": load_binary_pulsar_decay(),
     }
+import os
+def load_sparc_rar(seed: int = 42) -> Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Load SPARC dataset with galaxy ID grouping.
+    NOTE: RAR.mrt does not contain Galaxy IDs. We load from MassModels_Lelli2016c.mrt
+    and re-calculate gbar and gobs assuming standard M/L ratios (0.5 for disk, 0.7 for bulge).
+    """
+    filepath = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'sparc', 'MassModels_Lelli2016c.mrt')
+    
+    # Read galaxy names (column 1)
+    names = np.genfromtxt(filepath, skip_header=25, usecols=(0,), dtype=str)
+    
+    # Read numeric data
+    # 2: R (kpc), 3: Vobs (km/s), 5: Vgas, 6: Vdisk, 7: Vbul
+    data = np.loadtxt(filepath, skiprows=25, usecols=(2, 3, 5, 6, 7))
+    
+    R = data[:, 0] * 3.086e19  # kpc to m
+    Vobs = data[:, 1] * 1000   # km/s to m/s
+    Vgas = data[:, 2] * 1000
+    Vdisk = data[:, 3] * 1000 * np.sqrt(0.5) # M/L = 0.5
+    Vbul = data[:, 4] * 1000 * np.sqrt(0.7)  # M/L = 0.7
+    
+    gobs = Vobs**2 / R
+    gbar = (Vgas * np.abs(Vgas) + Vdisk * np.abs(Vdisk) + Vbul * np.abs(Vbul)) / R
+    
+    # Filter valid points
+    valid = (gbar > 0) & (gobs > 0)
+    gbar = gbar[valid]
+    gobs = gobs[valid]
+    galaxy_ids = names[valid]
+    
+    X = {"g_bar": gbar, "galaxy_id": galaxy_ids}
+    y_classical = gbar
+    y_obs = gobs
+    residual = y_obs / y_classical - 1.0
+    return X, y_obs, y_classical, residual

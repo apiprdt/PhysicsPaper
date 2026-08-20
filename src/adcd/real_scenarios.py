@@ -12,6 +12,7 @@ from adcd.real_data_loader import (
     load_muon_g2,
     load_binary_pulsar_decay,
     binary_pulsar_prefactor,
+    load_sparc_rar,
 )
 
 # Map scenario name → loader function
@@ -21,6 +22,7 @@ _LOADERS = {
     "Real: Blackbody Radiation": load_blackbody_radiation,
     "Real: Muon g-2":            load_muon_g2,
     "Real: Binary Pulsar Decay": load_binary_pulsar_decay,
+    "Real: SPARC RAR":           load_sparc_rar,
 }
 
 
@@ -146,5 +148,23 @@ def get_real_scenarios():
             classical_limit_variable="P",
             classical_limit_direction="oo",
             correction_class="power_law",
+        ),
+
+        # R6: SPARC Radial Acceleration Relation (MOND)
+        RealAnomalyScenario(
+            name="Real: SPARC RAR",
+            tier="real_data",
+            domain="mond_radial_acceleration",
+            classical_expr="g_bar",
+            classical_variables=["g_bar"],
+            classical_constants={"a0": 1.2e-10}, # 1.2e-10 m/s^2
+            correction_type="multiplicative",
+            correction_expr="D_rar(g_bar/a0)",
+            correction_constants={},
+            anomaly_regime="low acceleration g_bar < a0",
+            variables_with_units={"g_bar": "m_s2"},
+            classical_limit_variable="g_bar",
+            classical_limit_direction="oo",
+            correction_class="other",
         ),
     ]

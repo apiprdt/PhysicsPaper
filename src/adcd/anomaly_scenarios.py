@@ -28,6 +28,7 @@ class AnomalyScenario:
     
     # Structural classification (for evaluation)
     correction_class: str             # "exponential" | "power_law" | "rational" | "trigonometric" | "polynomial" | "logarithmic"
+    engine: str = "python"            # "python" or "julia"
 
     def generate_data(self, n_points: int = 200, noise_level: float = 0.0, seed: int = 42, domain_max: float = None) -> Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
         """

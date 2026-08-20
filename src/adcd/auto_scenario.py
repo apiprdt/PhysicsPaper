@@ -360,6 +360,7 @@ class AutoCSVScenario(AnomalyScenario):
         anomaly_regime: str = "observational_data",
         strict_units: bool = True,
         trusted_bare_suffixes: Optional[Set[str]] = None,
+        engine: str = "python",
     ):
         # `domain` is now REQUIRED (no silent default) and validated (fix:
         # the same silent-taxonomy-bypass class of bug found in the
@@ -436,6 +437,7 @@ class AutoCSVScenario(AnomalyScenario):
             classical_limit_variable=classical_limit_variable,
             classical_limit_direction=classical_limit_direction,
             correction_class=correction_class,
+            engine=engine,
         )
 
     def generate_data(
@@ -484,6 +486,7 @@ def build_scenario_from_csv(
     classical_limit_direction: str = "0",
     strict_units: bool = True,
     trusted_bare_suffixes: Optional[Set[str]] = None,
+    engine: str = "python",
 ) -> AutoCSVScenario:
     """Factory function to construct an AutoCSVScenario from a raw CSV file.
 
@@ -496,6 +499,9 @@ def build_scenario_from_csv(
     unit suffixes (e.g. {"m", "s"}) for datasets whose naming convention you
     already know is unambiguous. Leave unset to require bracket notation
     for anything short/ambiguous -- the safer default.
+
+    `engine`: "python" (default, legacy JAX + SymPy pipeline) or "julia"
+    (new ADCDEngine.jl with expanded 6-pattern grammar, no JAX recompilation).
     """
     return AutoCSVScenario(
         name=scenario_name,
@@ -508,4 +514,5 @@ def build_scenario_from_csv(
         classical_limit_direction=classical_limit_direction,
         strict_units=strict_units,
         trusted_bare_suffixes=trusted_bare_suffixes,
+        engine=engine,
     )
