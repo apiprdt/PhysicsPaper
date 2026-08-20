@@ -135,6 +135,21 @@ PRIMITIVE_REGISTRY: Dict[str, Primitive] = {
         string_template="tanh({u})",
         domain_note="all u; saturation and phase transitions. tanh(0) = 0.",
     ),
+    "D_nested_mond": Primitive(
+        name="D_nested_mond",
+        token_cost=7,
+        numpy_form=lambda u: np.exp(-np.sqrt(np.abs(u))) * (1.0 - np.exp(-np.sqrt(np.abs(u)))),
+        string_template="(exp(-sqrt(Abs({u}))) * (1.0 - exp(-sqrt(Abs({u})))))",
+        domain_note="u >= 0; bell-shaped anomaly peaking at intermediate u.",
+    ),
+    "D_rar": Primitive(
+        name="D_rar",
+        token_cost=7,
+        # u is regularized internally by Julia, here we just do a safe python limit
+        numpy_form=lambda u: np.exp(-np.sqrt(np.abs(u) + 1e-15)) / np.maximum(1.0 - np.exp(-np.sqrt(np.abs(u) + 1e-15)), 1e-12),
+        string_template="(exp(-sqrt(Abs({u}))) / (1.0 - exp(-sqrt(Abs({u})))))",
+        domain_note="u >= 0; Exact McGaugh-Lelli-Schombert (2016) RAR. Diverges at 0.",
+    ),
 }
 
 

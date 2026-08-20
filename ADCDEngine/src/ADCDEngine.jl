@@ -41,6 +41,7 @@ function run_adcd(config_json::String, data_json::String)::String
         get(config_dict, "groups", nothing) === nothing ? nothing : [Vector{Int}(g) for g in config_dict["groups"]],
         Int(get(config_dict, "max_proposals", 500)),
         String(get(config_dict, "correction_type", "multiplicative")),  # Bug #2 fix
+        String(get(config_dict, "classical_limit_direction", "0")),
     )
 
     # FIX (Deep Audit): parse excluded_primitives so positive_control and

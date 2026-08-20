@@ -38,14 +38,15 @@ struct RunConfig
     groups          ::Union{Vector{Vector{Int}},Nothing}
     max_proposals   ::Int
     correction_type ::String   # "multiplicative" or "additive"
+    classical_limit_direction ::String # "0" or "oo"
 end
 
-# Backward-compat constructor: default to "multiplicative"
+# Backward-compat constructor: default to "multiplicative" and "0"
 RunConfig(domain, target_dim, input_vars, known_constants, bic_threshold,
           nmse_coarse, nmse_fine, n_restarts, groups, max_proposals) =
     RunConfig(domain, target_dim, input_vars, known_constants, bic_threshold,
               nmse_coarse, nmse_fine, n_restarts, groups, max_proposals,
-              "multiplicative")
+              "multiplicative", "0")
 
 struct ADCDResult
     proposal  ::CorrectionProposal
@@ -64,42 +65,30 @@ function gate_a_dimensional(proposal::CorrectionProposal, target_dim::String)::B
 end
 
 function gate_b_asymptotic(
-    proposal    ::CorrectionProposal,
-    vars_data   ::Dict{String,Vector{Float64}},
-    constants   ::Dict{String,Float64}
+    proposal        ::CorrectionProposal,
+    vars_data       ::Dict{String,Vector{Float64}},
+    constants       ::Dict{String,Float64},
+    limit_direction ::String
 )::Bool
-    # For divergent-safe primitives (e.g. D_rar), D(0) -> inf is physically correct.
-    # The asymptotic limit D(u -> inf) -> 0 is still required.
-    if any(p -> p in (:D_rar,), proposal.primitives)
-        large_u_vars = Dict{String,Vector{Float64}}()
-        for k in keys(vars_data)
-            if haskey(constants, k)
-                large_u_vars[k] = fill(constants[k], length(first(values(vars_data))))
-            else
-                large_u_vars[k] = fill(1e12, length(first(values(vars_data))))
-            end
-        end
-        try
-            y_inf = evaluate_expr(proposal.expr, large_u_vars, constants, ones(proposal.n_params))
-            return all(abs.(y_inf) .< 1e-3)
-        catch
-            return false
-        end
-    end
+    # Bug #1 Fix (Audit): Remove hardcoded check for D_rar.
+    # Instead, use the classical_limit_direction provided by the scenario config.
+    is_inf = limit_direction == "oo"
+    
+    test_val = is_inf ? 1e12 : 1e-12
+    threshold = is_inf ? 1e-3 : 1e-6
 
-    # Standard D(0)=0 check: set all variable arguments to near-zero.
-    # D(0) = 0 is the asymptotic safety requirement (Patent Claim #3).
-    near_zero_vars = Dict{String,Vector{Float64}}()
+    test_vars = Dict{String,Vector{Float64}}()
     for k in keys(vars_data)
         if haskey(constants, k)
-            near_zero_vars[k] = fill(constants[k], length(first(values(vars_data))))
+            test_vars[k] = fill(constants[k], length(first(values(vars_data))))
         else
-            near_zero_vars[k] = fill(1e-12, length(first(values(vars_data))))
+            test_vars[k] = fill(test_val, length(first(values(vars_data))))
         end
     end
+    
     try
-        y = evaluate_expr(proposal.expr, near_zero_vars, constants, ones(proposal.n_params))
-        return all(abs.(y) .< 1e-6)
+        y = evaluate_expr(proposal.expr, test_vars, constants, ones(proposal.n_params))
+        return all(abs.(y) .< threshold)
     catch
         return false
     end
@@ -205,7 +194,7 @@ function run_filter_cascade(
     stats.n_pass_gate_a = 1
 
     # Gate B: Asymptotic safety (microseconds)
-    gate_b_asymptotic(proposal, vars_data, config.known_constants) || return (nothing, stats)
+    gate_b_asymptotic(proposal, vars_data, config.known_constants, config.classical_limit_direction) || return (nothing, stats)
     stats.n_pass_gate_b = 1
 
     # Gate C: Coarse (fast, ~10ms)

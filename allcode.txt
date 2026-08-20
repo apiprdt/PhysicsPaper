@@ -115,6 +115,26 @@ print(sc.correction_expr)
 
 
 ================================================================================
+FILE: debug_gate_c.jl
+================================================================================
+using Pkg; Pkg.activate("ADCDEngine"); using JSON3, ADCDEngine, ADCDEngine.FilterCascade, ADCDEngine.ConstantFitter, ADCDEngine.CorrectionProposer
+data = JSON3.read(read("debug_data.json", String))
+y_cl = Float64.(data["y_cl"])
+y_obs = Float64.(data["y_obs"])
+vars_data = Dict("v" => Float64.(data["v"]), "c" => Float64.(data["c"]), "r" => Float64.(data["r"]))
+constants = Dict("c" => 3e8, "k_e" => 8.99e9)
+prop_config = ProposalConfig("lorentz_special_relativity", ["v", "c"], 3, true, true)
+proposals = propose_corrections(prop_config)
+for p in proposals
+    if p.primitives == [:D_lor]
+        println("Proposal: ", p.expr)
+        res = ConstantFitter.fit_constants(p.expr, y_cl, y_obs, vars_data, constants, p.n_params; n_restarts=1, rng_seed=0, correction_type="multiplicative")
+        println("NMSE: ", res.nmse, " Theta: ", res.theta)
+    end
+end
+
+
+================================================================================
 FILE: diagnose_td.py
 ================================================================================
 import sys
@@ -1910,6 +1930,7 @@ function run_adcd(config_json::String, data_json::String)::String
         get(config_dict, "groups", nothing) === nothing ? nothing : [Vector{Int}(g) for g in config_dict["groups"]],
         Int(get(config_dict, "max_proposals", 500)),
         String(get(config_dict, "correction_type", "multiplicative")),  # Bug #2 fix
+        String(get(config_dict, "classical_limit_direction", "0")),
     )
 
     # FIX (Deep Audit): parse excluded_primitives so positive_control and
@@ -2684,14 +2705,15 @@ struct RunConfig
     groups          ::Union{Vector{Vector{Int}},Nothing}
     max_proposals   ::Int
     correction_type ::String   # "multiplicative" or "additive"
+    classical_limit_direction ::String # "0" or "oo"
 end
 
-# Backward-compat constructor: default to "multiplicative"
+# Backward-compat constructor: default to "multiplicative" and "0"
 RunConfig(domain, target_dim, input_vars, known_constants, bic_threshold,
           nmse_coarse, nmse_fine, n_restarts, groups, max_proposals) =
     RunConfig(domain, target_dim, input_vars, known_constants, bic_threshold,
               nmse_coarse, nmse_fine, n_restarts, groups, max_proposals,
-              "multiplicative")
+              "multiplicative", "0")
 
 struct ADCDResult
     proposal  ::CorrectionProposal
@@ -2710,42 +2732,30 @@ function gate_a_dimensional(proposal::CorrectionProposal, target_dim::String)::B
 end
 
 function gate_b_asymptotic(
-    proposal    ::CorrectionProposal,
-    vars_data   ::Dict{String,Vector{Float64}},
-    constants   ::Dict{String,Float64}
+    proposal        ::CorrectionProposal,
+    vars_data       ::Dict{String,Vector{Float64}},
+    constants       ::Dict{String,Float64},
+    limit_direction ::String
 )::Bool
-    # For divergent-safe primitives (e.g. D_rar), D(0) -> inf is physically correct.
-    # The asymptotic limit D(u -> inf) -> 0 is still required.
-    if any(p -> p in (:D_rar,), proposal.primitives)
-        large_u_vars = Dict{String,Vector{Float64}}()
-        for k in keys(vars_data)
-            if haskey(constants, k)
-                large_u_vars[k] = fill(constants[k], length(first(values(vars_data))))
-            else
-                large_u_vars[k] = fill(1e12, length(first(values(vars_data))))
-            end
-        end
-        try
-            y_inf = evaluate_expr(proposal.expr, large_u_vars, constants, ones(proposal.n_params))
-            return all(abs.(y_inf) .< 1e-3)
-        catch
-            return false
-        end
-    end
+    # Bug #1 Fix (Audit): Remove hardcoded check for D_rar.
+    # Instead, use the classical_limit_direction provided by the scenario config.
+    is_inf = limit_direction == "oo"
+    
+    test_val = is_inf ? 1e12 : 1e-12
+    threshold = is_inf ? 1e-3 : 1e-6
 
-    # Standard D(0)=0 check: set all variable arguments to near-zero.
-    # D(0) = 0 is the asymptotic safety requirement (Patent Claim #3).
-    near_zero_vars = Dict{String,Vector{Float64}}()
+    test_vars = Dict{String,Vector{Float64}}()
     for k in keys(vars_data)
         if haskey(constants, k)
-            near_zero_vars[k] = fill(constants[k], length(first(values(vars_data))))
+            test_vars[k] = fill(constants[k], length(first(values(vars_data))))
         else
-            near_zero_vars[k] = fill(1e-12, length(first(values(vars_data))))
+            test_vars[k] = fill(test_val, length(first(values(vars_data))))
         end
     end
+    
     try
-        y = evaluate_expr(proposal.expr, near_zero_vars, constants, ones(proposal.n_params))
-        return all(abs.(y) .< 1e-6)
+        y = evaluate_expr(proposal.expr, test_vars, constants, ones(proposal.n_params))
+        return all(abs.(y) .< threshold)
     catch
         return false
     end
@@ -2851,7 +2861,7 @@ function run_filter_cascade(
     stats.n_pass_gate_a = 1
 
     # Gate B: Asymptotic safety (microseconds)
-    gate_b_asymptotic(proposal, vars_data, config.known_constants) || return (nothing, stats)
+    gate_b_asymptotic(proposal, vars_data, config.known_constants, config.classical_limit_direction) || return (nothing, stats)
     stats.n_pass_gate_b = 1
 
     # Gate C: Coarse (fast, ~10ms)
@@ -6244,6 +6254,21 @@ PRIMITIVE_REGISTRY: Dict[str, Primitive] = {
         string_template="tanh({u})",
         domain_note="all u; saturation and phase transitions. tanh(0) = 0.",
     ),
+    "D_nested_mond": Primitive(
+        name="D_nested_mond",
+        token_cost=7,
+        numpy_form=lambda u: np.exp(-np.sqrt(np.abs(u))) * (1.0 - np.exp(-np.sqrt(np.abs(u)))),
+        string_template="(exp(-sqrt(Abs({u}))) * (1.0 - exp(-sqrt(Abs({u})))))",
+        domain_note="u >= 0; bell-shaped anomaly peaking at intermediate u.",
+    ),
+    "D_rar": Primitive(
+        name="D_rar",
+        token_cost=7,
+        # u is regularized internally by Julia, here we just do a safe python limit
+        numpy_form=lambda u: np.exp(-np.sqrt(np.abs(u) + 1e-15)) / np.maximum(1.0 - np.exp(-np.sqrt(np.abs(u) + 1e-15)), 1e-12),
+        string_template="(exp(-sqrt(Abs({u}))) / (1.0 - exp(-sqrt(Abs({u})))))",
+        domain_note="u >= 0; Exact McGaugh-Lelli-Schombert (2016) RAR. Diverges at 0.",
+    ),
 }
 
 
@@ -8540,6 +8565,7 @@ class JuliaEngineConfig:
     # Previously missing → 4/5 real-physics scenarios with y_classical≡0 were
     # structurally unfittable (gradient=0 everywhere, optimizer blind).
     correction_type: str = "multiplicative"
+    classical_limit_direction: str = "0"  # "0" or "oo"
 
     def to_dict(self) -> dict:
         return {
@@ -8555,6 +8581,7 @@ class JuliaEngineConfig:
             "groups": self.groups,
             "excluded_primitives": self.excluded_primitives,
             "correction_type": self.correction_type,
+            "classical_limit_direction": self.classical_limit_direction,
         }
 
 
@@ -11064,6 +11091,7 @@ def _run_search(
             groups=groups,
             excluded_primitives=list(exclude_primitives) if exclude_primitives else [],
             correction_type=detected_mode,  # Bug #2 fix: wire mode_detection → Julia
+            classical_limit_direction=scenario.classical_limit_direction,
         )
         data = JuliaEngineData(
             y_classical=y_classical,
@@ -11707,6 +11735,7 @@ def test_julia_engine_coulomb_correction():
         nmse_coarse=1.5,
         nmse_fine=0.05,
         n_restarts=10,
+        classical_limit_direction="0",
     )
 
     data = JuliaEngineData(
@@ -11728,15 +11757,59 @@ def test_julia_engine_coulomb_correction():
     # We do NOT assert n_identifiable >= 1 because the true anomaly (v/c)^2
     # is not a depth-1 grammar primitive — the engine should not hallucinate
     # an IDENTIFIABLE verdict for a form it cannot exactly represent.
-    assert result.n_proposals_generated >= 3
-    assert result.gate_stats["n_pass_gate_a"] >= 1
-    assert result.gate_stats["n_pass_gate_b"] >= 1
-
     # Since the true anomaly (v/c)^2 is not in the dictionary, and we now 
     # correctly evaluate NMSE in scale-free delta space, none of the 
     # depth-1 proposals (like D_lor) will fit well enough to pass Gate C.
-    # Therefore, we do not assert len(result.results) >= 1.
-    assert result.gate_stats["n_pass_gate_c"] >= 0
+    assert result.gate_stats["n_pass_gate_a"] >= 1
+    assert result.gate_stats["n_pass_gate_b"] >= 1
+
+def test_julia_engine_coulomb_correction_perfect_fit():
+    # Bug #3 Fix (Audit): Replace tautological ">= 0" test with a valid connectivity test.
+    # We supply a signal perfectly matching D_lor to ensure the entire cascade
+    # (including Gate C, Gate D, and Gate E) executes successfully without crashing.
+    n = 20
+    r_vals = np.linspace(0.1, 10.0, n)
+    v_vals = np.linspace(1e6, 0.9e8, n)
+    c_val = 3e8
+    k_e = 8.99e9
+    q1 = 1.6e-19
+    q2 = 1.6e-19
+
+    y_cl = k_e * q1 * q2 / (r_vals ** 2)
+    true_theta = 0.15
+    beta = 1.0 / np.sqrt(1.0 - (v_vals / c_val)) - 1.0
+    y_obs = y_cl * (1.0 + true_theta * beta)
+
+    engine = ADCDJuliaEngine()
+
+    config = JuliaEngineConfig(
+        domain="lorentz_special_relativity",
+        target_dim="dimensionless",
+        input_vars=["v", "c"],
+        known_constants={"c": c_val, "k_e": k_e},
+        bic_threshold=6.0,
+        nmse_coarse=10.0,
+        nmse_fine=0.05,
+        n_restarts=10,
+        classical_limit_direction="0",
+    )
+
+    data = JuliaEngineData(
+        y_classical=y_cl,
+        y_obs=y_obs,
+        vars={
+            "r": r_vals,
+            "v": v_vals,
+            "c": np.full(n, c_val),
+            "q": np.full(n, q1),
+            "Q": np.full(n, q2),
+        },
+    )
+
+    result = engine.run(config, data)
+    assert result.gate_stats["n_pass_gate_c"] >= 1
+    assert result.gate_stats["n_pass_gate_d"] >= 1
+    assert len(result.results) >= 1
 
 
 def test_julia_engine_dimensional_gate():

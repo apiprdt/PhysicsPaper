@@ -53,6 +53,7 @@ class JuliaEngineConfig:
     # Previously missing → 4/5 real-physics scenarios with y_classical≡0 were
     # structurally unfittable (gradient=0 everywhere, optimizer blind).
     correction_type: str = "multiplicative"
+    classical_limit_direction: str = "0"  # "0" or "oo"
 
     def to_dict(self) -> dict:
         return {
@@ -68,6 +69,7 @@ class JuliaEngineConfig:
             "groups": self.groups,
             "excluded_primitives": self.excluded_primitives,
             "correction_type": self.correction_type,
+            "classical_limit_direction": self.classical_limit_direction,
         }
 
 

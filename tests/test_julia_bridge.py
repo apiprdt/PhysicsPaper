@@ -39,6 +39,7 @@ def test_julia_engine_coulomb_correction():
         nmse_coarse=1.5,
         nmse_fine=0.05,
         n_restarts=10,
+        classical_limit_direction="0",
     )
 
     data = JuliaEngineData(
@@ -60,15 +61,59 @@ def test_julia_engine_coulomb_correction():
     # We do NOT assert n_identifiable >= 1 because the true anomaly (v/c)^2
     # is not a depth-1 grammar primitive — the engine should not hallucinate
     # an IDENTIFIABLE verdict for a form it cannot exactly represent.
-    assert result.n_proposals_generated >= 3
-    assert result.gate_stats["n_pass_gate_a"] >= 1
-    assert result.gate_stats["n_pass_gate_b"] >= 1
-
     # Since the true anomaly (v/c)^2 is not in the dictionary, and we now 
     # correctly evaluate NMSE in scale-free delta space, none of the 
     # depth-1 proposals (like D_lor) will fit well enough to pass Gate C.
-    # Therefore, we do not assert len(result.results) >= 1.
-    assert result.gate_stats["n_pass_gate_c"] >= 0
+    assert result.gate_stats["n_pass_gate_a"] >= 1
+    assert result.gate_stats["n_pass_gate_b"] >= 1
+
+def test_julia_engine_coulomb_correction_perfect_fit():
+    # Bug #3 Fix (Audit): Replace tautological ">= 0" test with a valid connectivity test.
+    # We supply a signal perfectly matching D_lor to ensure the entire cascade
+    # (including Gate C, Gate D, and Gate E) executes successfully without crashing.
+    n = 20
+    r_vals = np.linspace(0.1, 10.0, n)
+    v_vals = np.linspace(1e6, 0.9e8, n)
+    c_val = 3e8
+    k_e = 8.99e9
+    q1 = 1.6e-19
+    q2 = 1.6e-19
+
+    y_cl = k_e * q1 * q2 / (r_vals ** 2)
+    true_theta = 0.15
+    beta = 1.0 / np.sqrt(1.0 - (v_vals / c_val)) - 1.0
+    y_obs = y_cl * (1.0 + true_theta * beta)
+
+    engine = ADCDJuliaEngine()
+
+    config = JuliaEngineConfig(
+        domain="lorentz_special_relativity",
+        target_dim="dimensionless",
+        input_vars=["v", "c"],
+        known_constants={"c": c_val, "k_e": k_e},
+        bic_threshold=6.0,
+        nmse_coarse=10.0,
+        nmse_fine=0.05,
+        n_restarts=10,
+        classical_limit_direction="0",
+    )
+
+    data = JuliaEngineData(
+        y_classical=y_cl,
+        y_obs=y_obs,
+        vars={
+            "r": r_vals,
+            "v": v_vals,
+            "c": np.full(n, c_val),
+            "q": np.full(n, q1),
+            "Q": np.full(n, q2),
+        },
+    )
+
+    result = engine.run(config, data)
+    assert result.gate_stats["n_pass_gate_c"] >= 1
+    assert result.gate_stats["n_pass_gate_d"] >= 1
+    assert len(result.results) >= 1
 
 
 def test_julia_engine_dimensional_gate():

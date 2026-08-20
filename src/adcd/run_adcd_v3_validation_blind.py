@@ -264,6 +264,7 @@ def _run_search(
             groups=groups,
             excluded_primitives=list(exclude_primitives) if exclude_primitives else [],
             correction_type=detected_mode,  # Bug #2 fix: wire mode_detection → Julia
+            classical_limit_direction=scenario.classical_limit_direction,
         )
         data = JuliaEngineData(
             y_classical=y_classical,
