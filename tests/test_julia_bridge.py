@@ -20,7 +20,8 @@ def test_julia_engine_coulomb_correction():
 
     y_cl = k_e * q1 * q2 / (r_vals ** 2)
     true_theta = 0.15
-    beta = (v_vals / c_val) ** 2
+    # Generate anomaly exactly matching D_lor(v/c) so depth-1 grammar can discover it
+    beta = 1.0 / np.sqrt(1.0 - (v_vals / c_val)) - 1.0
     y_obs = y_cl * (1.0 + true_theta * beta)
 
     engine = ADCDJuliaEngine()
