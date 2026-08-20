@@ -24,8 +24,8 @@ _RAW_FORMS: Dict[str, sp.Expr] = {
     "D_rat": 1 / (1 - _u),                # simple pole (screening, RC circuits)
     "D_exp": sp.exp(-_u),                 # exponential decay (Yukawa, Debye)
     "D_log": sp.log(1 + _u),              # logarithmic (entropy, QED running)
-    "D_sqrt_inv": 1 / sp.sqrt(1 + _u),    # inverse-sqrt growth (MOND-like)
-    "D_pow": _u ** 1.5,                   # dummy raw power law (verified limit_u->0 is 0)
+    "D_sqrt_inv": sp.sqrt(_u) / (1 + sp.sqrt(_u)),    # inverse-sqrt growth (MOND-like)
+    "D_pow": sp.sqrt(_u) * (1 - sp.exp(-_u)),         # anomalous diffusion power law
     "D_osc": 1 - sp.cos(_u),              # oscillatory (waves, optics, AC circuits)
     "D_sat": sp.tanh(_u),                 # saturation (magnetism, sigmoid transitions)
 }
@@ -110,16 +110,16 @@ PRIMITIVE_REGISTRY: Dict[str, Primitive] = {
     "D_sqrt_inv": Primitive(
         name="D_sqrt_inv",
         token_cost=5,
-        numpy_form=lambda u: 1.0 / np.sqrt(1.0 + np.clip(u, -0.999, None)) - 1.0,
-        string_template="(1.0/sqrt(1.0 + {u}) - 1.0)",
-        domain_note="u > -1; MOND-like deep regime growth.",
+        numpy_form=lambda u: np.sqrt(np.abs(u)) / (1.0 + np.sqrt(np.abs(u))),
+        string_template="(sqrt(Abs({u})) / (1 + sqrt(Abs({u}))))",
+        domain_note="u >= 0; MOND-like interpolation, D(0)=0, D(inf)->1",
     ),
     "D_pow": Primitive(
         name="D_pow",
         token_cost=6,
-        numpy_form=lambda u: np.abs(u) ** 1.5,
-        string_template="(abs({u}) ** abs(_NEXT_THETA_))",
-        domain_note="Unbounded raw power law. Exponent is an additional free parameter. Base wrapped in abs() to prevent NaN.",
+        numpy_form=lambda u: np.sqrt(np.abs(u)) * (1.0 - np.exp(-np.abs(u))),
+        string_template="(sqrt(Abs({u})) * (1 - exp(-Abs({u}))))",
+        domain_note="u any real; D(0)=0, D(inf)->inf (anomalous diffusion)",
     ),
     "D_osc": Primitive(
         name="D_osc",

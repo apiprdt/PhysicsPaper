@@ -323,12 +323,22 @@ def verify_name_invariance(headers: List[str]) -> bool:
     """
     originals = [UnitExtractor.parse_header(h, strict=False) for h in headers]
 
+    import random
+    import string
+
+    def _random_gibberish(n=6):
+        return ''.join(random.choices(string.ascii_lowercase, k=n))
+
     scrambled_headers = []
     for i, (_, _, _, _, raw_token) in enumerate(originals):
         if raw_token is None:
-            scrambled_headers.append(f"token_{i}")
+            scrambled_headers.append(f"col_{_random_gibberish()}")
         else:
-            scrambled_headers.append(f"token_{i}_{raw_token}")
+            # Hide the token behind a random variable name to test invariance
+            # e.g., if token is "km/s", name becomes "x{random}_km/s"
+            # This ensures the parser isn't just succeeding because the name
+            # is "token_{i}".
+            scrambled_headers.append(f"x{_random_gibberish()}_{raw_token}")
 
     scrambled = [UnitExtractor.parse_header(h, strict=False) for h in scrambled_headers]
 

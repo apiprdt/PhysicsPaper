@@ -51,31 +51,31 @@ function identifiability_gate(
     bic_threshold::Float64 = 6.0,
     nmse_threshold::Float64 = 0.1,
     groups       ::Union{Vector{Vector{Int}},Nothing} = nothing,
+    correction_type::String = "multiplicative",
 )::IdentVerdict
 
-    # Positive control: does the classical formula itself fit?
     n = length(y_obs)
-    resid_classical = y_obs .- y_classical
+    
+    # Compute null model residuals in delta space to match fit_result.residuals
+    if correction_type == "additive"
+        resid_classical = y_obs .- y_classical
+    else
+        resid_classical = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+    end
+    
     sigma2_classical = mean(resid_classical.^2)
     if !isfinite(sigma2_classical) || sigma2_classical <= 0.0
         return POSITIVE_CONTROL_FAILED
     end
-    ll_classical = -0.5 * n * log(2π * sigma2_classical) - n/2.0
-    nmse_classical = sigma2_classical / (var(y_obs) + 1e-300)
 
-    # If classical already fits well (NMSE < nmse_threshold), correction is unnecessary
-    # This is correct behaviour: return WITHHELD (not enough signal to correct)
-    # Removed this check — ADCD should still look for corrections even when classical is good,
-    # to CONFIRM null hypothesis. If correction ΔBIC < threshold, WITHHELD.
-
-    # BIC for null model (classical formula, 0 correction params)
+    # BIC for null model
     if groups !== nothing
         n_eff = length(groups)
-        # Bug #4 Fix: Scale log-likelihood to effective sample size
-        # Prevents O(n_points) likelihood from overpowering O(n_groups) penalty
-        ll_null_eff = ll_classical * (n_eff / n)
+        # Proper hierarchical likelihood: recompute log-likelihood as if we only have n_eff samples
+        ll_null_eff = -0.5 * n_eff * log(2π * sigma2_classical) - n_eff/2.0
         bic_null = hierarchical_bic(n_eff, 0, ll_null_eff)
     else
+        ll_classical = -0.5 * n * log(2π * sigma2_classical) - n/2.0
         bic_null = bic_score(n, 0, ll_classical)
     end
 
@@ -85,8 +85,9 @@ function identifiability_gate(
 
     if groups !== nothing
         n_eff = length(groups)
-        # Bug #4 Fix: Same scaling for correction likelihood
-        ll_corr_eff = fit_result.likelihood * (n_eff / n)
+        # Proper hierarchical likelihood using the fit_result's residuals
+        sigma2_corr = mean(fit_result.residuals.^2)
+        ll_corr_eff = sigma2_corr > 0 ? -0.5 * n_eff * log(2π * sigma2_corr) - n_eff/2.0 : -Inf
         bic_correction = hierarchical_bic(n_eff, fit_result.n_params, ll_corr_eff)
     else
         bic_correction = bic_score(n, fit_result.n_params, fit_result.likelihood)

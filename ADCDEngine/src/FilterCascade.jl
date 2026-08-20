@@ -155,14 +155,21 @@ function _compute_delta_bic(
     config     ::RunConfig,
 )::Float64
     n = length(y_obs)
-    resid_null  = y_obs .- y_classical
+    
+    # Compute null model residuals in delta space
+    if config.correction_type == "additive"
+        resid_null = y_obs .- y_classical
+    else
+        resid_null = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+    end
+    
     sigma2_null = sum(resid_null .^ 2) / n
-    ll_null     = sigma2_null > 0 ?
-        -0.5 * n * log(2 * pi * sigma2_null) - n / 2.0 : -Inf
+    ll_null = sigma2_null > 0 ? -0.5 * n * log(2 * pi * sigma2_null) - n / 2.0 : -Inf
 
     bic_null = if config.groups !== nothing
         n_eff = length(config.groups)
-        ll_null_eff = ll_null * (n_eff / n)
+        # Proper hierarchical likelihood using the effective sample size directly
+        ll_null_eff = sigma2_null > 0 ? -0.5 * n_eff * log(2 * pi * sigma2_null) - n_eff / 2.0 : -Inf
         hierarchical_bic(n_eff, 0, ll_null_eff)
     else
         bic_score(n, 0, ll_null)
@@ -170,7 +177,8 @@ function _compute_delta_bic(
 
     bic_corr = if config.groups !== nothing
         n_eff = length(config.groups)
-        ll_corr_eff = fine.likelihood * (n_eff / n)
+        sigma2_corr = sum(fine.residuals .^ 2) / length(fine.residuals)
+        ll_corr_eff = sigma2_corr > 0 ? -0.5 * n_eff * log(2 * pi * sigma2_corr) - n_eff / 2.0 : -Inf
         hierarchical_bic(n_eff, fine.n_params, ll_corr_eff)
     else
         bic_score(n, fine.n_params, fine.likelihood)
@@ -186,40 +194,41 @@ function run_filter_cascade(
     vars_data  ::Dict{String,Vector{Float64}},
     config     ::RunConfig;
     sigma_y    ::Union{Vector{Float64},Nothing} = nothing,
-)::Union{ADCDResult, Nothing}
+)::Tuple{Union{ADCDResult, Nothing}, GateStats}
 
     ct = config.correction_type
     stats = GateStats()
     stats.n_input = 1
 
     # Gate A: Dimensional check (microseconds)
-    gate_a_dimensional(proposal, config.target_dim) || return nothing
+    gate_a_dimensional(proposal, config.target_dim) || return (nothing, stats)
     stats.n_pass_gate_a = 1
 
     # Gate B: Asymptotic safety (microseconds)
-    gate_b_asymptotic(proposal, vars_data, config.known_constants) || return nothing
+    gate_b_asymptotic(proposal, vars_data, config.known_constants) || return (nothing, stats)
     stats.n_pass_gate_b = 1
 
     # Gate C: Coarse (fast, ~10ms)
     coarse = gate_c_coarse(
         proposal, y_classical, y_obs, vars_data, config.known_constants,
         config.nmse_coarse, ct)
-    coarse === nothing && return nothing
+    coarse === nothing && return (nothing, stats)
     stats.n_pass_gate_c = 1
 
     # Gate D: Fine (multi-start, ~100ms)
     fine = gate_d_fine(
         proposal, y_classical, y_obs, vars_data, config.known_constants,
         config.n_restarts, sigma_y, ct)
-    fine === nothing && return nothing
+    fine === nothing && return (nothing, stats)
     stats.n_pass_gate_d = 1
 
     # Gate E: Identifiability verdict (Bug #1 fix: use IdentifiabilityGate module)
     verdict = IdentifiabilityGate.identifiability_gate(
         fine, y_classical, y_obs;
-        bic_threshold  = config.bic_threshold,
-        nmse_threshold = config.nmse_fine,
-        groups         = config.groups,
+        bic_threshold   = config.bic_threshold,
+        nmse_threshold  = config.nmse_fine,
+        groups          = config.groups,
+        correction_type = config.correction_type,
     )
     delta_bic = _compute_delta_bic(fine, y_classical, y_obs, config)
 
@@ -229,7 +238,7 @@ function run_filter_cascade(
         stats.n_withheld = 1
     end
 
-    return ADCDResult(proposal, fine, verdict, delta_bic, stats)
+    return (ADCDResult(proposal, fine, verdict, delta_bic, stats), stats)
 end
 
 """
@@ -260,17 +269,19 @@ function run_cascade_on_proposals(
     end
 
     for (i, proposal) in enumerate(proposals[1:n_limited])
-        result = run_filter_cascade(
+        result, stats = run_filter_cascade(
             proposal, y_classical, y_obs, vars_data, config; sigma_y=sigma_y)
+        
+        # Accumulate stats from all proposals, even those rejected
+        agg.n_pass_gate_a += stats.n_pass_gate_a
+        agg.n_pass_gate_b += stats.n_pass_gate_b
+        agg.n_pass_gate_c += stats.n_pass_gate_c
+        agg.n_pass_gate_d += stats.n_pass_gate_d
+        agg.n_pass_gate_e += stats.n_pass_gate_e
+        agg.n_withheld += stats.n_withheld
+        
         result === nothing && continue
         push!(results, result)
-        # Accumulate stats
-        agg.n_pass_gate_a += result.gate_stats.n_pass_gate_a
-        agg.n_pass_gate_b += result.gate_stats.n_pass_gate_b
-        agg.n_pass_gate_c += result.gate_stats.n_pass_gate_c
-        agg.n_pass_gate_d += result.gate_stats.n_pass_gate_d
-        agg.n_pass_gate_e += result.gate_stats.n_pass_gate_e
-        agg.n_withheld    += result.gate_stats.n_withheld
     end
 
     # Sort: IDENTIFIABLE first, then by delta_bic descending

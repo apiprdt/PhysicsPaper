@@ -15,7 +15,8 @@ struct FitResult
     converged ::Bool
     n_restarts::Int               # how many restarts were run
     n_params  ::Int
-    error     ::Union{String,Nothing}
+    error_msg ::Union{String,Nothing}
+    residuals ::Vector{Float64}   # residuals in delta space (for BIC)
 end
 
 """
@@ -130,38 +131,56 @@ function fit_constants(
         y_classical .* (1.0 .+ delta)
 
     n_params == 0 && begin
-        # No free parameters: evaluate directly.
-        # FIX (Audit): use proper Gaussian MLE log-likelihood so BIC is
-        # computed on the same scale as n_params>0 case.
+        # Helper: compute residuals in delta space to match Python and avoid
+        # high-magnitude y_classical points completely dominating the fit.
+        function compute_residuals_and_nmse(delta::Vector{Float64})
+            if correction_type == "additive"
+                resid_obs = y_obs .- y_classical
+            else
+                resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+            end
+            delta_residuals = resid_obs .- delta
+            nmse_val = mean(delta_residuals.^2) / (var(resid_obs) + 1e-300)
+            return delta_residuals, nmse_val
+        end
+
         try
             delta = evaluate_expr(proposal_expr, vars_data, constants, Float64[])
-            y_pred = make_pred(delta)
-            residuals = y_obs .- y_pred
+            delta_residuals, nmse = compute_residuals_and_nmse(delta)
             n = length(y_obs)
-            nmse = mean(residuals.^2) / (var(y_obs) + 1e-300)
-            sigma2 = mean(residuals.^2)
+            sigma2 = mean(delta_residuals.^2)
             ll = sigma2 > 0 ? (-0.5 * n * log(2π * sigma2) - n / 2.0) : -Inf
-            return FitResult(Float64[], nmse, ll, true, 0, 0, nothing)
+            # Store delta_residuals as FitResult residuals
+            return FitResult(Float64[], nmse, ll, true, 0, 0, nothing, delta_residuals)
         catch e
-            return FitResult(Float64[], Inf, -Inf, false, 0, 0, string(e))
+            return FitResult(Float64[], Inf, -Inf, false, 0, 0, string(e), Float64[])
         end
     end
 
     rng = MersenneTwister(rng_seed)
 
-    # Loss function: NMSE (or weighted if sigma_y provided)
+    # Loss function: NMSE in delta space
     function loss(theta::Vector{Float64})::Float64
         try
             delta = evaluate_expr(proposal_expr, vars_data, constants, theta)
-            y_pred = make_pred(delta)
-            residuals = y_obs .- y_pred
-            if !all(isfinite.(residuals))
+            
+            if correction_type == "additive"
+                resid_obs = y_obs .- y_classical
+            else
+                resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+            end
+            delta_residuals = resid_obs .- delta
+            
+            if !all(isfinite.(delta_residuals))
                 return 1e10
             end
             if sigma_y !== nothing
-                return mean((residuals ./ sigma_y).^2)
+                # If sigma_y is provided, we should ideally map it to delta space,
+                # but for now we fallback to standard weighting.
+                y_pred = make_pred(delta)
+                return mean(((y_obs .- y_pred) ./ sigma_y).^2)
             else
-                return mean(residuals.^2) / (var(y_obs) + 1e-300)
+                return mean(delta_residuals.^2) / (var(resid_obs) + 1e-300)
             end
         catch
             return 1e10
@@ -204,17 +223,24 @@ function fit_constants(
 
     # Compute log-likelihood at best theta
     ll = -Inf
+    delta_residuals = Float64[]
     try
-        delta     = evaluate_expr(proposal_expr, vars_data, constants, best_theta)
-        y_pred    = make_pred(delta)
-        residuals = y_obs .- y_pred
-        n         = length(y_obs)
-        sigma2    = mean(residuals.^2)
+        delta = evaluate_expr(proposal_expr, vars_data, constants, best_theta)
+        
+        if correction_type == "additive"
+            resid_obs = y_obs .- y_classical
+        else
+            resid_obs = (y_obs .- y_classical) ./ (y_classical .+ 1e-300)
+        end
+        delta_residuals = resid_obs .- delta
+        
+        n = length(y_obs)
+        sigma2 = mean(delta_residuals.^2)
         ll = sigma2 > 0 ? -0.5 * n * log(2 * pi * sigma2) - 0.5 * n : -Inf
     catch
     end
 
-    return FitResult(best_theta, best_nmse, ll, converged, n_restarts, n_params, nothing)
+    return FitResult(best_theta, best_nmse, ll, converged, n_restarts, n_params, nothing, delta_residuals)
 end
 
 # Convenience helpers (avoid importing Statistics separately)
