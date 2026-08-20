@@ -3,7 +3,7 @@ import os
 output_file = 'allcode.txt'
 exclude_dirs = {'.venv', '.git', '__pycache__', 'figures', 'generated'}
 include_exts = {'.py', '.ps1', '.jl', '.toml'}
-dirs_to_walk = ['.', '../ADCDEngine']
+dirs_to_walk = ['.']
 
 with open(output_file, 'w', encoding='utf-8') as out:
     out.write('# ADCD - All Core Source Code\n\n')
