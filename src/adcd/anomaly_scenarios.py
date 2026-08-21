@@ -204,9 +204,13 @@ class AnomalyScenario:
             
         # 5. Add observational Gaussian noise
         if noise_level > 0.0:
-            # Multiplicative noise relative to y_true
-            noise = rng.normal(0, noise_level, size=n_points)
-            y_obs = y_true * (1.0 + noise)
+            if self.correction_type == "multiplicative":
+                noise = rng.normal(0, noise_level, size=n_points)
+                y_obs = y_true * (1.0 + noise)
+            else:
+                noise_scale = noise_level * (np.std(y_true) + 1e-9)
+                noise = rng.normal(0, noise_scale, size=n_points)
+                y_obs = y_true + noise
         else:
             y_obs = y_true.copy()
             
@@ -236,7 +240,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
             anomaly_regime="large volume expansion",
             variables_with_units={"V_i": "m^3", "dV": "m^3"},
             classical_limit_variable="dV",
-            classical_limit_direction="-> 0",
+            classical_limit_direction="0",
             correction_class="logarithmic"
         ),
         # =========================================================================

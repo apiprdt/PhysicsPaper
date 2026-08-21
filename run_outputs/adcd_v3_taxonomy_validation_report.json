@@ -3,7 +3,7 @@
     "all_passed": false,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 6,
+        "search_space_size": 4,
         "primitives": [
           "D_lor"
         ],
@@ -11,68 +11,13 @@
         "note": "Full blind search space -- larger than any previously hand-fed single-ratio search space (35), because ratio candidates are now auto-derived, not hand-typed."
       },
       "primary_search": {
-        "top_candidate": "(theta_1 * (1/sqrt(1 - ((theta_0 * (v * (c**-1))))) - 1))",
-        "nmse": 0.00041601660523069587,
-        "bic": -412.0399827882845,
-        "theta_fit": {
-          "theta_0": 2.717312422369522,
-          "theta_1": 0.040696125869707146
-        },
-        "discovered_class": "rational",
-        "match_level": "class_only",
-        "symbolic_match": false,
-        "class_match": true,
-        "true_structure_rank": 1,
-        "ground_truth_match_diagnostic_only": true,
-        "counts_toward_verdict": false,
-        "note": "Match level: class_only at rank 1. DIAGNOSTIC ONLY -- does not gate the formal verdict.",
-        "pareto_front": [
-          {
-            "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * (v * (c**-1))))) - 1))",
-            "nmse": 0.00041601660523069587,
-            "bic": -412.0399827882845,
-            "class": "rational",
-            "theta_fit": {
-              "theta_0": 2.717312422369522,
-              "theta_1": 0.040696125869707146
-            }
-          },
-          {
-            "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))",
-            "nmse": 0.0004198022288785568,
-            "bic": -410.2282746143134,
-            "class": "rational",
-            "theta_fit": {
-              "theta_0": 1.461269639505095,
-              "theta_1": 0.6601680171014879
-            }
-          },
-          {
-            "expr_str": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * ((v**2) * (c**-2)))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * ((v**2) * (c**-2)))))) - 1))))",
-            "nmse": 0.0004231540579265019,
-            "bic": -408.6377547899271,
-            "class": "rational",
-            "theta_fit": {
-              "theta_0": 12.939477622039025,
-              "theta_1": 0.044148129031642815
-            }
-          },
-          {
-            "expr_str": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (v * (c**-1)))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (v * (c**-1)))))) - 1))))",
-            "nmse": 0.0010738582002130298,
-            "bic": -222.3823706141319,
-            "class": "rational",
-            "theta_fit": {
-              "theta_0": 50.80665085831844,
-              "theta_1": 0.022003713492874777
-            }
-          }
-        ]
+        "pass": false,
+        "note": "No candidate survived the full pipeline."
       },
       "positive_control": {
-        "search_space_size": 6,
-        "nmse": 0.00041601660523069587,
-        "pass": true
+        "search_space_size": 4,
+        "nmse": null,
+        "pass": false
       },
       "ablation_control": {
         "pass": false,
@@ -80,21 +25,12 @@
       },
       "determinism_check": {
         "runs": [
-          [
-            "(theta_1 * (1/sqrt(1 - ((theta_0 * (v * (c**-1))))) - 1))",
-            0.00041601660523069587
-          ],
-          [
-            "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))",
-            0.0005437114632036612
-          ],
-          [
-            "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * ((v**2) * (c**-2)))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * ((v**2) * (c**-2)))))) - 1))))",
-            0.0005149895933421427
-          ]
+          null,
+          null,
+          null
         ],
         "pass": false,
-        "all_none": false
+        "all_none": true
       }
     }
   },
@@ -102,7 +38,7 @@
     "all_passed": false,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 24,
+        "search_space_size": 20,
         "primitives": [
           "D_exp",
           "D_rat"
@@ -111,109 +47,26 @@
         "note": "Full blind search space -- larger than any previously hand-fed single-ratio search space (35), because ratio candidates are now auto-derived, not hand-typed."
       },
       "primary_search": {
-        "top_candidate": "(theta_1 * (1 - exp(-Abs((theta_0 * ((q1**2) * (q2**-2)))))) * (1.0 + (theta_2 * (((theta_0 * ((q1**2) * (q2**-2)))) / (1 + ((theta_0 * ((q1**2) * (q2**-2))))**2)))))",
-        "nmse": 0.004377329986881002,
-        "bic": -492.3506185809895,
-        "theta_fit": {
-          "theta_0": -15.520702736694291,
-          "theta_1": -0.14808984787712476,
-          "theta_2": -3.714385361050875
-        },
-        "discovered_class": "exponential",
-        "match_level": "class_only",
-        "symbolic_match": false,
-        "class_match": true,
-        "true_structure_rank": 1,
-        "ground_truth_match_diagnostic_only": true,
-        "counts_toward_verdict": false,
-        "note": "Match level: class_only at rank 1. DIAGNOSTIC ONLY -- does not gate the formal verdict.",
-        "pareto_front": [
-          {
-            "expr_str": "(theta_1 * (1 - exp(-Abs((theta_0 * ((q1**2) * (q2**-2)))))) * (1.0 + (theta_2 * (((theta_0 * ((q1**2) * (q2**-2)))) / (1 + ((theta_0 * ((q1**2) * (q2**-2))))**2)))))",
-            "nmse": 0.004377329986881002,
-            "bic": -492.3506185809895,
-            "class": "exponential",
-            "theta_fit": {
-              "theta_0": -15.520702736694291,
-              "theta_1": -0.14808984787712476,
-              "theta_2": -3.714385361050875
-            }
-          },
-          {
-            "expr_str": "((theta_1 * (((theta_0 * ((q1**2) * (q2**-2)))) / (1 + ((theta_0 * ((q1**2) * (q2**-2))))**2))) + (theta_2 * (1 - exp(-Abs((theta_0 * ((q1**2) * (q2**-2))))))))",
-            "nmse": 0.004397118312008272,
-            "bic": -491.4485284209577,
-            "class": "exponential",
-            "theta_fit": {
-              "theta_0": -10.623865248509894,
-              "theta_1": 0.3728430469183225,
-              "theta_2": -0.1485489470754375
-            }
-          },
-          {
-            "expr_str": "((theta_1 * (1 - exp(-Abs((theta_0 * ((q1**2) * (q2**-2))))))) + (theta_2 * (((theta_0 * ((q1**2) * (q2**-2)))) / (1 + ((theta_0 * ((q1**2) * (q2**-2))))**2))))",
-            "nmse": 0.004397118312008277,
-            "bic": -491.44852842095736,
-            "class": "exponential",
-            "theta_fit": {
-              "theta_0": 10.623864417687821,
-              "theta_1": -0.14854894202200009,
-              "theta_2": -0.372843076880251
-            }
-          },
-          {
-            "expr_str": "(theta_1 * (1 - exp(-Abs((theta_0 * (q1 * (q2**-1)))))) * (1.0 + (theta_2 * (((theta_0 * (q1 * (q2**-1)))) / (1 + ((theta_0 * (q1 * (q2**-1))))**2)))))",
-            "nmse": 0.004404728807272617,
-            "bic": -491.10266932762045,
-            "class": "exponential",
-            "theta_fit": {
-              "theta_0": 0.6523220508720893,
-              "theta_1": -1.4141264689616722,
-              "theta_2": -1.6052249482784788
-            }
-          },
-          {
-            "expr_str": "(theta_1 * ((1 - exp(-Abs(sqrt((theta_0 * ((q1**2) * (q2**-2))))))) / (1.0 + (1 - exp(-Abs(sqrt((theta_0 * ((q1**2) * (q2**-2))))))))))",
-            "nmse": 0.004622436754484972,
-            "bic": -486.7523248258228,
-            "class": "exponential",
-            "theta_fit": {
-              "theta_0": 204.1739223667514,
-              "theta_1": -0.35805850522900734
-            }
-          }
-        ]
+        "pass": false,
+        "note": "No candidate survived the full pipeline."
       },
       "positive_control": {
-        "search_space_size": 24,
-        "nmse": 0.0046224367349133365,
-        "pass": true
+        "search_space_size": 20,
+        "nmse": null,
+        "pass": false
       },
       "ablation_control": {
-        "ablated_bic": -483.5639452905011,
-        "true_structure_bic": -492.3506185809895,
-        "true_structure_rank": 1,
-        "bic_diff": 8.786673290488352,
         "pass": false,
-        "note": "Reference is Rank-1 BIC from blind search (best achievable with true primitive)."
+        "note": "Could not compute -- missing blind result or ablated result."
       },
       "determinism_check": {
         "runs": [
-          [
-            "(theta_1 * (1 - exp(-Abs((theta_0 * ((q1**2) * (q2**-2)))))) * (1.0 + (theta_2 * (((theta_0 * ((q1**2) * (q2**-2)))) / (1 + ((theta_0 * ((q1**2) * (q2**-2))))**2)))))",
-            0.004377329986881089
-          ],
-          [
-            "(theta_1 * (((sqrt((theta_0 * (q1 * (q2**-1))))) / (1 + (sqrt((theta_0 * (q1 * (q2**-1)))))**2)) / (1.0 + ((sqrt((theta_0 * (q1 * (q2**-1))))) / (1 + (sqrt((theta_0 * (q1 * (q2**-1)))))**2)))))",
-            0.009849017199186868
-          ],
-          [
-            "((theta_1 * (((theta_0 * ((q1**2) * (q2**-2)))) / (1 + ((theta_0 * ((q1**2) * (q2**-2))))**2))) + (theta_2 * (1 - exp(-Abs((theta_0 * ((q1**2) * (q2**-2))))))))",
-            0.006956183539354998
-          ]
+          null,
+          null,
+          null
         ],
         "pass": false,
-        "all_none": false
+        "all_none": true
       }
     }
   },
@@ -221,7 +74,7 @@
     "all_passed": false,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 24,
+        "search_space_size": 20,
         "primitives": [
           "D_exp",
           "D_log"
@@ -234,7 +87,7 @@
         "note": "No candidate survived the full pipeline."
       },
       "positive_control": {
-        "search_space_size": 24,
+        "search_space_size": 20,
         "nmse": null,
         "pass": false
       },
@@ -245,14 +98,11 @@
       "determinism_check": {
         "runs": [
           null,
-          [
-            "((theta_1 * (1 - exp(-Abs((theta_0 * (V_i * (dV**-1))))))) + (theta_2 * log(1 + Abs((theta_0 * (V_i * (dV**-1)))))))",
-            0.05232546273123461
-          ],
+          null,
           null
         ],
         "pass": false,
-        "all_none": false
+        "all_none": true
       }
     }
   }

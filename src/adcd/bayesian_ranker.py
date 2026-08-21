@@ -5,19 +5,6 @@ import numpy as np
 
 @dataclass
 class BayesianCorrectionOutput:
-    """
-    Bayesian posterior distribution over candidate corrections.
-
-    Attributes:
-        candidates: list of (expression_str, bic_score) tuples, sorted by BIC ascending
-        posterior_weights: normalized posterior probability for each candidate (sums to 1.0)
-        correction_class_probs: aggregated probability per functional family
-        is_ambiguous: True if top candidate weight < 3x second candidate weight
-        evidence_label: "decisive" | "very strong" | "strong" | "substantial" | "weak" | "ambiguous"
-        posterior_entropy: Shannon entropy of posterior (bits)
-        best_expr: expression string of top candidate
-        best_weight: posterior weight of top candidate
-    """
     candidates: List[Tuple[str, float]]
     posterior_weights: List[float]
     correction_class_probs: Dict[str, float]
@@ -29,45 +16,15 @@ class BayesianCorrectionOutput:
 
 
 class BayesianReranker:
-    """
-    Converts BIC-ranked candidates to Bayesian posterior distribution.
-
-    Used for evidence-grade reporting alongside the binary IDENTIFIABLE/WITHHELD
-    verdict. Reports "decisive", "very strong", "strong", "substantial", "weak",
-    or "ambiguous" — per the Kass-Raftery (1995) scale — giving a more nuanced
-    view of the statistical evidence without replacing the formal verdict.
-
-    The BIC weight approximation is:
-        w_i = exp(-delta_BIC_i / 2) / sum(exp(-delta_BIC_j / 2))
-    where delta_BIC_i = BIC_i - BIC_min.
-
-    This is equivalent to the Bayesian Information Criterion model averaging
-    used in statistical model selection (Burnham & Anderson 2002).
-
-    Evidence scale follows Kass & Raftery (1995):
-        DELTA_BIC > 10  -> decisive evidence
-        DELTA_BIC > 6   -> very strong evidence
-        DELTA_BIC > 4   -> strong evidence
-        DELTA_BIC > 2   -> substantial evidence
-        otherwise       -> weak / ambiguous
-    """
-
-    # Weight ratio thresholds corresponding to evidence labels
     EVIDENCE_THRESHOLDS = [
-        ("decisive",    150.0),   # delta_BIC > 10  -> weight ratio > ~150
+        ("decisive",    150.0),   # delta_BIC > 10
         ("very strong",  20.0),   # delta_BIC > 6
         ("strong",        7.4),   # delta_BIC > 4
         ("substantial",   3.0),   # delta_BIC > 2.2
-        ("weak",          1.0),   # weight ratio > 1 (best beats second)
+        ("weak",          1.0),
     ]
 
-    def __init__(self, threshold_ratio: float = 0.05):
-        """
-        Args:
-            threshold_ratio: minimum posterior weight (relative to top candidate)
-                             to include a candidate in output. Candidates below
-                             this fraction are pruned.
-        """
+    def __init__(self, threshold_ratio: float = 0.01):
         self.threshold_ratio = threshold_ratio
 
     def rank(
@@ -75,54 +32,40 @@ class BayesianReranker:
         candidates_with_bic: List[Tuple[str, float]],
         n_candidates: Optional[int] = None,
     ) -> BayesianCorrectionOutput:
-        """
-        Convert BIC scores to posterior weights.
-
-        Args:
-            candidates_with_bic: List of (expr_str, bic_score) tuples.
-                                  Lower BIC = better fit.
-            n_candidates: Optional active pool size M. If provided, applies
-                          Extended BIC model selection penalty 2*ln(M).
-
-        Returns:
-            BayesianCorrectionOutput with full posterior distribution.
-
-        Raises:
-            ValueError: if candidates_with_bic is empty.
-        """
         if not candidates_with_bic:
             raise ValueError("No candidates provided to BayesianReranker")
 
-        if n_candidates is not None and n_candidates > 1:
-            penalty = float(2.0 * np.log(n_candidates))
-            candidates_with_bic = [(expr, score + penalty) for expr, score in candidates_with_bic]
-
-        # Sort by BIC ascending (lower BIC = better)
         sorted_cands = sorted(candidates_with_bic, key=lambda x: x[1])
         exprs = [c[0] for c in sorted_cands]
         bics = np.array([c[1] for c in sorted_cands], dtype=float)
 
-        # Compute BIC weights: w_i proportional to exp(-delta_BIC_i / 2)
         delta_bic = bics - bics.min()
         log_weights = -0.5 * delta_bic
-        # Numerical stability: subtract max before exp (already 0 for best)
-        log_weights -= log_weights.max()
-        raw_weights = np.exp(log_weights)
+        raw_weights = np.exp(log_weights - log_weights.max())
+        full_normalized_weights = raw_weights / raw_weights.sum()
 
-        # Prune low-weight candidates (relative to top)
-        threshold = raw_weights.max() * self.threshold_ratio
-        mask = raw_weights >= threshold
+        # FIX AUDIT: Hitung rasio bukti SEBELUM pemangkasan kandidat minoritas
+        if len(full_normalized_weights) >= 2:
+            weight_ratio = float(full_normalized_weights[0] / (full_normalized_weights[1] + 1e-15))
+        else:
+            weight_ratio = float("inf")
+
+        evidence_label = "ambiguous"
+        for label, threshold_val in self.EVIDENCE_THRESHOLDS:
+            if weight_ratio >= threshold_val:
+                evidence_label = label
+                break
+
+        # Pemangkasan untuk pelaporan parsimonis
+        threshold = full_normalized_weights.max() * self.threshold_ratio
+        mask = full_normalized_weights >= threshold
         exprs_pruned = [e for e, m in zip(exprs, mask) if m]
         bics_pruned = bics[mask]
-        weights_pruned = raw_weights[mask]
-
-        # Normalize to sum = 1.0
+        weights_pruned = full_normalized_weights[mask]
         weights_norm = weights_pruned / weights_pruned.sum()
 
-        # Compute posterior entropy (bits)
         entropy = float(-np.sum(weights_norm * np.log2(weights_norm + 1e-15)))
 
-        # Aggregate posterior by functional family using classify_structure
         try:
             import sympy as sp
             from adcd.metrics import classify_structure
@@ -136,25 +79,11 @@ class BayesianReranker:
         except ImportError:
             class_probs = {}
 
-        # Determine evidence label from weight ratio of top-2
-        if len(weights_norm) >= 2:
-            weight_ratio = float(weights_norm[0] / (weights_norm[1] + 1e-15))
-        else:
-            weight_ratio = float("inf")
-
-        evidence_label = "ambiguous"
-        for label, threshold_val in self.EVIDENCE_THRESHOLDS:
-            if weight_ratio >= threshold_val:
-                evidence_label = label
-                break
-
-        is_ambiguous = weight_ratio < 3.0
-
         return BayesianCorrectionOutput(
             candidates=list(zip(exprs_pruned, bics_pruned.tolist())),
             posterior_weights=weights_norm.tolist(),
             correction_class_probs=class_probs,
-            is_ambiguous=is_ambiguous,
+            is_ambiguous=weight_ratio < 3.0,
             evidence_label=evidence_label,
             posterior_entropy=entropy,
             best_expr=exprs_pruned[0],

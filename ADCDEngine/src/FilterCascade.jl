@@ -1,4 +1,6 @@
-# ADCD Engine: FilterCascade
+# ============================================================================
+# Modul: FilterCascade (Hardened & Cleaned)
+# ============================================================================
 module FilterCascade
 
 using ..ADCDDimensions
@@ -22,31 +24,21 @@ end
 
 GateStats() = GateStats(0,0,0,0,0,0,0)
 
-# Bug #2 FIX: Added correction_type field. "multiplicative" = y_cl*(1+Δ),
-# "additive" = y_cl+Δ. Previously hardcoded multiplicative, making 4/5
-# real-physics scenarios (Mercury, Muon g-2, Pulsar, etc.) unfittable
-# when y_classical≡0 (gradient=0, optimizer sees nothing).
 struct RunConfig
-    domain          ::String
-    target_dim      ::String
-    input_vars      ::Vector{String}
-    known_constants ::Dict{String,Float64}
-    bic_threshold   ::Float64
-    nmse_coarse     ::Float64
-    nmse_fine       ::Float64
-    n_restarts      ::Int
-    groups          ::Union{Vector{Vector{Int}},Nothing}
-    max_proposals   ::Int
-    correction_type ::String   # "multiplicative" or "additive"
-    classical_limit_direction ::String # "0" or "oo"
+    domain                   ::String
+    target_dim               ::String
+    input_vars               ::Vector{String}
+    known_constants          ::Dict{String,Float64}
+    bic_threshold            ::Float64
+    nmse_coarse              ::Float64
+    nmse_fine                ::Float64
+    n_restarts               ::Int
+    groups                   ::Union{Vector{Vector{Int}},Nothing}
+    max_proposals            ::Int
+    correction_type          ::String
+    classical_limit_direction::String
+    classical_limit_variable::String
 end
-
-# Backward-compat constructor: default to "multiplicative" and "0"
-RunConfig(domain, target_dim, input_vars, known_constants, bic_threshold,
-          nmse_coarse, nmse_fine, n_restarts, groups, max_proposals) =
-    RunConfig(domain, target_dim, input_vars, known_constants, bic_threshold,
-              nmse_coarse, nmse_fine, n_restarts, groups, max_proposals,
-              "multiplicative", "0")
 
 struct ADCDResult
     proposal  ::CorrectionProposal
@@ -56,109 +48,84 @@ struct ADCDResult
     gate_stats::GateStats
 end
 
-# ---------------------------------------------------------------------------
-# Individual gate implementations
-# ---------------------------------------------------------------------------
+# Deterministic integer hashing (tidak tergantung random secret seed Julia runtime)
+function deterministic_hash(s::String)::Int
+    h = UInt64(5381)
+    for b in codeunits(s)
+        h = ((h << 5) + h) + UInt64(b)
+    end
+    return Int(h & 0x7FFFFFFFFFFFFFFF)
+end
 
 function gate_a_dimensional(proposal::CorrectionProposal, target_dim::String)::Bool
     verify_dimension(proposal.expr, target_dim)
 end
 
 function gate_b_asymptotic(
-    proposal        ::CorrectionProposal,
-    vars_data       ::Dict{String,Vector{Float64}},
-    constants       ::Dict{String,Float64},
-    limit_direction ::String
+    proposal       ::CorrectionProposal,
+    vars_data      ::Dict{String,Vector{Float64}},
+    constants      ::Dict{String,Float64},
+    limit_direction::String,
+    limit_variable ::String
 )::Bool
-    # Bug #1 Fix (Audit): Remove hardcoded check for D_rar.
-    # Instead, use the classical_limit_direction provided by the scenario config.
     is_inf = limit_direction == "oo"
-    
     test_val = is_inf ? 1e12 : 1e-12
     threshold = is_inf ? 1e-3 : 1e-6
+    n_pts = length(first(values(vars_data)))
+    
+    limit_vars = split(limit_variable, ",")
 
     test_vars = Dict{String,Vector{Float64}}()
     for k in keys(vars_data)
-        if haskey(constants, k)
-            test_vars[k] = fill(constants[k], length(first(values(vars_data))))
+        if k in limit_vars
+            test_vars[k] = fill(test_val, n_pts)
         else
-            test_vars[k] = fill(test_val, length(first(values(vars_data))))
+            test_vars[k] = vars_data[k]
         end
     end
-    
+
     try
-        y = evaluate_expr(proposal.expr, test_vars, constants, ones(proposal.n_params))
-        return all(abs.(y) .< threshold)
+        # Uji dengan sign +1 dan -1 untuk menghindari bias penguncian tanda parameter
+        y_pos = evaluate_expr(proposal.expr, test_vars, constants, ones(proposal.n_params))
+        y_neg = evaluate_expr(proposal.expr, test_vars, constants, -ones(proposal.n_params))
+        return all(abs.(y_pos) .< threshold) && all(abs.(y_neg) .< threshold)
     catch
         return false
     end
 end
 
 function gate_c_coarse(
-    proposal        ::CorrectionProposal,
-    y_classical     ::Vector{Float64},
-    y_obs           ::Vector{Float64},
-    vars_data       ::Dict{String,Vector{Float64}},
-    constants       ::Dict{String,Float64},
-    nmse_threshold  ::Float64,
-    correction_type ::String,
+    proposal       ::CorrectionProposal,
+    y_classical    ::Vector{Float64},
+    y_obs          ::Vector{Float64},
+    vars_data      ::Dict{String,Vector{Float64}},
+    constants      ::Dict{String,Float64},
+    nmse_threshold ::Float64,
+    correction_type::String,
+    sigma_y        ::Union{Vector{Float64},Nothing}
 )::Union{FitResult, Nothing}
+    # Berikan 3 restarts pada skala dasar agar tidak membuang model dengan skala berbeda
     result = fit_constants(proposal.expr, y_classical, y_obs, vars_data, constants,
-                           proposal.n_params; n_restarts=1, rng_seed=0,
-                           correction_type=correction_type)
-    result.nmse <= nmse_threshold ? result : nothing
+                           proposal.n_params; n_restarts=3, rng_seed=42,
+                           sigma_y=sigma_y, correction_type=correction_type)
+    return (result.converged && isfinite(result.nmse) && result.nmse <= nmse_threshold) ? result : nothing
 end
 
 function gate_d_fine(
-    proposal        ::CorrectionProposal,
-    y_classical     ::Vector{Float64},
-    y_obs           ::Vector{Float64},
-    vars_data       ::Dict{String,Vector{Float64}},
-    constants       ::Dict{String,Float64},
-    n_restarts      ::Int,
-    sigma_y         ::Union{Vector{Float64},Nothing},
-    correction_type ::String,
+    proposal       ::CorrectionProposal,
+    y_classical    ::Vector{Float64},
+    y_obs          ::Vector{Float64},
+    vars_data      ::Dict{String,Vector{Float64}},
+    constants      ::Dict{String,Float64},
+    n_restarts     ::Int,
+    sigma_y        ::Union{Vector{Float64},Nothing},
+    correction_type::String,
+    seed           ::Int
 )::Union{FitResult, Nothing}
     result = fit_constants(proposal.expr, y_classical, y_obs, vars_data, constants,
-                           proposal.n_params; n_restarts=n_restarts, sigma_y=sigma_y,
-                           correction_type=correction_type)
-    result.converged ? result : nothing
-end
-
-# ---------------------------------------------------------------------------
-# Bug #1 FIX: The old local gate_e_identifiability has been removed.
-# It used fit.theta[end] as a flat constant for the null model (wrong),
-# compared k=1 null vs k=n_params correction (wrong — null must be k=0),
-# and approximated ll_corr indirectly via fit.nmse (inconsistent with
-# the likelihood actually computed in ConstantFitter).
-#
-# IdentifiabilityGate.identifiability_gate (the correct implementation) is
-# now called directly. delta_bic is computed here separately so it can be
-# serialized to the JSON output.
-# ---------------------------------------------------------------------------
-
-function _compute_delta_bic(
-    fine       ::FitResult,
-    y_classical::Vector{Float64},
-    y_obs      ::Vector{Float64},
-    config     ::RunConfig,
-)::Float64
-    n = length(y_obs)
-    
-    # Compute null model residuals in delta space
-    if config.correction_type == "additive"
-        resid_null = y_obs .- y_classical
-    else
-        resid_null = (y_obs .- y_classical) ./ (y_classical .+ 1e-15)
-    end
-    
-    sigma2_null = sum(resid_null .^ 2) / n
-    ll_null = sigma2_null > 0 ? -0.5 * n * log(2 * pi * sigma2_null) - n / 2.0 : -Inf
-
-    bic_null = bic_score(n, 0, ll_null)
-    bic_corr = bic_score(n, fine.n_params, fine.likelihood)
-
-    return bic_null - bic_corr  # positive = correction is better
+                           proposal.n_params; n_restarts=n_restarts, rng_seed=seed,
+                           sigma_y=sigma_y, correction_type=correction_type)
+    return result.converged ? result : nothing
 end
 
 function run_filter_cascade(
@@ -170,41 +137,45 @@ function run_filter_cascade(
     sigma_y    ::Union{Vector{Float64},Nothing} = nothing,
 )::Tuple{Union{ADCDResult, Nothing}, GateStats}
 
-    ct = config.correction_type
     stats = GateStats()
     stats.n_input = 1
 
-    # Gate A: Dimensional check (microseconds)
+    # Gate A
     gate_a_dimensional(proposal, config.target_dim) || return (nothing, stats)
     stats.n_pass_gate_a = 1
 
-    # Gate B: Asymptotic safety (microseconds)
-    gate_b_asymptotic(proposal, vars_data, config.known_constants, config.classical_limit_direction) || return (nothing, stats)
+    # Gate B
+    gate_b_asymptotic(proposal, vars_data, config.known_constants, config.classical_limit_direction, config.classical_limit_variable) || return (nothing, stats)
     stats.n_pass_gate_b = 1
 
-    # Gate C: Coarse (fast, ~10ms)
-    coarse = gate_c_coarse(
-        proposal, y_classical, y_obs, vars_data, config.known_constants,
-        config.nmse_coarse, ct)
+    # Gate C
+    coarse = gate_c_coarse(proposal, y_classical, y_obs, vars_data, config.known_constants,
+                           config.nmse_coarse, config.correction_type, sigma_y)
     coarse === nothing && return (nothing, stats)
     stats.n_pass_gate_c = 1
 
-    # Gate D: Fine (multi-start, ~100ms)
-    fine = gate_d_fine(
-        proposal, y_classical, y_obs, vars_data, config.known_constants,
-        config.n_restarts, sigma_y, ct)
+    # Gate D (Deterministik Seed)
+    seed = deterministic_hash(proposal.description)
+    fine = gate_d_fine(proposal, y_classical, y_obs, vars_data, config.known_constants,
+                       config.n_restarts, sigma_y, config.correction_type, seed)
     fine === nothing && return (nothing, stats)
     stats.n_pass_gate_d = 1
 
-    # Gate E: Identifiability verdict (Bug #1 fix: use IdentifiabilityGate module)
-    verdict = IdentifiabilityGate.identifiability_gate(
+    # Gate E
+    abs_y = abs.(y_classical)
+    pos_y = abs_y[abs_y .> 0.0]
+    dr = isempty(pos_y) ? 0.0 : maximum(abs_y) / minimum(pos_y)
+    use_full = dr > 1e4
+
+    verdict, delta_bic = IdentifiabilityGate.identifiability_gate(
         fine, y_classical, y_obs;
         bic_threshold   = config.bic_threshold,
         nmse_threshold  = config.nmse_fine,
         groups          = config.groups,
         correction_type = config.correction_type,
+        sigma_y         = sigma_y,
+        use_full_loss   = use_full
     )
-    delta_bic = _compute_delta_bic(fine, y_classical, y_obs, config)
 
     if verdict == IDENTIFIABLE
         stats.n_pass_gate_e = 1
@@ -215,13 +186,6 @@ function run_filter_cascade(
     return (ADCDResult(proposal, fine, verdict, delta_bic, stats), stats)
 end
 
-"""
-    run_cascade_on_proposals(proposals, y_classical, y_obs, vars_data, config)
-        -> Tuple{Vector{ADCDResult}, GateStats}
-
-Run all proposals through the filter cascade.
-Returns all results (IDENTIFIABLE first, then WITHHELD), sorted by delta_bic.
-"""
 function run_cascade_on_proposals(
     proposals  ::Vector{CorrectionProposal},
     y_classical::Vector{Float64},
@@ -237,39 +201,21 @@ function run_cascade_on_proposals(
     results = ADCDResult[]
     n_limited = min(length(proposals), config.max_proposals)
 
-    if verbose
-        println("[FilterCascade] Running $(n_limited) proposals through 5-gate cascade...")
-        println("[FilterCascade] Domain: $(config.domain), target_dim: $(config.target_dim), correction: $(config.correction_type)")
-    end
-
-    for (i, proposal) in enumerate(proposals[1:n_limited])
-        result, stats = run_filter_cascade(
-            proposal, y_classical, y_obs, vars_data, config; sigma_y=sigma_y)
-        
-        # Accumulate stats from all proposals, even those rejected
+    for proposal in proposals[1:n_limited]
+        result, stats = run_filter_cascade(proposal, y_classical, y_obs, vars_data, config; sigma_y=sigma_y)
         agg.n_pass_gate_a += stats.n_pass_gate_a
         agg.n_pass_gate_b += stats.n_pass_gate_b
         agg.n_pass_gate_c += stats.n_pass_gate_c
         agg.n_pass_gate_d += stats.n_pass_gate_d
         agg.n_pass_gate_e += stats.n_pass_gate_e
-        agg.n_withheld += stats.n_withheld
-        
+        agg.n_withheld    += stats.n_withheld
+
         result === nothing && continue
         push!(results, result)
     end
 
-    # Sort: IDENTIFIABLE first, then by delta_bic descending
-    sort!(results, by=r -> (r.verdict != IDENTIFIABLE, -r.delta_bic))
-
-    verbose && begin
-        println("[FilterCascade] Complete.")
-        show(agg)
-        println("[FilterCascade] IDENTIFIABLE results: $(agg.n_pass_gate_e)")
-    end
-
+    sort!(results, by = r -> (r.verdict != IDENTIFIABLE, -r.delta_bic))
     return results, agg
 end
-
-mean(x) = sum(x) / length(x)
 
 end  # module FilterCascade

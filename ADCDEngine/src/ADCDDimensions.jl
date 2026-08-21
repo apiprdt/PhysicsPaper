@@ -1,4 +1,4 @@
-# ADCD Engine: ADCDDimensions
+# ADCD Engine: ADCDDimensions (Hardened & Unified)
 module ADCDDimensions
 
 using LinearAlgebra
@@ -8,7 +8,6 @@ export PhysicalDimension, DIMENSION_REGISTRY, TARGET_DIMENSION_MAP
 export DimResult, DIM_MISMATCH, DIM_UNKNOWN_SYMBOL, DIM_UNSUPPORTED_OP, DIM_TRANSCENDENTAL_ARG
 export is_dimensionless, infer_dim, verify_dimension, enumerate_dimensionless_ratios
 
-# 5D SI base vector: [M, L, T, Th, Q]
 struct PhysicalDimension
     M::Int8; L::Int8; T::Int8; Th::Int8; Q::Int8
 end
@@ -20,7 +19,7 @@ Base.:(+)(a::PhysicalDimension, b::PhysicalDimension) =
     PhysicalDimension(a.M+b.M, a.L+b.L, a.T+b.T, a.Th+b.Th, a.Q+b.Q)
 Base.:(-)(a::PhysicalDimension, b::PhysicalDimension) =
     PhysicalDimension(a.M-b.M, a.L-b.L, a.T-b.T, a.Th-b.Th, a.Q-b.Q)
-Base.:(*)(n::Number, d::PhysicalDimension) =
+Base.:(*)(n::Int, d::PhysicalDimension) =
     PhysicalDimension(Int8(n*d.M), Int8(n*d.L), Int8(n*d.T), Int8(n*d.Th), Int8(n*d.Q))
 
 is_dimensionless(d::PhysicalDimension) = d == zero(PhysicalDimension)
@@ -32,7 +31,7 @@ const DIMENSION_REGISTRY = Dict{Symbol,PhysicalDimension}(
     # Base SI
     :M  => PhysicalDimension(1,0,0,0,0),   # mass [kg]
     :L  => PhysicalDimension(0,1,0,0,0),   # length [m]
-    :T  => PhysicalDimension(0,0,1,0,0),   # time [s]
+    :T_time => PhysicalDimension(0,0,1,0,0), # time [s] (distinct symbol)
     :Th => PhysicalDimension(0,0,0,1,0),   # temperature [K]
     :Q  => PhysicalDimension(0,0,0,0,1),   # charge [C]
     # Kinematics
@@ -47,6 +46,9 @@ const DIMENSION_REGISTRY = Dict{Symbol,PhysicalDimension}(
     :F  => PhysicalDimension(1,1,-2,0,0),  # force [N]
     :E  => PhysicalDimension(1,2,-2,0,0),  # energy [J]
     :p  => PhysicalDimension(1,1,-1,0,0),  # momentum [kg m/s]
+    :k  => PhysicalDimension(1,0,-2,0,0),  # spring constant
+    :b  => PhysicalDimension(1,-1,0,0,0),  # drag b (F = b v^2) -> M/L
+    :rho => PhysicalDimension(1,-3,0,0,0), # density
     # Gravity
     :G  => PhysicalDimension(-1,3,-2,0,0), # gravitational constant
     :g  => PhysicalDimension(0,1,-2,0,0),  # surface gravity
@@ -55,77 +57,60 @@ const DIMENSION_REGISTRY = Dict{Symbol,PhysicalDimension}(
     :a0 => PhysicalDimension(0,1,-2,0,0),  # MOND acceleration scale
     # E&M
     :q  => PhysicalDimension(0,0,0,0,1),   # charge [C]
+    :q1 => PhysicalDimension(0,0,0,0,1),
+    :q2 => PhysicalDimension(0,0,0,0,1),
     :epsilon => PhysicalDimension(0,1,0,0,0), # screening length [m]
     # Thermodynamics
     :S  => PhysicalDimension(1,2,-2,-1,0), # entropy [J/K]
+    :S_i => PhysicalDimension(1,2,-2,-1,0),
     :k_B => PhysicalDimension(1,2,-2,-1,0),# Boltzmann constant
-    :T_temp => PhysicalDimension(0,0,0,1,0), # temperature [K]
-    :H  => PhysicalDimension(0,0,-1,0,0),  # Hubble [1/s]
-    :z  => PhysicalDimension(0,0,0,0,0),   # redshift [dimensionless]
-    :tau => PhysicalDimension(0,0,1,0,0),  # proper time [s]
-    :t  => PhysicalDimension(0,0,1,0,0),   # time [s]
-    :t_0 => PhysicalDimension(0,0,1,0,0),  # initial/classical time [s]
-    # Lengths and Areas
-    :l  => PhysicalDimension(0,1,0,0,0),   # length
-    :A  => PhysicalDimension(0,2,0,0,0),   # area
-    :V_i => PhysicalDimension(0,3,0,0,0),  # initial volume
-    :dV  => PhysicalDimension(0,3,0,0,0),  # volume change
-    :V   => PhysicalDimension(0,3,0,0,0),  # volume
-    # Mechanics additions
-    :M  => PhysicalDimension(1,0,0,0,0),   # mass
-    :k  => PhysicalDimension(1,0,-2,0,0),  # spring constant
-    :b  => PhysicalDimension(1,-1,0,0,0),  # nonlinear drag b (F = b v^2) -> M/L
-    :rho => PhysicalDimension(1,-3,0,0,0), # density
-    # Electromagnetism additions
-    :q1 => PhysicalDimension(0,0,0,0,1),   # charge 1
-    :q2 => PhysicalDimension(0,0,0,0,1),   # charge 2
-    # Thermodynamics additions
-    :S_i => PhysicalDimension(1,2,-2,-1,0),# initial entropy
-    :T  => PhysicalDimension(0,0,0,1,0),   # temperature (alias)
-    :n  => PhysicalDimension(0,0,0,0,0),   # moles (dimensionless in 5D)
+    :T  => PhysicalDimension(0,0,0,1,0),   # Temperature [K]
+    :T_temp => PhysicalDimension(0,0,0,1,0),
+    :n  => PhysicalDimension(0,0,0,0,0),   # moles / dimensionless
     :sigma => PhysicalDimension(1,0,-3,-4,0), # Stefan-Boltzmann
-    # Kinematics
-    :V_inf => PhysicalDimension(0,1,-1,0,0), # freestream velocity
-    :w  => PhysicalDimension(0,0,-1,0,0),    # angular velocity
-    :theta => PhysicalDimension(0,0,0,0,0),  # angle
+    # Lengths and Areas
+    :l  => PhysicalDimension(0,1,0,0,0),
+    :A  => PhysicalDimension(0,2,0,0,0),
+    :V_i => PhysicalDimension(0,3,0,0,0),
+    :dV  => PhysicalDimension(0,3,0,0,0),
+    :V   => PhysicalDimension(0,3,0,0,0),
+    # Time symbols
+    :tau => PhysicalDimension(0,0,1,0,0),
+    :t  => PhysicalDimension(0,0,1,0,0),
+    :t_0 => PhysicalDimension(0,0,1,0,0),
+    # Cosmological & Kinematics
+    :H  => PhysicalDimension(0,0,-1,0,0),
+    :z  => PhysicalDimension(0,0,0,0,0),
+    :V_inf => PhysicalDimension(0,1,-1,0,0),
+    :w  => PhysicalDimension(0,0,-1,0,0),
+    :theta => PhysicalDimension(0,0,0,0,0),
 )
 
-# Map of target dimension names -> PhysicalDimension
 const TARGET_DIMENSION_MAP = Dict{String,PhysicalDimension}(
-    "dimensionless"   => PhysicalDimension(0,0,0,0,0),
-    "velocity"        => PhysicalDimension(0,1,-1,0,0),
-    "acceleration"    => PhysicalDimension(0,1,-2,0,0),
-    "length"          => PhysicalDimension(0,1,0,0,0),
-    "mass"            => PhysicalDimension(1,0,0,0,0),
-    "time"            => PhysicalDimension(0,0,1,0,0),
-    "energy"          => PhysicalDimension(1,2,-2,0,0),
-    "force"           => PhysicalDimension(1,1,-2,0,0),
-    "entropy"         => PhysicalDimension(1,2,-2,-1,0),
+    "dimensionless" => PhysicalDimension(0,0,0,0,0),
+    "velocity"      => PhysicalDimension(0,1,-1,0,0),
+    "acceleration"  => PhysicalDimension(0,1,-2,0,0),
+    "length"        => PhysicalDimension(0,1,0,0,0),
+    "mass"          => PhysicalDimension(1,0,0,0,0),
+    "time"          => PhysicalDimension(0,0,1,0,0),
+    "energy"        => PhysicalDimension(1,2,-2,0,0),
+    "force"         => PhysicalDimension(1,1,-2,0,0),
+    "entropy"       => PhysicalDimension(1,2,-2,-1,0),
 )
 
-# ---------------------------------------------------------------------------
-# Core inference engine
-# ---------------------------------------------------------------------------
-
-"""
-    infer_dim(node, registry) -> Union{PhysicalDimension, DimResult}
-
-Recursively infer the physical dimension of an ADCD expression node.
-Returns PhysicalDimension on success, or a DimResult enum on failure.
-"""
 function infer_dim(
     node::AbstractDict,
     registry::Dict{Symbol,PhysicalDimension}=DIMENSION_REGISTRY
 )::Union{PhysicalDimension, DimResult}
 
-    haskey(node,"sym")   && return get(registry, Symbol(node["sym"]), DIM_UNKNOWN_SYMBOL)
-    haskey(node,"theta") && return zero(PhysicalDimension)
-    haskey(node,"num")   && return zero(PhysicalDimension)
+    haskey(node, "sym")   && return get(registry, Symbol(node["sym"]), DIM_UNKNOWN_SYMBOL)
+    haskey(node, "theta") && return zero(PhysicalDimension)
+    haskey(node, "num")   && return zero(PhysicalDimension)
 
-    op   = get(node,"op","")
-    args = get(node,"args",[])
+    op   = get(node, "op", "")
+    args = get(node, "args", [])
 
-    if op in ("add","sub")
+    if op in ("add", "sub")
         length(args) < 2 && return DIM_UNSUPPORTED_OP
         d1 = infer_dim(args[1], registry)
         d1 isa DimResult && return d1
@@ -151,18 +136,26 @@ function infer_dim(
         length(args) < 2 && return DIM_UNSUPPORTED_OP
         d_base = infer_dim(args[1], registry)
         d_base isa DimResult && return d_base
-        haskey(args[2],"num") || return DIM_UNSUPPORTED_OP
-        n = Int(args[2]["num"])
-        return n * d_base
+        
+        # Pangkat dari bilangan tak berdimensi selalu tak berdimensi
+        if is_dimensionless(d_base)
+            return zero(PhysicalDimension)
+        end
+        
+        # Jika basis memiliki dimensi, eksponen wajib berupa integer
+        if haskey(args[2], "num")
+            num_val = args[2]["num"]
+            if isinteger(num_val)
+                n = round(Int, num_val)
+                return n * d_base
+            end
+        end
+        return DIM_UNSUPPORTED_OP
     elseif op == "sqrt"
         length(args) < 1 && return DIM_UNSUPPORTED_OP
         d_arg = infer_dim(args[1], registry)
         d_arg isa DimResult && return d_arg
-        # Bug #6 fix: explicitly reject if any SI exponent is odd (sqrt of dimensional
-        # quantity with odd exponent is not an integer dimension). Previously returned 0
-        # silently, which could allow dimensionally-invalid candidates to pass Gate A.
-        all(x -> x % 2 == 0, (d_arg.M, d_arg.L, d_arg.T, d_arg.Th, d_arg.Q)) ||
-            return DIM_UNSUPPORTED_OP
+        all(x -> x % 2 == 0, (d_arg.M, d_arg.L, d_arg.T, d_arg.Th, d_arg.Q)) || return DIM_UNSUPPORTED_OP
         return PhysicalDimension(d_arg.M÷2, d_arg.L÷2, d_arg.T÷2, d_arg.Th÷2, d_arg.Q÷2)
     elseif op == "neg"
         length(args) < 1 && return DIM_UNSUPPORTED_OP
@@ -180,15 +173,6 @@ function infer_dim(
     end
 end
 
-# ---------------------------------------------------------------------------
-"""
-    verify_dimension(expr_node, target_dim_name) -> Bool
-
-Hard boolean gate (Patent Claim #2).
-Returns true iff expression dimension == target dimension.
-Any error (unknown symbol, mismatch, non-dimensionless transcendental arg)
-returns false — candidate is REJECTED, never reaches numerical evaluation.
-"""
 function verify_dimension(
     expr_node::AbstractDict,
     target_dim_name::String,
@@ -199,7 +183,7 @@ function verify_dimension(
     elseif haskey(registry, Symbol(target_dim_name))
         target = registry[Symbol(target_dim_name)]
     else
-        return true  # unknown target: conservative pass
+        return false  # Fail-closed: tolak target dimensi tak dikenal
     end
     result = infer_dim(expr_node, registry)
     result isa DimResult && return false
@@ -215,33 +199,24 @@ function verify_dimension(json_str::String, target_dim_name::String)::Bool
     return verify_dimension(node, target_dim_name)
 end
 
-# ---------------------------------------------------------------------------
-# Buckingham pi: enumerate dimensionless ratios
-# ---------------------------------------------------------------------------
-
-"""
-    enumerate_dimensionless_ratios(symbols, max_degree=2) -> Vector{Dict}
-"""
 function enumerate_dimensionless_ratios(
     symbols::Vector{String},
     max_degree::Int=2,
     registry::Dict{Symbol,PhysicalDimension}=DIMENSION_REGISTRY
 )::Vector{Dict{String,Any}}
 
-    valid = filter(s -> haskey(registry, Symbol(s)), symbols)
+    valid = unique(filter(s -> haskey(registry, Symbol(s)), symbols))
     isempty(valid) && return Dict{String,Any}[]
     n = length(valid)
 
-    # 5xn dimension matrix
     A = Matrix{Float64}(undef, 5, n)
-    for (j,s) in enumerate(valid)
+    for (j, s) in enumerate(valid)
         d = registry[Symbol(s)]
-        A[:,j] = Float64[d.M, d.L, d.T, d.Th, d.Q]
+        A[:, j] = Float64[d.M, d.L, d.T, d.Th, d.Q]
     end
     NS = nullspace(A, atol=1e-8)
     size(NS, 2) == 0 && return Dict{String,Any}[]
 
-    # Convert float null vectors to exact integer basis
     basis_vectors = Vector{Int}[]
     for col in 1:size(NS, 2)
         v = NS[:, col]
@@ -266,11 +241,11 @@ function enumerate_dimensionless_ratios(
     k = length(basis_vectors)
     coef_range = -max_degree:max_degree
     for coeffs in Iterators.product(fill(coef_range, k)...)
-        all(c==0 for c in coeffs) && continue
+        all(c == 0 for c in coeffs) && continue
         int_exps = sum(collect(coeffs)[i] .* basis_vectors[i] for i in 1:k)
-        any(abs(e)>max_degree for e in int_exps) && continue
-        all(e==0 for e in int_exps) && continue
-        # canonical: leading nonzero positive
+        any(abs(e) > max_degree for e in int_exps) && continue
+        all(e == 0 for e in int_exps) && continue
+        
         first_nz = findfirst(!=(0), int_exps)
         isnothing(first_nz) && continue
         if int_exps[first_nz] < 0
@@ -282,14 +257,13 @@ function enumerate_dimensionless_ratios(
     exprs = Dict{String,Any}[]
     for exps in sort(collect(results))
         factors = Dict{String,Any}[]
-        for (s,e) in zip(valid,exps)
-            e==0 && continue
-            e==1 ? push!(factors, Dict("sym"=>s)) :
-                   push!(factors, Dict("op"=>"pow","args"=>[Dict("sym"=>s),Dict("num"=>e)]))
+        for (s, e) in zip(valid, exps)
+            e == 0 && continue
+            e == 1 ? push!(factors, Dict("sym" => s)) :
+                     push!(factors, Dict("op" => "pow", "args" => [Dict("sym" => s), Dict("num" => e)]))
         end
         isempty(factors) && continue
-        expr = length(factors)==1 ? factors[1] :
-               Dict("op"=>"mul","args"=>factors)
+        expr = length(factors) == 1 ? factors[1] : Dict("op" => "mul", "args" => factors)
         push!(exprs, expr)
     end
     return exprs

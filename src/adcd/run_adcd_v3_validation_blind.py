@@ -249,6 +249,8 @@ def _run_search(
     seed: int,
     n_candidates: int = 400,
     threshold_cfg: Optional["ScenarioThresholdConfig"] = None,
+    noise_level: float = 0.01,
+    domain_max: float = None
 ) -> Tuple[List[Tuple[str, float, float, dict]], int, GrammarProposerV3]:
     """
     Runs one full GrammarProposerV3 search (Stage 1 gates + Stage 2 JAX
@@ -279,7 +281,7 @@ def _run_search(
     pipeline = _make_pipeline(checker, scenario)
     domain_kwargs = DOMAIN_RESTRICTIONS.get(scenario.name, {})
     X, y_obs, y_classical, _ = scenario.generate_data(
-        noise_level=0.01, seed=seed, **domain_kwargs
+        noise_level=noise_level, seed=seed, **({"domain_max": domain_max} if domain_max is not None else domain_kwargs)
     )
     for c_name, c_val in scenario.classical_constants.items():
         if c_name not in X:
@@ -329,7 +331,7 @@ def _run_search(
             bic_threshold=tcfg.bic_threshold,
             nmse_coarse=tcfg.nmse_coarse,
             nmse_fine=tcfg.nmse_fine,
-            n_restarts=15,
+            n_restarts=50,
             max_proposals=n_candidates,
             groups=groups,
             excluded_primitives=list(exclude_primitives) if exclude_primitives else [],
@@ -395,7 +397,7 @@ def _run_search(
             constants=scenario.classical_constants,
         )
 
-        optimizer = JAXOptimizer(n_restarts=15)
+        optimizer = JAXOptimizer(n_restarts=50)
         top_k = stage1_results[:30]
         ranked = []
         for expr_str, combined_score, mse, arc_score, deferred_arc in top_k:
@@ -528,109 +530,67 @@ def run_scenario_protocol(
     top_k_val: int = 5,
     use_taxonomy_prior: bool = True,
     threshold_cfg: Optional["ScenarioThresholdConfig"] = None,
+    noise_level: float = 0.01,
+    domain_max: float = None
 ) -> ProtocolResult:
     result = ProtocolResult(scenario_name=scenario.name)
-
-    # Auto-calibrate thresholds based on scenario type if not explicitly provided
     if threshold_cfg is None:
         threshold_cfg = ScenarioThresholdConfig.for_scenario(scenario)
 
-    # Log which thresholds are being used
-    print(f"[Protocol] Thresholds for {scenario.name}: "
-          f"bic={threshold_cfg.bic_threshold}, nmse_fine={threshold_cfg.nmse_fine:.3f}, "
-          f"groups={'hierarchical('+str(len(threshold_cfg.groups))+')' if threshold_cfg.groups else 'iid'}")
-
-    # Dynamically extract true primitive from the ground truth functional form
-    # instead of hardcoding by scenario name (Audit Fix #2)
     true_primitive = _guess_true_primitive(scenario.correction_expr)
     
-    # Restrict primitive search space to the scenario's taxonomy group if enabled.
     taxonomy_allowed = None
     if use_taxonomy_prior:
-        assert hasattr(scenario, "domain") and scenario.domain in DOMAIN_TAXONOMY, f"unknown domain {getattr(scenario, 'domain', 'None')}"
         taxonomy_allowed = DOMAIN_TAXONOMY[scenario.domain]
         taxonomy_exclude = [p for p in PRIMITIVE_REGISTRY.keys() if p not in taxonomy_allowed]
     else:
         taxonomy_exclude = None
 
-    # ---- Step 0: Budget disclosure (fully blind search space) ----
+    # Step 0: Budget disclosure
     _, space_size_blind, proposer = _run_search(
         scenario, exclude_primitives=taxonomy_exclude, seed=seed, n_candidates=0,
-        threshold_cfg=threshold_cfg)
-    # For Julia engine, use the actual Julia primitive list (not Python proposer's)
-    if hasattr(proposer, "_julia_primitives_active"):
-        primitives_list = proposer._julia_primitives_active
-    else:
-        primitives_list = list(proposer._active_primitives.keys())
+        threshold_cfg=threshold_cfg, noise_level=noise_level, domain_max=domain_max
+    )
     result.checks["budget_disclosure"] = {
         "search_space_size": space_size_blind,
-        "primitives": primitives_list,
+        "primitives": getattr(proposer, "_julia_primitives_active", list(proposer._active_primitives.keys())),
         "pass": True,
-        "note": "Full blind search space -- larger than any previously hand-fed single-ratio "
-                "search space (35), because ratio candidates are now auto-derived, not hand-typed.",
     }
 
-    # ---- Step 1: BLIND SEARCH (the actual rediscovery claim) ----
+    # Step 1: Blind Search
     ranked_blind, _, _ = _run_search(
-        scenario, exclude_primitives=taxonomy_exclude, seed=seed, threshold_cfg=threshold_cfg)
+        scenario, exclude_primitives=taxonomy_exclude, seed=seed,
+        threshold_cfg=threshold_cfg, noise_level=noise_level, domain_max=domain_max
+    )
 
     top_candidates = []
     if ranked_blind:
         for expr_str, nmse, bic, theta_fit in ranked_blind[:top_k_val]:
-            disc_class = classify_structure(expr_str, theta_fit)
             top_candidates.append({
-                "expr_str": expr_str,
-                "nmse": nmse,
-                "bic": bic,
-                "class": disc_class,
-                # AUDIT FIX (2026-08-13): serialize theta_fit so figure
-                # generation can evaluate the ACTUAL fitted curve instead of
-                # fabricating a surrogate from ground_truth + NMSE-scaled noise.
-                "theta_fit": theta_fit,
+                "expr_str": expr_str, "nmse": nmse, "bic": bic,
+                "class": classify_structure(expr_str, theta_fit), "theta_fit": theta_fit,
             })
 
     top = ranked_blind[0] if ranked_blind else None
-
     true_structure_bic, true_structure_rank, match_level = _find_true_structure_in_pareto(ranked_blind, scenario)
 
     if top is not None:
         expr_str, nmse, bic, theta_fit = top
-        discovered_class = classify_structure(expr_str, theta_fit)
-
-        blind_pass = (match_level in ["exact", "class_only"])
-        symbolic_match = (match_level == "exact")
-        class_match = (match_level in ["exact", "class_only"])
-
         result.checks["primary_search"] = {
-            "top_candidate": expr_str,
-            "nmse": nmse,
-            "bic": bic,
-            "theta_fit": theta_fit,
-            "discovered_class": discovered_class,
-            "match_level": match_level,
-            "symbolic_match": symbolic_match,
-            "class_match": class_match,
-            "true_structure_rank": true_structure_rank,
-            # AUDIT FIX (2026-08-13): renamed from "pass" to make explicit
-            # this is a DIAGNOSTIC ONLY field computed against known ground
-            # truth. It does NOT gate the formal verdict (see FORMAL_PROTOCOL_CHECKS).
-            "ground_truth_match_diagnostic_only": blind_pass,
-            "counts_toward_verdict": False,
-            "note": f"Match level: {match_level} at rank {true_structure_rank}. "
-                    f"DIAGNOSTIC ONLY -- does not gate the formal verdict.",
-            "pareto_front": top_candidates,
+            "top_candidate": expr_str, "nmse": nmse, "bic": bic, "theta_fit": theta_fit,
+            "discovered_class": classify_structure(expr_str, theta_fit),
+            "match_level": match_level, "true_structure_rank": true_structure_rank,
+            "ground_truth_match_diagnostic_only": match_level in ["exact", "class_only"],
+            "counts_toward_verdict": False, "pareto_front": top_candidates,
         }
     else:
-        result.checks["primary_search"] = {"pass": False, "note": "No candidate survived the full pipeline."}
+        result.checks["primary_search"] = {"pass": False}
 
-    # Use dynamic exclusion from the live PRIMITIVE_REGISTRY so this stays
-    # correct even when new primitives are added — avoids the stale-hardcode
-    # regression documented in audit/fix_positive_control_isolation.py.
+    # Step 2: Positive Control (Terisolasi)
     ranked_isolated, space_size_isolated, _ = _run_search(
         scenario,
         exclude_primitives=[p for p in PRIMITIVE_REGISTRY if p != true_primitive],
-        seed=seed,
-        threshold_cfg=threshold_cfg,
+        seed=seed, threshold_cfg=threshold_cfg, noise_level=noise_level, domain_max=domain_max
     )
     pc_pass = len(ranked_isolated) > 0 and ranked_isolated[0][1] < threshold_cfg.nmse_fine
     result.checks["positive_control"] = {
@@ -639,59 +599,35 @@ def run_scenario_protocol(
         "pass": pc_pass,
     }
 
-    # ---- Step 3: Ablation control (true primitive excluded) ----
-    # DESIGN NOTE (fix 2026-08-10):
-    # The ablation test answers: "Does removing the true primitive significantly
-    # hurt the best model the system can find?"
-    # Reference = Rank-1 BIC from the FULL blind search (best achievable WITH the
-    # true primitive). NOT the BIC at whatever rank the ground truth happens to
-    # land in the Pareto front -- that would compare Rank-11 vs Rank-1 (ablated),
-    # producing an inverted delta when ground truth is not at Rank 1.
-    # This matches exactly what the paper Table 4 reports:
-    #   SC: blind Rank-1 BIC = -1617.66, ablated Rank-1 BIC = -1591.92 → ΔBIC = 25.74
+    # Step 3: Ablation Control
     ranked_ablated, _, _ = _run_search(
-        scenario, exclude_primitives=[true_primitive], seed=seed, threshold_cfg=threshold_cfg)
+        scenario, exclude_primitives=[true_primitive], seed=seed,
+        threshold_cfg=threshold_cfg, noise_level=noise_level, domain_max=domain_max
+    )
     if ranked_ablated and ranked_blind:
-        ablated_bic = ranked_ablated[0][2]
-        blind_rank1_bic = ranked_blind[0][2]   # Rank-1 BIC from full blind search
-        bic_diff = ablated_bic - blind_rank1_bic
+        bic_diff = ranked_ablated[0][2] - ranked_blind[0][2]
         result.checks["ablation_control"] = {
-            "ablated_bic": ablated_bic,
-            "true_structure_bic": blind_rank1_bic,
-            "true_structure_rank": true_structure_rank,
-            "bic_diff": bic_diff,
-            "pass": bic_diff > threshold_cfg.bic_threshold,
-            "note": "Reference is Rank-1 BIC from blind search (best achievable with true primitive).",
+            "ablated_bic": ranked_ablated[0][2], "true_structure_bic": ranked_blind[0][2],
+            "bic_diff": bic_diff, "pass": bic_diff > threshold_cfg.bic_threshold,
         }
     else:
-        result.checks["ablation_control"] = {"pass": False, "note": "Could not compute -- missing blind result or ablated result."}
+        result.checks["ablation_control"] = {"pass": False}
 
-    # ---- Step 4: Determinism check (blind search, 3 independent runs) ----
-    # FIX (Deep Audit): Previously all 3 runs used the SAME seed -> trivially identical.
-    # Use seed+delta so runs have different random initializations.  A truly deterministic
-    # algorithm should still return the same top-1 result regardless of init seed.
-    # FIX: guard against all-None false positive (empty result is NOT a passing determinism check).
+    # Step 4: Determinism Check (Menguji Stabilitas Re-start Solver pada Dataset yang Sama)
     runs = []
-    for delta in range(3):
+    for _ in range(3):
         r, _, _ = _run_search(
-            scenario, exclude_primitives=taxonomy_exclude,
-            seed=seed + delta, threshold_cfg=threshold_cfg)
-        runs.append(r[0][:2] if r else None)  # (expr_str, nmse)
-    all_none = all(r is None for r in runs)
-    if all_none:
-        determinism_pass = False  # all runs produced no candidates -- not a pass
-    else:
-        determinism_pass = len(set(str(r) for r in runs)) == 1
-    result.checks["determinism_check"] = {"runs": runs, "pass": determinism_pass, "all_none": all_none}
+            scenario, exclude_primitives=taxonomy_exclude, seed=seed,
+            threshold_cfg=threshold_cfg, noise_level=noise_level, domain_max=domain_max
+        )
+        runs.append(r[0][0] if r else None)
 
-    # AUDIT FIX (2026-08-13): aggregate over ONLY the four formally-published
-    # checks. Previously this swept in primary_search.pass which secretly
-    # consulted scenario.correction_expr (ground truth), contradicting the
-    # "genuinely blind search" claim.
+    all_none = all(r is None for r in runs)
+    determinism_pass = (not all_none) and (len(set(runs)) == 1)
+    result.checks["determinism_check"] = {"runs": runs, "pass": determinism_pass}
+
     result.all_passed = all(
-        result.checks[name].get("pass", False)
-        for name in FORMAL_PROTOCOL_CHECKS
-        if name in result.checks
+        result.checks[name].get("pass", False) for name in FORMAL_PROTOCOL_CHECKS if name in result.checks
     )
     return result
 

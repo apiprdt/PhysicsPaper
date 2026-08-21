@@ -163,6 +163,8 @@ def match_parameters(
     true_keys = sorted(true_params.keys())
     fit_keys = sorted(fit_params.keys())
 
+    if len(true_keys) == 0 and len(fit_keys) == 0:
+        return {}, True, False
     if len(fit_keys) != len(true_keys) or len(true_keys) == 0:
         return {}, False, True
 
@@ -285,7 +287,8 @@ def evaluate_correction(
 
     if scenario.correction_type == "multiplicative":
         y_recon = y_classical * (1.0 + delta_discovered)
-        residual_obs = y_obs / y_classical - 1.0
+        safe_cl = np.where(np.abs(y_classical) < 1e-15, 1e-15, y_classical)
+        residual_obs = y_obs / safe_cl - 1.0
         mse_res = np.mean((delta_discovered - residual_obs) ** 2)
         nmse_res = _nmse(mse_res, residual_obs)
     else:

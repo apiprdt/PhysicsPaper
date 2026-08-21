@@ -30,7 +30,8 @@ def main():
     
     # Configure the Julia config
     config = config_from_scenario(scenario, tcfg, X)
-    config.max_proposals = 1000 # Evaluate full search space
+    config.max_proposals = 1000
+    config.n_restarts = 50 # Evaluate full search space
     
     X_vars = {k: v for k, v in X.items() if k != "galaxy_id"}
     data = JuliaEngineData(
