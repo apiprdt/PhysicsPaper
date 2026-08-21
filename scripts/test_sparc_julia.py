@@ -31,7 +31,7 @@ def main():
         if step == "primary_search":
             print(f"Primary Search:")
             for cand in info.get("pareto_front", []):
-                print(f"  - {cand[0]} (BIC: {cand[2]:.2f})")
+                print(f"  - {cand['expr_str']} (BIC: {cand['bic']:.2f})")
         else:
             status = "PASS" if info.get("pass") else "FAIL"
             print(f"[{status:^6}] {step.upper():<20} | {info}")

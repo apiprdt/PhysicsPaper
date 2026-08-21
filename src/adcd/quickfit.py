@@ -59,14 +59,12 @@ DOMAIN_TAXONOMY: dict = {
     # Citations: Boltzmann (1877); Planck (1901); Pathria & Beale (2011).
     "boltzmann_thermodynamics": ["D_exp", "D_log"],
 
-    # ── MOND RADIAL ACCELERATION ─────────────────────────────────────────
-    # Phenomenon: deep-MOND regime correction to Newtonian gravity.
-    # Fundamental equation (interpolating function): μ(x) = x/√(1+x²) or 1−e^{−√x}
-    # McGaugh RAR: g_obs = g_bar / (1 − e^{−√(g_bar/g†)})
-    # Primitives justified: D_sqrt_inv (MOND limit ∝ 1/√x), D_rat (Newtonian limit).
+    # ── MOND / RADIAL ACCELERATION RELATION ──────────────────────────────
+    # Phenomenon: Deep-MOND limit behavior and transition to Newtonian gravity.
+    # Primitives justified: D_rar (McGaugh interpolator), D_sqrt_inv (MOND limit), D_nested_mond, D_rat (Newtonian limit).
     # D_pow excluded: power laws do not interpolate the MOND regimes correctly.
     # Citations: Milgrom (1983); McGaugh, Lelli & Schombert (2016).
-    "mond_radial_acceleration": ["D_sqrt_inv", "D_rat"],
+    "mond_radial_acceleration": ["D_rar", "D_sqrt_inv", "D_nested_mond", "D_rat"],
 
     # ── GR ORBITAL CORRECTIONS ───────────────────────────────────────────
     # Phenomenon: post-Newtonian gravitational corrections (perihelion, pulsar).

@@ -224,7 +224,6 @@ def enumerate_candidates(
             cand = _assign_theta(cand_raw)
             if _token_count(cand) <= budget.max_tokens:
                 candidates.append(cand)
-
     return candidates
 
 
