@@ -30,8 +30,12 @@ class BayesianCorrectionOutput:
 
 class BayesianReranker:
     """
-    EXPERIMENTAL — NOT USED IN REPORTED RESULTS.
     Converts BIC-ranked candidates to Bayesian posterior distribution.
+
+    Used for evidence-grade reporting alongside the binary IDENTIFIABLE/WITHHELD
+    verdict. Reports "decisive", "very strong", "strong", "substantial", "weak",
+    or "ambiguous" — per the Kass-Raftery (1995) scale — giving a more nuanced
+    view of the statistical evidence without replacing the formal verdict.
 
     The BIC weight approximation is:
         w_i = exp(-delta_BIC_i / 2) / sum(exp(-delta_BIC_j / 2))

@@ -309,8 +309,28 @@ def load_sparc_rar(seed: int = 42) -> Tuple[Dict[str, np.ndarray], np.ndarray, n
     R = data[:, 0] * 3.086e19  # kpc to m
     Vobs = data[:, 1] * 1000   # km/s to m/s
     Vgas = data[:, 2] * 1000
-    Vdisk = data[:, 3] * 1000 * np.sqrt(0.5) # M/L = 0.5
-    Vbul = data[:, 4] * 1000 * np.sqrt(0.7)  # M/L = 0.7
+    # ============================================================
+    # METHODOLOGICAL NOTE — M/L Assumption (must be disclosed in paper)
+    # ============================================================
+    # This reconstruction uses FIXED mass-to-light ratios for ALL galaxies:
+    #   M/L_disk = 0.5 (solar units)  — following McGaugh et al. (2016)
+    #   M/L_bul  = 0.7 (solar units)  — following McGaugh et al. (2016)
+    #
+    # These are population-average values, NOT per-galaxy calibrations.
+    # Consequence: g_bar per galaxy is LESS accurate than individual-galaxy
+    # M/L fitting (as done in Li et al. 2018, ApJ 853:109), which treats
+    # M/L as a free parameter per galaxy. Fixed M/L introduces artificial
+    # scatter BEYOND the intrinsic RAR scatter (~0.11-0.13 dex).
+    #
+    # The nmse_fine threshold in ScenarioThresholdConfig._calibrated_nmse()
+    # accounts for this via optimization_slack=0.35. This trade-off is
+    # DISCLOSED HERE explicitly so it appears transparently in any audit.
+    #
+    # For a more rigorous analysis, use per-galaxy M/L from:
+    #   Li et al. (2018, ApJ, 853, 109) — SPARC photometric decomposition.
+    # ============================================================
+    Vdisk = data[:, 3] * 1000 * np.sqrt(0.5)  # M/L_disk=0.5, McGaugh et al. (2016)
+    Vbul  = data[:, 4] * 1000 * np.sqrt(0.7)  # M/L_bul=0.7, McGaugh et al. (2016)
     
     gobs = Vobs**2 / R
     gbar = (Vgas * np.abs(Vgas) + Vdisk * np.abs(Vdisk) + Vbul * np.abs(Vbul)) / R
