@@ -1,4 +1,4 @@
-# ADCD Engine: ConstantFitter (Hardened & Unified)
+﻿# ADCD Engine: ConstantFitter (Hardened & Unified)
 module ConstantFitter
 
 using Optim
@@ -63,7 +63,11 @@ function evaluate_expr(
         if op == "pow"
             base = _eval(args[1])
             exp_v = _eval(args[2])
-            return base .^ exp_v
+            if all(isinteger, exp_v)
+                return base .^ round(Int, exp_v[1])
+            else
+                return (abs.(base) .+ 1e-30) .^ exp_v
+            end
         end
         if op == "neg";  return -_eval(args[1]); end
         if op == "sqrt"; return sqrt.(max.(_eval(args[1]), 0.0)); end

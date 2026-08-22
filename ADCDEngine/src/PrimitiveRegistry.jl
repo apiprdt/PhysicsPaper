@@ -1,4 +1,4 @@
-# ADCD Engine: PrimitiveRegistry (Hardened)
+﻿# ADCD Engine: PrimitiveRegistry (Hardened)
 module PrimitiveRegistry
 
 using ..ADCDDimensions
@@ -60,6 +60,13 @@ const DOMAIN_TAXONOMY = Dict{String, Vector{Symbol}}(
     "critical_scaling"           => [:D_pow],
     "turbulent_transport"        => [:D_pow, :D_log],
     "quantum_corrections"        => [:D_exp, :D_log, :D_rat],
+    "qed_radiative"              => [:D_log, :D_rat],
+    "wave_resonance"             => [:D_osc, :D_rat],
+    "relativistic"               => [:D_lor],
+    "gravitation"                => [:D_exp, :D_rat, :D_lor],
+    "thermodynamics"             => [:D_exp, :D_log],
+    "fluid dynamics"             => [:D_pow, :D_log],
+    "mechanics"                  => [:D_pow, :D_rat, :D_sat],
     "generic"                    => [k for (k,v) in PRIMITIVE_REGISTRY if !v.divergent_safe],
 )
 
