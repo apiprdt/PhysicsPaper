@@ -76,6 +76,11 @@ function run_adcd(config_json::String, data_json::String)::String
             if op == "div";           return "(" * node_to_sympy(args[1]) * " / " * node_to_sympy(args[2]) * ")"; end
             if op == "pow";           return "(" * node_to_sympy(args[1]) * "**" * node_to_sympy(args[2]) * ")"; end
             if op == "sqrt";          return "sqrt(" * node_to_sympy(args[1]) * ")"; end
+            if op == "sub";           return "(" * node_to_sympy(args[1]) * " - " * node_to_sympy(args[2]) * ")"; end
+            if op == "neg";           return "(-" * node_to_sympy(args[1]) * ")"; end
+            if op in ("exp", "log", "sin", "cos", "tan", "tanh")
+                return op * "(" * node_to_sympy(args[1]) * ")"
+            end
             if op == "d_lor";         u = node_to_sympy(args[1]); return "(1/sqrt(1 - (" * u * ")) - 1)"; end
             if op == "d_exp";         u = node_to_sympy(args[1]); return "(1 - exp(-Abs(" * u * ")))"; end
             if op == "d_rat";         u = node_to_sympy(args[1]); return "((" * u * ") / (1 + (" * u * ")**2))"; end
@@ -398,10 +403,10 @@ function enumerate_dimensionless_ratios(
         rats = [abs(x) < 1e-6 ? 0//1 : rationalize(x, tol=1e-4) for x in v_scaled]
         denoms = [denominator(r) for r in rats]
         lcm_denom = isempty(denoms) ? 1 : foldl(lcm, denoms)
-        int_vec = Int[round(Int, (numerator(r) * (lcm_denom Ã· denominator(r)))) for r in rats]
+        int_vec = Int[round(Int, (numerator(r) * (lcm_denom  div  denominator(r)))) for r in rats]
         g = foldl(gcd, int_vec)
         if g > 1
-            int_vec = int_vec .Ã· g
+            int_vec = int_vec . div  g
         end
         push!(basis_vectors, int_vec)
     end
@@ -508,7 +513,11 @@ function evaluate_expr(
         if op == "pow"
             base = _eval(args[1])
             exp_v = _eval(args[2])
-            return base .^ exp_v
+            if all(isinteger, exp_v)
+                return base .^ round(Int, exp_v[1])
+            else
+                return (abs.(base) .+ 1e-30) .^ exp_v
+            end
         end
         if op == "neg";  return -_eval(args[1]); end
         if op == "sqrt"; return sqrt.(max.(_eval(args[1]), 0.0)); end
@@ -592,17 +601,17 @@ function fit_constants(
                 w_res = (y_obs .- y_pred) ./ sigma_y
                 chi2 = sum(w_res.^2)
                 nmse_val = chi2 / n
-                ll = -0.5 * chi2 - 0.5 * sum(log.(2Ï€ .* (sigma_y.^2)))
+                ll = -0.5 * chi2 - 0.5 * sum(log.(2 * pi .* (sigma_y.^2)))
             elseif use_full_loss
                 y_pred = get_y_pred(delta)
                 diff = y_obs .- y_pred
                 sigma2 = mean(diff.^2)
                 nmse_val = sigma2 / var_full
-                ll = sigma2 > 0 ? (-0.5 * n * log(2Ï€ * sigma2) - 0.5 * n) : -Inf
+                ll = sigma2 > 0 ? (-0.5 * n * log(2 * pi * sigma2) - 0.5 * n) : -Inf
             else
                 sigma2 = mean(delta_residuals.^2)
                 nmse_val = sigma2 / var_resid
-                ll = sigma2 > 0 ? (-0.5 * n * log(2Ï€ * sigma2) - 0.5 * n) : -Inf
+                ll = sigma2 > 0 ? (-0.5 * n * log(2 * pi * sigma2) - 0.5 * n) : -Inf
             end
 
             return FitResult(Float64[], nmse_val, ll, true, 0, 0, nothing, delta_residuals)
@@ -703,15 +712,15 @@ function fit_constants(
             y_pred = get_y_pred(delta)
             w_res = (y_obs .- y_pred) ./ sigma_y
             chi2 = sum(w_res.^2)
-            ll = -0.5 * chi2 - 0.5 * sum(log.(2Ï€ .* (sigma_y.^2)))
+            ll = -0.5 * chi2 - 0.5 * sum(log.(2 * pi .* (sigma_y.^2)))
         elseif use_full_loss
             y_pred = get_y_pred(delta)
             diff = y_obs .- y_pred
             sigma2 = mean(diff.^2)
-            ll = sigma2 > 0 ? (-0.5 * n * log(2Ï€ * sigma2) - 0.5 * n) : -Inf
+            ll = sigma2 > 0 ? (-0.5 * n * log(2 * pi * sigma2) - 0.5 * n) : -Inf
         else
             sigma2 = mean(delta_residuals.^2)
-            ll = sigma2 > 0 ? (-0.5 * n * log(2Ï€ * sigma2) - 0.5 * n) : -Inf
+            ll = sigma2 > 0 ? (-0.5 * n * log(2 * pi * sigma2) - 0.5 * n) : -Inf
         end
     catch e
         return FitResult(best_theta, Inf, -Inf, false, n_restarts, n_params, string(e), delta_residuals)
@@ -992,24 +1001,26 @@ function gate_b_asymptotic(
     limit_direction::String,
     limit_variable ::String
 )::Bool
-    is_inf = limit_direction == "oo"
-    test_val = is_inf ? 1e12 : 1e-12
-    threshold = is_inf ? 1e-3 : 1e-6
-    n_pts = length(first(values(vars_data)))
-    
-    # FIX: Jika limit_variable kosong/default, masukkan SEMUA variabel input
     raw_vars = strip(limit_variable)
     limit_vars = isempty(raw_vars) ? collect(keys(vars_data)) : String.(split(raw_vars, ","))
+    raw_dirs = strip(limit_direction)
+    limit_dirs = isempty(raw_dirs) ? fill("0", length(limit_vars)) : String.(split(raw_dirs, ","))
+    dir_map = Dict(v => (i <= length(limit_dirs) ? limit_dirs[i] : "0") for (i, v) in enumerate(limit_vars))
 
     test_vars = Dict{String,Vector{Float64}}()
+    n_pts = length(first(values(vars_data)))
     for k in keys(vars_data)
-        if k in limit_vars
-            test_vars[k] = fill(test_val, n_pts)
+        if haskey(dir_map, k)
+            is_inf_dir = dir_map[k] in ("oo", "inf", "+oo")
+            val = is_inf_dir ? 1e12 : 1e-12
+            test_vars[k] = fill(val, n_pts)
         else
             test_vars[k] = vars_data[k]
         end
     end
 
+    has_inf = any(d in ("oo", "inf", "+oo") for d in values(dir_map))
+    threshold = has_inf ? 1e-3 : 1e-6
     try
         # Evaluasi asimptotik pada skala parameter positif (aman dari DomainError sqrt/log)
         y_pos = evaluate_expr(proposal.expr, test_vars, constants, ones(proposal.n_params))
@@ -1216,11 +1227,11 @@ function identifiability_gate(
         safe_sigma = max.(sigma_y, 1e-15)
         w_res = (y_obs .- y_classical) ./ safe_sigma
         chi2_null = sum(w_res.^2)
-        ll_null = -0.5 * chi2_null - 0.5 * sum(log.(2Ï€ .* (safe_sigma.^2)))
+        ll_null = -0.5 * chi2_null - 0.5 * sum(log.(2 * pi .* (safe_sigma.^2)))
     elseif use_full_loss
         diff_null = y_obs .- y_classical
         sigma2_null = mean(diff_null.^2)
-        ll_null = (isfinite(sigma2_null) && sigma2_null > 0.0) ? (-0.5 * n * log(2Ï€ * sigma2_null) - 0.5 * n) : -Inf
+        ll_null = (isfinite(sigma2_null) && sigma2_null > 0.0) ? (-0.5 * n * log(2 * pi * sigma2_null) - 0.5 * n) : -Inf
     else
         # Pelindung pembagian nol simetris skala-invarian
         abs_y = abs.(y_classical)
@@ -1232,7 +1243,7 @@ function identifiability_gate(
             (y_obs .- y_classical) :
             (y_obs .- y_classical) ./ safe_cl
         sigma2_null = mean(resid_null.^2)
-        ll_null = (isfinite(sigma2_null) && sigma2_null > 0.0) ? (-0.5 * n * log(2Ï€ * sigma2_null) - 0.5 * n) : -Inf
+        ll_null = (isfinite(sigma2_null) && sigma2_null > 0.0) ? (-0.5 * n * log(2 * pi * sigma2_null) - 0.5 * n) : -Inf
     end
 
     # Jika null model sudah menjelaskan data secara eksak sempurna
@@ -1335,6 +1346,13 @@ const DOMAIN_TAXONOMY = Dict{String, Vector{Symbol}}(
     "critical_scaling"           => [:D_pow],
     "turbulent_transport"        => [:D_pow, :D_log],
     "quantum_corrections"        => [:D_exp, :D_log, :D_rat],
+    "qed_radiative"              => [:D_log, :D_rat],
+    "wave_resonance"             => [:D_osc, :D_rat],
+    "relativistic"               => [:D_lor],
+    "gravitation"                => [:D_exp, :D_rat, :D_lor],
+    "thermodynamics"             => [:D_exp, :D_log],
+    "fluid dynamics"             => [:D_pow, :D_log],
+    "mechanics"                  => [:D_pow, :D_rat, :D_sat],
     "generic"                    => [k for (k,v) in PRIMITIVE_REGISTRY if !v.divergent_safe],
 )
 
@@ -3083,6 +3101,8 @@ def match_parameters(
     true_keys = sorted(true_params.keys())
     fit_keys = sorted(fit_params.keys())
 
+    if len(true_keys) == 0 and len(fit_keys) == 0:
+        return {}, True, False
     if len(true_keys) == 0 and len(fit_keys) == 0:
         return {}, True, False
     if len(fit_keys) != len(true_keys) or len(true_keys) == 0:

@@ -56,11 +56,11 @@ function identifiability_gate(
         safe_sigma = max.(sigma_y, 1e-15)
         w_res = (y_obs .- y_classical) ./ safe_sigma
         chi2_null = sum(w_res.^2)
-        ll_null = -0.5 * chi2_null - 0.5 * sum(log.(2π .* (safe_sigma.^2)))
+        ll_null = -0.5 * chi2_null - 0.5 * sum(log.(2 * pi .* (safe_sigma.^2)))
     elseif use_full_loss
         diff_null = y_obs .- y_classical
         sigma2_null = mean(diff_null.^2)
-        ll_null = (isfinite(sigma2_null) && sigma2_null > 0.0) ? (-0.5 * n * log(2π * sigma2_null) - 0.5 * n) : -Inf
+        ll_null = (isfinite(sigma2_null) && sigma2_null > 0.0) ? (-0.5 * n * log(2 * pi * sigma2_null) - 0.5 * n) : -Inf
     else
         # Pelindung pembagian nol simetris skala-invarian
         abs_y = abs.(y_classical)
@@ -72,7 +72,7 @@ function identifiability_gate(
             (y_obs .- y_classical) :
             (y_obs .- y_classical) ./ safe_cl
         sigma2_null = mean(resid_null.^2)
-        ll_null = (isfinite(sigma2_null) && sigma2_null > 0.0) ? (-0.5 * n * log(2π * sigma2_null) - 0.5 * n) : -Inf
+        ll_null = (isfinite(sigma2_null) && sigma2_null > 0.0) ? (-0.5 * n * log(2 * pi * sigma2_null) - 0.5 * n) : -Inf
     end
 
     # Jika null model sudah menjelaskan data secara eksak sempurna

@@ -257,10 +257,10 @@ function enumerate_dimensionless_ratios(
         rats = [abs(x) < 1e-6 ? 0//1 : rationalize(x, tol=1e-4) for x in v_scaled]
         denoms = [denominator(r) for r in rats]
         lcm_denom = isempty(denoms) ? 1 : foldl(lcm, denoms)
-        int_vec = Int[round(Int, (numerator(r) * (lcm_denom ÷ denominator(r)))) for r in rats]
+        int_vec = Int[round(Int, (numerator(r) * (lcm_denom  div  denominator(r)))) for r in rats]
         g = foldl(gcd, int_vec)
         if g > 1
-            int_vec = int_vec .÷ g
+            int_vec = int_vec . div  g
         end
         push!(basis_vectors, int_vec)
     end

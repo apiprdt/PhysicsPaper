@@ -151,17 +151,17 @@ function fit_constants(
                 w_res = (y_obs .- y_pred) ./ sigma_y
                 chi2 = sum(w_res.^2)
                 nmse_val = chi2 / n
-                ll = -0.5 * chi2 - 0.5 * sum(log.(2π .* (sigma_y.^2)))
+                ll = -0.5 * chi2 - 0.5 * sum(log.(2 * pi .* (sigma_y.^2)))
             elseif use_full_loss
                 y_pred = get_y_pred(delta)
                 diff = y_obs .- y_pred
                 sigma2 = mean(diff.^2)
                 nmse_val = sigma2 / var_full
-                ll = sigma2 > 0 ? (-0.5 * n * log(2π * sigma2) - 0.5 * n) : -Inf
+                ll = sigma2 > 0 ? (-0.5 * n * log(2 * pi * sigma2) - 0.5 * n) : -Inf
             else
                 sigma2 = mean(delta_residuals.^2)
                 nmse_val = sigma2 / var_resid
-                ll = sigma2 > 0 ? (-0.5 * n * log(2π * sigma2) - 0.5 * n) : -Inf
+                ll = sigma2 > 0 ? (-0.5 * n * log(2 * pi * sigma2) - 0.5 * n) : -Inf
             end
 
             return FitResult(Float64[], nmse_val, ll, true, 0, 0, nothing, delta_residuals)
@@ -262,15 +262,15 @@ function fit_constants(
             y_pred = get_y_pred(delta)
             w_res = (y_obs .- y_pred) ./ sigma_y
             chi2 = sum(w_res.^2)
-            ll = -0.5 * chi2 - 0.5 * sum(log.(2π .* (sigma_y.^2)))
+            ll = -0.5 * chi2 - 0.5 * sum(log.(2 * pi .* (sigma_y.^2)))
         elseif use_full_loss
             y_pred = get_y_pred(delta)
             diff = y_obs .- y_pred
             sigma2 = mean(diff.^2)
-            ll = sigma2 > 0 ? (-0.5 * n * log(2π * sigma2) - 0.5 * n) : -Inf
+            ll = sigma2 > 0 ? (-0.5 * n * log(2 * pi * sigma2) - 0.5 * n) : -Inf
         else
             sigma2 = mean(delta_residuals.^2)
-            ll = sigma2 > 0 ? (-0.5 * n * log(2π * sigma2) - 0.5 * n) : -Inf
+            ll = sigma2 > 0 ? (-0.5 * n * log(2 * pi * sigma2) - 0.5 * n) : -Inf
         end
     catch e
         return FitResult(best_theta, Inf, -Inf, false, n_restarts, n_params, string(e), delta_residuals)

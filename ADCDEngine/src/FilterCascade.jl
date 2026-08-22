@@ -71,24 +71,26 @@ function gate_b_asymptotic(
     limit_direction::String,
     limit_variable ::String
 )::Bool
-    is_inf = limit_direction == "oo"
-    test_val = is_inf ? 1e12 : 1e-12
-    threshold = is_inf ? 1e-3 : 1e-6
-    n_pts = length(first(values(vars_data)))
-    
-    # FIX: Jika limit_variable kosong/default, masukkan SEMUA variabel input
     raw_vars = strip(limit_variable)
     limit_vars = isempty(raw_vars) ? collect(keys(vars_data)) : String.(split(raw_vars, ","))
+    raw_dirs = strip(limit_direction)
+    limit_dirs = isempty(raw_dirs) ? fill("0", length(limit_vars)) : String.(split(raw_dirs, ","))
+    dir_map = Dict(v => (i <= length(limit_dirs) ? limit_dirs[i] : "0") for (i, v) in enumerate(limit_vars))
 
     test_vars = Dict{String,Vector{Float64}}()
+    n_pts = length(first(values(vars_data)))
     for k in keys(vars_data)
-        if k in limit_vars
-            test_vars[k] = fill(test_val, n_pts)
+        if haskey(dir_map, k)
+            is_inf_dir = dir_map[k] in ("oo", "inf", "+oo")
+            val = is_inf_dir ? 1e12 : 1e-12
+            test_vars[k] = fill(val, n_pts)
         else
             test_vars[k] = vars_data[k]
         end
     end
 
+    has_inf = any(d in ("oo", "inf", "+oo") for d in values(dir_map))
+    threshold = has_inf ? 1e-3 : 1e-6
     try
         # Evaluasi asimptotik pada skala parameter positif (aman dari DomainError sqrt/log)
         y_pos = evaluate_expr(proposal.expr, test_vars, constants, ones(proposal.n_params))
