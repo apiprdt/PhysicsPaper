@@ -83,7 +83,7 @@ def main():
         choices=["all", "Time Dilation", "Screened Coulomb", "Entropy Expansion"],
         help="Scenario name or 'all'",
     )
-    parser.add_argument("--workers", type=int, default=6, help="Concurrent workers (default: 6)")
+    parser.add_argument("--workers", type=int, default=3, help="Concurrent workers (default: 3)")
     parser.add_argument("--domain-max", type=float, default=None, help="Custom domain max override")
     args = parser.parse_args()
 
