@@ -1366,11 +1366,25 @@ const DOMAIN_TAXONOMY = Dict{String, Vector{Symbol}}(
     "quantum_corrections"        => [:D_exp, :D_log, :D_rat],
     "qed_radiative"              => [:D_log, :D_rat],
     "wave_resonance"             => [:D_osc, :D_rat],
-    "relativistic"               => [:D_lor],
+    # Aliases
+    "gravity_orbital"            => [:D_lor, :D_sqrt_inv, :D_rat],
+    "gravity"                    => [:D_lor, :D_rat, :D_exp],
     "gravitation"                => [:D_exp, :D_rat, :D_lor],
     "thermodynamics"             => [:D_exp, :D_log],
+    "electrostatics"             => [:D_exp, :D_rat],
+    "relativistic"               => [:D_lor],
+    "condensed_matter"           => [:D_sat, :D_rat],
+    "fluid_dynamics"             => [:D_pow, :D_log],
     "fluid dynamics"             => [:D_pow, :D_log],
     "mechanics"                  => [:D_pow, :D_rat, :D_sat],
+    "biophysics"                 => [:D_rat, :D_exp],
+    "quantum_optics"             => [:D_exp, :D_log],
+    "plasma physics"             => [:D_exp, :D_rat],
+    "quantum_electrodynamics"    => [:D_log, :D_rat],
+    "particle_physics"           => [:D_log, :D_rat],
+    "quantum_field"              => [:D_log, :D_rat],
+    "atomic_spectro"             => [:D_pow, :D_rat, :D_log],
+    "wave_mechanics"             => [:D_osc, :D_rat],
     "generic"                    => [k for (k,v) in PRIMITIVE_REGISTRY if !v.divergent_safe],
 )
 
@@ -3445,18 +3459,26 @@ DOMAIN_TAXONOMY: dict = {
     # Citations: Hecht (2016) Optics Ch. 9; Born & Wolf (1999) Principles of Optics.
     "wave_resonance": ["D_osc", "D_rat"],
 
-    # â”€â”€ LEGACY ALIASES (backward compatibility â€” do not use for new scenarios) â”€â”€
-    # These map old broad names to the new phenomenon-specific domains.
-    # Retained only so existing JSON reports and anomaly_scenarios.py do not break.
-    "gravity_orbital":   ["D_lor", "D_sqrt_inv", "D_rat"],   # â†’ gr_orbital_corrections + mond
-    "thermodynamics":    ["D_exp", "D_log"],                  # â†’ boltzmann_thermodynamics
-    "electrostatics":    ["D_exp", "D_rat"],                  # â†’ yukawa_debye_screening
-    "relativistic":      ["D_lor"],                           # â†’ lorentz_special_relativity
-    "condensed_matter":  ["D_sat", "D_rat"],                  # â†’ ising_mean_field
-    "fluid_dynamics":    ["D_pow", "D_log"],                  # â†’ turbulent_transport
-    "quantum_field":     ["D_log", "D_rat"],                  # â†’ qed_radiative
-    "atomic_spectro":    ["D_pow", "D_rat", "D_log"],
-    "wave_mechanics":    ["D_osc", "D_rat"],                  # â†’ wave_resonance
+    # â”€â”€ DOMAIN & SCENARIO ALIASES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    "gravity_orbital":            ["D_lor", "D_sqrt_inv", "D_rat"],
+    "gravity":                    ["D_lor", "D_rat", "D_exp"],
+    "gravitation":                ["D_exp", "D_rat", "D_lor"],
+    "thermodynamics":             ["D_exp", "D_log"],
+    "electrostatics":             ["D_exp", "D_rat"],
+    "relativistic":               ["D_lor"],
+    "condensed_matter":           ["D_sat", "D_rat"],
+    "fluid_dynamics":             ["D_pow", "D_log"],
+    "fluid dynamics":             ["D_pow", "D_log"],
+    "mechanics":                  ["D_pow", "D_rat", "D_sat"],
+    "biophysics":                 ["D_rat", "D_exp"],
+    "quantum_optics":             ["D_exp", "D_log"],
+    "plasma physics":             ["D_exp", "D_rat"],
+    "quantum_electrodynamics":    ["D_log", "D_rat"],
+    "particle_physics":           ["D_log", "D_rat"],
+    "quantum_field":              ["D_log", "D_rat"],
+    "quantum_corrections":        ["D_exp", "D_log", "D_rat"],
+    "atomic_spectro":             ["D_pow", "D_rat", "D_log"],
+    "wave_mechanics":             ["D_osc", "D_rat"],
 }
 
 # =====================================================================

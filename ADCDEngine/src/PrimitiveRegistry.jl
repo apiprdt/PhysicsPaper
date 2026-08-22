@@ -1,4 +1,4 @@
-﻿# ADCD Engine: PrimitiveRegistry (Hardened)
+# ADCD Engine: PrimitiveRegistry (Hardened)
 module PrimitiveRegistry
 
 using ..ADCDDimensions
@@ -62,11 +62,25 @@ const DOMAIN_TAXONOMY = Dict{String, Vector{Symbol}}(
     "quantum_corrections"        => [:D_exp, :D_log, :D_rat],
     "qed_radiative"              => [:D_log, :D_rat],
     "wave_resonance"             => [:D_osc, :D_rat],
-    "relativistic"               => [:D_lor],
+    # Aliases
+    "gravity_orbital"            => [:D_lor, :D_sqrt_inv, :D_rat],
+    "gravity"                    => [:D_lor, :D_rat, :D_exp],
     "gravitation"                => [:D_exp, :D_rat, :D_lor],
     "thermodynamics"             => [:D_exp, :D_log],
+    "electrostatics"             => [:D_exp, :D_rat],
+    "relativistic"               => [:D_lor],
+    "condensed_matter"           => [:D_sat, :D_rat],
+    "fluid_dynamics"             => [:D_pow, :D_log],
     "fluid dynamics"             => [:D_pow, :D_log],
     "mechanics"                  => [:D_pow, :D_rat, :D_sat],
+    "biophysics"                 => [:D_rat, :D_exp],
+    "quantum_optics"             => [:D_exp, :D_log],
+    "plasma physics"             => [:D_exp, :D_rat],
+    "quantum_electrodynamics"    => [:D_log, :D_rat],
+    "particle_physics"           => [:D_log, :D_rat],
+    "quantum_field"              => [:D_log, :D_rat],
+    "atomic_spectro"             => [:D_pow, :D_rat, :D_log],
+    "wave_mechanics"             => [:D_osc, :D_rat],
     "generic"                    => [k for (k,v) in PRIMITIVE_REGISTRY if !v.divergent_safe],
 )
 
