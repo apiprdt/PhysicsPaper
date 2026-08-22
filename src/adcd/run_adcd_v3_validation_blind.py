@@ -68,7 +68,7 @@ DOMAIN_RESTRICTIONS: Dict[str, Dict[str, float]] = {
 
 def calibrated_nmse_threshold(
     scatter_level: float,
-    n_groups: int = 1,
+    n_eff: int = 200,
     min_floor: float = 0.10,
     max_cap: float = 0.60,
 ) -> float:
@@ -76,10 +76,10 @@ def calibrated_nmse_threshold(
     Unified calibrated NMSE threshold derived from chi-square residual floor and sampling variance:
       threshold = min(max_cap, max(min_floor, floor * 1.35 + sampling_margin))
     where floor = scatter_level^2
-    and sampling_margin = floor * 1.645 * sqrt(2 / max(n_groups, 2)) (95% CI upper bound).
+    and sampling_margin = floor * 1.645 * sqrt(2 / max(n_eff, 2)) (95% CI upper bound).
     """
     floor = float(scatter_level) ** 2
-    sampling_margin = floor * 1.645 * np.sqrt(2.0 / max(int(n_groups), 2))
+    sampling_margin = floor * 1.645 * np.sqrt(2.0 / max(int(n_eff), 2))
     nmse_calibrated = floor * 1.35 + sampling_margin
     return float(min(max_cap, max(min_floor, nmse_calibrated)))
 
@@ -92,19 +92,20 @@ class ScenarioThresholdConfig:
     groups: Optional[List[List[int]]] = None
 
     @classmethod
-    def synthetic(cls, noise_level: float = 0.01) -> ScenarioThresholdConfig:
-        nmse_target = calibrated_nmse_threshold(scatter_level=noise_level, n_groups=1, min_floor=0.10, max_cap=0.60)
+    def synthetic(cls, noise_level: float = 0.01, n_points: int = 200) -> ScenarioThresholdConfig:
+        nmse_target = calibrated_nmse_threshold(scatter_level=noise_level, n_eff=n_points, min_floor=0.10, max_cap=0.60)
         return cls(bic_threshold=10.0, nmse_fine=nmse_target, nmse_coarse=1.0, groups=None)
 
     @classmethod
     def real_observational(cls, n_groups: int = 1, scatter_level: float = 0.25) -> ScenarioThresholdConfig:
-        nmse_target = calibrated_nmse_threshold(scatter_level=scatter_level, n_groups=n_groups, min_floor=0.10, max_cap=0.60)
+        nmse_target = calibrated_nmse_threshold(scatter_level=scatter_level, n_eff=n_groups, min_floor=0.10, max_cap=0.60)
         return cls(bic_threshold=6.0, nmse_fine=nmse_target, nmse_coarse=1.0, groups=None)
 
     @classmethod
     def for_scenario(cls, scenario: Any, noise_level: float = 0.01) -> ScenarioThresholdConfig:
         tier = getattr(scenario, "tier", "synthetic")
         domain = getattr(scenario, "domain", "")
+        n_points = getattr(scenario, "n_points", 200)
 
         if domain == "mond_radial_acceleration":
             # SPARC Radial Acceleration Relation (RAR):
@@ -118,7 +119,7 @@ class ScenarioThresholdConfig:
         elif tier in ("real", "observational"):
             return cls.real_observational(n_groups=1, scatter_level=0.25)
         else:
-            return cls.synthetic(noise_level=noise_level)
+            return cls.synthetic(noise_level=noise_level, n_points=n_points)
 
 
 @dataclass
@@ -385,6 +386,8 @@ def run_scenario_protocol(
         threshold_cfg=tcfg, noise_level=noise_level, domain_max=domain_max
     )
 
+    from adcd.bayesian_ranker import BayesianReranker
+
     top_candidates = []
     if ranked_blind:
         for expr_str, nmse, bic, theta_fit in ranked_blind[:top_k_val]:
@@ -399,6 +402,33 @@ def run_scenario_protocol(
     if top is not None:
         expr_str, nmse, bic, theta_fit = top
         is_diag_pass = match_level in ["exact", "class_only"]
+        
+        # --- BAYESIAN REPORTING LAYER ---
+        ranker = BayesianReranker()
+
+        if getattr(scenario, "engine", "python") == "julia":
+            # ranked_blind[i][2] sudah berupa -delta_bic (relatif thd null model),
+            # BUKAN BIC mentah -- jadi bic_null harus 0.0, bukan dihitung ulang.
+            bic_null = 0.0
+        else:
+            d_max = domain_max if domain_max is not None else DOMAIN_RESTRICTIONS.get(scenario.name, {}).get("domain_max", None)
+            gen_kwargs = {"domain_max": d_max} if d_max is not None else {}
+            X_null, y_obs_null, y_classical_null, _ = scenario.generate_data(noise_level=noise_level, seed=seed, **gen_kwargs)
+            detected_mode_null, _ = detect_correction_mode(y_obs_null, y_classical_null)
+            if hasattr(scenario, "classical_constants") and hasattr(scenario, "classical_expr"):
+                base_err = (y_obs_null / y_classical_null - 1.0) if detected_mode_null == "multiplicative" else (y_obs_null - y_classical_null)
+                base_nmse = np.mean(base_err**2) / np.var(y_obs_null) if np.var(y_obs_null) > 0 else float("inf")
+                from adcd.metrics import bic_score
+                bic_null = bic_score(base_nmse, 0, len(y_obs_null))
+            else:
+                bic_null = None
+
+        bma = ranker.rank(
+            ranked_candidates=ranked_blind,
+            bic_null=bic_null,
+            search_space_size=space_size_blind,
+        )
+
         result.checks["primary_search"] = {
             "pass": is_diag_pass,
             "top_candidate": expr_str, "nmse": nmse, "bic": bic, "theta_fit": theta_fit,
@@ -406,6 +436,11 @@ def run_scenario_protocol(
             "match_level": match_level, "true_structure_rank": true_structure_rank,
             "ground_truth_match_diagnostic_only": is_diag_pass,
             "counts_toward_verdict": False, "pareto_front": top_candidates,
+            # Bayesian Audit
+            "bayesian_best_weight": bma.best_posterior_weight,
+            "evidence_vs_null_label": bma.evidence_vs_null.label,
+            "evidence_top2_label": bma.evidence_top2.label,
+            "posterior_entropy": bma.posterior_entropy,
         }
     else:
         result.checks["primary_search"] = {"pass": False}
