@@ -929,7 +929,7 @@ end  # module CorrectionProposer
 FILE: ADCDEngine/src/FilterCascade.jl
 ================================================================================
 # ============================================================================
-# Modul: FilterCascade (Hardened & Cleaned)
+# Modul: FilterCascade (Hardened, Multivariable-Safe & Optimized)
 # ============================================================================
 module FilterCascade
 
@@ -952,7 +952,7 @@ mutable struct GateStats
     n_withheld   ::Int
 end
 
-GateStats() = GateStats(0,0,0,0,0,0,0)
+GateStats() = GateStats(0, 0, 0, 0, 0, 0, 0)
 
 struct RunConfig
     domain                   ::String
@@ -1001,30 +1001,36 @@ function gate_b_asymptotic(
     limit_direction::String,
     limit_variable ::String
 )::Bool
+    isempty(vars_data) && return true
+
     raw_vars = strip(limit_variable)
     limit_vars = isempty(raw_vars) ? collect(keys(vars_data)) : String.(split(raw_vars, ","))
     raw_dirs = strip(limit_direction)
     limit_dirs = isempty(raw_dirs) ? fill("0", length(limit_vars)) : String.(split(raw_dirs, ","))
-    dir_map = Dict(v => (i <= length(limit_dirs) ? limit_dirs[i] : "0") for (i, v) in enumerate(limit_vars))
 
+    # Petakan arah limit spesifik untuk tiap variabel bebas
+    dir_map = Dict{String,String}()
+    for (i, v) in enumerate(limit_vars)
+        dir_map[v] = (i <= length(limit_dirs)) ? limit_dirs[i] : "0"
+    end
+
+    # Evaluasi cepat pada 1 titik uji asimptotik (O(1) memory footprint)
     test_vars = Dict{String,Vector{Float64}}()
-    n_pts = length(first(values(vars_data)))
     for k in keys(vars_data)
         if haskey(dir_map, k)
-            is_inf_dir = dir_map[k] in ("oo", "inf", "+oo")
-            val = is_inf_dir ? 1e12 : 1e-12
-            test_vars[k] = fill(val, n_pts)
+            is_inf = dir_map[k] in ("oo", "inf", "+oo")
+            test_vars[k] = [is_inf ? 1e12 : 1e-12]
         else
-            test_vars[k] = vars_data[k]
+            # Variabel non-limit diuji pada baseline median/positif aman
+            test_vars[k] = [1.0]
         end
     end
 
-    has_inf = any(d in ("oo", "inf", "+oo") for d in values(dir_map))
-    threshold = has_inf ? 1e-3 : 1e-6
     try
-        # Evaluasi asimptotik pada skala parameter positif (aman dari DomainError sqrt/log)
+        # Evaluasi asimptotik dengan parameter positif (aman dari DomainError sqrt/log)
         y_pos = evaluate_expr(proposal.expr, test_vars, constants, ones(proposal.n_params))
-        return all(isfinite, y_pos) && all(abs.(y_pos) .< threshold)
+        # Koreksi delta wajib menuju nol (< 1e-4) pada rezim batas klasik
+        return all(isfinite, y_pos) && all(abs.(y_pos) .< 1e-4)
     catch
         return false
     end
@@ -1040,10 +1046,11 @@ function gate_c_coarse(
     correction_type::String,
     sigma_y        ::Union{Vector{Float64},Nothing}
 )::Union{FitResult, Nothing}
-    # Berikan 3 restarts pada skala dasar agar tidak membuang model dengan skala berbeda
-    result = fit_constants(proposal.expr, y_classical, y_obs, vars_data, constants,
-                           proposal.n_params; n_restarts=3, rng_seed=42,
-                           sigma_y=sigma_y, correction_type=correction_type)
+    result = fit_constants(
+        proposal.expr, y_classical, y_obs, vars_data, constants,
+        proposal.n_params; n_restarts=3, rng_seed=42,
+        sigma_y=sigma_y, correction_type=correction_type
+    )
     return (result.converged && isfinite(result.nmse) && result.nmse <= nmse_threshold) ? result : nothing
 end
 
@@ -1058,9 +1065,11 @@ function gate_d_fine(
     correction_type::String,
     seed           ::Int
 )::Union{FitResult, Nothing}
-    result = fit_constants(proposal.expr, y_classical, y_obs, vars_data, constants,
-                           proposal.n_params; n_restarts=n_restarts, rng_seed=seed,
-                           sigma_y=sigma_y, correction_type=correction_type)
+    result = fit_constants(
+        proposal.expr, y_classical, y_obs, vars_data, constants,
+        proposal.n_params; n_restarts=n_restarts, rng_seed=seed,
+        sigma_y=sigma_y, correction_type=correction_type
+    )
     return result.converged ? result : nothing
 end
 
@@ -1077,28 +1086,32 @@ function run_filter_cascade(
     stats = GateStats()
     stats.n_input = 1
 
-    # Gate A
+    # Gate A: Uji Dimensi
     gate_a_dimensional(proposal, config.target_dim) || return (nothing, stats)
     stats.n_pass_gate_a = 1
 
-    # Gate B
+    # Gate B: Uji Asimptotik
     gate_b_asymptotic(proposal, vars_data, config.known_constants, config.classical_limit_direction, config.classical_limit_variable) || return (nothing, stats)
     stats.n_pass_gate_b = 1
 
-    # Gate C
-    coarse = gate_c_coarse(proposal, y_classical, y_obs, vars_data, config.known_constants,
-                           config.nmse_coarse, config.correction_type, sigma_y)
+    # Gate C: Saringan Kasar (Coarse Gate)
+    coarse = gate_c_coarse(
+        proposal, y_classical, y_obs, vars_data, config.known_constants,
+        config.nmse_coarse, config.correction_type, sigma_y
+    )
     coarse === nothing && return (nothing, stats)
     stats.n_pass_gate_c = 1
 
-    # Gate D (Deterministik Seed)
+    # Gate D: Optimasi Presisi Halus (Fine Fit - Deterministic Seed)
     seed = deterministic_hash(proposal.description)
-    fine = gate_d_fine(proposal, y_classical, y_obs, vars_data, config.known_constants,
-                       config.n_restarts, sigma_y, config.correction_type, seed)
+    fine = gate_d_fine(
+        proposal, y_classical, y_obs, vars_data, config.known_constants,
+        config.n_restarts, sigma_y, config.correction_type, seed
+    )
     fine === nothing && return (nothing, stats)
     stats.n_pass_gate_d = 1
 
-    # Gate E
+    # Gate E: Sertifikasi Identifiabilitas Bayesian
     abs_y = abs.(y_classical)
     pos_y = abs_y[abs_y .> 0.0]
     dr = isempty(pos_y) ? 0.0 : maximum(abs_y) / minimum(pos_y)
@@ -1157,6 +1170,7 @@ function run_cascade_on_proposals(
         push!(results, result)
     end
 
+    # Pengurutan deterministik: IDENTIFIABLE terlebih dahulu, lalu nilai delta_bic tertinggi
     sort!(results, by = r -> (r.verdict != IDENTIFIABLE, -r.delta_bic))
     return results, agg
 end
