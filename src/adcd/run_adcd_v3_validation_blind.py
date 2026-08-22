@@ -127,6 +127,7 @@ class ProtocolResult:
     scenario_name: str
     checks: Dict[str, dict] = field(default_factory=dict)
     all_passed: bool = False
+    tier: str = "WITHHELD"  # IDENTIFIABLE | DETECTED_UNRESOLVED | WITHHELD
 
 
 def _build_context(scenario: Any, n_candidates: int) -> ProposalContext:
@@ -236,10 +237,20 @@ def _run_search(
             classical_limit_direction=scenario.classical_limit_direction,
             classical_limit_variable=getattr(scenario, "classical_limit_variable", ""),
         )
+        sigma_y = None
+        if "sigma_y" in X:
+            sigma_y = np.asarray(X["sigma_y"], dtype=float)
+        elif noise_level > 0.0:
+            if detected_mode == "multiplicative":
+                sigma_y = noise_level * np.abs(y_classical) + 1e-6
+            else:
+                sigma_y = np.full_like(y_obs, noise_level * (np.std(y_obs) + 1e-6))
+
         data = JuliaEngineData(
             y_classical=y_classical,
             y_obs=y_obs,
             vars={k: X[k] for k in scenario.classical_variables},
+            sigma_y=sigma_y,
         )
         engine_jl = ADCDJuliaEngine()
         result = engine_jl.run(config, data)
@@ -494,9 +505,21 @@ def run_scenario_protocol(
     determinism_pass = (not all(r is None for r in runs)) and (len(set(runs)) == 1)
     result.checks["determinism_check"] = {"runs": runs, "pass": determinism_pass}
 
-    result.all_passed = all(
+    # Three-Tier Epistemic Verdict
+    evn_label = result.checks.get("primary_search", {}).get("evidence_vs_null_label", "unknown")
+    formal_pass = all(
         result.checks[name].get("pass", False) for name in FORMAL_PROTOCOL_CHECKS if name in result.checks
     )
+
+    if formal_pass:
+        result.tier = "IDENTIFIABLE"
+    elif evn_label in ("decisive", "very_strong") and result.checks.get("primary_search", {}).get("match_level") in ("exact", "class_only"):
+        # Bukti anomali kuat DAN struktur cocok, tapi tertahan oleh floor SNR atau ambiguitas domain sempit
+        result.tier = "DETECTED_UNRESOLVED"
+    else:
+        result.tier = "WITHHELD"
+
+    result.all_passed = (result.tier == "IDENTIFIABLE")
     return result
 
 
@@ -543,10 +566,12 @@ def main():
                 print(" " * 10 + "-" * 75 + "\n")
 
         print("-" * 80)
-        if res.all_passed:
-            print("[SUCCESS] STATUS: All checks passed with a genuinely blind search.")
+        if res.tier == "IDENTIFIABLE":
+            print(f"[{res.tier:^19}] STATUS: All checks passed with a genuinely blind search.")
+        elif res.tier == "DETECTED_UNRESOLVED":
+            print(f"[{res.tier:^19}] STATUS: Strong anomaly evidence confirmed, structure resolved, but held by SNR/gate boundary.")
         else:
-            print("[FAIL] STATUS: At least one check failed (Expected epistemic withheld or out of regime).")
+            print(f"[{res.tier:^19}] STATUS: Epistemically withheld (Ambiguous or insufficient anomaly evidence).")
         print("=" * 80 + "\n")
 
     os.makedirs("run_outputs", exist_ok=True)
@@ -556,7 +581,14 @@ def main():
     )
     with open(report_name, "w") as f:
         json.dump(
-            {name: {"all_passed": r.all_passed, "checks": r.checks} for name, r in all_results.items()},
+            {
+                name: {
+                    "tier": r.tier,
+                    "all_passed": r.all_passed,
+                    "checks": r.checks,
+                }
+                for name, r in all_results.items()
+            },
             f, indent=2, default=str,
         )
     print(f"Full report saved to {report_name}")
