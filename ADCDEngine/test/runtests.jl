@@ -9,15 +9,6 @@ Tests cover all 5 patent claims:
 """
 
 using Test
-using Pkg
-
-# Activate project only when running directly (not via Pkg.test() sandbox).
-# Pkg.test() sets JULIA_PKG_TEST_REACHABLE; direct invocation with --project
-# flag already sets the project environment correctly.
-# Only activate if we cannot already see ADCDEngine in the current env.
-if !haskey(Pkg.project().dependencies, "ADCDEngine")
-    Pkg.activate(joinpath(@__DIR__, ".."))
-end
 
 using ADCDEngine
 using ADCDEngine.ADCDDimensions
