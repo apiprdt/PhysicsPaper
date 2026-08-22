@@ -6,8 +6,7 @@ using ..ADCDDimensions
 export ADCDPrimitive, PRIMITIVE_REGISTRY, DOMAIN_TAXONOMY
 export primitives_for_domain, evaluate_primitive, list_primitives
 
-# Aman dari overflow pada u > 10^154 dan aman dari zero-gradient di u=0
-@inline safe_abs(u::Float64) = hypot(u, 1e-20)
+@inline safe_abs(u::Real) = abs(u)
 
 struct ADCDPrimitive
     name           ::Symbol

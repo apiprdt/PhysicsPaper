@@ -28,6 +28,12 @@ is_dimensionless(d::PhysicalDimension) = d == zero(PhysicalDimension)
 
 # Physical dimension registry (5D SI: M=mass, L=length, T=time, Th=temperature, Q=charge)
 const DIMENSION_REGISTRY = Dict{Symbol,PhysicalDimension}(
+    # Konstanta Elektromagnetik Tambahan
+    :k_e => PhysicalDimension(1, 3, -2, 0, -2), # Coulomb constant [N m^2 / C^2]
+    
+    # Konstanta Termodinamika Tambahan
+    :nR  => PhysicalDimension(1, 2, -2, -1, 0), # Moles * Gas constant [J / K]
+
     # Base SI
     :M  => PhysicalDimension(1,0,0,0,0),   # mass [kg]
     :L  => PhysicalDimension(0,1,0,0,0),   # length [m]
@@ -156,18 +162,42 @@ function infer_dim(
         d_arg = infer_dim(args[1], registry)
         d_arg isa DimResult && return d_arg
         all(x -> x % 2 == 0, (d_arg.M, d_arg.L, d_arg.T, d_arg.Th, d_arg.Q)) || return DIM_UNSUPPORTED_OP
-        return PhysicalDimension(d_arg.M÷2, d_arg.L÷2, d_arg.T÷2, d_arg.Th÷2, d_arg.Q÷2)
-    elseif op == "neg"
+        return PhysicalDimension(div(d_arg.M, 2), div(d_arg.L, 2), div(d_arg.T, 2), div(d_arg.Th, 2), div(d_arg.Q, 2))
+    elseif op == "neg" || lowercase(op) == "abs"
         length(args) < 1 && return DIM_UNSUPPORTED_OP
         return infer_dim(args[1], registry)
+    elseif lowercase(op) == "max" || lowercase(op) == "min"
+        length(args) < 2 && return DIM_UNSUPPORTED_OP
+        d1 = infer_dim(args[1], registry)
+        d1 isa DimResult && return d1
+        d2 = infer_dim(args[2], registry)
+        d2 isa DimResult && return d2
+        d1 == d2 || return DIM_MISMATCH
+        return d1
     elseif op in ("exp","log","sin","cos","tan","tanh","sinh","cosh",
                   "d_lor","d_exp","d_rat","d_pow","d_log","d_sat",
                   "d_sqrt_inv","d_tanh_sq","d_osc","d_nested_mond","d_rar")
         length(args) < 1 && return DIM_UNSUPPORTED_OP
-        d_arg = infer_dim(args[1], registry)
+        arg_node = args[1]
+        d_arg = infer_dim(arg_node, registry)
         d_arg isa DimResult && return d_arg
-        is_dimensionless(d_arg) || return DIM_TRANSCENDENTAL_ARG
-        return zero(PhysicalDimension)
+        
+        # Jika argumennya sudah dimensionless, maka aman
+        is_dimensionless(d_arg) && return zero(PhysicalDimension)
+        
+        # PENTING: Jika argumennya dikalikan/dibagi dengan theta, 
+        # theta bertindak sebagai penghapus dimensi (free-scale parameter).
+        function has_theta(n::AbstractDict)
+            haskey(n, "theta") && return true
+            if haskey(n, "args")
+                return any(has_theta(a) for a in n["args"])
+            end
+            return false
+        end
+        
+        has_theta(arg_node) && return zero(PhysicalDimension)
+        
+        return DIM_TRANSCENDENTAL_ARG
     else
         return DIM_UNSUPPORTED_OP
     end
@@ -246,11 +276,6 @@ function enumerate_dimensionless_ratios(
         any(abs(e) > max_degree for e in int_exps) && continue
         all(e == 0 for e in int_exps) && continue
         
-        first_nz = findfirst(!=(0), int_exps)
-        isnothing(first_nz) && continue
-        if int_exps[first_nz] < 0
-            int_exps = -int_exps
-        end
         push!(results, int_exps)
     end
 

@@ -3,106 +3,298 @@
     "all_passed": false,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 4,
+        "search_space_size": 56,
         "primitives": [
           "D_lor"
         ],
-        "pass": true,
-        "note": "Full blind search space -- larger than any previously hand-fed single-ratio search space (35), because ratio candidates are now auto-derived, not hand-typed."
+        "pass": true
       },
       "primary_search": {
-        "pass": false,
-        "note": "No candidate survived the full pipeline."
+        "pass": true,
+        "top_candidate": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
+        "nmse": 0.412094804339714,
+        "bic": -385.57066458240024,
+        "theta_fit": {
+          "theta_0": 6.711891362334025,
+          "theta_1": 0.38413301902763985
+        },
+        "discovered_class": "rational",
+        "match_level": "class_only",
+        "true_structure_rank": 1,
+        "ground_truth_match_diagnostic_only": true,
+        "counts_toward_verdict": false,
+        "pareto_front": [
+          {
+            "expr_str": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
+            "nmse": 0.412094804339714,
+            "bic": -385.57066458240024,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 6.711891362334025,
+              "theta_1": 0.38413301902763985
+            }
+          },
+          {
+            "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v * (c**-1))**2.0)))) - 1))",
+            "nmse": 0.4120991137634981,
+            "bic": -385.56857312130614,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 0.9234789473254843,
+              "theta_1": 1.0764291253665954
+            }
+          },
+          {
+            "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))",
+            "nmse": 0.4120991137634981,
+            "bic": -385.56857312130614,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 0.9234789473254843,
+              "theta_1": 1.0764291253665954
+            }
+          },
+          {
+            "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * (v * (c**-1))))) - 1))",
+            "nmse": 0.414862388379545,
+            "bic": -384.23197648729774,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 2.565291024684205,
+              "theta_1": 0.0466306380581869
+            }
+          },
+          {
+            "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * v))) - 1))",
+            "nmse": 0.414862388379545,
+            "bic": -384.23197648729774,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 2.565291024684205,
+              "theta_1": 0.0466306380581869
+            }
+          }
+        ]
       },
       "positive_control": {
-        "search_space_size": 4,
-        "nmse": null,
+        "search_space_size": 56,
+        "nmse": 0.412094804339714,
         "pass": false
       },
       "ablation_control": {
-        "pass": false,
-        "note": "Could not compute -- missing blind result or ablated result."
+        "ablated_bic": Infinity,
+        "true_structure_bic": -385.57066458240024,
+        "bic_diff": Infinity,
+        "pass": true
       },
       "determinism_check": {
         "runs": [
-          null,
-          null,
-          null
+          "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
+          "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
+          "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))"
         ],
-        "pass": false,
-        "all_none": true
+        "pass": true
       }
     }
   },
   "Screened Coulomb": {
-    "all_passed": false,
+    "all_passed": true,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 20,
+        "search_space_size": 384,
         "primitives": [
           "D_exp",
           "D_rat"
         ],
-        "pass": true,
-        "note": "Full blind search space -- larger than any previously hand-fed single-ratio search space (35), because ratio candidates are now auto-derived, not hand-typed."
+        "pass": true
       },
       "primary_search": {
-        "pass": false,
-        "note": "No candidate survived the full pipeline."
+        "pass": true,
+        "top_candidate": "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
+        "nmse": 0.0002772155195392813,
+        "bic": -2071.9720754241894,
+        "theta_fit": {
+          "theta_0": 1.493300906422077,
+          "theta_1": -0.9987128880579966
+        },
+        "discovered_class": "exponential",
+        "match_level": "exact",
+        "true_structure_rank": 1,
+        "ground_truth_match_diagnostic_only": true,
+        "counts_toward_verdict": false,
+        "pareto_front": [
+          {
+            "expr_str": "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
+            "nmse": 0.0002772155195392813,
+            "bic": -2071.9720754241894,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": 1.493300906422077,
+              "theta_1": -0.9987128880579966
+            }
+          },
+          {
+            "expr_str": "(theta_1 * (1 - exp(-Abs((theta_0 * r)))))",
+            "nmse": 0.00027721555857847783,
+            "bic": -2071.97204725896,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": -0.6696562880022479,
+              "theta_1": -0.9987159218473367
+            }
+          },
+          {
+            "expr_str": "((theta_1 * (1 - exp(-Abs((r / theta_0))))) + (theta_2 * (((r / theta_0)) / (1 + ((r / theta_0))**2))))",
+            "nmse": 0.00027168776414560617,
+            "bic": -2070.7021123683207,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": 1.610916857353137,
+              "theta_1": -0.9895877683241683,
+              "theta_2": -0.06830930495594212
+            }
+          },
+          {
+            "expr_str": "((theta_1 * (1 - exp(-Abs((theta_0 * r))))) + (theta_2 * (((theta_0 * r)) / (1 + ((theta_0 * r))**2))))",
+            "nmse": 0.00027168815154920636,
+            "bic": -2070.701827185567,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": -0.6203911076351585,
+              "theta_1": -0.98949680657605,
+              "theta_2": 0.06887275076564148
+            }
+          },
+          {
+            "expr_str": "((theta_1 * (((theta_0 * r)) / (1 + ((theta_0 * r))**2))) + (theta_2 * (1 - exp(-Abs((theta_0 * r))))))",
+            "nmse": 0.0002716882070467114,
+            "bic": -2070.7017863317433,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": 0.6211652796937818,
+              "theta_1": -0.06771198562488008,
+              "theta_2": -0.9896745235744939
+            }
+          }
+        ]
       },
       "positive_control": {
-        "search_space_size": 20,
-        "nmse": null,
-        "pass": false
+        "search_space_size": 88,
+        "nmse": 0.0002772155195392813,
+        "pass": true
       },
       "ablation_control": {
-        "pass": false,
-        "note": "Could not compute -- missing blind result or ablated result."
+        "ablated_bic": -1315.1125499703398,
+        "true_structure_bic": -2071.9720754241894,
+        "bic_diff": 756.8595254538495,
+        "pass": true
       },
       "determinism_check": {
         "runs": [
-          null,
-          null,
-          null
+          "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
+          "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
+          "(theta_1 * (1 - exp(-Abs((r / theta_0)))))"
         ],
-        "pass": false,
-        "all_none": true
+        "pass": true
       }
     }
   },
   "Entropy Expansion": {
-    "all_passed": false,
+    "all_passed": true,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 20,
+        "search_space_size": 1168,
         "primitives": [
           "D_exp",
           "D_log"
         ],
-        "pass": true,
-        "note": "Full blind search space -- larger than any previously hand-fed single-ratio search space (35), because ratio candidates are now auto-derived, not hand-typed."
+        "pass": true
       },
       "primary_search": {
-        "pass": false,
-        "note": "No candidate survived the full pipeline."
+        "pass": true,
+        "top_candidate": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * S_i * (nR**-1))))))",
+        "nmse": 0.005259081429481832,
+        "bic": -1403.4534442952338,
+        "theta_fit": {
+          "theta_0": -0.5587978577125117,
+          "theta_1": 8.265646402117795
+        },
+        "discovered_class": "logarithmic",
+        "match_level": "class_only",
+        "true_structure_rank": 1,
+        "ground_truth_match_diagnostic_only": true,
+        "counts_toward_verdict": false,
+        "pareto_front": [
+          {
+            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * S_i * (nR**-1))))))",
+            "nmse": 0.005259081429481832,
+            "bic": -1403.4534442952338,
+            "class": "logarithmic",
+            "theta_fit": {
+              "theta_0": -0.5587978577125117,
+              "theta_1": 8.265646402117795
+            }
+          },
+          {
+            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
+            "nmse": 0.005259081440873979,
+            "bic": -1403.4534438619967,
+            "class": "logarithmic",
+            "theta_fit": {
+              "theta_0": 1.0081449629562826,
+              "theta_1": 8.265768554269126
+            }
+          },
+          {
+            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**-2) * (nR**2))))))",
+            "nmse": 0.005259081467352014,
+            "bic": -1403.4534428550514,
+            "class": "logarithmic",
+            "theta_fit": {
+              "theta_0": -3.281667393612499,
+              "theta_1": 8.265700876708436
+            }
+          },
+          {
+            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**-1) * nR)))))",
+            "nmse": 0.005259081475212427,
+            "bic": -1403.4534425561242,
+            "class": "logarithmic",
+            "theta_fit": {
+              "theta_0": -1.8189620432651614,
+              "theta_1": 8.265532201175642
+            }
+          },
+          {
+            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**2) * (nR**-2))))))",
+            "nmse": 0.0052590815036401015,
+            "bic": -1403.4534414750353,
+            "class": "logarithmic",
+            "theta_fit": {
+              "theta_0": 0.3097378967233489,
+              "theta_1": 8.265408812101146
+            }
+          }
+        ]
       },
       "positive_control": {
-        "search_space_size": 20,
-        "nmse": null,
-        "pass": false
+        "search_space_size": 264,
+        "nmse": 0.005259081429481832,
+        "pass": true
       },
       "ablation_control": {
-        "pass": false,
-        "note": "Could not compute -- missing blind result or ablated result."
+        "ablated_bic": -1389.2640642416443,
+        "true_structure_bic": -1403.4534442952338,
+        "bic_diff": 14.189380053589502,
+        "pass": true
       },
       "determinism_check": {
         "runs": [
-          null,
-          null,
-          null
+          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * S_i * (nR**-1))))))",
+          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * S_i * (nR**-1))))))",
+          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * S_i * (nR**-1))))))"
         ],
-        "pass": false,
-        "all_none": true
+        "pass": true
       }
     }
   }

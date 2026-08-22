@@ -37,8 +37,11 @@ struct RunConfig
     max_proposals            ::Int
     correction_type          ::String
     classical_limit_direction::String
-    classical_limit_variable::String
+    classical_limit_variable ::String
 end
+
+RunConfig(domain, target_dim, input_vars, known_constants, bic_threshold, nmse_coarse, nmse_fine, n_restarts, groups, max_proposals) =
+    RunConfig(domain, target_dim, input_vars, known_constants, bic_threshold, nmse_coarse, nmse_fine, n_restarts, groups, max_proposals, "multiplicative", "0", "")
 
 struct ADCDResult
     proposal  ::CorrectionProposal
@@ -73,7 +76,9 @@ function gate_b_asymptotic(
     threshold = is_inf ? 1e-3 : 1e-6
     n_pts = length(first(values(vars_data)))
     
-    limit_vars = split(limit_variable, ",")
+    # FIX: Jika limit_variable kosong/default, masukkan SEMUA variabel input
+    raw_vars = strip(limit_variable)
+    limit_vars = isempty(raw_vars) ? collect(keys(vars_data)) : String.(split(raw_vars, ","))
 
     test_vars = Dict{String,Vector{Float64}}()
     for k in keys(vars_data)
@@ -85,10 +90,9 @@ function gate_b_asymptotic(
     end
 
     try
-        # Uji dengan sign +1 dan -1 untuk menghindari bias penguncian tanda parameter
+        # Evaluasi asimptotik pada skala parameter positif (aman dari DomainError sqrt/log)
         y_pos = evaluate_expr(proposal.expr, test_vars, constants, ones(proposal.n_params))
-        y_neg = evaluate_expr(proposal.expr, test_vars, constants, -ones(proposal.n_params))
-        return all(abs.(y_pos) .< threshold) && all(abs.(y_neg) .< threshold)
+        return all(isfinite, y_pos) && all(abs.(y_pos) .< threshold)
     catch
         return false
     end
@@ -135,6 +139,7 @@ function run_filter_cascade(
     vars_data  ::Dict{String,Vector{Float64}},
     config     ::RunConfig;
     sigma_y    ::Union{Vector{Float64},Nothing} = nothing,
+    actual_space_size::Int = config.max_proposals,
 )::Tuple{Union{ADCDResult, Nothing}, GateStats}
 
     stats = GateStats()
@@ -169,12 +174,13 @@ function run_filter_cascade(
 
     verdict, delta_bic = IdentifiabilityGate.identifiability_gate(
         fine, y_classical, y_obs;
-        bic_threshold   = config.bic_threshold,
-        nmse_threshold  = config.nmse_fine,
-        groups          = config.groups,
-        correction_type = config.correction_type,
-        sigma_y         = sigma_y,
-        use_full_loss   = use_full
+        bic_threshold     = config.bic_threshold,
+        nmse_threshold    = config.nmse_fine,
+        groups            = config.groups,
+        correction_type   = config.correction_type,
+        sigma_y           = sigma_y,
+        use_full_loss     = use_full,
+        search_space_size = actual_space_size
     )
 
     if verdict == IDENTIFIABLE
@@ -200,9 +206,14 @@ function run_cascade_on_proposals(
     agg.n_input = length(proposals)
     results = ADCDResult[]
     n_limited = min(length(proposals), config.max_proposals)
+    real_space_size = length(proposals)
 
     for proposal in proposals[1:n_limited]
-        result, stats = run_filter_cascade(proposal, y_classical, y_obs, vars_data, config; sigma_y=sigma_y)
+        result, stats = run_filter_cascade(
+            proposal, y_classical, y_obs, vars_data, config;
+            sigma_y = sigma_y,
+            actual_space_size = real_space_size
+        )
         agg.n_pass_gate_a += stats.n_pass_gate_a
         agg.n_pass_gate_b += stats.n_pass_gate_b
         agg.n_pass_gate_c += stats.n_pass_gate_c

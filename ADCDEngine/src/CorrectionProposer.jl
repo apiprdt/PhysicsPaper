@@ -16,31 +16,41 @@ struct CorrectionProposal
 end
 
 struct ProposalConfig
-    domain          ::String
-    input_vars      ::Vector{String}
-    max_params      ::Int
-    include_nested  ::Bool
+    domain           ::String
+    input_vars       ::Vector{String}
+    max_params       ::Int
+    include_nested   ::Bool
     include_bilateral::Bool
+    excluded_primitives::Vector{String}
 end
 
 ProposalConfig(domain::String, input_vars::Vector{String}) =
-    ProposalConfig(domain, input_vars, 3, true, true)
+    ProposalConfig(domain, input_vars, 3, true, true, String[])
+
+ProposalConfig(domain::String, input_vars::Vector{String}, max_params::Int, include_nested::Bool, include_bilateral::Bool) =
+    ProposalConfig(domain, input_vars, max_params, include_nested, include_bilateral, String[])
 
 theta_node(i::Int)   = Dict{String,Any}("theta" => "theta_$i")
 sym_node(s::String)  = Dict{String,Any}("sym" => s)
 op_node(op::String, args::Vector) = Dict{String,Any}("op" => op, "args" => args)
 num_node(v::Real)    = Dict{String,Any}("num" => Float64(v))
 
-function build_ratio_nodes(vars::Vector{String}, theta_idx::Int, power::Int=1)::Vector{Dict{String,Any}}
-    ratios = enumerate_dimensionless_ratios(vars, 2)
-    # Jika tidak ada rasio dimensionless murni, kembalikan kosong (jangan fallback ke variabel berdimensi)
-    isempty(ratios) && return Dict{String,Any}[]
-
+function build_ratio_nodes(vars::Vector{String}, theta_idx::Int)::Vector{Dict{String,Any}}
     results = Dict{String,Any}[]
+    
+    # 1. Rasio Buckingham Pi (misal: v/c dan (v/c)^2)
+    ratios = enumerate_dimensionless_ratios(vars, 2)
     for ratio_expr in ratios
-        r_node = (power != 1) ? op_node("pow", [ratio_expr, num_node(power)]) : ratio_expr
-        push!(results, op_node("mul", [theta_node(theta_idx), r_node]))
+        push!(results, op_node("mul", [theta_node(theta_idx), ratio_expr]))
+        push!(results, op_node("mul", [theta_node(theta_idx), op_node("pow", [ratio_expr, num_node(2.0)])]))
     end
+    
+    # 2. Variabel Tunggal (dinormalisasi oleh theta, misal: theta * r)
+    for v in vars
+        push!(results, op_node("mul", [theta_node(theta_idx), sym_node(v)]))
+        push!(results, op_node("div", [sym_node(v), theta_node(theta_idx)]))
+    end
+    
     return results
 end
 
@@ -120,7 +130,8 @@ function pattern_ratio_correction(p::ADCDPrimitive, vars::Vector{String}, t::Int
 end
 
 function propose_corrections(config::ProposalConfig)::Vector{CorrectionProposal}
-    prims = primitives_for_domain(config.domain)
+    all_prims = primitives_for_domain(config.domain)
+    prims = filter(p -> !(string(p.name) in config.excluded_primitives), all_prims)
     vars  = config.input_vars
     max_p = config.max_params
     proposals = CorrectionProposal[]

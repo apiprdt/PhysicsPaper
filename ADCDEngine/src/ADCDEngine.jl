@@ -28,13 +28,13 @@ function run_adcd(config_json::String, data_json::String)::String
     config = RunConfig(
         config_dict["domain"],
         config_dict["target_dim"],
-        Vector{String}(config_dict["input_vars"]),
+        String[string(v) for v in config_dict["input_vars"]],
         Dict{String,Float64}(k => Float64(v) for (k, v) in get(config_dict, "known_constants", Dict())),
         Float64(get(config_dict, "bic_threshold", 6.0)),
         Float64(get(config_dict, "nmse_coarse",   1.0)),
         Float64(get(config_dict, "nmse_fine",     0.1)),
         Int(get(config_dict, "n_restarts", 15)),
-        get(config_dict, "groups", nothing) === nothing ? nothing : [Vector{Int}(g) for g in config_dict["groups"]],
+        get(config_dict, "groups", nothing) === nothing ? nothing : [Int[Int(x) for x in g] for g in config_dict["groups"]],
         Int(get(config_dict, "max_proposals", 500)),
         String(get(config_dict, "correction_type", "multiplicative")),
         String(get(config_dict, "classical_limit_direction", "0")),
@@ -44,17 +44,16 @@ function run_adcd(config_json::String, data_json::String)::String
     excluded_raw = get(config_dict, "excluded_primitives", nothing)
     excluded_set = (excluded_raw === nothing || isempty(excluded_raw)) ? Set{Symbol}() : Set{Symbol}(Symbol(s) for s in excluded_raw)
 
-    y_classical = Vector{Float64}(data_dict["y_classical"])
-    y_obs       = Vector{Float64}(data_dict["y_obs"])
-    vars_data   = Dict{String,Vector{Float64}}(k => Vector{Float64}(v) for (k, v) in data_dict["vars"])
+    y_classical = Float64[Float64(y) for y in data_dict["y_classical"]]
+    y_obs       = Float64[Float64(y) for y in data_dict["y_obs"]]
+    vars_data   = Dict{String,Vector{Float64}}(k => Float64[Float64(x) for x in v] for (k, v) in data_dict["vars"])
     sigma_y_raw = get(data_dict, "sigma_y", nothing)
-    sigma_y     = sigma_y_raw === nothing ? nothing : Vector{Float64}(sigma_y_raw)
+    sigma_y     = sigma_y_raw === nothing ? nothing : Float64[Float64(s) for s in sigma_y_raw]
 
     vars_and_consts = vcat(config.input_vars, collect(keys(config.known_constants)))
-    prop_config = ProposalConfig(config.domain, vars_and_consts, 3, true, true)
-    proposals_all = propose_corrections(prop_config)
-
-    proposals = isempty(excluded_set) ? proposals_all : filter(p -> isempty(intersect(Set(p.primitives), excluded_set)), proposals_all)
+    excluded_vec = excluded_raw === nothing ? String[] : String[string(s) for s in excluded_raw]
+    prop_config = ProposalConfig(config.domain, vars_and_consts, 3, true, true, excluded_vec)
+    proposals = propose_corrections(prop_config)
     active_prims = sort(collect(Set(p for proposal in proposals for p in proposal.primitives)))
 
     results, stats = run_cascade_on_proposals(
@@ -91,7 +90,7 @@ function run_adcd(config_json::String, data_json::String)::String
     end
 
     output = Dict(
-        "n_proposals_generated" => length(proposals_all),
+        "n_proposals_generated" => length(proposals),
         "n_proposals_evaluated" => min(length(proposals), config.max_proposals),
         "primitives_active"     => [string(p) for p in active_prims],
         "gate_stats" => Dict(

@@ -309,6 +309,7 @@ end  # ConstantFitter testset
 # TEST GROUP 5: IdentifiabilityGate - Claim #4
 # ============================================================
 @testset "IdentifiabilityGate - BIC Verdict (Claim #4)" begin
+    using Statistics
 
     n = 100
     x = collect(range(0.01, 1.0, n))
@@ -323,14 +324,14 @@ end  # ConstantFitter testset
         ])
         vars_data = Dict("x" => x)
         fit = fit_constants(expr, y_cl, y_obs, vars_data, Dict{String,Float64}(), 1; n_restarts=5)
-        verdict = identifiability_gate(fit, y_cl, y_obs; bic_threshold=6.0, nmse_threshold=0.1)
+        verdict, _ = identifiability_gate(fit, y_cl, y_obs; bic_threshold=6.0, nmse_threshold=0.1)
         @test verdict == IDENTIFIABLE
     end
 
     @testset "WITHHELD when correction fit is poor" begin
         y_obs = y_cl .* (1.0 .+ 0.001 .* x)  # tiny correction
-        fit = FitResult([0.001], 0.5, -200.0, true, 15, 1, nothing)
-        verdict = identifiability_gate(fit, y_cl, y_obs; bic_threshold=6.0, nmse_threshold=0.1)
+        fit = FitResult([0.001], 0.5, -200.0, true, 15, 1, nothing, Float64[])
+        verdict, _ = identifiability_gate(fit, y_cl, y_obs; bic_threshold=6.0, nmse_threshold=0.1)
         @test verdict == WITHHELD
     end
 
@@ -364,15 +365,7 @@ end  # ConstantFitter testset
         fit = fit_constants(expr, y_cl, y_obs, vars_data, Dict{String,Float64}(), 1; n_restarts=3, correction_type="multiplicative")
         
         # 1. Test without groups (iid)
-        verdict_iid = identifiability_gate(fit, y_cl, y_obs; bic_threshold=6.0, nmse_threshold=1.0)
-        delta_bic_iid = fit.likelihood # This isn't exported easily, let's recalculate
-        
-        # Reconstruct ll difference exactly as the code does
-        sigma2_null_iid = mean((y_obs .- y_cl).^2)
-        ll_null_iid = -0.5 * n * log(2π * sigma2_null_iid) - n/2
-        ll_fit_iid = -0.5 * n * log(2π * fit.nmse * mean(y_cl.^2)) - n/2 # Wait, NMSE definition
-        # Actually it's easier to just call identifiability_gate and we can't extract delta_bic directly.
-        # But wait! identifiability_gate doesn't return delta_bic. FilterCascade computes delta_bic.
+        verdict_iid, _ = identifiability_gate(fit, y_cl, y_obs; bic_threshold=6.0, nmse_threshold=1.0)
         
         groups_list = []
         for i in 1:n_groups
@@ -420,6 +413,9 @@ end  # IdentifiabilityGate testset
         10,                            # n_restarts
         nothing,                       # groups
         200,                           # max_proposals
+        "multiplicative",
+        "0",
+        "v",
     )
 
     prop_config = ProposalConfig("lorentz_special_relativity", ["v","c"])

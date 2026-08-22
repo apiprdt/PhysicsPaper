@@ -120,10 +120,13 @@ function fit_constants(
     dynamic_range = isempty(pos_y) ? 0.0 : maximum(abs_y) / minimum(pos_y)
     use_full_loss = dynamic_range > 1e4
 
-    # Baseline residuals (Delta space)
+    # Baseline residuals (Delta space) with scale-invariant zero-protection
+    scale_y = isempty(pos_y) ? 1.0 : maximum(pos_y)
+    eps_y = max(scale_y * 1e-15, 1e-300)
+    safe_cl = [abs(v) < eps_y ? (v >= 0 ? eps_y : -eps_y) : v for v in y_classical]
     resid_obs = correction_type == "additive" ?
         (y_obs .- y_classical) :
-        (y_obs .- y_classical) ./ (y_classical .+ 1e-15)
+        (y_obs .- y_classical) ./ safe_cl
 
     var_resid = max(var(resid_obs), 1e-15)
     var_full  = max(var(y_obs), 1e-15)
@@ -209,8 +212,8 @@ function fit_constants(
             rand(rng, [-1.0, 1.0], n_params)
         end
 
-        # Inisialisasi magnitudo parameter
-        init_theta = if i <= 2
+        # Inisialisasi magnitudo parameter dengan tanda
+        mag_theta = if i <= 2
             fill(1.0 * scale, n_params)
         elseif i <= 4
             fill(0.5 * scale, n_params)
@@ -219,28 +222,23 @@ function fit_constants(
             exponents = use_wide ? (rand(rng, n_params) .* 20.0 .- 10.0) : (rand(rng, n_params) .* 6.0 .- 3.0)
             (10.0 .^ exponents) .* scale
         end
-
-        # Optimasi pada ruang logaritmik bernilai bertanda: theta = sign * exp(u)
-        loss_log(u_log::Vector{Float64}) = loss(init_signs .* exp.(u_log))
-        u0 = log.(max.(abs.(init_theta), 1e-12))
+        init_theta = init_signs .* mag_theta
 
         try
-            result_log = optimize(
-                loss_log,
-                u0,
-                LBFGS(),
+            result_opt = optimize(
+                loss,
+                init_theta,
+                NelderMead(),
                 Optim.Options(
-                    iterations        = 500,
-                    g_tol             = 1e-6,
-                    show_trace        = false,
-                    allow_f_increases = false,
+                    iterations = 1000,
+                    show_trace = false,
                 )
             )
 
-            curr_loss = Optim.minimum(result_log)
+            curr_loss = Optim.minimum(result_opt)
             if isfinite(curr_loss) && curr_loss < best_loss
                 best_loss  = curr_loss
-                best_theta = init_signs .* exp.(Optim.minimizer(result_log))
+                best_theta = Optim.minimizer(result_opt)
                 converged  = true
             end
         catch
