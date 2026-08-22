@@ -74,7 +74,11 @@
               "theta_1": 0.0466306380581869
             }
           }
-        ]
+        ],
+        "bayesian_best_weight": 0.18433173315527046,
+        "evidence_vs_null_label": "decisive",
+        "evidence_top2_label": "weak",
+        "posterior_entropy": 3.0047514914020024
       },
       "positive_control": {
         "search_space_size": 56,
@@ -176,7 +180,11 @@
               "theta_2": -0.9896745235744939
             }
           }
-        ]
+        ],
+        "bayesian_best_weight": 0.15764869675332593,
+        "evidence_vs_null_label": "decisive",
+        "evidence_top2_label": "weak",
+        "posterior_entropy": 4.303233975808111
       },
       "positive_control": {
         "search_space_size": 88,
@@ -200,7 +208,7 @@
     }
   },
   "Entropy Expansion": {
-    "all_passed": true,
+    "all_passed": false,
     "checks": {
       "budget_disclosure": {
         "search_space_size": 1168,
@@ -212,12 +220,12 @@
       },
       "primary_search": {
         "pass": true,
-        "top_candidate": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * S_i * (nR**-1))))))",
-        "nmse": 0.005259081429481832,
-        "bic": -1403.4534442952338,
+        "top_candidate": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**2) * (nR**-2))))))",
+        "nmse": 0.015937367800231673,
+        "bic": -1189.8533070571364,
         "theta_fit": {
-          "theta_0": -0.5587978577125117,
-          "theta_1": 8.265646402117795
+          "theta_0": 0.3130965918450869,
+          "theta_1": 8.181909716469692
         },
         "discovered_class": "logarithmic",
         "match_level": "class_only",
@@ -226,73 +234,77 @@
         "counts_toward_verdict": false,
         "pareto_front": [
           {
-            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * S_i * (nR**-1))))))",
-            "nmse": 0.005259081429481832,
-            "bic": -1403.4534442952338,
+            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**2) * (nR**-2))))))",
+            "nmse": 0.015937367800231673,
+            "bic": -1189.8533070571364,
             "class": "logarithmic",
             "theta_fit": {
-              "theta_0": -0.5587978577125117,
-              "theta_1": 8.265646402117795
+              "theta_0": 0.3130965918450869,
+              "theta_1": 8.181909716469692
             }
           },
           {
             "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
-            "nmse": 0.005259081440873979,
-            "bic": -1403.4534438619967,
+            "nmse": 0.015937367822209263,
+            "bic": -1189.8533067813369,
             "class": "logarithmic",
             "theta_fit": {
-              "theta_0": 1.0081449629562826,
-              "theta_1": 8.265768554269126
-            }
-          },
-          {
-            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**-2) * (nR**2))))))",
-            "nmse": 0.005259081467352014,
-            "bic": -1403.4534428550514,
-            "class": "logarithmic",
-            "theta_fit": {
-              "theta_0": -3.281667393612499,
-              "theta_1": 8.265700876708436
+              "theta_0": 1.0191770956907646,
+              "theta_1": 8.181799078864573
             }
           },
           {
             "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**-1) * nR)))))",
-            "nmse": 0.005259081475212427,
-            "bic": -1403.4534425561242,
+            "nmse": 0.01593736782518894,
+            "bic": -1189.8533067439444,
             "class": "logarithmic",
             "theta_fit": {
-              "theta_0": -1.8189620432651614,
-              "theta_1": 8.265532201175642
+              "theta_0": -1.838812733755821,
+              "theta_1": 8.181695238062861
             }
           },
           {
-            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**2) * (nR**-2))))))",
-            "nmse": 0.0052590815036401015,
-            "bic": -1403.4534414750353,
+            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * S_i * (nR**-1))))))",
+            "nmse": 0.01593736782811429,
+            "bic": -1189.853306707234,
             "class": "logarithmic",
             "theta_fit": {
-              "theta_0": 0.3097378967233489,
-              "theta_1": 8.265408812101146
+              "theta_0": -0.5649037342411298,
+              "theta_1": 8.1817073908398
+            }
+          },
+          {
+            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**-2) * (nR**2))))))",
+            "nmse": 0.01593736786914661,
+            "bic": -1189.8533061923142,
+            "class": "logarithmic",
+            "theta_fit": {
+              "theta_0": 3.31722463567527,
+              "theta_1": 8.182346865808602
             }
           }
-        ]
+        ],
+        "bayesian_best_weight": 0.037302656195251645,
+        "evidence_vs_null_label": "decisive",
+        "evidence_top2_label": "weak",
+        "posterior_entropy": 5.492012343162233
       },
       "positive_control": {
         "search_space_size": 264,
-        "nmse": 0.005259081429481832,
+        "nmse": 0.015937367800231673,
         "pass": true
       },
       "ablation_control": {
-        "ablated_bic": -1389.2640642416443,
-        "true_structure_bic": -1403.4534442952338,
-        "bic_diff": 14.189380053589502,
-        "pass": true
+        "ablated_bic": -1191.7424147081622,
+        "true_structure_bic": -1189.8533070571364,
+        "bic_diff": -1.8891076510258245,
+        "pass": false
       },
       "determinism_check": {
         "runs": [
-          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * S_i * (nR**-1))))))",
-          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * S_i * (nR**-1))))))",
-          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * S_i * (nR**-1))))))"
+          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**2) * (nR**-2))))))",
+          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**2) * (nR**-2))))))",
+          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**2) * (nR**-2))))))"
         ],
         "pass": true
       }

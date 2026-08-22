@@ -113,9 +113,9 @@ class BayesianReranker:
             if not isinstance(item, (tuple, list)):
                 raise ValueError(f"Unsupported candidate type: {type(item)}")
             if len(item) >= 4:
-                expr_str, _nmse, bic, theta_fit = item[0], item[1], item[2], item[3]
+                expr_str, bic, theta_fit = item[0], item[2], item[3]
             elif len(item) == 3:
-                expr_str, _nmse, bic = item[0], item[1], item[2]
+                expr_str, bic = item[0], item[2]
                 theta_fit = None
             elif len(item) == 2:
                 expr_str, bic = item[0], item[1]
