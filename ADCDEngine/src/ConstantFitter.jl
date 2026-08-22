@@ -1,4 +1,4 @@
-﻿# ADCD Engine: ConstantFitter (Hardened & Unified)
+# ADCD Engine: ConstantFitter (Hardened & Unified)
 module ConstantFitter
 
 using Optim
@@ -12,8 +12,8 @@ export FitResult, fit_constants, evaluate_expr
 
 struct FitResult
     theta     ::Vector{Float64}   # fitted parameters
-    nmse      ::Float64           # normalized mean squared error (in fit space)
-    likelihood::Float64           # Gaussian log-likelihood (consistent with loss space)
+    nmse      ::Float64           # normalized mean squared error (standard unweighted, for gating)
+    likelihood::Float64           # Gaussian log-likelihood (weighted with sigma_y when present)
     converged ::Bool
     n_restarts::Int               # total restarts executed
     n_params  ::Int
@@ -145,16 +145,16 @@ function fit_constants(
         try
             delta = evaluate_expr(proposal_expr, vars_data, constants, Float64[])
             delta_residuals = resid_obs .- delta
+            y_pred = get_y_pred(delta)
+            diff = y_obs .- y_pred
 
             if sigma_y !== nothing
-                y_pred = get_y_pred(delta)
-                w_res = (y_obs .- y_pred) ./ sigma_y
+                w_res = diff ./ sigma_y
                 chi2 = sum(w_res.^2)
-                nmse_val = chi2 / n
+                # Standard NMSE (unweighted variance-normalized) untuk threshold gating
+                nmse_val = (use_full_loss ? mean(diff.^2) / var_full : mean(delta_residuals.^2) / var_resid)
                 ll = -0.5 * chi2 - 0.5 * sum(log.(2 * pi .* (sigma_y.^2)))
             elseif use_full_loss
-                y_pred = get_y_pred(delta)
-                diff = y_obs .- y_pred
                 sigma2 = mean(diff.^2)
                 nmse_val = sigma2 / var_full
                 ll = sigma2 > 0 ? (-0.5 * n * log(2 * pi * sigma2) - 0.5 * n) : -Inf
@@ -252,31 +252,35 @@ function fit_constants(
 
     # 5. Sinkronisasi Likelihood & Residuals Pasca-Optimasi
     ll = -Inf
+    standard_nmse = Inf
     delta_residuals = Float64[]
 
     try
         delta = evaluate_expr(proposal_expr, vars_data, constants, best_theta)
         delta_residuals = resid_obs .- delta
+        y_pred = get_y_pred(delta)
+        diff = y_obs .- y_pred
 
         if sigma_y !== nothing
-            y_pred = get_y_pred(delta)
-            w_res = (y_obs .- y_pred) ./ sigma_y
+            w_res = diff ./ sigma_y
             chi2 = sum(w_res.^2)
             ll = -0.5 * chi2 - 0.5 * sum(log.(2 * pi .* (sigma_y.^2)))
+            # Standard unweighted NMSE (scale 0-1) khusus untuk threshold gating
+            standard_nmse = (use_full_loss ? mean(diff.^2) / var_full : mean(delta_residuals.^2) / var_resid)
         elseif use_full_loss
-            y_pred = get_y_pred(delta)
-            diff = y_obs .- y_pred
             sigma2 = mean(diff.^2)
+            standard_nmse = sigma2 / var_full
             ll = sigma2 > 0 ? (-0.5 * n * log(2 * pi * sigma2) - 0.5 * n) : -Inf
         else
             sigma2 = mean(delta_residuals.^2)
+            standard_nmse = sigma2 / var_resid
             ll = sigma2 > 0 ? (-0.5 * n * log(2 * pi * sigma2) - 0.5 * n) : -Inf
         end
     catch e
         return FitResult(best_theta, Inf, -Inf, false, n_restarts, n_params, string(e), delta_residuals)
     end
 
-    return FitResult(best_theta, best_loss, ll, converged, n_restarts, n_params, nothing, delta_residuals)
+    return FitResult(best_theta, standard_nmse, ll, converged, n_restarts, n_params, nothing, delta_residuals)
 end
 
 # Helpers

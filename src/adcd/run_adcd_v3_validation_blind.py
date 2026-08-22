@@ -50,7 +50,15 @@ FORMAL_PROTOCOL_CHECKS = (
     "determinism_check",
 )
 
-# Single Source of Truth untuk batasan domain observasi
+# ============================================================================
+# Domain Provenance & Observation Regimes
+# ============================================================================
+# 1. DOMAIN_RESTRICTIONS (Historical Observation Regime):
+#    Restricted observation windows (e.g. v <= 0.3c, dV/V <= 1.0) reflecting the
+#    historical/classical discovery domain where anomalies were first identified.
+# 2. DEFAULT_CLEAN_DOMAINS (Broad Exploration Regime, see benchmark_noise_robustness.py):
+#    Wide parameter ranges (e.g. v <= 0.99c, dV/V <= 3.0) used in noise robustness
+#    sweeps to prevent Taylor polynomial degeneracy and test global asymptotic behavior.
 DOMAIN_RESTRICTIONS: Dict[str, Dict[str, float]] = {
     "Time Dilation": {"domain_max": 0.3},       # v <= 0.3c (Historical window)
     "Screened Coulomb": {"domain_max": 4.0},    # r <= 4.0 m
@@ -58,24 +66,40 @@ DOMAIN_RESTRICTIONS: Dict[str, Dict[str, float]] = {
 }
 
 
+def calibrated_nmse_threshold(
+    scatter_level: float,
+    n_groups: int = 1,
+    min_floor: float = 0.10,
+    max_cap: float = 0.60,
+) -> float:
+    """
+    Unified calibrated NMSE threshold derived from chi-square residual floor and sampling variance:
+      threshold = min(max_cap, max(min_floor, floor * 1.35 + sampling_margin))
+    where floor = scatter_level^2
+    and sampling_margin = floor * 1.645 * sqrt(2 / max(n_groups, 2)) (95% CI upper bound).
+    """
+    floor = float(scatter_level) ** 2
+    sampling_margin = floor * 1.645 * np.sqrt(2.0 / max(int(n_groups), 2))
+    nmse_calibrated = floor * 1.35 + sampling_margin
+    return float(min(max_cap, max(min_floor, nmse_calibrated)))
+
+
 @dataclass
 class ScenarioThresholdConfig:
     bic_threshold: float = 10.0
-    nmse_fine: float = 0.1
+    nmse_fine: float = 0.10
     nmse_coarse: float = 1.0
     groups: Optional[List[List[int]]] = None
 
     @classmethod
     def synthetic(cls, noise_level: float = 0.01) -> ScenarioThresholdConfig:
-        nmse_target = min(0.60, max(0.1, (noise_level * 5.0) ** 2 + 0.05))
+        nmse_target = calibrated_nmse_threshold(scatter_level=noise_level, n_groups=1, min_floor=0.10, max_cap=0.60)
         return cls(bic_threshold=10.0, nmse_fine=nmse_target, nmse_coarse=1.0, groups=None)
 
     @classmethod
     def real_observational(cls, n_groups: int = 1, scatter_level: float = 0.25) -> ScenarioThresholdConfig:
-        floor = scatter_level ** 2
-        sampling_margin = floor * 1.645 * np.sqrt(2.0 / max(n_groups, 2))
-        nmse_fine_calibrated = floor * 1.35 + sampling_margin
-        return cls(bic_threshold=6.0, nmse_fine=nmse_fine_calibrated, nmse_coarse=1.0, groups=None)
+        nmse_target = calibrated_nmse_threshold(scatter_level=scatter_level, n_groups=n_groups, min_floor=0.10, max_cap=0.60)
+        return cls(bic_threshold=6.0, nmse_fine=nmse_target, nmse_coarse=1.0, groups=None)
 
     @classmethod
     def for_scenario(cls, scenario: Any, noise_level: float = 0.01) -> ScenarioThresholdConfig:
@@ -83,8 +107,13 @@ class ScenarioThresholdConfig:
         domain = getattr(scenario, "domain", "")
 
         if domain == "mond_radial_acceleration":
+            # SPARC Radial Acceleration Relation (RAR):
+            # scatter_level = 0.30 represents intrinsic astrophysical scatter (~0.11 dex in log space,
+            # corresponding to ~28-30% linear fractional acceleration scatter across 147 rotationally
+            # supported galaxies, per McGaugh et al. 2016, Lelli et al. 2016, 2017).
             return cls.real_observational(n_groups=147, scatter_level=0.30)
         elif domain == "hubble_expansion":
+            # Supernova Type Ia Pantheon+ scatter (~0.15 mag / distance modulus)
             return cls.real_observational(n_groups=1, scatter_level=0.15)
         elif tier in ("real", "observational"):
             return cls.real_observational(n_groups=1, scatter_level=0.25)
