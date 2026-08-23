@@ -1,10 +1,39 @@
 ==========================================================================================
- ADCD CORE CODEBASE & VALIDATION BENCHMARK RESULTS (ALL-IN-ONE CONSOLIDATION)
+ ADCD CORE REPOSITORY CONSOLIDATION & VALIDATION RESULTS (FRESH DUMP)
+ Generated: 2026-08-23 07:40:24
+ Total Bundled Files: 23 (14 Python + 7 Julia + 2 JSON Results)
+==========================================================================================
+
+TABLE OF CONTENTS:
+   1. [src/adcd/bayesian_ranker.py] (233 lines, 8,510 bytes)
+   2. [src/adcd/run_adcd_v3_validation_blind.py] (597 lines, 26,000 bytes)
+   3. [src/adcd/anomaly_scenarios.py] (664 lines, 30,823 bytes)
+   4. [src/adcd/julia_bridge.py] (192 lines, 7,265 bytes)
+   5. [src/adcd/metrics.py] (333 lines, 13,075 bytes)
+   6. [src/adcd/mode_detection.py] (57 lines, 1,979 bytes)
+   7. [src/adcd/asymptotic_dictionary_proposer_v3.py] (209 lines, 7,897 bytes)
+   8. [src/adcd/grammar_proposer_v3.py] (70 lines, 2,923 bytes)
+   9. [src/adcd/dimensional_checker.py] (250 lines, 10,246 bytes)
+  10. [src/adcd/arc_scorer.py] (306 lines, 12,222 bytes)
+  11. [src/adcd/pipeline.py] (219 lines, 8,665 bytes)
+  12. [src/adcd/jax_optimizer.py] (430 lines, 18,329 bytes)
+  13. [src/adcd/quickfit.py] (608 lines, 27,711 bytes)
+  14. [eval/benchmark_noise_robustness.py] (187 lines, 7,055 bytes)
+  15. [ADCDEngine/src/ADCDEngine.jl] (137 lines, 7,108 bytes)
+  16. [ADCDEngine/src/CorrectionProposer.jl] (180 lines, 7,488 bytes)
+  17. [ADCDEngine/src/FilterCascade.jl] (248 lines, 8,604 bytes)
+  18. [ADCDEngine/src/IdentifiabilityGate.jl] (113 lines, 4,654 bytes)
+  19. [ADCDEngine/src/ConstantFitter.jl] (289 lines, 10,861 bytes)
+  20. [ADCDEngine/src/PrimitiveRegistry.jl] (102 lines, 5,252 bytes)
+  21. [ADCDEngine/src/ADCDDimensions.jl] (296 lines, 12,158 bytes)
+  22. [run_outputs/adcd_v3_taxonomy_validation_report.json] (324 lines, 12,676 bytes)
+  23. [run_outputs/noise_robustness_julia.json] (7364 lines, 280,025 bytes)
+
 ==========================================================================================
 
 
 ==========================================================================================
- FILE: src/adcd/bayesian_ranker.py
+ FILE #1: src/adcd/bayesian_ranker.py (234 lines, 8,510 bytes)
 ==========================================================================================
 
 """
@@ -244,7 +273,7 @@ class BayesianReranker:
 
 
 ==========================================================================================
- FILE: src/adcd/run_adcd_v3_validation_blind.py
+ FILE #2: src/adcd/run_adcd_v3_validation_blind.py (598 lines, 26,000 bytes)
 ==========================================================================================
 
 """
@@ -848,7 +877,7 @@ if __name__ == "__main__":
 
 
 ==========================================================================================
- FILE: src/adcd/anomaly_scenarios.py
+ FILE #3: src/adcd/anomaly_scenarios.py (665 lines, 30,823 bytes)
 ==========================================================================================
 
 import numpy as np
@@ -1519,7 +1548,7 @@ def get_mv_scenario(name: str) -> AnomalyScenario:
 
 
 ==========================================================================================
- FILE: src/adcd/julia_bridge.py
+ FILE #4: src/adcd/julia_bridge.py (193 lines, 7,265 bytes)
 ==========================================================================================
 
 from __future__ import annotations
@@ -1718,7 +1747,7 @@ def data_from_scenario(scenario: Any, y_classical: np.ndarray, y_obs: np.ndarray
 
 
 ==========================================================================================
- FILE: src/adcd/metrics.py
+ FILE #5: src/adcd/metrics.py (334 lines, 13,075 bytes)
 ==========================================================================================
 
 import itertools
@@ -2058,7 +2087,7 @@ def evaluate_correction(
 
 
 ==========================================================================================
- FILE: src/adcd/mode_detection.py
+ FILE #6: src/adcd/mode_detection.py (58 lines, 1,979 bytes)
 ==========================================================================================
 
 from typing import Tuple
@@ -2122,7 +2151,7 @@ def detect_correction_mode(
 
 
 ==========================================================================================
- FILE: src/adcd/asymptotic_dictionary_proposer_v3.py
+ FILE #7: src/adcd/asymptotic_dictionary_proposer_v3.py (210 lines, 7,897 bytes)
 ==========================================================================================
 
 from __future__ import annotations
@@ -2338,7 +2367,7 @@ class AsymptoticDictionaryProposerV3(BaseProposer):
 
 
 ==========================================================================================
- FILE: src/adcd/grammar_proposer_v3.py
+ FILE #8: src/adcd/grammar_proposer_v3.py (71 lines, 2,923 bytes)
 ==========================================================================================
 
 from typing import List, Optional, Dict
@@ -2415,7 +2444,7 @@ class GrammarProposerV3(BaseProposer):
 
 
 ==========================================================================================
- FILE: src/adcd/dimensional_checker.py
+ FILE #9: src/adcd/dimensional_checker.py (251 lines, 10,246 bytes)
 ==========================================================================================
 
 import sympy as sp
@@ -2672,7 +2701,7 @@ class ASTValidator:
 
 
 ==========================================================================================
- FILE: src/adcd/arc_scorer.py
+ FILE #10: src/adcd/arc_scorer.py (307 lines, 12,222 bytes)
 ==========================================================================================
 
 import logging
@@ -2985,7 +3014,7 @@ class ARCScorer:
 
 
 ==========================================================================================
- FILE: src/adcd/pipeline.py
+ FILE #11: src/adcd/pipeline.py (220 lines, 8,665 bytes)
 ==========================================================================================
 
 import sympy as sp
@@ -3211,7 +3240,7 @@ class Stage1Pipeline:
 
 
 ==========================================================================================
- FILE: src/adcd/jax_optimizer.py
+ FILE #12: src/adcd/jax_optimizer.py (431 lines, 18,329 bytes)
 ==========================================================================================
 
 import os
@@ -3648,7 +3677,7 @@ class JAXOptimizer:
 
 
 ==========================================================================================
- FILE: src/adcd/quickfit.py
+ FILE #13: src/adcd/quickfit.py (609 lines, 27,711 bytes)
 ==========================================================================================
 
 from __future__ import annotations
@@ -4263,7 +4292,7 @@ class BuckinghamPiEngine:
 
 
 ==========================================================================================
- FILE: eval/benchmark_noise_robustness.py
+ FILE #14: eval/benchmark_noise_robustness.py (188 lines, 7,055 bytes)
 ==========================================================================================
 
 """
@@ -4457,7 +4486,7 @@ if __name__ == "__main__":
 
 
 ==========================================================================================
- FILE: ADCDEngine/src/ADCDEngine.jl
+ FILE #15: ADCDEngine/src/ADCDEngine.jl (137 lines, 7,108 bytes)
 ==========================================================================================
 
 # ADCDEngine.jl (Hardened & Unified)
@@ -4600,7 +4629,7 @@ end  # module ADCDEngine
 
 
 ==========================================================================================
- FILE: ADCDEngine/src/CorrectionProposer.jl
+ FILE #16: ADCDEngine/src/CorrectionProposer.jl (181 lines, 7,488 bytes)
 ==========================================================================================
 
 # ADCD Engine: CorrectionProposer (Hardened)
@@ -4787,7 +4816,7 @@ end  # module CorrectionProposer
 
 
 ==========================================================================================
- FILE: ADCDEngine/src/FilterCascade.jl
+ FILE #17: ADCDEngine/src/FilterCascade.jl (249 lines, 8,604 bytes)
 ==========================================================================================
 
 # ============================================================================
@@ -5042,7 +5071,7 @@ end  # module FilterCascade
 
 
 ==========================================================================================
- FILE: ADCDEngine/src/IdentifiabilityGate.jl
+ FILE #18: ADCDEngine/src/IdentifiabilityGate.jl (114 lines, 4,654 bytes)
 ==========================================================================================
 
 # ============================================================================
@@ -5162,7 +5191,7 @@ end  # module IdentifiabilityGate
 
 
 ==========================================================================================
- FILE: ADCDEngine/src/ConstantFitter.jl
+ FILE #19: ADCDEngine/src/ConstantFitter.jl (290 lines, 10,861 bytes)
 ==========================================================================================
 
 # ADCD Engine: ConstantFitter (Hardened & Unified)
@@ -5458,7 +5487,7 @@ end  # module ConstantFitter
 
 
 ==========================================================================================
- FILE: ADCDEngine/src/PrimitiveRegistry.jl
+ FILE #20: ADCDEngine/src/PrimitiveRegistry.jl (103 lines, 5,252 bytes)
 ==========================================================================================
 
 # ADCD Engine: PrimitiveRegistry (Hardened)
@@ -5567,7 +5596,7 @@ end  # module PrimitiveRegistry
 
 
 ==========================================================================================
- FILE: ADCDEngine/src/ADCDDimensions.jl
+ FILE #21: ADCDEngine/src/ADCDDimensions.jl (297 lines, 12,158 bytes)
 ==========================================================================================
 
 # ADCD Engine: ADCDDimensions (Hardened & Unified)
@@ -5870,7 +5899,7 @@ end  # module ADCDDimensions
 
 
 ==========================================================================================
- FILE: run_outputs/adcd_v3_taxonomy_validation_report.json
+ FILE #22: run_outputs/adcd_v3_taxonomy_validation_report.json (324 lines, 12,676 bytes)
 ==========================================================================================
 
 {
@@ -6200,7 +6229,7 @@ end  # module ADCDDimensions
 
 
 ==========================================================================================
- FILE: run_outputs/noise_robustness_julia.json
+ FILE #23: run_outputs/noise_robustness_julia.json (7364 lines, 280,025 bytes)
 ==========================================================================================
 
 {
