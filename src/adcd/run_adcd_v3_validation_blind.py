@@ -239,12 +239,9 @@ def _run_search(
         )
         sigma_y = None
         if "sigma_y" in X:
+            # ONLY use sigma_y if the scenario provides genuine point-wise uncertainties
+            # (e.g., real astronomical data with actual error bars).
             sigma_y = np.asarray(X["sigma_y"], dtype=float)
-        elif noise_level > 0.0:
-            if detected_mode == "multiplicative":
-                sigma_y = noise_level * np.abs(y_obs) + 1e-6
-            else:
-                sigma_y = np.full_like(y_obs, noise_level * (np.std(y_obs) + 1e-6))
 
         data = JuliaEngineData(
             y_classical=y_classical,
@@ -452,6 +449,17 @@ def run_scenario_protocol(
             "evidence_top2_label": bma.evidence_top2.label,
             "posterior_entropy": bma.posterior_entropy,
         }
+        
+        # Guard rail for catastrophic BIC numerical scaling anomalies
+        if bic is not None and abs(bic) > 1e5:
+            import warnings
+            warnings.warn(
+                f"\n[SANITY CHECK GAGAL] {scenario.name}: |BIC|={abs(bic):,.0f} jauh di luar "
+                f"rentang wajar (biasanya puluhan-ribuan). Kemungkinan besar sigma_y/skala "
+                f"likelihood pincang. JANGAN percaya verdict ini sebelum diverifikasi manual.",
+                RuntimeWarning
+            )
+            
     else:
         result.checks["primary_search"] = {"pass": False}
 
