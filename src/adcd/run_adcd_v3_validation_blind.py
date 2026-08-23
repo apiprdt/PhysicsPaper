@@ -418,8 +418,7 @@ def run_scenario_protocol(
         ranker = BayesianReranker()
 
         if getattr(scenario, "engine", "python") == "julia":
-            # ranked_blind[i][2] sudah berupa -delta_bic (relatif thd null model),
-            # BUKAN BIC mentah -- jadi bic_null harus 0.0, bukan dihitung ulang.
+            # For Julia engine, candidate metric is already -delta_bic relative to null model
             bic_null = 0.0
         else:
             d_max = domain_max if domain_max is not None else DOMAIN_RESTRICTIONS.get(scenario.name, {}).get("domain_max", None)
@@ -514,7 +513,7 @@ def run_scenario_protocol(
     if formal_pass:
         result.tier = "IDENTIFIABLE"
     elif evn_label in ("decisive", "very_strong") and result.checks.get("primary_search", {}).get("match_level") in ("exact", "class_only"):
-        # Bukti anomali kuat DAN struktur cocok, tapi tertahan oleh floor SNR atau ambiguitas domain sempit
+        # Strong evidence against null and correct structure, but held by SNR floor
         result.tier = "DETECTED_UNRESOLVED"
     else:
         result.tier = "WITHHELD"

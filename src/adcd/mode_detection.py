@@ -10,7 +10,7 @@ def _scale_dependence(y_classical: np.ndarray, candidate_residual: np.ndarray) -
     if len(a) < 5 or np.std(a) < 1e-12 or np.std(b) < 1e-12:
         return 0.0
         
-    # FIX AUDIT: Gunakan average ranking untuk menangani data ties secara matematis valid
+    # Use average ranking to handle tied observations properly
     ra = rankdata(a, method="average")
     rb = rankdata(b, method="average")
     

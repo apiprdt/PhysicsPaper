@@ -10,11 +10,11 @@ from adcd.context import BaseProposer, ProposalContext
 
 _u = sp.Symbol("u", positive=True)
 
-# Disinkronkan 100% dengan Julia PrimitiveRegistry
+# Canonical asymptotic primitives
 _RAW_FORMS: Dict[str, sp.Expr] = {
     "D_lor": 1 / sp.sqrt(1 - _u),
-    "D_rat": _u / (1 + _u**2),               # Disesuaikan: rasional halus
-    "D_exp": 1 - sp.exp(-_u),                 # Disesuaikan: 1 - exp(-u)
+    "D_rat": _u / (1 + _u**2),               # Smooth rational
+    "D_exp": 1 - sp.exp(-_u),                 # Regularized exponential: 1 - exp(-u)
     "D_log": sp.log(1 + sp.Abs(_u)),
     "D_sqrt_inv": sp.sqrt(sp.Abs(_u)) / (1 + sp.sqrt(sp.Abs(_u))),
     "D_pow": sp.sqrt(sp.Abs(_u)) * (1 - sp.exp(-sp.Abs(_u))),
@@ -146,7 +146,7 @@ def enumerate_candidates(
     def prim_expr(p: str, u_sym: str) -> str:
         return prims[p].string_template.format(u=u_sym)
 
-    # Pola 1: Singleton dengan parameter skala inner u -> theta_1 * D(theta_0 * u)
+    # Pattern 1: Singleton with inner scaling parameter -> theta_1 * D(theta_0 * u)
     for p in prim_names:
         u_scaled = f"(_NEXT_THETA_ * ({ratio_symbol}))"
         cand_raw = f"_NEXT_THETA_ * {prim_expr(p, u_scaled)}"
@@ -154,7 +154,7 @@ def enumerate_candidates(
         if _token_count(cand) <= budget.max_tokens:
             candidates.append(cand)
 
-    # Pola 2: Additive -> theta_1 * D_a(theta_0 * u) + theta_2 * D_b(theta_0 * u)
+    # Pattern 2: Additive composition -> theta_1 * D_a(theta_0 * u) + theta_2 * D_b(theta_0 * u)
     if budget.max_primitives_used >= 2:
         for pa, pb in itertools.combinations(prim_names, 2):
             u_scaled = f"(_NEXT_THETA_ * ({ratio_symbol}))"
@@ -163,7 +163,7 @@ def enumerate_candidates(
             if _token_count(cand) <= budget.max_tokens:
                 candidates.append(cand)
 
-    # Pola 3: Multiplicative -> theta_1 * D_a(theta_0 * u) * (1 + theta_2 * D_b(theta_0 * u))
+    # Pattern 3: Multiplicative composition -> theta_1 * D_a(theta_0 * u) * (1 + theta_2 * D_b(theta_0 * u))
     if budget.max_primitives_used >= 2 and budget.max_depth >= 3:
         for pa, pb in itertools.permutations(prim_names, 2):
             u_scaled = f"(_NEXT_THETA_ * ({ratio_symbol}))"
@@ -172,7 +172,7 @@ def enumerate_candidates(
             if _token_count(cand) <= budget.max_tokens:
                 candidates.append(cand)
 
-    # Pola 4: Nested (Sinkronisasi dengan Julia) -> theta_1 * D_outer(D_inner(theta_0 * u))
+    # Pattern 4: Nested composition -> theta_1 * D_outer(D_inner(theta_0 * u))
     if budget.max_primitives_used >= 2 and budget.max_depth >= 3:
         for pa, pb in itertools.permutations(prim_names, 2):
             u_scaled = f"(_NEXT_THETA_ * ({ratio_symbol}))"

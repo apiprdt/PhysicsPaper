@@ -1,5 +1,5 @@
 # ============================================================================
-# Modul: FilterCascade (Hardened, Multivariable-Safe & Optimized)
+# Module: FilterCascade (Physical Gate Filtering & Verification)
 # ============================================================================
 module FilterCascade
 
@@ -51,7 +51,7 @@ struct ADCDResult
     gate_stats::GateStats
 end
 
-# Deterministic integer hashing (tidak tergantung random secret seed Julia runtime)
+# Deterministic integer hashing (independent of runtime randomized seeds)
 function deterministic_hash(s::String)::Int
     h = UInt64(5381)
     for b in codeunits(s)
@@ -78,28 +78,28 @@ function gate_b_asymptotic(
     raw_dirs = strip(limit_direction)
     limit_dirs = isempty(raw_dirs) ? fill("0", length(limit_vars)) : String.(split(raw_dirs, ","))
 
-    # Petakan arah limit spesifik untuk tiap variabel bebas
+    # Map specific limit directions for each independent variable
     dir_map = Dict{String,String}()
     for (i, v) in enumerate(limit_vars)
         dir_map[v] = (i <= length(limit_dirs)) ? limit_dirs[i] : "0"
     end
 
-    # Evaluasi cepat pada 1 titik uji asimptotik (O(1) memory footprint)
+    # Fast asymptotic boundary evaluation on a single test point
     test_vars = Dict{String,Vector{Float64}}()
     for k in keys(vars_data)
         if haskey(dir_map, k)
             is_inf = dir_map[k] in ("oo", "inf", "+oo")
             test_vars[k] = [is_inf ? 1e12 : 1e-12]
         else
-            # Variabel non-limit diuji pada baseline median/positif aman
+            # Non-limit variables set to baseline unit scale
             test_vars[k] = [1.0]
         end
     end
 
     try
-        # Evaluasi asimptotik dengan parameter positif (aman dari DomainError sqrt/log)
+        # Asymptotic limit evaluation with positive parameters
         y_pos = evaluate_expr(proposal.expr, test_vars, constants, ones(proposal.n_params))
-        # Koreksi delta wajib menuju nol (< 1e-4) pada rezim batas klasik
+        # Correction delta must vanish (< 1e-4) in the classical limit regime
         return all(isfinite, y_pos) && all(abs.(y_pos) .< 1e-4)
     catch
         return false

@@ -118,7 +118,7 @@ function fit_constants(
 
     n = length(y_obs)
 
-    # 1. Mode dan Denominator Normalisasi
+    # 1. Mode and Normalization Scale
     abs_y = abs.(y_classical)
     pos_y = abs_y[abs_y .> 0.0]
     dynamic_range = isempty(pos_y) ? 0.0 : maximum(abs_y) / minimum(pos_y)
@@ -135,12 +135,12 @@ function fit_constants(
     var_resid = max(var(resid_obs), 1e-15)
     var_full  = max(var(y_obs), 1e-15)
 
-    # Helper evaluasi y_pred
+    # Helper evaluation for y_pred
     function get_y_pred(delta::Vector{Float64})
         return correction_type == "additive" ? (y_classical .+ delta) : (y_classical .* (1.0 .+ delta))
     end
 
-    # 2. Penanganan Kasus Nol Parameter (n_params == 0)
+    # 2. Zero-parameter case handling (n_params == 0)
     if n_params == 0
         try
             delta = evaluate_expr(proposal_expr, vars_data, constants, Float64[])
@@ -151,7 +151,7 @@ function fit_constants(
             if sigma_y !== nothing
                 w_res = diff ./ sigma_y
                 chi2 = sum(w_res.^2)
-                # Standard NMSE (unweighted variance-normalized) untuk threshold gating
+                # Standard NMSE (unweighted variance-normalized) for threshold gating
                 nmse_val = (use_full_loss ? mean(diff.^2) / var_full : mean(delta_residuals.^2) / var_resid)
                 ll = -0.5 * chi2 - 0.5 * sum(log.(2 * pi .* (sigma_y.^2)))
             elseif use_full_loss
@@ -198,25 +198,24 @@ function fit_constants(
     best_theta = zeros(n_params)
     converged  = false
 
-    # 4. Skala Inisialisasi Multivariabel Simetris
+    # 4. Multivariable Symmetric Initialization Scales
     scales = [1.0, 1e-3, 1e3, 1e-6, 1e6]
 
     for i in 1:n_restarts
         scale = scales[(i - 1) % length(scales) + 1]
 
-        # Inisialisasi tanda: Pastikan restart awal mencakup variasi tanda
+        # Initial sign patterns covering diverse quadrants
         init_signs = if i == 1
             ones(n_params)
         elseif i == 2
             -ones(n_params)
         elseif i == 3 && n_params >= 2
-            # Pola selang-seling [+1, -1, +1, ...]
             Float64[(-1.0)^j for j in 1:n_params]
         else
             rand(rng, [-1.0, 1.0], n_params)
         end
 
-        # Inisialisasi magnitudo parameter dengan tanda
+        # Initial parameter magnitudes
         mag_theta = if i <= 2
             fill(1.0 * scale, n_params)
         elseif i <= 4
@@ -250,7 +249,7 @@ function fit_constants(
         end
     end
 
-    # 5. Sinkronisasi Likelihood & Residuals Pasca-Optimasi
+    # 5. Post-Optimization Likelihood and Residual Computation
     ll = -Inf
     standard_nmse = Inf
     delta_residuals = Float64[]
@@ -265,7 +264,7 @@ function fit_constants(
             w_res = diff ./ sigma_y
             chi2 = sum(w_res.^2)
             ll = -0.5 * chi2 - 0.5 * sum(log.(2 * pi .* (sigma_y.^2)))
-            # Standard unweighted NMSE (scale 0-1) khusus untuk threshold gating
+            # Standard unweighted NMSE (scale 0-1) specifically for threshold gating
             standard_nmse = (use_full_loss ? mean(diff.^2) / var_full : mean(delta_residuals.^2) / var_resid)
         elseif use_full_loss
             sigma2 = mean(diff.^2)

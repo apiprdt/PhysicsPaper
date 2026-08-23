@@ -38,14 +38,14 @@ num_node(v::Real)    = Dict{String,Any}("num" => Float64(v))
 function build_ratio_nodes(vars::Vector{String}, theta_idx::Int)::Vector{Dict{String,Any}}
     results = Dict{String,Any}[]
     
-    # 1. Rasio Buckingham Pi (misal: v/c dan (v/c)^2)
+    # 1. Dimensionless Buckingham Pi ratios (e.g. v/c and (v/c)^2)
     ratios = enumerate_dimensionless_ratios(vars, 2)
     for ratio_expr in ratios
         push!(results, op_node("mul", [theta_node(theta_idx), ratio_expr]))
         push!(results, op_node("mul", [theta_node(theta_idx), op_node("pow", [ratio_expr, num_node(2.0)])]))
     end
     
-    # 2. Variabel Tunggal (dinormalisasi oleh theta, misal: theta * r)
+    # 2. Single variables (scaled by theta, e.g. theta * r or r / theta)
     for v in vars
         push!(results, op_node("mul", [theta_node(theta_idx), sym_node(v)]))
         push!(results, op_node("div", [sym_node(v), theta_node(theta_idx)]))

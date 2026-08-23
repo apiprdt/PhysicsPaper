@@ -1,4 +1,4 @@
-﻿# ADCDEngine.jl (Hardened & Unified)
+# ADCDEngine.jl (Hardened & Unified)
 module ADCDEngine
 
 include("ADCDDimensions.jl")
@@ -115,7 +115,7 @@ function run_adcd(config_json::String, data_json::String)::String
                 "primitives"  => [string(p) for p in r.proposal.primitives],
                 "n_params"    => r.proposal.n_params,
                 "theta"       => r.fit.theta,
-                # Sinkronisasi format dictionary agar terbaca oleh modul Python tanpa fallback acak
+                # Serialized parameter dictionary for downstream Python compatibility
                 "theta_fit"   => Dict("theta_$(i-1)" => v for (i, v) in enumerate(r.fit.theta)),
                 "nmse"        => r.fit.nmse,
                 "likelihood"  => r.fit.likelihood,

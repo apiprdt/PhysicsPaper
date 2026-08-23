@@ -143,12 +143,12 @@ function infer_dim(
         d_base = infer_dim(args[1], registry)
         d_base isa DimResult && return d_base
         
-        # Pangkat dari bilangan tak berdimensi selalu tak berdimensi
+        # Powers of dimensionless values remain dimensionless
         if is_dimensionless(d_base)
             return zero(PhysicalDimension)
         end
         
-        # Jika basis memiliki dimensi, eksponen wajib berupa integer
+        # Dimensioned bases require integer exponents
         if haskey(args[2], "num")
             num_val = args[2]["num"]
             if isinteger(num_val)
@@ -182,11 +182,10 @@ function infer_dim(
         d_arg = infer_dim(arg_node, registry)
         d_arg isa DimResult && return d_arg
         
-        # Jika argumennya sudah dimensionless, maka aman
+        # Dimensionless argument is directly valid
         is_dimensionless(d_arg) && return zero(PhysicalDimension)
         
-        # PENTING: Jika argumennya dikalikan/dibagi dengan theta, 
-        # theta bertindak sebagai penghapus dimensi (free-scale parameter).
+        # Scaling parameter theta absorbs remaining dimensions as free-scale factor
         function has_theta(n::AbstractDict)
             haskey(n, "theta") && return true
             if haskey(n, "args")

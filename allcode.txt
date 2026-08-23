@@ -491,7 +491,7 @@ def _run_search(
             sigma_y = np.asarray(X["sigma_y"], dtype=float)
         elif noise_level > 0.0:
             if detected_mode == "multiplicative":
-                sigma_y = noise_level * np.abs(y_classical) + 1e-6
+                sigma_y = noise_level * np.abs(y_obs) + 1e-6
             else:
                 sigma_y = np.full_like(y_obs, noise_level * (np.std(y_obs) + 1e-6))
 
@@ -667,8 +667,7 @@ def run_scenario_protocol(
         ranker = BayesianReranker()
 
         if getattr(scenario, "engine", "python") == "julia":
-            # ranked_blind[i][2] sudah berupa -delta_bic (relatif thd null model),
-            # BUKAN BIC mentah -- jadi bic_null harus 0.0, bukan dihitung ulang.
+            # For Julia engine, candidate metric is already -delta_bic relative to null model
             bic_null = 0.0
         else:
             d_max = domain_max if domain_max is not None else DOMAIN_RESTRICTIONS.get(scenario.name, {}).get("domain_max", None)
@@ -763,7 +762,7 @@ def run_scenario_protocol(
     if formal_pass:
         result.tier = "IDENTIFIABLE"
     elif evn_label in ("decisive", "very_strong") and result.checks.get("primary_search", {}).get("match_level") in ("exact", "class_only"):
-        # Bukti anomali kuat DAN struktur cocok, tapi tertahan oleh floor SNR atau ambiguitas domain sempit
+        # Strong evidence against null and correct structure, but held by SNR floor
         result.tier = "DETECTED_UNRESOLVED"
     else:
         result.tier = "WITHHELD"
@@ -1274,8 +1273,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
         ),
         
         # ── BLIND TEST SCENARIOS ──────────────────────────────────────────────
-        # Ground truth DISEMBUNYIKAN dari pipeline. Kita hanya tahu correction_class.
-        # Ini untuk membuktikan generalisasi di luar benchmark yang dibuat sendiri.
+        # Ground truth is withheld from the pipeline to test out-of-distribution generalization.
         
         AnomalyScenario(
             name="Blind-1: Van der Waals",
@@ -2075,7 +2073,7 @@ def _scale_dependence(y_classical: np.ndarray, candidate_residual: np.ndarray) -
     if len(a) < 5 or np.std(a) < 1e-12 or np.std(b) < 1e-12:
         return 0.0
         
-    # FIX AUDIT: Gunakan average ranking untuk menangani data ties secara matematis valid
+    # Use average ranking to handle tied observations properly
     ra = rankdata(a, method="average")
     rb = rankdata(b, method="average")
     
@@ -2139,11 +2137,11 @@ from adcd.context import BaseProposer, ProposalContext
 
 _u = sp.Symbol("u", positive=True)
 
-# Disinkronkan 100% dengan Julia PrimitiveRegistry
+# Canonical asymptotic primitives
 _RAW_FORMS: Dict[str, sp.Expr] = {
     "D_lor": 1 / sp.sqrt(1 - _u),
-    "D_rat": _u / (1 + _u**2),               # Disesuaikan: rasional halus
-    "D_exp": 1 - sp.exp(-_u),                 # Disesuaikan: 1 - exp(-u)
+    "D_rat": _u / (1 + _u**2),               # Smooth rational
+    "D_exp": 1 - sp.exp(-_u),                 # Regularized exponential: 1 - exp(-u)
     "D_log": sp.log(1 + sp.Abs(_u)),
     "D_sqrt_inv": sp.sqrt(sp.Abs(_u)) / (1 + sp.sqrt(sp.Abs(_u))),
     "D_pow": sp.sqrt(sp.Abs(_u)) * (1 - sp.exp(-sp.Abs(_u))),
@@ -2275,7 +2273,7 @@ def enumerate_candidates(
     def prim_expr(p: str, u_sym: str) -> str:
         return prims[p].string_template.format(u=u_sym)
 
-    # Pola 1: Singleton dengan parameter skala inner u -> theta_1 * D(theta_0 * u)
+    # Pattern 1: Singleton with inner scaling parameter -> theta_1 * D(theta_0 * u)
     for p in prim_names:
         u_scaled = f"(_NEXT_THETA_ * ({ratio_symbol}))"
         cand_raw = f"_NEXT_THETA_ * {prim_expr(p, u_scaled)}"
@@ -2283,7 +2281,7 @@ def enumerate_candidates(
         if _token_count(cand) <= budget.max_tokens:
             candidates.append(cand)
 
-    # Pola 2: Additive -> theta_1 * D_a(theta_0 * u) + theta_2 * D_b(theta_0 * u)
+    # Pattern 2: Additive composition -> theta_1 * D_a(theta_0 * u) + theta_2 * D_b(theta_0 * u)
     if budget.max_primitives_used >= 2:
         for pa, pb in itertools.combinations(prim_names, 2):
             u_scaled = f"(_NEXT_THETA_ * ({ratio_symbol}))"
@@ -2292,7 +2290,7 @@ def enumerate_candidates(
             if _token_count(cand) <= budget.max_tokens:
                 candidates.append(cand)
 
-    # Pola 3: Multiplicative -> theta_1 * D_a(theta_0 * u) * (1 + theta_2 * D_b(theta_0 * u))
+    # Pattern 3: Multiplicative composition -> theta_1 * D_a(theta_0 * u) * (1 + theta_2 * D_b(theta_0 * u))
     if budget.max_primitives_used >= 2 and budget.max_depth >= 3:
         for pa, pb in itertools.permutations(prim_names, 2):
             u_scaled = f"(_NEXT_THETA_ * ({ratio_symbol}))"
@@ -2301,7 +2299,7 @@ def enumerate_candidates(
             if _token_count(cand) <= budget.max_tokens:
                 candidates.append(cand)
 
-    # Pola 4: Nested (Sinkronisasi dengan Julia) -> theta_1 * D_outer(D_inner(theta_0 * u))
+    # Pattern 4: Nested composition -> theta_1 * D_outer(D_inner(theta_0 * u))
     if budget.max_primitives_used >= 2 and budget.max_depth >= 3:
         for pa, pb in itertools.permutations(prim_names, 2):
             u_scaled = f"(_NEXT_THETA_ * ({ratio_symbol}))"
@@ -4462,7 +4460,7 @@ if __name__ == "__main__":
  FILE: ADCDEngine/src/ADCDEngine.jl
 ==========================================================================================
 
-﻿# ADCDEngine.jl (Hardened & Unified)
+# ADCDEngine.jl (Hardened & Unified)
 module ADCDEngine
 
 include("ADCDDimensions.jl")
@@ -4579,7 +4577,7 @@ function run_adcd(config_json::String, data_json::String)::String
                 "primitives"  => [string(p) for p in r.proposal.primitives],
                 "n_params"    => r.proposal.n_params,
                 "theta"       => r.fit.theta,
-                # Sinkronisasi format dictionary agar terbaca oleh modul Python tanpa fallback acak
+                # Serialized parameter dictionary for downstream Python compatibility
                 "theta_fit"   => Dict("theta_$(i-1)" => v for (i, v) in enumerate(r.fit.theta)),
                 "nmse"        => r.fit.nmse,
                 "likelihood"  => r.fit.likelihood,
@@ -4645,14 +4643,14 @@ num_node(v::Real)    = Dict{String,Any}("num" => Float64(v))
 function build_ratio_nodes(vars::Vector{String}, theta_idx::Int)::Vector{Dict{String,Any}}
     results = Dict{String,Any}[]
     
-    # 1. Rasio Buckingham Pi (misal: v/c dan (v/c)^2)
+    # 1. Dimensionless Buckingham Pi ratios (e.g. v/c and (v/c)^2)
     ratios = enumerate_dimensionless_ratios(vars, 2)
     for ratio_expr in ratios
         push!(results, op_node("mul", [theta_node(theta_idx), ratio_expr]))
         push!(results, op_node("mul", [theta_node(theta_idx), op_node("pow", [ratio_expr, num_node(2.0)])]))
     end
     
-    # 2. Variabel Tunggal (dinormalisasi oleh theta, misal: theta * r)
+    # 2. Single variables (scaled by theta, e.g. theta * r or r / theta)
     for v in vars
         push!(results, op_node("mul", [theta_node(theta_idx), sym_node(v)]))
         push!(results, op_node("div", [sym_node(v), theta_node(theta_idx)]))
@@ -4793,7 +4791,7 @@ end  # module CorrectionProposer
 ==========================================================================================
 
 # ============================================================================
-# Modul: FilterCascade (Hardened, Multivariable-Safe & Optimized)
+# Module: FilterCascade (Physical Gate Filtering & Verification)
 # ============================================================================
 module FilterCascade
 
@@ -4845,7 +4843,7 @@ struct ADCDResult
     gate_stats::GateStats
 end
 
-# Deterministic integer hashing (tidak tergantung random secret seed Julia runtime)
+# Deterministic integer hashing (independent of runtime randomized seeds)
 function deterministic_hash(s::String)::Int
     h = UInt64(5381)
     for b in codeunits(s)
@@ -4872,28 +4870,28 @@ function gate_b_asymptotic(
     raw_dirs = strip(limit_direction)
     limit_dirs = isempty(raw_dirs) ? fill("0", length(limit_vars)) : String.(split(raw_dirs, ","))
 
-    # Petakan arah limit spesifik untuk tiap variabel bebas
+    # Map specific limit directions for each independent variable
     dir_map = Dict{String,String}()
     for (i, v) in enumerate(limit_vars)
         dir_map[v] = (i <= length(limit_dirs)) ? limit_dirs[i] : "0"
     end
 
-    # Evaluasi cepat pada 1 titik uji asimptotik (O(1) memory footprint)
+    # Fast asymptotic boundary evaluation on a single test point
     test_vars = Dict{String,Vector{Float64}}()
     for k in keys(vars_data)
         if haskey(dir_map, k)
             is_inf = dir_map[k] in ("oo", "inf", "+oo")
             test_vars[k] = [is_inf ? 1e12 : 1e-12]
         else
-            # Variabel non-limit diuji pada baseline median/positif aman
+            # Non-limit variables set to baseline unit scale
             test_vars[k] = [1.0]
         end
     end
 
     try
-        # Evaluasi asimptotik dengan parameter positif (aman dari DomainError sqrt/log)
+        # Asymptotic limit evaluation with positive parameters
         y_pos = evaluate_expr(proposal.expr, test_vars, constants, ones(proposal.n_params))
-        # Koreksi delta wajib menuju nol (< 1e-4) pada rezim batas klasik
+        # Correction delta must vanish (< 1e-4) in the classical limit regime
         return all(isfinite, y_pos) && all(abs.(y_pos) .< 1e-4)
     catch
         return false
@@ -5048,7 +5046,7 @@ end  # module FilterCascade
 ==========================================================================================
 
 # ============================================================================
-# Modul: IdentifiabilityGate (Hardened, Tested & Synchronized)
+# Module: IdentifiabilityGate (Information-Theoretic Model Selection)
 # ============================================================================
 module IdentifiabilityGate
 
@@ -5061,11 +5059,11 @@ export bic_score, hierarchical_bic_penalty, identifiability_gate, hierarchical_b
 
 """
     bic_score(n_points, n_params, log_likelihood, n_groups=nothing)
-Menghitung BIC standar atau Hierarchical BIC jika n_groups tersedia.
+Calculates standard BIC or hierarchical group-level BIC.
 """
 function bic_score(n_points::Int, n_params::Int, log_likelihood::Float64, n_groups::Union{Int,Nothing}=nothing)::Float64
     !isfinite(log_likelihood) && return Inf
-    # Safeguard n_eff agar selalu >= 1 untuk mencegah log(0) -> -Inf
+    # Safeguard effective sample size n_eff >= 1 to prevent log(0) -> -Inf
     n_eff = (n_groups !== nothing && n_groups >= 1) ? n_groups : n_points
     n_eff = max(n_eff, 1)
     return log(n_eff) * n_params - 2.0 * log_likelihood
@@ -5081,7 +5079,7 @@ compute_effective_sample_size(y_obs, y_cl, groups::Vector)::Int =
 
 """
     identifiability_gate(fit_result, y_classical, y_obs, config) -> (IdentVerdict, Float64)
-Mengembalikan status vonis dan nilai delta_bic secara terpadu tanpa duplikasi kode.
+Evaluates candidate identifiability verdict and delta_bic against formal thresholds.
 """
 function identifiability_gate(
     fit_result       ::FitResult,
@@ -5099,7 +5097,7 @@ function identifiability_gate(
     n = length(y_obs)
     n_groups = groups !== nothing ? length(groups) : nothing
 
-    # 1. Hitung Likelihood Null Model secara konsisten dengan ruang loss
+    # 1. Compute Null Model Likelihood consistently with loss formulation
     ll_null = -Inf
     if sigma_y !== nothing
         safe_sigma = max.(sigma_y, 1e-15)
@@ -5111,7 +5109,7 @@ function identifiability_gate(
         sigma2_null = mean(diff_null.^2)
         ll_null = (isfinite(sigma2_null) && sigma2_null > 0.0) ? (-0.5 * n * log(2 * pi * sigma2_null) - 0.5 * n) : -Inf
     else
-        # Pelindung pembagian nol simetris skala-invarian
+        # Scale-invariant zero-protection
         abs_y = abs.(y_classical)
         pos_y = abs_y[abs_y .> 0.0]
         scale_y = isempty(pos_y) ? 1.0 : maximum(pos_y)
@@ -5124,12 +5122,12 @@ function identifiability_gate(
         ll_null = (isfinite(sigma2_null) && sigma2_null > 0.0) ? (-0.5 * n * log(2 * pi * sigma2_null) - 0.5 * n) : -Inf
     end
 
-    # Jika null model sudah menjelaskan data secara eksak sempurna
+    # Return WITHHELD if null model already perfectly explains data
     if !isfinite(ll_null) && isfinite(mean((y_obs .- y_classical).^2)) && mean((y_obs .- y_classical).^2) < 1e-12
         return (WITHHELD, 0.0)
     end
 
-    # 2. Komputasi Extended BIC (Match dengan Paper Section 3.7)
+    # 2. Extended BIC score computation (Paper Section 3.7)
     bic_null = bic_score(n, 0, ll_null, n_groups)
     bic_base_corr = bic_score(n, fit_result.n_params, fit_result.likelihood, n_groups)
     bic_correction = bic_base_corr + 2.0 * log(max(search_space_size, 1))
@@ -5139,6 +5137,11 @@ function identifiability_gate(
     end
 
     delta_bic = bic_null - bic_correction
+
+    # Guard: Detect numerical scaling anomalies with active uncertainty weighting
+    if sigma_y !== nothing && abs(delta_bic) > 1e5
+        @warn "delta_bic=$delta_bic exceeds expected numerical bounds with active sigma_y" fit_result.nmse
+    end
 
     # 3. Gating checks
     if !fit_result.converged || fit_result.nmse > nmse_threshold
@@ -5282,7 +5285,7 @@ function fit_constants(
 
     n = length(y_obs)
 
-    # 1. Mode dan Denominator Normalisasi
+    # 1. Mode and Normalization Scale
     abs_y = abs.(y_classical)
     pos_y = abs_y[abs_y .> 0.0]
     dynamic_range = isempty(pos_y) ? 0.0 : maximum(abs_y) / minimum(pos_y)
@@ -5299,12 +5302,12 @@ function fit_constants(
     var_resid = max(var(resid_obs), 1e-15)
     var_full  = max(var(y_obs), 1e-15)
 
-    # Helper evaluasi y_pred
+    # Helper evaluation for y_pred
     function get_y_pred(delta::Vector{Float64})
         return correction_type == "additive" ? (y_classical .+ delta) : (y_classical .* (1.0 .+ delta))
     end
 
-    # 2. Penanganan Kasus Nol Parameter (n_params == 0)
+    # 2. Zero-parameter case handling (n_params == 0)
     if n_params == 0
         try
             delta = evaluate_expr(proposal_expr, vars_data, constants, Float64[])
@@ -5315,7 +5318,7 @@ function fit_constants(
             if sigma_y !== nothing
                 w_res = diff ./ sigma_y
                 chi2 = sum(w_res.^2)
-                # Standard NMSE (unweighted variance-normalized) untuk threshold gating
+                # Standard NMSE (unweighted variance-normalized) for threshold gating
                 nmse_val = (use_full_loss ? mean(diff.^2) / var_full : mean(delta_residuals.^2) / var_resid)
                 ll = -0.5 * chi2 - 0.5 * sum(log.(2 * pi .* (sigma_y.^2)))
             elseif use_full_loss
@@ -5362,25 +5365,24 @@ function fit_constants(
     best_theta = zeros(n_params)
     converged  = false
 
-    # 4. Skala Inisialisasi Multivariabel Simetris
+    # 4. Multivariable Symmetric Initialization Scales
     scales = [1.0, 1e-3, 1e3, 1e-6, 1e6]
 
     for i in 1:n_restarts
         scale = scales[(i - 1) % length(scales) + 1]
 
-        # Inisialisasi tanda: Pastikan restart awal mencakup variasi tanda
+        # Initial sign patterns covering diverse quadrants
         init_signs = if i == 1
             ones(n_params)
         elseif i == 2
             -ones(n_params)
         elseif i == 3 && n_params >= 2
-            # Pola selang-seling [+1, -1, +1, ...]
             Float64[(-1.0)^j for j in 1:n_params]
         else
             rand(rng, [-1.0, 1.0], n_params)
         end
 
-        # Inisialisasi magnitudo parameter dengan tanda
+        # Initial parameter magnitudes
         mag_theta = if i <= 2
             fill(1.0 * scale, n_params)
         elseif i <= 4
@@ -5414,7 +5416,7 @@ function fit_constants(
         end
     end
 
-    # 5. Sinkronisasi Likelihood & Residuals Pasca-Optimasi
+    # 5. Post-Optimization Likelihood and Residual Computation
     ll = -Inf
     standard_nmse = Inf
     delta_residuals = Float64[]
@@ -5429,7 +5431,7 @@ function fit_constants(
             w_res = diff ./ sigma_y
             chi2 = sum(w_res.^2)
             ll = -0.5 * chi2 - 0.5 * sum(log.(2 * pi .* (sigma_y.^2)))
-            # Standard unweighted NMSE (scale 0-1) khusus untuk threshold gating
+            # Standard unweighted NMSE (scale 0-1) specifically for threshold gating
             standard_nmse = (use_full_loss ? mean(diff.^2) / var_full : mean(delta_residuals.^2) / var_resid)
         elseif use_full_loss
             sigma2 = mean(diff.^2)
@@ -5713,12 +5715,12 @@ function infer_dim(
         d_base = infer_dim(args[1], registry)
         d_base isa DimResult && return d_base
         
-        # Pangkat dari bilangan tak berdimensi selalu tak berdimensi
+        # Powers of dimensionless values remain dimensionless
         if is_dimensionless(d_base)
             return zero(PhysicalDimension)
         end
         
-        # Jika basis memiliki dimensi, eksponen wajib berupa integer
+        # Dimensioned bases require integer exponents
         if haskey(args[2], "num")
             num_val = args[2]["num"]
             if isinteger(num_val)
@@ -5752,11 +5754,10 @@ function infer_dim(
         d_arg = infer_dim(arg_node, registry)
         d_arg isa DimResult && return d_arg
         
-        # Jika argumennya sudah dimensionless, maka aman
+        # Dimensionless argument is directly valid
         is_dimensionless(d_arg) && return zero(PhysicalDimension)
         
-        # PENTING: Jika argumennya dikalikan/dibagi dengan theta, 
-        # theta bertindak sebagai penghapus dimensi (free-scale parameter).
+        # Scaling parameter theta absorbs remaining dimensions as free-scale factor
         function has_theta(n::AbstractDict)
             haskey(n, "theta") && return true
             if haskey(n, "args")

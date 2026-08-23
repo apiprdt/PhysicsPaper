@@ -1,5 +1,5 @@
 # ============================================================================
-# Modul: IdentifiabilityGate (Hardened, Tested & Synchronized)
+# Module: IdentifiabilityGate (Information-Theoretic Model Selection)
 # ============================================================================
 module IdentifiabilityGate
 
@@ -12,11 +12,11 @@ export bic_score, hierarchical_bic_penalty, identifiability_gate, hierarchical_b
 
 """
     bic_score(n_points, n_params, log_likelihood, n_groups=nothing)
-Menghitung BIC standar atau Hierarchical BIC jika n_groups tersedia.
+Calculates standard BIC or hierarchical group-level BIC.
 """
 function bic_score(n_points::Int, n_params::Int, log_likelihood::Float64, n_groups::Union{Int,Nothing}=nothing)::Float64
     !isfinite(log_likelihood) && return Inf
-    # Safeguard n_eff agar selalu >= 1 untuk mencegah log(0) -> -Inf
+    # Safeguard effective sample size n_eff >= 1 to prevent log(0) -> -Inf
     n_eff = (n_groups !== nothing && n_groups >= 1) ? n_groups : n_points
     n_eff = max(n_eff, 1)
     return log(n_eff) * n_params - 2.0 * log_likelihood
@@ -32,7 +32,7 @@ compute_effective_sample_size(y_obs, y_cl, groups::Vector)::Int =
 
 """
     identifiability_gate(fit_result, y_classical, y_obs, config) -> (IdentVerdict, Float64)
-Mengembalikan status vonis dan nilai delta_bic secara terpadu tanpa duplikasi kode.
+Evaluates candidate identifiability verdict and delta_bic against formal thresholds.
 """
 function identifiability_gate(
     fit_result       ::FitResult,
@@ -50,7 +50,7 @@ function identifiability_gate(
     n = length(y_obs)
     n_groups = groups !== nothing ? length(groups) : nothing
 
-    # 1. Hitung Likelihood Null Model secara konsisten dengan ruang loss
+    # 1. Compute Null Model Likelihood consistently with loss formulation
     ll_null = -Inf
     if sigma_y !== nothing
         safe_sigma = max.(sigma_y, 1e-15)
@@ -62,7 +62,7 @@ function identifiability_gate(
         sigma2_null = mean(diff_null.^2)
         ll_null = (isfinite(sigma2_null) && sigma2_null > 0.0) ? (-0.5 * n * log(2 * pi * sigma2_null) - 0.5 * n) : -Inf
     else
-        # Pelindung pembagian nol simetris skala-invarian
+        # Scale-invariant zero-protection
         abs_y = abs.(y_classical)
         pos_y = abs_y[abs_y .> 0.0]
         scale_y = isempty(pos_y) ? 1.0 : maximum(pos_y)
@@ -75,12 +75,12 @@ function identifiability_gate(
         ll_null = (isfinite(sigma2_null) && sigma2_null > 0.0) ? (-0.5 * n * log(2 * pi * sigma2_null) - 0.5 * n) : -Inf
     end
 
-    # Jika null model sudah menjelaskan data secara eksak sempurna
+    # Return WITHHELD if null model already perfectly explains data
     if !isfinite(ll_null) && isfinite(mean((y_obs .- y_classical).^2)) && mean((y_obs .- y_classical).^2) < 1e-12
         return (WITHHELD, 0.0)
     end
 
-    # 2. Komputasi Extended BIC (Match dengan Paper Section 3.7)
+    # 2. Extended BIC score computation (Paper Section 3.7)
     bic_null = bic_score(n, 0, ll_null, n_groups)
     bic_base_corr = bic_score(n, fit_result.n_params, fit_result.likelihood, n_groups)
     bic_correction = bic_base_corr + 2.0 * log(max(search_space_size, 1))
@@ -91,11 +91,9 @@ function identifiability_gate(
 
     delta_bic = bic_null - bic_correction
 
-    # Guard: BIC berbasis likelihood TIDAK BOLEH berubah puluhan-ribu kali lipat
-    # sementara NMSE nyaris tidak bergerak -- itu tanda sigma_y/skala numerik pincang,
-    # bukan bukti identifiability yang sah.
+    # Guard: Detect numerical scaling anomalies with active uncertainty weighting
     if sigma_y !== nothing && abs(delta_bic) > 1e5
-        @warn "delta_bic=$delta_bic sangat ekstrem dengan sigma_y aktif -- kemungkinan sigma_y salah skala, verifikasi manual sebelum dipercaya" fit_result.nmse
+        @warn "delta_bic=$delta_bic exceeds expected numerical bounds with active sigma_y" fit_result.nmse
     end
 
     # 3. Gating checks

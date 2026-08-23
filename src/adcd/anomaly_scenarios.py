@@ -420,8 +420,7 @@ def get_all_scenarios() -> List[AnomalyScenario]:
         ),
         
         # ── BLIND TEST SCENARIOS ──────────────────────────────────────────────
-        # Ground truth DISEMBUNYIKAN dari pipeline. Kita hanya tahu correction_class.
-        # Ini untuk membuktikan generalisasi di luar benchmark yang dibuat sendiri.
+        # Ground truth is withheld from the pipeline to test out-of-distribution generalization.
         
         AnomalyScenario(
             name="Blind-1: Van der Waals",
