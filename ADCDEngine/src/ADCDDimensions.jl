@@ -231,7 +231,8 @@ end
 function enumerate_dimensionless_ratios(
     symbols::Vector{String},
     max_degree::Int=2,
-    registry::Dict{Symbol,PhysicalDimension}=DIMENSION_REGISTRY
+    registry::Dict{Symbol,PhysicalDimension}=DIMENSION_REGISTRY;
+    data_vars::Union{Vector{String},Set{String},Nothing}=nothing
 )::Vector{Dict{String,Any}}
 
     valid = unique(filter(s -> haskey(registry, Symbol(s)), symbols))
@@ -278,8 +279,39 @@ function enumerate_dimensionless_ratios(
         push!(results, int_exps)
     end
 
+    # Prune pure constant ratios and degenerate constant multiples if data_vars provided
+    candidate_exps = collect(results)
+    if data_vars !== nothing && !isempty(data_vars)
+        data_set = Set{String}(data_vars)
+        dynamic_indices = [j for (j, s) in enumerate(valid) if s in data_set]
+        constant_indices = [j for (j, s) in enumerate(valid) if !(s in data_set)]
+
+        if !isempty(dynamic_indices)
+            best_for_dynamic = Dict{Vector{Int}, Vector{Int}}()
+            for exps in results
+                d_exps = exps[dynamic_indices]
+                # Skip pure constant ratios (all dynamic exponents zero)
+                all(e == 0 for e in d_exps) && continue
+
+                c_exps = isempty(constant_indices) ? Int[] : exps[constant_indices]
+                cost = isempty(c_exps) ? 0 : sum(abs.(c_exps))
+
+                if !haskey(best_for_dynamic, d_exps)
+                    best_for_dynamic[d_exps] = exps
+                else
+                    curr_c_exps = isempty(constant_indices) ? Int[] : best_for_dynamic[d_exps][constant_indices]
+                    curr_cost = isempty(curr_c_exps) ? 0 : sum(abs.(curr_c_exps))
+                    if cost < curr_cost
+                        best_for_dynamic[d_exps] = exps
+                    end
+                end
+            end
+            candidate_exps = collect(values(best_for_dynamic))
+        end
+    end
+
     exprs = Dict{String,Any}[]
-    for exps in sort(collect(results))
+    for exps in sort(candidate_exps)
         factors = Dict{String,Any}[]
         for (s, e) in zip(valid, exps)
             e == 0 && continue

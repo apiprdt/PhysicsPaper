@@ -128,6 +128,7 @@ class ProtocolResult:
     checks: Dict[str, dict] = field(default_factory=dict)
     all_passed: bool = False
     tier: str = "WITHHELD"  # IDENTIFIABLE | DETECTED_UNRESOLVED | WITHHELD
+    status_message: Optional[str] = None
 
 
 def _build_context(scenario: Any, n_candidates: int) -> ProposalContext:
@@ -512,6 +513,15 @@ def run_scenario_protocol(
     determinism_pass = (not all(r is None for r in runs)) and (len(set(runs)) == 1)
     result.checks["determinism_check"] = {"runs": runs, "pass": determinism_pass}
 
+    def _detected_unresolved_reason(checks: dict) -> str:
+        if not checks.get("positive_control", {}).get("pass", True):
+            return "held by SNR floor (positive_control failed — signal below noise floor on part of domain)"
+        if not checks.get("ablation_control", {}).get("pass", True):
+            return "held by structural ambiguity (ablation_control failed — competing structure fits equally well)"
+        if not checks.get("determinism_check", {}).get("pass", True):
+            return "held by non-determinism (results vary across runs with identical seed)"
+        return "held by unspecified formal gate"
+
     # Three-Tier Epistemic Verdict
     evn_label = result.checks.get("primary_search", {}).get("evidence_vs_null_label", "unknown")
     formal_pass = all(
@@ -520,11 +530,13 @@ def run_scenario_protocol(
 
     if formal_pass:
         result.tier = "IDENTIFIABLE"
+        result.status_message = "All checks passed with a genuinely blind search."
     elif evn_label in ("decisive", "very_strong") and result.checks.get("primary_search", {}).get("match_level") in ("exact", "class_only"):
-        # Strong evidence against null and correct structure, but held by SNR floor
         result.tier = "DETECTED_UNRESOLVED"
+        result.status_message = f"Strong anomaly evidence confirmed, structure resolved, but {_detected_unresolved_reason(result.checks)}."
     else:
         result.tier = "WITHHELD"
+        result.status_message = "Epistemically withheld (Ambiguous or insufficient anomaly evidence)."
 
     result.all_passed = (result.tier == "IDENTIFIABLE")
     return result
@@ -573,12 +585,7 @@ def main():
                 print(" " * 10 + "-" * 75 + "\n")
 
         print("-" * 80)
-        if res.tier == "IDENTIFIABLE":
-            print(f"[{res.tier:^19}] STATUS: All checks passed with a genuinely blind search.")
-        elif res.tier == "DETECTED_UNRESOLVED":
-            print(f"[{res.tier:^19}] STATUS: Strong anomaly evidence confirmed, structure resolved, but held by SNR/gate boundary.")
-        else:
-            print(f"[{res.tier:^19}] STATUS: Epistemically withheld (Ambiguous or insufficient anomaly evidence).")
+        print(f"[{res.tier:^19}] STATUS: {res.status_message}")
         print("=" * 80 + "\n")
 
     os.makedirs("run_outputs", exist_ok=True)
@@ -591,6 +598,7 @@ def main():
             {
                 name: {
                     "tier": r.tier,
+                    "status_message": r.status_message,
                     "all_passed": r.all_passed,
                     "checks": r.checks,
                 }

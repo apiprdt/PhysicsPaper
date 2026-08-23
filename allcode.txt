@@ -1,12 +1,12 @@
 ==========================================================================================
  ADCD CORE REPOSITORY CONSOLIDATION & VALIDATION RESULTS (FRESH DUMP)
- Generated: 2026-08-23 08:02:08
+ Generated: 2026-08-23 10:12:08
  Total Bundled Files: 23 (14 Python + 7 Julia + 2 JSON Results)
 ==========================================================================================
 
 TABLE OF CONTENTS:
    1. [src/adcd/bayesian_ranker.py] (233 lines, 8,510 bytes)
-   2. [src/adcd/run_adcd_v3_validation_blind.py] (605 lines, 26,444 bytes)
+   2. [src/adcd/run_adcd_v3_validation_blind.py] (613 lines, 27,047 bytes)
    3. [src/adcd/anomaly_scenarios.py] (664 lines, 30,823 bytes)
    4. [src/adcd/julia_bridge.py] (192 lines, 7,265 bytes)
    5. [src/adcd/metrics.py] (333 lines, 13,075 bytes)
@@ -19,14 +19,14 @@ TABLE OF CONTENTS:
   12. [src/adcd/jax_optimizer.py] (430 lines, 18,329 bytes)
   13. [src/adcd/quickfit.py] (608 lines, 27,711 bytes)
   14. [eval/benchmark_noise_robustness.py] (187 lines, 7,055 bytes)
-  15. [ADCDEngine/src/ADCDEngine.jl] (137 lines, 7,108 bytes)
-  16. [ADCDEngine/src/CorrectionProposer.jl] (180 lines, 7,488 bytes)
+  15. [ADCDEngine/src/ADCDEngine.jl] (153 lines, 7,550 bytes)
+  16. [ADCDEngine/src/CorrectionProposer.jl] (187 lines, 8,585 bytes)
   17. [ADCDEngine/src/FilterCascade.jl] (248 lines, 8,604 bytes)
   18. [ADCDEngine/src/IdentifiabilityGate.jl] (113 lines, 4,654 bytes)
   19. [ADCDEngine/src/ConstantFitter.jl] (289 lines, 10,861 bytes)
   20. [ADCDEngine/src/PrimitiveRegistry.jl] (102 lines, 5,252 bytes)
-  21. [ADCDEngine/src/ADCDDimensions.jl] (296 lines, 12,158 bytes)
-  22. [run_outputs/adcd_v3_taxonomy_validation_report.json] (316 lines, 11,360 bytes)
+  21. [ADCDEngine/src/ADCDDimensions.jl] (328 lines, 13,655 bytes)
+  22. [run_outputs/adcd_v3_taxonomy_validation_report.json] (319 lines, 11,891 bytes)
   23. [run_outputs/noise_robustness_julia.json] (7364 lines, 280,025 bytes)
 
 ==========================================================================================
@@ -273,7 +273,7 @@ class BayesianReranker:
 
 
 ==========================================================================================
- FILE #2: src/adcd/run_adcd_v3_validation_blind.py (606 lines, 26,444 bytes)
+ FILE #2: src/adcd/run_adcd_v3_validation_blind.py (614 lines, 27,047 bytes)
 ==========================================================================================
 
 """
@@ -406,6 +406,7 @@ class ProtocolResult:
     checks: Dict[str, dict] = field(default_factory=dict)
     all_passed: bool = False
     tier: str = "WITHHELD"  # IDENTIFIABLE | DETECTED_UNRESOLVED | WITHHELD
+    status_message: Optional[str] = None
 
 
 def _build_context(scenario: Any, n_candidates: int) -> ProposalContext:
@@ -790,6 +791,15 @@ def run_scenario_protocol(
     determinism_pass = (not all(r is None for r in runs)) and (len(set(runs)) == 1)
     result.checks["determinism_check"] = {"runs": runs, "pass": determinism_pass}
 
+    def _detected_unresolved_reason(checks: dict) -> str:
+        if not checks.get("positive_control", {}).get("pass", True):
+            return "held by SNR floor (positive_control failed — signal below noise floor on part of domain)"
+        if not checks.get("ablation_control", {}).get("pass", True):
+            return "held by structural ambiguity (ablation_control failed — competing structure fits equally well)"
+        if not checks.get("determinism_check", {}).get("pass", True):
+            return "held by non-determinism (results vary across runs with identical seed)"
+        return "held by unspecified formal gate"
+
     # Three-Tier Epistemic Verdict
     evn_label = result.checks.get("primary_search", {}).get("evidence_vs_null_label", "unknown")
     formal_pass = all(
@@ -798,11 +808,13 @@ def run_scenario_protocol(
 
     if formal_pass:
         result.tier = "IDENTIFIABLE"
+        result.status_message = "All checks passed with a genuinely blind search."
     elif evn_label in ("decisive", "very_strong") and result.checks.get("primary_search", {}).get("match_level") in ("exact", "class_only"):
-        # Strong evidence against null and correct structure, but held by SNR floor
         result.tier = "DETECTED_UNRESOLVED"
+        result.status_message = f"Strong anomaly evidence confirmed, structure resolved, but {_detected_unresolved_reason(result.checks)}."
     else:
         result.tier = "WITHHELD"
+        result.status_message = "Epistemically withheld (Ambiguous or insufficient anomaly evidence)."
 
     result.all_passed = (result.tier == "IDENTIFIABLE")
     return result
@@ -851,12 +863,7 @@ def main():
                 print(" " * 10 + "-" * 75 + "\n")
 
         print("-" * 80)
-        if res.tier == "IDENTIFIABLE":
-            print(f"[{res.tier:^19}] STATUS: All checks passed with a genuinely blind search.")
-        elif res.tier == "DETECTED_UNRESOLVED":
-            print(f"[{res.tier:^19}] STATUS: Strong anomaly evidence confirmed, structure resolved, but held by SNR/gate boundary.")
-        else:
-            print(f"[{res.tier:^19}] STATUS: Epistemically withheld (Ambiguous or insufficient anomaly evidence).")
+        print(f"[{res.tier:^19}] STATUS: {res.status_message}")
         print("=" * 80 + "\n")
 
     os.makedirs("run_outputs", exist_ok=True)
@@ -869,6 +876,7 @@ def main():
             {
                 name: {
                     "tier": r.tier,
+                    "status_message": r.status_message,
                     "all_passed": r.all_passed,
                     "checks": r.checks,
                 }
@@ -4494,7 +4502,7 @@ if __name__ == "__main__":
 
 
 ==========================================================================================
- FILE #15: ADCDEngine/src/ADCDEngine.jl (137 lines, 7,108 bytes)
+ FILE #15: ADCDEngine/src/ADCDEngine.jl (153 lines, 7,550 bytes)
 ==========================================================================================
 
 # ADCDEngine.jl (Hardened & Unified)
@@ -4514,6 +4522,7 @@ using .ConstantFitter
 using .IdentifiabilityGate
 using .FilterCascade
 using JSON3
+using Statistics
 
 export run_adcd, RunConfig, ADCDResult, GateStats
 export IDENTIFIABLE, WITHHELD, POSITIVE_CONTROL_FAILED
@@ -4549,9 +4558,24 @@ function run_adcd(config_json::String, data_json::String)::String
     sigma_y_raw = get(data_dict, "sigma_y", nothing)
     sigma_y     = sigma_y_raw === nothing ? nothing : Float64[Float64(s) for s in sigma_y_raw]
 
+    # Detect dynamic variables (variables that vary across samples)
+    data_vars = String[]
+    for (k, v) in vars_data
+        if length(v) > 1
+            mu = mean(abs.(v))
+            sd = std(v)
+            if (mu > 0 && sd / mu > 1e-6) || (mu == 0 && sd > 1e-6)
+                push!(data_vars, k)
+            end
+        end
+    end
+    if isempty(data_vars)
+        data_vars = config.input_vars
+    end
+
     vars_and_consts = vcat(config.input_vars, collect(keys(config.known_constants)))
     excluded_vec = excluded_raw === nothing ? String[] : String[string(s) for s in excluded_raw]
-    prop_config = ProposalConfig(config.domain, vars_and_consts, 3, true, true, excluded_vec)
+    prop_config = ProposalConfig(config.domain, vars_and_consts, 3, true, true, excluded_vec, data_vars)
     proposals = propose_corrections(prop_config)
     active_prims = sort(collect(Set(p for proposal in proposals for p in proposal.primitives)))
 
@@ -4637,7 +4661,7 @@ end  # module ADCDEngine
 
 
 ==========================================================================================
- FILE #16: ADCDEngine/src/CorrectionProposer.jl (181 lines, 7,488 bytes)
+ FILE #16: ADCDEngine/src/CorrectionProposer.jl (188 lines, 8,585 bytes)
 ==========================================================================================
 
 # ADCD Engine: CorrectionProposer (Hardened)
@@ -4664,31 +4688,37 @@ struct ProposalConfig
     include_nested   ::Bool
     include_bilateral::Bool
     excluded_primitives::Vector{String}
+    data_vars        ::Vector{String}
 end
 
 ProposalConfig(domain::String, input_vars::Vector{String}) =
-    ProposalConfig(domain, input_vars, 3, true, true, String[])
+    ProposalConfig(domain, input_vars, 3, true, true, String[], input_vars)
 
 ProposalConfig(domain::String, input_vars::Vector{String}, max_params::Int, include_nested::Bool, include_bilateral::Bool) =
-    ProposalConfig(domain, input_vars, max_params, include_nested, include_bilateral, String[])
+    ProposalConfig(domain, input_vars, max_params, include_nested, include_bilateral, String[], input_vars)
+
+ProposalConfig(domain::String, input_vars::Vector{String}, max_params::Int, include_nested::Bool, include_bilateral::Bool, excluded_primitives::Vector{String}) =
+    ProposalConfig(domain, input_vars, max_params, include_nested, include_bilateral, excluded_primitives, input_vars)
 
 theta_node(i::Int)   = Dict{String,Any}("theta" => "theta_$i")
 sym_node(s::String)  = Dict{String,Any}("sym" => s)
 op_node(op::String, args::Vector) = Dict{String,Any}("op" => op, "args" => args)
 num_node(v::Real)    = Dict{String,Any}("num" => Float64(v))
 
-function build_ratio_nodes(vars::Vector{String}, theta_idx::Int)::Vector{Dict{String,Any}}
+function build_ratio_nodes(vars::Vector{String}, theta_idx::Int; data_vars::Union{Vector{String},Nothing}=nothing)::Vector{Dict{String,Any}}
     results = Dict{String,Any}[]
     
     # 1. Dimensionless Buckingham Pi ratios (e.g. v/c and (v/c)^2)
-    ratios = enumerate_dimensionless_ratios(vars, 2)
+    ratios = enumerate_dimensionless_ratios(vars, 2; data_vars=data_vars)
     for ratio_expr in ratios
         push!(results, op_node("mul", [theta_node(theta_idx), ratio_expr]))
         push!(results, op_node("mul", [theta_node(theta_idx), op_node("pow", [ratio_expr, num_node(2.0)])]))
     end
     
     # 2. Single variables (scaled by theta, e.g. theta * r or r / theta)
-    for v in vars
+    # Only scale dynamic variables that genuinely vary across data points
+    vars_to_scale = data_vars === nothing ? vars : filter(v -> v in data_vars, vars)
+    for v in vars_to_scale
         push!(results, op_node("mul", [theta_node(theta_idx), sym_node(v)]))
         push!(results, op_node("div", [sym_node(v), theta_node(theta_idx)]))
     end
@@ -4701,18 +4731,18 @@ function build_primitive_application(prim_sym::Symbol, u_node::Dict)::Dict{Strin
 end
 
 # Patterns
-function pattern_singleton(prim::ADCDPrimitive, vars::Vector{String}, t::Int)::Vector{CorrectionProposal}
+function pattern_singleton(prim::ADCDPrimitive, vars::Vector{String}, t::Int; data_vars::Union{Vector{String},Nothing}=nothing)::Vector{CorrectionProposal}
     proposals = CorrectionProposal[]
-    for u in build_ratio_nodes(vars, t)
+    for u in build_ratio_nodes(vars, t; data_vars=data_vars)
         delta = op_node("mul", [theta_node(t + 1), build_primitive_application(prim.name, u)])
         push!(proposals, CorrectionProposal(delta, [prim.name], :singleton, 2, "$(prim.name)(theta*u)"))
     end
     return proposals
 end
 
-function pattern_additive(p1::ADCDPrimitive, p2::ADCDPrimitive, vars::Vector{String}, t::Int)::Vector{CorrectionProposal}
+function pattern_additive(p1::ADCDPrimitive, p2::ADCDPrimitive, vars::Vector{String}, t::Int; data_vars::Union{Vector{String},Nothing}=nothing)::Vector{CorrectionProposal}
     proposals = CorrectionProposal[]
-    for u in build_ratio_nodes(vars, t)
+    for u in build_ratio_nodes(vars, t; data_vars=data_vars)
         t1 = op_node("mul", [theta_node(t + 1), build_primitive_application(p1.name, u)])
         t2 = op_node("mul", [theta_node(t + 2), build_primitive_application(p2.name, u)])
         push!(proposals, CorrectionProposal(op_node("add", [t1, t2]), [p1.name, p2.name], :additive, 3, "$(p1.name)+$(p2.name)"))
@@ -4720,9 +4750,9 @@ function pattern_additive(p1::ADCDPrimitive, p2::ADCDPrimitive, vars::Vector{Str
     return proposals
 end
 
-function pattern_multiplicative(p1::ADCDPrimitive, p2::ADCDPrimitive, vars::Vector{String}, t::Int)::Vector{CorrectionProposal}
+function pattern_multiplicative(p1::ADCDPrimitive, p2::ADCDPrimitive, vars::Vector{String}, t::Int; data_vars::Union{Vector{String},Nothing}=nothing)::Vector{CorrectionProposal}
     proposals = CorrectionProposal[]
-    for u in build_ratio_nodes(vars, t)
+    for u in build_ratio_nodes(vars, t; data_vars=data_vars)
         d1 = build_primitive_application(p1.name, u)
         d2 = build_primitive_application(p2.name, u)
         inner = op_node("add", [num_node(1.0), op_node("mul", [theta_node(t + 2), d2])])
@@ -4731,24 +4761,24 @@ function pattern_multiplicative(p1::ADCDPrimitive, p2::ADCDPrimitive, vars::Vect
     return proposals
 end
 
-function pattern_nested(outer::ADCDPrimitive, inner::ADCDPrimitive, vars::Vector{String}, t::Int)::Vector{CorrectionProposal}
+function pattern_nested(outer::ADCDPrimitive, inner::ADCDPrimitive, vars::Vector{String}, t::Int; data_vars::Union{Vector{String},Nothing}=nothing)::Vector{CorrectionProposal}
     proposals = CorrectionProposal[]
-    for u in build_ratio_nodes(vars, t)
+    for u in build_ratio_nodes(vars, t; data_vars=data_vars)
         nested = build_primitive_application(outer.name, build_primitive_application(inner.name, u))
         push!(proposals, CorrectionProposal(op_node("mul", [theta_node(t + 1), nested]), [outer.name, inner.name], :nested, 2, "$(outer.name)($(inner.name)(u))"))
     end
     return proposals
 end
 
-function pattern_bilateral(p1::ADCDPrimitive, p2::ADCDPrimitive, vars::Vector{String}, t::Int)::Vector{CorrectionProposal}
+function pattern_bilateral(p1::ADCDPrimitive, p2::ADCDPrimitive, vars::Vector{String}, t::Int; data_vars::Union{Vector{String},Nothing}=nothing)::Vector{CorrectionProposal}
     proposals = CorrectionProposal[]
-    length(vars) < 3 && return proposals # Butuh minimal 3 variabel fisik agar bisa terbagi menjadi 2 rasio independen
+    length(vars) < 3 && return proposals
 
     for i in 1:(length(vars)-1)
         vars1 = vars[1:i]
         vars2 = vars[(i+1):end]
-        u1_list = build_ratio_nodes(vars1, t)
-        u2_list = build_ratio_nodes(vars2, t + 1)
+        u1_list = build_ratio_nodes(vars1, t; data_vars=data_vars)
+        u2_list = build_ratio_nodes(vars2, t + 1; data_vars=data_vars)
         
         for u1 in u1_list, u2 in u2_list
             d1 = build_primitive_application(p1.name, u1)
@@ -4760,9 +4790,9 @@ function pattern_bilateral(p1::ADCDPrimitive, p2::ADCDPrimitive, vars::Vector{St
     return proposals
 end
 
-function pattern_ratio_correction(p::ADCDPrimitive, vars::Vector{String}, t::Int)::Vector{CorrectionProposal}
+function pattern_ratio_correction(p::ADCDPrimitive, vars::Vector{String}, t::Int; data_vars::Union{Vector{String},Nothing}=nothing)::Vector{CorrectionProposal}
     proposals = CorrectionProposal[]
-    for u in build_ratio_nodes(vars, t)
+    for u in build_ratio_nodes(vars, t; data_vars=data_vars)
         sqrt_u = op_node("sqrt", [u])
         d = build_primitive_application(p.name, sqrt_u)
         delta = op_node("mul", [theta_node(t + 1), op_node("div", [d, op_node("add", [num_node(1.0), d])])])
@@ -4775,35 +4805,36 @@ function propose_corrections(config::ProposalConfig)::Vector{CorrectionProposal}
     all_prims = primitives_for_domain(config.domain)
     prims = filter(p -> !(string(p.name) in config.excluded_primitives), all_prims)
     vars  = config.input_vars
+    d_vars = config.data_vars
     max_p = config.max_params
     proposals = CorrectionProposal[]
     t = 0
 
     for p in prims
-        append!(proposals, filter(prop -> prop.n_params <= max_p, pattern_singleton(p, vars, t)))
+        append!(proposals, filter(prop -> prop.n_params <= max_p, pattern_singleton(p, vars, t; data_vars=d_vars)))
     end
 
     for i in 1:length(prims), j in 1:length(prims)
         i == j && continue
-        append!(proposals, filter(prop -> prop.n_params <= max_p, pattern_additive(prims[i], prims[j], vars, t)))
-        append!(proposals, filter(prop -> prop.n_params <= max_p, pattern_multiplicative(prims[i], prims[j], vars, t)))
+        append!(proposals, filter(prop -> prop.n_params <= max_p, pattern_additive(prims[i], prims[j], vars, t; data_vars=d_vars)))
+        append!(proposals, filter(prop -> prop.n_params <= max_p, pattern_multiplicative(prims[i], prims[j], vars, t; data_vars=d_vars)))
     end
 
     if config.include_nested
         for outer in prims, inner in prims
             outer.name == inner.name && continue
-            append!(proposals, filter(prop -> prop.n_params <= max_p, pattern_nested(outer, inner, vars, t)))
+            append!(proposals, filter(prop -> prop.n_params <= max_p, pattern_nested(outer, inner, vars, t; data_vars=d_vars)))
         end
     end
 
     if config.include_bilateral
         for i in 1:length(prims), j in 1:length(prims)
-            append!(proposals, filter(prop -> prop.n_params <= max_p, pattern_bilateral(prims[i], prims[j], vars, t)))
+            append!(proposals, filter(prop -> prop.n_params <= max_p, pattern_bilateral(prims[i], prims[j], vars, t; data_vars=d_vars)))
         end
     end
 
     for p in prims
-        append!(proposals, filter(prop -> prop.n_params <= max_p, pattern_ratio_correction(p, vars, t)))
+        append!(proposals, filter(prop -> prop.n_params <= max_p, pattern_ratio_correction(p, vars, t; data_vars=d_vars)))
     end
 
     sort!(proposals, by=p->p.n_params)
@@ -5604,7 +5635,7 @@ end  # module PrimitiveRegistry
 
 
 ==========================================================================================
- FILE #21: ADCDEngine/src/ADCDDimensions.jl (297 lines, 12,158 bytes)
+ FILE #21: ADCDEngine/src/ADCDDimensions.jl (329 lines, 13,655 bytes)
 ==========================================================================================
 
 # ADCD Engine: ADCDDimensions (Hardened & Unified)
@@ -5840,7 +5871,8 @@ end
 function enumerate_dimensionless_ratios(
     symbols::Vector{String},
     max_degree::Int=2,
-    registry::Dict{Symbol,PhysicalDimension}=DIMENSION_REGISTRY
+    registry::Dict{Symbol,PhysicalDimension}=DIMENSION_REGISTRY;
+    data_vars::Union{Vector{String},Set{String},Nothing}=nothing
 )::Vector{Dict{String,Any}}
 
     valid = unique(filter(s -> haskey(registry, Symbol(s)), symbols))
@@ -5887,8 +5919,39 @@ function enumerate_dimensionless_ratios(
         push!(results, int_exps)
     end
 
+    # Prune pure constant ratios and degenerate constant multiples if data_vars provided
+    candidate_exps = collect(results)
+    if data_vars !== nothing && !isempty(data_vars)
+        data_set = Set{String}(data_vars)
+        dynamic_indices = [j for (j, s) in enumerate(valid) if s in data_set]
+        constant_indices = [j for (j, s) in enumerate(valid) if !(s in data_set)]
+
+        if !isempty(dynamic_indices)
+            best_for_dynamic = Dict{Vector{Int}, Vector{Int}}()
+            for exps in results
+                d_exps = exps[dynamic_indices]
+                # Skip pure constant ratios (all dynamic exponents zero)
+                all(e == 0 for e in d_exps) && continue
+
+                c_exps = isempty(constant_indices) ? Int[] : exps[constant_indices]
+                cost = isempty(c_exps) ? 0 : sum(abs.(c_exps))
+
+                if !haskey(best_for_dynamic, d_exps)
+                    best_for_dynamic[d_exps] = exps
+                else
+                    curr_c_exps = isempty(constant_indices) ? Int[] : best_for_dynamic[d_exps][constant_indices]
+                    curr_cost = isempty(curr_c_exps) ? 0 : sum(abs.(curr_c_exps))
+                    if cost < curr_cost
+                        best_for_dynamic[d_exps] = exps
+                    end
+                end
+            end
+            candidate_exps = collect(values(best_for_dynamic))
+        end
+    end
+
     exprs = Dict{String,Any}[]
-    for exps in sort(collect(results))
+    for exps in sort(candidate_exps)
         factors = Dict{String,Any}[]
         for (s, e) in zip(valid, exps)
             e == 0 && continue
@@ -5907,16 +5970,17 @@ end  # module ADCDDimensions
 
 
 ==========================================================================================
- FILE #22: run_outputs/adcd_v3_taxonomy_validation_report.json (316 lines, 11,360 bytes)
+ FILE #22: run_outputs/adcd_v3_taxonomy_validation_report.json (319 lines, 11,891 bytes)
 ==========================================================================================
 
 {
   "Time Dilation": {
     "tier": "DETECTED_UNRESOLVED",
+    "status_message": "Strong anomaly evidence confirmed, structure resolved, but held by SNR floor (positive_control failed \u2014 signal below noise floor on part of domain).",
     "all_passed": false,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 56,
+        "search_space_size": 44,
         "primitives": [
           "D_lor"
         ],
@@ -5926,7 +5990,7 @@ end  # module ADCDDimensions
         "pass": true,
         "top_candidate": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
         "nmse": 0.412094804339714,
-        "bic": -385.57066458240024,
+        "bic": -386.05298869603416,
         "theta_fit": {
           "theta_0": 6.711891362334025,
           "theta_1": 0.38413301902763985
@@ -5940,7 +6004,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
             "nmse": 0.412094804339714,
-            "bic": -385.57066458240024,
+            "bic": -386.05298869603416,
             "class": "rational",
             "theta_fit": {
               "theta_0": 6.711891362334025,
@@ -5950,7 +6014,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v * (c**-1))**2.0)))) - 1))",
             "nmse": 0.4120991137634981,
-            "bic": -385.56857312130614,
+            "bic": -386.05089723494007,
             "class": "rational",
             "theta_fit": {
               "theta_0": 0.9234789473254843,
@@ -5960,7 +6024,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))",
             "nmse": 0.4120991137634981,
-            "bic": -385.56857312130614,
+            "bic": -386.05089723494007,
             "class": "rational",
             "theta_fit": {
               "theta_0": 0.9234789473254843,
@@ -5970,7 +6034,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * (v * (c**-1))))) - 1))",
             "nmse": 0.414862388379545,
-            "bic": -384.23197648729774,
+            "bic": -384.71430060093167,
             "class": "rational",
             "theta_fit": {
               "theta_0": 2.565291024684205,
@@ -5980,7 +6044,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * v))) - 1))",
             "nmse": 0.414862388379545,
-            "bic": -384.23197648729774,
+            "bic": -384.71430060093167,
             "class": "rational",
             "theta_fit": {
               "theta_0": 2.565291024684205,
@@ -5988,19 +6052,19 @@ end  # module ADCDDimensions
             }
           }
         ],
-        "bayesian_best_weight": 0.18433173315527046,
+        "bayesian_best_weight": 0.18809788043185208,
         "evidence_vs_null_label": "decisive",
         "evidence_top2_label": "weak",
-        "posterior_entropy": 3.0047514914020024
+        "posterior_entropy": 2.8893017433255626
       },
       "positive_control": {
-        "search_space_size": 56,
+        "search_space_size": 44,
         "nmse": 0.412094804339714,
         "pass": false
       },
       "ablation_control": {
         "ablated_bic": Infinity,
-        "true_structure_bic": -385.57066458240024,
+        "true_structure_bic": -386.05298869603416,
         "bic_diff": Infinity,
         "pass": true
       },
@@ -6016,10 +6080,11 @@ end  # module ADCDDimensions
   },
   "Screened Coulomb": {
     "tier": "IDENTIFIABLE",
+    "status_message": "All checks passed with a genuinely blind search.",
     "all_passed": true,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 384,
+        "search_space_size": 252,
         "primitives": [
           "D_exp",
           "D_rat"
@@ -6030,7 +6095,7 @@ end  # module ADCDDimensions
         "pass": true,
         "top_candidate": "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
         "nmse": 0.0002772155195392813,
-        "bic": -2071.9720754241894,
+        "bic": -2072.814502354342,
         "theta_fit": {
           "theta_0": 1.493300906422077,
           "theta_1": -0.9987128880579966
@@ -6044,7 +6109,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
             "nmse": 0.0002772155195392813,
-            "bic": -2071.9720754241894,
+            "bic": -2072.814502354342,
             "class": "exponential",
             "theta_fit": {
               "theta_0": 1.493300906422077,
@@ -6054,7 +6119,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * (1 - exp(-Abs((theta_0 * r)))))",
             "nmse": 0.00027721555857847783,
-            "bic": -2071.97204725896,
+            "bic": -2072.814474189113,
             "class": "exponential",
             "theta_fit": {
               "theta_0": -0.6696562880022479,
@@ -6064,7 +6129,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "((theta_1 * (1 - exp(-Abs((r / theta_0))))) + (theta_2 * (((r / theta_0)) / (1 + ((r / theta_0))**2))))",
             "nmse": 0.00027168776414560617,
-            "bic": -2070.7021123683207,
+            "bic": -2071.5445392984734,
             "class": "exponential",
             "theta_fit": {
               "theta_0": 1.610916857353137,
@@ -6075,7 +6140,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "((theta_1 * (1 - exp(-Abs((theta_0 * r))))) + (theta_2 * (((theta_0 * r)) / (1 + ((theta_0 * r))**2))))",
             "nmse": 0.00027168815154920636,
-            "bic": -2070.701827185567,
+            "bic": -2071.5442541157195,
             "class": "exponential",
             "theta_fit": {
               "theta_0": -0.6203911076351585,
@@ -6086,7 +6151,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "((theta_1 * (((theta_0 * r)) / (1 + ((theta_0 * r))**2))) + (theta_2 * (1 - exp(-Abs((theta_0 * r))))))",
             "nmse": 0.0002716882070467114,
-            "bic": -2070.7017863317433,
+            "bic": -2071.544213261896,
             "class": "exponential",
             "theta_fit": {
               "theta_0": 0.6211652796937818,
@@ -6095,20 +6160,20 @@ end  # module ADCDDimensions
             }
           }
         ],
-        "bayesian_best_weight": 0.15764869675332593,
+        "bayesian_best_weight": 0.16695368434604027,
         "evidence_vs_null_label": "decisive",
         "evidence_top2_label": "weak",
-        "posterior_entropy": 4.303233975808111
+        "posterior_entropy": 4.091592182925436
       },
       "positive_control": {
-        "search_space_size": 88,
+        "search_space_size": 56,
         "nmse": 0.0002772155195392813,
         "pass": true
       },
       "ablation_control": {
-        "ablated_bic": -1315.1125499703398,
-        "true_structure_bic": -2071.9720754241894,
-        "bic_diff": 756.8595254538495,
+        "ablated_bic": -1316.016520217826,
+        "true_structure_bic": -2072.814502354342,
+        "bic_diff": 756.7979821365161,
         "pass": true
       },
       "determinism_check": {
@@ -6123,10 +6188,11 @@ end  # module ADCDDimensions
   },
   "Entropy Expansion": {
     "tier": "DETECTED_UNRESOLVED",
+    "status_message": "Strong anomaly evidence confirmed, structure resolved, but held by structural ambiguity (ablation_control failed \u2014 competing structure fits equally well).",
     "all_passed": false,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 1168,
+        "search_space_size": 520,
         "primitives": [
           "D_exp",
           "D_log"
@@ -6135,12 +6201,12 @@ end  # module ADCDDimensions
       },
       "primary_search": {
         "pass": true,
-        "top_candidate": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**2) * (nR**-2))))))",
-        "nmse": 0.015937367800231673,
-        "bic": -1189.8533070571364,
+        "top_candidate": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
+        "nmse": 0.015937367822209263,
+        "bic": -1191.4717454849622,
         "theta_fit": {
-          "theta_0": 0.3130965918450869,
-          "theta_1": 8.181909716469692
+          "theta_0": 1.0191770956907646,
+          "theta_1": 8.181799078864573
         },
         "discovered_class": "logarithmic",
         "match_level": "class_only",
@@ -6149,19 +6215,9 @@ end  # module ADCDDimensions
         "counts_toward_verdict": false,
         "pareto_front": [
           {
-            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**2) * (nR**-2))))))",
-            "nmse": 0.015937367800231673,
-            "bic": -1189.8533070571364,
-            "class": "logarithmic",
-            "theta_fit": {
-              "theta_0": 0.3130965918450869,
-              "theta_1": 8.181909716469692
-            }
-          },
-          {
             "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
             "nmse": 0.015937367822209263,
-            "bic": -1189.8533067813369,
+            "bic": -1191.4717454849622,
             "class": "logarithmic",
             "theta_fit": {
               "theta_0": 1.0191770956907646,
@@ -6169,57 +6225,67 @@ end  # module ADCDDimensions
             }
           },
           {
-            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**-1) * nR)))))",
-            "nmse": 0.01593736782518894,
-            "bic": -1189.8533067439444,
+            "expr_str": "(theta_1 * (log(1 + Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2)))))) / (1.0 + log(1 + Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2)))))))))",
+            "nmse": 0.015999934435482168,
+            "bic": -1190.688126470321,
             "class": "logarithmic",
             "theta_fit": {
-              "theta_0": -1.838812733755821,
-              "theta_1": 8.181695238062861
+              "theta_0": 0.08444956255911963,
+              "theta_1": 28.230749375315014
             }
           },
           {
-            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * S_i * (nR**-1))))))",
-            "nmse": 0.01593736782811429,
-            "bic": -1189.853306707234,
+            "expr_str": "(theta_1 * (log(1 + Abs(sqrt((theta_0 * (((V_i**-1) * dV)**2.0))))) / (1.0 + log(1 + Abs(sqrt((theta_0 * (((V_i**-1) * dV)**2.0))))))))",
+            "nmse": 0.015999934435482168,
+            "bic": -1190.688126470321,
             "class": "logarithmic",
             "theta_fit": {
-              "theta_0": -0.5649037342411298,
-              "theta_1": 8.1817073908398
+              "theta_0": 0.08444956255911963,
+              "theta_1": 28.230749375315014
             }
           },
           {
-            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**-2) * (nR**2))))))",
-            "nmse": 0.01593736786914661,
-            "bic": -1189.8533061923142,
-            "class": "logarithmic",
+            "expr_str": "(theta_1 * (1 - exp(-Abs(log(1 + Abs((theta_0 * ((V_i**-1) * dV))))))))",
+            "nmse": 0.016010913872807,
+            "bic": -1190.5509300093008,
+            "class": "rational",
             "theta_fit": {
-              "theta_0": 3.31722463567527,
-              "theta_1": 8.182346865808602
+              "theta_0": 0.4270122292016231,
+              "theta_1": 19.17014593587546
+            }
+          },
+          {
+            "expr_str": "(theta_1 * ((1 - exp(-Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2))))))) / (1.0 + (1 - exp(-Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2))))))))))",
+            "nmse": 0.01602407049076487,
+            "bic": -1190.3866518745183,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": 0.07750078808352573,
+              "theta_1": 29.332444832251227
             }
           }
         ],
-        "bayesian_best_weight": 0.037302656195251645,
+        "bayesian_best_weight": 0.14419686879719482,
         "evidence_vs_null_label": "decisive",
         "evidence_top2_label": "weak",
-        "posterior_entropy": 5.492012343162233
+        "posterior_entropy": 4.32484309415764
       },
       "positive_control": {
-        "search_space_size": 264,
-        "nmse": 0.015937367800231673,
+        "search_space_size": 124,
+        "nmse": 0.015937367822209263,
         "pass": true
       },
       "ablation_control": {
-        "ablated_bic": -1191.7424147081622,
-        "true_structure_bic": -1189.8533070571364,
-        "bic_diff": -1.8891076510258245,
+        "ablated_bic": -1193.2537463664592,
+        "true_structure_bic": -1191.4717454849622,
+        "bic_diff": -1.7820008814969697,
         "pass": false
       },
       "determinism_check": {
         "runs": [
-          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**2) * (nR**-2))))))",
-          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**2) * (nR**-2))))))",
-          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV * (S_i**2) * (nR**-2))))))"
+          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
+          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
+          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))"
         ],
         "pass": true
       }

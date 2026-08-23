@@ -15,6 +15,7 @@ using .ConstantFitter
 using .IdentifiabilityGate
 using .FilterCascade
 using JSON3
+using Statistics
 
 export run_adcd, RunConfig, ADCDResult, GateStats
 export IDENTIFIABLE, WITHHELD, POSITIVE_CONTROL_FAILED
@@ -50,9 +51,24 @@ function run_adcd(config_json::String, data_json::String)::String
     sigma_y_raw = get(data_dict, "sigma_y", nothing)
     sigma_y     = sigma_y_raw === nothing ? nothing : Float64[Float64(s) for s in sigma_y_raw]
 
+    # Detect dynamic variables (variables that vary across samples)
+    data_vars = String[]
+    for (k, v) in vars_data
+        if length(v) > 1
+            mu = mean(abs.(v))
+            sd = std(v)
+            if (mu > 0 && sd / mu > 1e-6) || (mu == 0 && sd > 1e-6)
+                push!(data_vars, k)
+            end
+        end
+    end
+    if isempty(data_vars)
+        data_vars = config.input_vars
+    end
+
     vars_and_consts = vcat(config.input_vars, collect(keys(config.known_constants)))
     excluded_vec = excluded_raw === nothing ? String[] : String[string(s) for s in excluded_raw]
-    prop_config = ProposalConfig(config.domain, vars_and_consts, 3, true, true, excluded_vec)
+    prop_config = ProposalConfig(config.domain, vars_and_consts, 3, true, true, excluded_vec, data_vars)
     proposals = propose_corrections(prop_config)
     active_prims = sort(collect(Set(p for proposal in proposals for p in proposal.primitives)))
 
