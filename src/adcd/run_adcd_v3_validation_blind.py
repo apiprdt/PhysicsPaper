@@ -242,7 +242,7 @@ def _run_search(
             sigma_y = np.asarray(X["sigma_y"], dtype=float)
         elif noise_level > 0.0:
             if detected_mode == "multiplicative":
-                sigma_y = noise_level * np.abs(y_classical) + 1e-6
+                sigma_y = noise_level * np.abs(y_obs) + 1e-6
             else:
                 sigma_y = np.full_like(y_obs, noise_level * (np.std(y_obs) + 1e-6))
 

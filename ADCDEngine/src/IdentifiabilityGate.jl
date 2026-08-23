@@ -91,6 +91,13 @@ function identifiability_gate(
 
     delta_bic = bic_null - bic_correction
 
+    # Guard: BIC berbasis likelihood TIDAK BOLEH berubah puluhan-ribu kali lipat
+    # sementara NMSE nyaris tidak bergerak -- itu tanda sigma_y/skala numerik pincang,
+    # bukan bukti identifiability yang sah.
+    if sigma_y !== nothing && abs(delta_bic) > 1e5
+        @warn "delta_bic=$delta_bic sangat ekstrem dengan sigma_y aktif -- kemungkinan sigma_y salah skala, verifikasi manual sebelum dipercaya" fit_result.nmse
+    end
+
     # 3. Gating checks
     if !fit_result.converged || fit_result.nmse > nmse_threshold
         return (WITHHELD, delta_bic)
