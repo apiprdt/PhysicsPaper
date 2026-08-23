@@ -5888,11 +5888,11 @@ end  # module ADCDDimensions
       "primary_search": {
         "pass": true,
         "top_candidate": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
-        "nmse": 0.41209480491383166,
-        "bic": -1311.7170327107165,
+        "nmse": 0.41224254718792813,
+        "bic": -1209.6771172381927,
         "theta_fit": {
-          "theta_0": 6.699961096658935,
-          "theta_1": 0.38449082520260824
+          "theta_0": 9.312177760206499,
+          "theta_1": 0.3210396049536518
         },
         "discovered_class": "rational",
         "match_level": "class_only",
@@ -5902,68 +5902,68 @@ end  # module ADCDDimensions
         "pareto_front": [
           {
             "expr_str": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
-            "nmse": 0.41209480491383166,
-            "bic": -1311.7170327107165,
+            "nmse": 0.41224254718792813,
+            "bic": -1209.6771172381927,
             "class": "rational",
             "theta_fit": {
-              "theta_0": 6.699961096658935,
-              "theta_1": 0.38449082520260824
+              "theta_0": 9.312177760206499,
+              "theta_1": 0.3210396049536518
             }
           },
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v * (c**-1))**2.0)))) - 1))",
-            "nmse": 0.4120991125453661,
-            "bic": -1311.7149083664222,
+            "nmse": 0.4122474662181065,
+            "bic": -1209.6752915446355,
             "class": "rational",
             "theta_fit": {
-              "theta_0": 0.9223619778916708,
-              "theta_1": 1.077815934394249
+              "theta_0": 1.1067026606456578,
+              "theta_1": 0.883602909418566
             }
           },
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))",
-            "nmse": 0.4120991125453661,
-            "bic": -1311.7149083664222,
+            "nmse": 0.4122474662181065,
+            "bic": -1209.6752915446355,
             "class": "rational",
             "theta_fit": {
-              "theta_0": 0.9223619778916708,
-              "theta_1": 1.077815934394249
-            }
-          },
-          {
-            "expr_str": "(theta_1 * (1/sqrt(1 - ((v / theta_0))) - 1))",
-            "nmse": 0.41486238835126843,
-            "bic": -1310.3523593143989,
-            "class": "rational",
-            "theta_fit": {
-              "theta_0": 0.3898175259212708,
-              "theta_1": 0.046630117684468404
+              "theta_0": 1.1067026606456578,
+              "theta_1": 0.883602909418566
             }
           },
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * (v * (c**-1))))) - 1))",
-            "nmse": 0.414862388379545,
-            "bic": -1310.3523593105,
+            "nmse": 0.4150314994837471,
+            "bic": -1208.1755845021098,
             "class": "rational",
             "theta_fit": {
-              "theta_0": 2.565291024684205,
-              "theta_1": 0.0466306380581869
+              "theta_0": 2.5815708015739185,
+              "theta_1": 0.0456041731452136
+            }
+          },
+          {
+            "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * v))) - 1))",
+            "nmse": 0.4150314994837471,
+            "bic": -1208.1755845021098,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 2.5815708015739185,
+              "theta_1": 0.0456041731452136
             }
           }
         ],
-        "bayesian_best_weight": 0.1855750573405638,
+        "bayesian_best_weight": 0.19687147452902737,
         "evidence_vs_null_label": "decisive",
         "evidence_top2_label": "weak",
-        "posterior_entropy": 2.999930691089907
+        "posterior_entropy": 2.946690268831788
       },
       "positive_control": {
         "search_space_size": 56,
-        "nmse": 0.41209480491383166,
+        "nmse": 0.41224254718792813,
         "pass": false
       },
       "ablation_control": {
         "ablated_bic": Infinity,
-        "true_structure_bic": -1311.7170327107165,
+        "true_structure_bic": -1209.6771172381927,
         "bic_diff": Infinity,
         "pass": true
       },
@@ -5991,12 +5991,13 @@ end  # module ADCDDimensions
       },
       "primary_search": {
         "pass": true,
-        "top_candidate": "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
-        "nmse": 0.0002772155471270419,
-        "bic": -1037285.6141904037,
+        "top_candidate": "((theta_1 * (1 - exp(-Abs((r / theta_0))))) + (theta_2 * (((r / theta_0)) / (1 + ((r / theta_0))**2))))",
+        "nmse": 0.0002718160964667162,
+        "bic": -61162883.41044903,
         "theta_fit": {
-          "theta_0": -1.4933015858866292,
-          "theta_1": -0.9987114675091973
+          "theta_0": -1.5959078176735446,
+          "theta_1": -0.9908393089113893,
+          "theta_2": 0.059822965180448495
         },
         "discovered_class": "exponential",
         "match_level": "exact",
@@ -6005,80 +6006,81 @@ end  # module ADCDDimensions
         "counts_toward_verdict": false,
         "pareto_front": [
           {
-            "expr_str": "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
-            "nmse": 0.0002772155471270419,
-            "bic": -1037285.6141904037,
-            "class": "exponential",
-            "theta_fit": {
-              "theta_0": -1.4933015858866292,
-              "theta_1": -0.9987114675091973
-            }
-          },
-          {
-            "expr_str": "(theta_1 * (1 - exp(-Abs((theta_0 * r)))))",
-            "nmse": 0.00027721555748533213,
-            "bic": -1037285.6141903334,
-            "class": "exponential",
-            "theta_fit": {
-              "theta_0": 0.669657959572251,
-              "theta_1": -0.9987109411055571
-            }
-          },
-          {
             "expr_str": "((theta_1 * (1 - exp(-Abs((r / theta_0))))) + (theta_2 * (((r / theta_0)) / (1 + ((r / theta_0))**2))))",
-            "nmse": 0.000271687510384222,
-            "bic": -1037280.9115141818,
+            "nmse": 0.0002718160964667162,
+            "bic": -61162883.41044903,
             "class": "exponential",
             "theta_fit": {
-              "theta_0": 1.6110342015577115,
-              "theta_1": -0.9895534610085706,
-              "theta_2": -0.06841199618386422
-            }
-          },
-          {
-            "expr_str": "((theta_1 * (((r / theta_0)) / (1 + ((r / theta_0))**2))) + (theta_2 * (1 - exp(-Abs((r / theta_0))))))",
-            "nmse": 0.000271687510384222,
-            "bic": -1037280.9115141818,
-            "class": "exponential",
-            "theta_fit": {
-              "theta_0": 1.611034201557766,
-              "theta_1": -0.06841199618384566,
-              "theta_2": -0.9895534610085696
+              "theta_0": -1.5959078176735446,
+              "theta_1": -0.9908393089113893,
+              "theta_2": 0.059822965180448495
             }
           },
           {
             "expr_str": "((theta_1 * (((theta_0 * r)) / (1 + ((theta_0 * r))**2))) + (theta_2 * (1 - exp(-Abs((theta_0 * r))))))",
-            "nmse": 0.0002716875151441171,
-            "bic": -1037280.9115141231,
+            "nmse": 0.0002718164879963259,
+            "bic": -61162883.41044899,
             "class": "exponential",
             "theta_fit": {
-              "theta_0": -0.6207224467699956,
-              "theta_1": 0.06840842719201243,
-              "theta_2": -0.989553480870678
+              "theta_0": 0.6266114586672988,
+              "theta_1": -0.05981045218973288,
+              "theta_2": -0.9908410107958373
+            }
+          },
+          {
+            "expr_str": "((theta_1 * (((r / theta_0)) / (1 + ((r / theta_0))**2))) + (theta_2 * (1 - exp(-Abs((r / theta_0))))))",
+            "nmse": 0.00027181624833597036,
+            "bic": -61162883.410448976,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": -1.595894078474228,
+              "theta_1": 0.05981487891611581,
+              "theta_2": -0.9908405310123287
+            }
+          },
+          {
+            "expr_str": "((theta_1 * (1 - exp(-Abs((theta_0 * r))))) + (theta_2 * (((theta_0 * r)) / (1 + ((theta_0 * r))**2))))",
+            "nmse": 0.0002718164292025837,
+            "bic": -61162883.41044897,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": -0.6266112799470214,
+              "theta_1": -0.9908410574950426,
+              "theta_2": 0.05981047679110172
+            }
+          },
+          {
+            "expr_str": "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
+            "nmse": 0.0002781180413433528,
+            "bic": -61162882.840066016,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": 1.4961230352009172,
+              "theta_1": -0.9993131752983773
             }
           }
         ],
-        "bayesian_best_weight": 0.21513070468981568,
+        "bayesian_best_weight": 0.13639006045371352,
         "evidence_vs_null_label": "decisive",
         "evidence_top2_label": "weak",
-        "posterior_entropy": 4.357540490022485
+        "posterior_entropy": 3.967732674929266
       },
       "positive_control": {
         "search_space_size": 88,
-        "nmse": 0.0002772155471270419,
+        "nmse": 0.0002781180413433528,
         "pass": true
       },
       "ablation_control": {
-        "ablated_bic": -1035995.4440397137,
-        "true_structure_bic": -1037285.6141904037,
-        "bic_diff": 1290.1701506900135,
+        "ablated_bic": -61150454.02062535,
+        "true_structure_bic": -61162883.41044903,
+        "bic_diff": 12429.389823675156,
         "pass": true
       },
       "determinism_check": {
         "runs": [
-          "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
-          "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
-          "(theta_1 * (1 - exp(-Abs((r / theta_0)))))"
+          "((theta_1 * (1 - exp(-Abs((r / theta_0))))) + (theta_2 * (((r / theta_0)) / (1 + ((r / theta_0))**2))))",
+          "((theta_1 * (1 - exp(-Abs((r / theta_0))))) + (theta_2 * (((r / theta_0)) / (1 + ((r / theta_0))**2))))",
+          "((theta_1 * (1 - exp(-Abs((r / theta_0))))) + (theta_2 * (((r / theta_0)) / (1 + ((r / theta_0))**2))))"
         ],
         "pass": true
       }
