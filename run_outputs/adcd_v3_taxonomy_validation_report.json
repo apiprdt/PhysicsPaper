@@ -1,24 +1,31 @@
 {
   "Time Dilation": {
     "tier": "DETECTED_UNRESOLVED",
-    "status_message": "Strong anomaly evidence confirmed, structure resolved, but held by SNR floor (positive_control failed \u2014 signal below noise floor on part of domain).",
+    "status_message": "Strong anomaly evidence confirmed, structure resolved, but held by SNR floor (positive_control failed -- signal below noise floor on part of domain).",
     "all_passed": false,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 44,
+        "search_space_size": 28,
         "primitives": [
           "D_lor"
+        ],
+        "data_vars_detected": [
+          "v",
+          "t_0"
+        ],
+        "constants_detected": [
+          "c"
         ],
         "pass": true
       },
       "primary_search": {
         "pass": true,
-        "top_candidate": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
-        "nmse": 0.412094804339714,
-        "bic": -386.05298869603416,
+        "top_candidate": "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))",
+        "nmse": 0.4120991137634981,
+        "bic": -386.95486748242615,
         "theta_fit": {
-          "theta_0": 6.711891362334025,
-          "theta_1": 0.38413301902763985
+          "theta_0": 0.9234789473254843,
+          "theta_1": 1.0764291253665954
         },
         "discovered_class": "rational",
         "match_level": "class_only",
@@ -27,29 +34,9 @@
         "counts_toward_verdict": false,
         "pareto_front": [
           {
-            "expr_str": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
-            "nmse": 0.412094804339714,
-            "bic": -386.05298869603416,
-            "class": "rational",
-            "theta_fit": {
-              "theta_0": 6.711891362334025,
-              "theta_1": 0.38413301902763985
-            }
-          },
-          {
-            "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v * (c**-1))**2.0)))) - 1))",
-            "nmse": 0.4120991137634981,
-            "bic": -386.05089723494007,
-            "class": "rational",
-            "theta_fit": {
-              "theta_0": 0.9234789473254843,
-              "theta_1": 1.0764291253665954
-            }
-          },
-          {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))",
             "nmse": 0.4120991137634981,
-            "bic": -386.05089723494007,
+            "bic": -386.95486748242615,
             "class": "rational",
             "theta_fit": {
               "theta_0": 0.9234789473254843,
@@ -59,7 +46,7 @@
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * (v * (c**-1))))) - 1))",
             "nmse": 0.414862388379545,
-            "bic": -384.71430060093167,
+            "bic": -385.61827084841775,
             "class": "rational",
             "theta_fit": {
               "theta_0": 2.565291024684205,
@@ -69,35 +56,55 @@
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * v))) - 1))",
             "nmse": 0.414862388379545,
-            "bic": -384.71430060093167,
+            "bic": -385.61827084841775,
             "class": "rational",
             "theta_fit": {
               "theta_0": 2.565291024684205,
               "theta_1": 0.0466306380581869
             }
+          },
+          {
+            "expr_str": "(theta_1 * (1/sqrt(1 - ((v / theta_0))) - 1))",
+            "nmse": 0.41486239015866583,
+            "bic": -385.6182699907256,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 0.38982505781623594,
+              "theta_1": 0.04663100122534433
+            }
+          },
+          {
+            "expr_str": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * ((v**2) * (c**-2)))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * ((v**2) * (c**-2)))))) - 1))))",
+            "nmse": 0.4159809970828493,
+            "bic": -385.07972921770056,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 13.376945065666629,
+              "theta_1": 0.0431653381280222
+            }
           }
         ],
-        "bayesian_best_weight": 0.18809788043185208,
+        "bayesian_best_weight": 0.3413763198996631,
         "evidence_vs_null_label": "decisive",
         "evidence_top2_label": "weak",
-        "posterior_entropy": 2.8893017433255626
+        "posterior_entropy": 2.2375074132432906
       },
       "positive_control": {
-        "search_space_size": 44,
-        "nmse": 0.412094804339714,
+        "search_space_size": 28,
+        "nmse": 0.4120991137634981,
         "pass": false
       },
       "ablation_control": {
         "ablated_bic": Infinity,
-        "true_structure_bic": -386.05298869603416,
+        "true_structure_bic": -386.95486748242615,
         "bic_diff": Infinity,
         "pass": true
       },
       "determinism_check": {
         "runs": [
-          "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
-          "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
-          "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))"
+          "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))",
+          "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))",
+          "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))"
         ],
         "pass": true
       }
@@ -109,10 +116,18 @@
     "all_passed": true,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 252,
+        "search_space_size": 180,
         "primitives": [
           "D_exp",
           "D_rat"
+        ],
+        "data_vars_detected": [
+          "q1",
+          "r",
+          "q2"
+        ],
+        "constants_detected": [
+          "k_e"
         ],
         "pass": true
       },
@@ -120,7 +135,7 @@
         "pass": true,
         "top_candidate": "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
         "nmse": 0.0002772155195392813,
-        "bic": -2072.814502354342,
+        "bic": -2073.4874468275843,
         "theta_fit": {
           "theta_0": 1.493300906422077,
           "theta_1": -0.9987128880579966
@@ -134,7 +149,7 @@
           {
             "expr_str": "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
             "nmse": 0.0002772155195392813,
-            "bic": -2072.814502354342,
+            "bic": -2073.4874468275843,
             "class": "exponential",
             "theta_fit": {
               "theta_0": 1.493300906422077,
@@ -144,7 +159,7 @@
           {
             "expr_str": "(theta_1 * (1 - exp(-Abs((theta_0 * r)))))",
             "nmse": 0.00027721555857847783,
-            "bic": -2072.814474189113,
+            "bic": -2073.487418662355,
             "class": "exponential",
             "theta_fit": {
               "theta_0": -0.6696562880022479,
@@ -154,7 +169,7 @@
           {
             "expr_str": "((theta_1 * (1 - exp(-Abs((r / theta_0))))) + (theta_2 * (((r / theta_0)) / (1 + ((r / theta_0))**2))))",
             "nmse": 0.00027168776414560617,
-            "bic": -2071.5445392984734,
+            "bic": -2072.2174837717157,
             "class": "exponential",
             "theta_fit": {
               "theta_0": 1.610916857353137,
@@ -165,7 +180,7 @@
           {
             "expr_str": "((theta_1 * (1 - exp(-Abs((theta_0 * r))))) + (theta_2 * (((theta_0 * r)) / (1 + ((theta_0 * r))**2))))",
             "nmse": 0.00027168815154920636,
-            "bic": -2071.5442541157195,
+            "bic": -2072.2171985889618,
             "class": "exponential",
             "theta_fit": {
               "theta_0": -0.6203911076351585,
@@ -176,7 +191,7 @@
           {
             "expr_str": "((theta_1 * (((theta_0 * r)) / (1 + ((theta_0 * r))**2))) + (theta_2 * (1 - exp(-Abs((theta_0 * r))))))",
             "nmse": 0.0002716882070467114,
-            "bic": -2071.544213261896,
+            "bic": -2072.2171577351382,
             "class": "exponential",
             "theta_fit": {
               "theta_0": 0.6211652796937818,
@@ -185,19 +200,19 @@
             }
           }
         ],
-        "bayesian_best_weight": 0.16695368434604027,
+        "bayesian_best_weight": 0.18435107763557693,
         "evidence_vs_null_label": "decisive",
         "evidence_top2_label": "weak",
-        "posterior_entropy": 4.091592182925436
+        "posterior_entropy": 3.7074624698751
       },
       "positive_control": {
-        "search_space_size": 56,
+        "search_space_size": 40,
         "nmse": 0.0002772155195392813,
         "pass": true
       },
       "ablation_control": {
-        "ablated_bic": -1316.016520217826,
-        "true_structure_bic": -2072.814502354342,
+        "ablated_bic": -1316.6894646910682,
+        "true_structure_bic": -2073.4874468275843,
         "bic_diff": 756.7979821365161,
         "pass": true
       },
@@ -213,14 +228,22 @@
   },
   "Entropy Expansion": {
     "tier": "DETECTED_UNRESOLVED",
-    "status_message": "Strong anomaly evidence confirmed, structure resolved, but held by structural ambiguity (ablation_control failed \u2014 competing structure fits equally well).",
+    "status_message": "Strong anomaly evidence confirmed, structure resolved, but held by structural ambiguity (ablation_control failed -- competing structure fits equally well).",
     "all_passed": false,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 520,
+        "search_space_size": 224,
         "primitives": [
           "D_exp",
           "D_log"
+        ],
+        "data_vars_detected": [
+          "V_i",
+          "dV"
+        ],
+        "constants_detected": [
+          "S_i",
+          "nR"
         ],
         "pass": true
       },
@@ -228,7 +251,7 @@
         "pass": true,
         "top_candidate": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
         "nmse": 0.015937367822209263,
-        "bic": -1191.4717454849622,
+        "bic": -1193.156111004403,
         "theta_fit": {
           "theta_0": 1.0191770956907646,
           "theta_1": 8.181799078864573
@@ -242,7 +265,7 @@
           {
             "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
             "nmse": 0.015937367822209263,
-            "bic": -1191.4717454849622,
+            "bic": -1193.156111004403,
             "class": "logarithmic",
             "theta_fit": {
               "theta_0": 1.0191770956907646,
@@ -252,17 +275,7 @@
           {
             "expr_str": "(theta_1 * (log(1 + Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2)))))) / (1.0 + log(1 + Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2)))))))))",
             "nmse": 0.015999934435482168,
-            "bic": -1190.688126470321,
-            "class": "logarithmic",
-            "theta_fit": {
-              "theta_0": 0.08444956255911963,
-              "theta_1": 28.230749375315014
-            }
-          },
-          {
-            "expr_str": "(theta_1 * (log(1 + Abs(sqrt((theta_0 * (((V_i**-1) * dV)**2.0))))) / (1.0 + log(1 + Abs(sqrt((theta_0 * (((V_i**-1) * dV)**2.0))))))))",
-            "nmse": 0.015999934435482168,
-            "bic": -1190.688126470321,
+            "bic": -1192.372491989762,
             "class": "logarithmic",
             "theta_fit": {
               "theta_0": 0.08444956255911963,
@@ -272,7 +285,7 @@
           {
             "expr_str": "(theta_1 * (1 - exp(-Abs(log(1 + Abs((theta_0 * ((V_i**-1) * dV))))))))",
             "nmse": 0.016010913872807,
-            "bic": -1190.5509300093008,
+            "bic": -1192.2352955287417,
             "class": "rational",
             "theta_fit": {
               "theta_0": 0.4270122292016231,
@@ -282,28 +295,38 @@
           {
             "expr_str": "(theta_1 * ((1 - exp(-Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2))))))) / (1.0 + (1 - exp(-Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2))))))))))",
             "nmse": 0.01602407049076487,
-            "bic": -1190.3866518745183,
+            "bic": -1192.0710173939592,
             "class": "exponential",
             "theta_fit": {
               "theta_0": 0.07750078808352573,
               "theta_1": 29.332444832251227
             }
+          },
+          {
+            "expr_str": "(theta_1 * log(1 + Abs((1 - exp(-Abs((theta_0 * ((V_i**-1) * dV))))))))",
+            "nmse": 0.016024166388371983,
+            "bic": -1192.0698204781042,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": -0.42000296006209514,
+              "theta_1": 19.445591073706407
+            }
           }
         ],
-        "bayesian_best_weight": 0.14419686879719482,
+        "bayesian_best_weight": 0.20297570924749583,
         "evidence_vs_null_label": "decisive",
         "evidence_top2_label": "weak",
-        "posterior_entropy": 4.32484309415764
+        "posterior_entropy": 3.6424578298572836
       },
       "positive_control": {
-        "search_space_size": 124,
+        "search_space_size": 52,
         "nmse": 0.015937367822209263,
         "pass": true
       },
       "ablation_control": {
-        "ablated_bic": -1193.2537463664592,
-        "true_structure_bic": -1191.4717454849622,
-        "bic_diff": -1.7820008814969697,
+        "ablated_bic": -1194.9918220605064,
+        "true_structure_bic": -1193.156111004403,
+        "bic_diff": -1.8357110561032641,
         "pass": false
       },
       "determinism_check": {
