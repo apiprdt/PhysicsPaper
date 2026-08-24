@@ -331,3 +331,39 @@ def evaluate_correction(
         parameter_match_structural=structural_match,
         parameter_count_mismatch=count_mismatch,
     )
+
+
+def expr_to_latex(
+    expr: Union[str, sp.Expr],
+    theta_fit: Optional[Dict[str, float]] = None,
+    precision: int = 4,
+    substitute_theta: bool = False,
+) -> str:
+    """
+    Convert a symbolic correction expression to clean, publication-ready LaTeX.
+    Compatible with PySR/PhySO LaTeX presentation workflows.
+    """
+    if isinstance(expr, str):
+        try:
+            expr_sp = sp.sympify(expr)
+        except Exception:
+            return expr
+    else:
+        expr_sp = expr
+
+    if substitute_theta and theta_fit:
+        sub_dict = {}
+        for k, v in theta_fit.items():
+            sym_k = sp.Symbol(k)
+            rounded_v = round(v, precision) if isinstance(v, (int, float)) else v
+            sub_dict[sym_k] = rounded_v
+        try:
+            expr_sp = expr_sp.subs(sub_dict)
+        except Exception:
+            pass
+
+    try:
+        return sp.latex(expr_sp)
+    except Exception:
+        return str(expr_sp)
+

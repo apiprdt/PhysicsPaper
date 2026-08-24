@@ -1,15 +1,15 @@
 ==========================================================================================
- ADCD CORE CODEBASE & FORMAL VALIDATION AUDIT PACKAGE
- Generated: 2026-08-24 12:44:38
- Content: 21 Core Modules (14 Python + 7 Julia) + Formal Validation JSON Report
+ ADCD CORE CODEBASE & FORMAL VALIDATION AUDIT PACKAGE (PySR/PhySO Standards)
+ Generated: 2026-08-24 12:59:42
+ Content: 22 Core Modules (15 Python + 7 Julia) + Formal Validation JSON Report
 ==========================================================================================
 
 TABLE OF CONTENTS (AUDIT CHECKLIST):
-   1. [src/adcd/run_adcd_v3_validation_blind.py] (617 lines, 27,428 bytes)
+   1. [src/adcd/run_adcd_v3_validation_blind.py] (709 lines, 31,566 bytes)
    2. [src/adcd/anomaly_scenarios.py] (664 lines, 30,823 bytes)
    3. [src/adcd/bayesian_ranker.py] (233 lines, 8,510 bytes)
    4. [src/adcd/julia_bridge.py] (196 lines, 7,541 bytes)
-   5. [src/adcd/metrics.py] (333 lines, 13,075 bytes)
+   5. [src/adcd/metrics.py] (369 lines, 14,056 bytes)
    6. [src/adcd/mode_detection.py] (57 lines, 1,979 bytes)
    7. [src/adcd/asymptotic_dictionary_proposer_v3.py] (209 lines, 7,897 bytes)
    8. [src/adcd/grammar_proposer_v3.py] (70 lines, 2,923 bytes)
@@ -19,20 +19,21 @@ TABLE OF CONTENTS (AUDIT CHECKLIST):
   12. [src/adcd/jax_optimizer.py] (430 lines, 18,329 bytes)
   13. [src/adcd/quickfit.py] (608 lines, 27,711 bytes)
   14. [eval/benchmark_noise_robustness.py] (187 lines, 7,055 bytes)
-  15. [ADCDEngine/src/ADCDEngine.jl] (165 lines, 7,912 bytes)
-  16. [ADCDEngine/src/CorrectionProposer.jl] (186 lines, 8,491 bytes)
-  17. [ADCDEngine/src/FilterCascade.jl] (248 lines, 8,604 bytes)
-  18. [ADCDEngine/src/IdentifiabilityGate.jl] (113 lines, 4,654 bytes)
-  19. [ADCDEngine/src/ConstantFitter.jl] (289 lines, 10,861 bytes)
-  20. [ADCDEngine/src/PrimitiveRegistry.jl] (102 lines, 5,252 bytes)
-  21. [ADCDEngine/src/ADCDDimensions.jl] (328 lines, 13,655 bytes)
-  22. [run_outputs/adcd_v3_taxonomy_validation_report.json] (342 lines, 11,897 bytes)
+  15. [eval/plot_pareto.py] (104 lines, 3,547 bytes)
+  16. [ADCDEngine/src/ADCDEngine.jl] (165 lines, 7,912 bytes)
+  17. [ADCDEngine/src/CorrectionProposer.jl] (186 lines, 8,491 bytes)
+  18. [ADCDEngine/src/FilterCascade.jl] (248 lines, 8,604 bytes)
+  19. [ADCDEngine/src/IdentifiabilityGate.jl] (113 lines, 4,654 bytes)
+  20. [ADCDEngine/src/ConstantFitter.jl] (289 lines, 10,861 bytes)
+  21. [ADCDEngine/src/PrimitiveRegistry.jl] (102 lines, 5,252 bytes)
+  22. [ADCDEngine/src/ADCDDimensions.jl] (328 lines, 13,655 bytes)
+  23. [run_outputs/adcd_v3_taxonomy_validation_report.json] (342 lines, 11,897 bytes)
 
 ==========================================================================================
 
 
 ==========================================================================================
- FILE #01: src/adcd/run_adcd_v3_validation_blind.py (618 lines, 27,428 bytes)
+ FILE #01: src/adcd/run_adcd_v3_validation_blind.py (710 lines, 31,566 bytes)
 ==========================================================================================
 
 """
@@ -166,6 +167,66 @@ class ProtocolResult:
     all_passed: bool = False
     tier: str = "WITHHELD"  # IDENTIFIABLE | DETECTED_UNRESOLVED | WITHHELD
     status_message: Optional[str] = None
+
+    def to_dataframe(self) -> Any:
+        """Export Pareto front candidates to a Pandas DataFrame (Standard PySR API)."""
+        import pandas as pd
+        pareto = self.checks.get("primary_search", {}).get("pareto_front", [])
+        records = []
+        for i, c in enumerate(pareto, start=1):
+            lat_str = c.get("latex") or self.to_latex(rank=i)
+            records.append({
+                "Rank": i,
+                "Class": c.get("class", "unknown"),
+                "Equation": c.get("expr_str", ""),
+                "LaTeX": lat_str,
+                "NMSE": c.get("nmse"),
+                "BIC": c.get("bic"),
+                "Parameters": c.get("theta_fit", {}),
+            })
+        return pd.DataFrame(records)
+
+    def to_latex(self, rank: int = 1, substituted: bool = False, precision: int = 4) -> str:
+        """Export candidate formula as LaTeX string (Standard PySR API)."""
+        pareto = self.checks.get("primary_search", {}).get("pareto_front", [])
+        if not pareto or rank < 1 or rank > len(pareto):
+            return ""
+        c = pareto[rank - 1]
+        from adcd.metrics import expr_to_latex
+        return expr_to_latex(
+            c.get("expr_str", ""),
+            theta_fit=c.get("theta_fit"),
+            precision=precision,
+            substitute_theta=substituted,
+        )
+
+    def to_latex_table(self, top_k: int = 5, substituted: bool = False) -> str:
+        """Export Pareto front as a publication-ready LaTeX table snippet for papers."""
+        pareto = self.checks.get("primary_search", {}).get("pareto_front", [])[:top_k]
+        lines = [
+            r"\begin{table}[htbp]",
+            r"\centering",
+            r"\caption{Pareto Frontier Candidates for " + self.scenario_name + r" (" + self.tier + r")}",
+            r"\label{tab:pareto_" + self.scenario_name.lower().replace(" ", "_") + r"}",
+            r"\begin{tabular}{c l c c l}",
+            r"\hline",
+            r"Rank & Class & NMSE & BIC & Discovered Correction $\Delta(u)$ \\",
+            r"\hline",
+        ]
+        for i, c in enumerate(pareto, start=1):
+            nmse_str = f"{c.get('nmse', 0.0):.2e}"
+            bic_val = c.get('bic')
+            bic_str = f"{bic_val:.2f}" if bic_val is not None else "-"
+            cls_str = c.get("class", "unknown").capitalize()
+            lat_expr = self.to_latex(rank=i, substituted=substituted)
+            lines.append(f"{i} & {cls_str} & {nmse_str} & {bic_str} & ${lat_expr}$ \\\\")
+        lines.extend([
+            r"\hline",
+            r"\end{tabular}",
+            r"\end{table}",
+        ])
+        return "\n".join(lines)
+
 
 
 def _build_context(scenario: Any, n_candidates: int) -> ProposalContext:
@@ -440,10 +501,15 @@ def run_scenario_protocol(
 
     top_candidates = []
     if ranked_blind:
+        from adcd.metrics import expr_to_latex
         for expr_str, nmse, bic, theta_fit in ranked_blind[:top_k_val]:
             top_candidates.append({
-                "expr_str": expr_str, "nmse": nmse, "bic": bic,
-                "class": classify_structure(expr_str, theta_fit), "theta_fit": theta_fit,
+                "expr_str": expr_str,
+                "latex": expr_to_latex(expr_str, theta_fit=theta_fit),
+                "nmse": nmse,
+                "bic": bic,
+                "class": classify_structure(expr_str, theta_fit),
+                "theta_fit": theta_fit,
             })
 
     top = ranked_blind[0] if ranked_blind else None
@@ -584,11 +650,14 @@ def run_scenario_protocol(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ADCD Validation Protocol")
+    parser = argparse.ArgumentParser(description="ADCD Validation Protocol (Professional PySR/PhySO Results Layer)")
     parser.add_argument("--top-k", type=int, default=5, help="Pareto candidates to display")
     parser.add_argument("--no-taxonomy", action="store_false", dest="taxonomy", help="Disable taxonomy prior")
     parser.add_argument("--engine", type=str, choices=["python", "julia"], default="julia", help="Execution backend")
     parser.add_argument("--domain-max", type=float, default=None, help="Override default domain max")
+    parser.add_argument("--latex", action="store_true", help="Print publication-ready LaTeX tables for papers")
+    parser.add_argument("--csv", action="store_true", help="Export Pareto front dataframes to CSV files")
+    parser.add_argument("--plot", action="store_true", help="Generate publication-quality Pareto front PDF plots")
     parser.set_defaults(taxonomy=True)
     args = parser.parse_args()
 
@@ -648,6 +717,30 @@ def main():
             f, indent=2, default=str,
         )
     print(f"Full report saved to {report_name}")
+
+    if args.csv:
+        for name, r in all_results.items():
+            df = r.to_dataframe()
+            slug = name.lower().replace(" ", "_")
+            csv_path = os.path.join("run_outputs", f"{slug}_pareto.csv")
+            df.to_csv(csv_path, index=False)
+            print(f"Exported Pareto DataFrame: {csv_path}")
+
+    if args.latex:
+        print("\n" + "=" * 80)
+        print(" PUBLICATION-READY LATEX TABLES (FOR OVERLEAF / PAPER DRAFT)")
+        print("=" * 80 + "\n")
+        for name, r in all_results.items():
+            print(f"% --- LaTeX Table: {name} ---")
+            print(r.to_latex_table(top_k=args.top_k))
+            print("\n")
+
+    if args.plot:
+        try:
+            from eval.plot_pareto import plot_validation_pareto_fronts
+            plot_validation_pareto_fronts(report_name, output_dir="run_outputs")
+        except ImportError:
+            pass
 
 
 if __name__ == "__main__":
@@ -1770,7 +1863,7 @@ def data_from_scenario(scenario: Any, y_classical: np.ndarray, y_obs: np.ndarray
 
 
 ==========================================================================================
- FILE #05: src/adcd/metrics.py (334 lines, 13,075 bytes)
+ FILE #05: src/adcd/metrics.py (370 lines, 14,056 bytes)
 ==========================================================================================
 
 import itertools
@@ -2106,6 +2199,42 @@ def evaluate_correction(
         parameter_match_structural=structural_match,
         parameter_count_mismatch=count_mismatch,
     )
+
+
+def expr_to_latex(
+    expr: Union[str, sp.Expr],
+    theta_fit: Optional[Dict[str, float]] = None,
+    precision: int = 4,
+    substitute_theta: bool = False,
+) -> str:
+    """
+    Convert a symbolic correction expression to clean, publication-ready LaTeX.
+    Compatible with PySR/PhySO LaTeX presentation workflows.
+    """
+    if isinstance(expr, str):
+        try:
+            expr_sp = sp.sympify(expr)
+        except Exception:
+            return expr
+    else:
+        expr_sp = expr
+
+    if substitute_theta and theta_fit:
+        sub_dict = {}
+        for k, v in theta_fit.items():
+            sym_k = sp.Symbol(k)
+            rounded_v = round(v, precision) if isinstance(v, (int, float)) else v
+            sub_dict[sym_k] = rounded_v
+        try:
+            expr_sp = expr_sp.subs(sub_dict)
+        except Exception:
+            pass
+
+    try:
+        return sp.latex(expr_sp)
+    except Exception:
+        return str(expr_sp)
+
 
 
 
@@ -4509,7 +4638,118 @@ if __name__ == "__main__":
 
 
 ==========================================================================================
- FILE #15: ADCDEngine/src/ADCDEngine.jl (165 lines, 7,912 bytes)
+ FILE #15: eval/plot_pareto.py (105 lines, 3,547 bytes)
+==========================================================================================
+
+﻿"""
+ADCD Pareto Frontier Plotter (PhySO / PySR Style)
+=================================================
+Generates publication-quality PDF and PNG plots of discovered Pareto frontiers
+for inclusion into LaTeX physics papers and manuscripts.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+
+def plot_validation_pareto_fronts(
+    json_report_path: str | Path = "run_outputs/adcd_v3_taxonomy_validation_report.json",
+    output_dir: str | Path = "run_outputs",
+) -> list[str]:
+    """
+    Generate publication-ready PDF & PNG figures for each scenario's Pareto front.
+    """
+    json_path = Path(json_report_path)
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    if not json_path.exists():
+        print(f"[WARN] Report file not found: {json_path}")
+        return []
+
+    with open(json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    generated_files = []
+
+    plt.rcParams.update({
+        "font.family": "serif",
+        "font.size": 11,
+        "axes.labelsize": 12,
+        "axes.titlesize": 13,
+        "xtick.labelsize": 10,
+        "ytick.labelsize": 10,
+        "legend.fontsize": 10,
+        "figure.titlesize": 14,
+        "axes.grid": True,
+        "grid.alpha": 0.3,
+        "grid.linestyle": "--",
+    })
+
+    for scenario_name, report in data.items():
+        checks = report.get("checks", {})
+        ps = checks.get("primary_search", {})
+        pareto = ps.get("pareto_front", [])
+        if not pareto:
+            continue
+
+        tier = report.get("tier", "UNKNOWN")
+        slug = scenario_name.lower().replace(" ", "_")
+
+        ranks = list(range(1, len(pareto) + 1))
+        nmses = [c.get("nmse", float("nan")) for c in pareto]
+        bics = [c.get("bic", float("nan")) for c in pareto]
+        labels = [c.get("class", "model") for c in pareto]
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4.2), dpi=300)
+
+        # Plot 1: Pareto Rank vs NMSE (Log Scale)
+        ax1.plot(ranks, nmses, "o-", color="#1f77b4", linewidth=1.8, markersize=7, label="Pareto Frontier")
+        ax1.scatter([ranks[0]], [nmses[0]], color="#d62728", s=120, zorder=5, label=f"Rank 1 ({labels[0]})")
+        ax1.set_yscale("log")
+        ax1.set_xlabel("Pareto Rank")
+        ax1.set_ylabel("NMSE (Residual)")
+        ax1.set_title("Fitness Curve")
+        ax1.set_xticks(ranks)
+        ax1.legend(frameon=True)
+
+        # Plot 2: Pareto Rank vs BIC
+        ax2.plot(ranks, bics, "s-", color="#2ca02c", linewidth=1.8, markersize=7, label="Information Criterion")
+        ax2.scatter([ranks[0]], [bics[0]], color="#d62728", s=120, zorder=5, label=f"Rank 1 (BIC={bics[0]:.2f})")
+        ax2.set_xlabel("Pareto Rank")
+        ax2.set_ylabel("BIC Score")
+        ax2.set_title(f"Bayesian Information Criterion\n(Tier: {tier})")
+        ax2.set_xticks(ranks)
+        ax2.legend(frameon=True)
+
+        fig.suptitle(f"ADCD Discovered Pareto Frontier: {scenario_name}", y=1.03, weight="bold")
+        fig.tight_layout()
+
+        pdf_path = out_dir / f"pareto_{slug}.pdf"
+        png_path = out_dir / f"pareto_{slug}.png"
+        fig.savefig(pdf_path, bbox_inches="tight")
+        fig.savefig(png_path, bbox_inches="tight")
+        plt.close(fig)
+
+        generated_files.extend([str(pdf_path), str(png_path)])
+        print(f"Generated Pareto Plots: {pdf_path.name} & {png_path.name}")
+
+    return generated_files
+
+
+if __name__ == "__main__":
+    plot_validation_pareto_fronts()
+
+
+
+==========================================================================================
+ FILE #16: ADCDEngine/src/ADCDEngine.jl (165 lines, 7,912 bytes)
 ==========================================================================================
 
 # ADCDEngine.jl (Hardened & Unified)
@@ -4680,7 +4920,7 @@ end  # module ADCDEngine
 
 
 ==========================================================================================
- FILE #16: ADCDEngine/src/CorrectionProposer.jl (187 lines, 8,491 bytes)
+ FILE #17: ADCDEngine/src/CorrectionProposer.jl (187 lines, 8,491 bytes)
 ==========================================================================================
 
 # ADCD Engine: CorrectionProposer (Hardened)
@@ -4873,7 +5113,7 @@ end  # module CorrectionProposer
 
 
 ==========================================================================================
- FILE #17: ADCDEngine/src/FilterCascade.jl (249 lines, 8,604 bytes)
+ FILE #18: ADCDEngine/src/FilterCascade.jl (249 lines, 8,604 bytes)
 ==========================================================================================
 
 # ============================================================================
@@ -5128,7 +5368,7 @@ end  # module FilterCascade
 
 
 ==========================================================================================
- FILE #18: ADCDEngine/src/IdentifiabilityGate.jl (114 lines, 4,654 bytes)
+ FILE #19: ADCDEngine/src/IdentifiabilityGate.jl (114 lines, 4,654 bytes)
 ==========================================================================================
 
 # ============================================================================
@@ -5248,7 +5488,7 @@ end  # module IdentifiabilityGate
 
 
 ==========================================================================================
- FILE #19: ADCDEngine/src/ConstantFitter.jl (290 lines, 10,861 bytes)
+ FILE #20: ADCDEngine/src/ConstantFitter.jl (290 lines, 10,861 bytes)
 ==========================================================================================
 
 # ADCD Engine: ConstantFitter (Hardened & Unified)
@@ -5544,7 +5784,7 @@ end  # module ConstantFitter
 
 
 ==========================================================================================
- FILE #20: ADCDEngine/src/PrimitiveRegistry.jl (103 lines, 5,252 bytes)
+ FILE #21: ADCDEngine/src/PrimitiveRegistry.jl (103 lines, 5,252 bytes)
 ==========================================================================================
 
 # ADCD Engine: PrimitiveRegistry (Hardened)
@@ -5653,7 +5893,7 @@ end  # module PrimitiveRegistry
 
 
 ==========================================================================================
- FILE #21: ADCDEngine/src/ADCDDimensions.jl (329 lines, 13,655 bytes)
+ FILE #22: ADCDEngine/src/ADCDDimensions.jl (329 lines, 13,655 bytes)
 ==========================================================================================
 
 # ADCD Engine: ADCDDimensions (Hardened & Unified)
@@ -5988,7 +6228,7 @@ end  # module ADCDDimensions
 
 
 ==========================================================================================
- FILE #22: run_outputs/adcd_v3_taxonomy_validation_report.json (342 lines, 11,897 bytes)
+ FILE #23: run_outputs/adcd_v3_taxonomy_validation_report.json (342 lines, 11,897 bytes)
 ==========================================================================================
 
 {

@@ -130,6 +130,66 @@ class ProtocolResult:
     tier: str = "WITHHELD"  # IDENTIFIABLE | DETECTED_UNRESOLVED | WITHHELD
     status_message: Optional[str] = None
 
+    def to_dataframe(self) -> Any:
+        """Export Pareto front candidates to a Pandas DataFrame (Standard PySR API)."""
+        import pandas as pd
+        pareto = self.checks.get("primary_search", {}).get("pareto_front", [])
+        records = []
+        for i, c in enumerate(pareto, start=1):
+            lat_str = c.get("latex") or self.to_latex(rank=i)
+            records.append({
+                "Rank": i,
+                "Class": c.get("class", "unknown"),
+                "Equation": c.get("expr_str", ""),
+                "LaTeX": lat_str,
+                "NMSE": c.get("nmse"),
+                "BIC": c.get("bic"),
+                "Parameters": c.get("theta_fit", {}),
+            })
+        return pd.DataFrame(records)
+
+    def to_latex(self, rank: int = 1, substituted: bool = False, precision: int = 4) -> str:
+        """Export candidate formula as LaTeX string (Standard PySR API)."""
+        pareto = self.checks.get("primary_search", {}).get("pareto_front", [])
+        if not pareto or rank < 1 or rank > len(pareto):
+            return ""
+        c = pareto[rank - 1]
+        from adcd.metrics import expr_to_latex
+        return expr_to_latex(
+            c.get("expr_str", ""),
+            theta_fit=c.get("theta_fit"),
+            precision=precision,
+            substitute_theta=substituted,
+        )
+
+    def to_latex_table(self, top_k: int = 5, substituted: bool = False) -> str:
+        """Export Pareto front as a publication-ready LaTeX table snippet for papers."""
+        pareto = self.checks.get("primary_search", {}).get("pareto_front", [])[:top_k]
+        lines = [
+            r"\begin{table}[htbp]",
+            r"\centering",
+            r"\caption{Pareto Frontier Candidates for " + self.scenario_name + r" (" + self.tier + r")}",
+            r"\label{tab:pareto_" + self.scenario_name.lower().replace(" ", "_") + r"}",
+            r"\begin{tabular}{c l c c l}",
+            r"\hline",
+            r"Rank & Class & NMSE & BIC & Discovered Correction $\Delta(u)$ \\",
+            r"\hline",
+        ]
+        for i, c in enumerate(pareto, start=1):
+            nmse_str = f"{c.get('nmse', 0.0):.2e}"
+            bic_val = c.get('bic')
+            bic_str = f"{bic_val:.2f}" if bic_val is not None else "-"
+            cls_str = c.get("class", "unknown").capitalize()
+            lat_expr = self.to_latex(rank=i, substituted=substituted)
+            lines.append(f"{i} & {cls_str} & {nmse_str} & {bic_str} & ${lat_expr}$ \\\\")
+        lines.extend([
+            r"\hline",
+            r"\end{tabular}",
+            r"\end{table}",
+        ])
+        return "\n".join(lines)
+
+
 
 def _build_context(scenario: Any, n_candidates: int) -> ProposalContext:
     return ProposalContext(
@@ -403,10 +463,15 @@ def run_scenario_protocol(
 
     top_candidates = []
     if ranked_blind:
+        from adcd.metrics import expr_to_latex
         for expr_str, nmse, bic, theta_fit in ranked_blind[:top_k_val]:
             top_candidates.append({
-                "expr_str": expr_str, "nmse": nmse, "bic": bic,
-                "class": classify_structure(expr_str, theta_fit), "theta_fit": theta_fit,
+                "expr_str": expr_str,
+                "latex": expr_to_latex(expr_str, theta_fit=theta_fit),
+                "nmse": nmse,
+                "bic": bic,
+                "class": classify_structure(expr_str, theta_fit),
+                "theta_fit": theta_fit,
             })
 
     top = ranked_blind[0] if ranked_blind else None
@@ -547,11 +612,14 @@ def run_scenario_protocol(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ADCD Validation Protocol")
+    parser = argparse.ArgumentParser(description="ADCD Validation Protocol (Professional PySR/PhySO Results Layer)")
     parser.add_argument("--top-k", type=int, default=5, help="Pareto candidates to display")
     parser.add_argument("--no-taxonomy", action="store_false", dest="taxonomy", help="Disable taxonomy prior")
     parser.add_argument("--engine", type=str, choices=["python", "julia"], default="julia", help="Execution backend")
     parser.add_argument("--domain-max", type=float, default=None, help="Override default domain max")
+    parser.add_argument("--latex", action="store_true", help="Print publication-ready LaTeX tables for papers")
+    parser.add_argument("--csv", action="store_true", help="Export Pareto front dataframes to CSV files")
+    parser.add_argument("--plot", action="store_true", help="Generate publication-quality Pareto front PDF plots")
     parser.set_defaults(taxonomy=True)
     args = parser.parse_args()
 
@@ -611,6 +679,30 @@ def main():
             f, indent=2, default=str,
         )
     print(f"Full report saved to {report_name}")
+
+    if args.csv:
+        for name, r in all_results.items():
+            df = r.to_dataframe()
+            slug = name.lower().replace(" ", "_")
+            csv_path = os.path.join("run_outputs", f"{slug}_pareto.csv")
+            df.to_csv(csv_path, index=False)
+            print(f"Exported Pareto DataFrame: {csv_path}")
+
+    if args.latex:
+        print("\n" + "=" * 80)
+        print(" PUBLICATION-READY LATEX TABLES (FOR OVERLEAF / PAPER DRAFT)")
+        print("=" * 80 + "\n")
+        for name, r in all_results.items():
+            print(f"% --- LaTeX Table: {name} ---")
+            print(r.to_latex_table(top_k=args.top_k))
+            print("\n")
+
+    if args.plot:
+        try:
+            from eval.plot_pareto import plot_validation_pareto_fronts
+            plot_validation_pareto_fronts(report_name, output_dir="run_outputs")
+        except ImportError:
+            pass
 
 
 if __name__ == "__main__":
