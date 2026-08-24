@@ -53,13 +53,23 @@ function run_adcd(config_json::String, data_json::String)::String
 
     # Detect dynamic variables (variables that vary across samples)
     data_vars = String[]
+    constant_vars = String[]
     for (k, v) in vars_data
         if length(v) > 1
             mu = mean(abs.(v))
             sd = std(v)
             if (mu > 0 && sd / mu > 1e-6) || (mu == 0 && sd > 1e-6)
                 push!(data_vars, k)
+            else
+                push!(constant_vars, k)
             end
+        else
+            push!(constant_vars, k)
+        end
+    end
+    for k in keys(config.known_constants)
+        if !(k in constant_vars)
+            push!(constant_vars, k)
         end
     end
     if isempty(data_vars)
@@ -114,6 +124,8 @@ function run_adcd(config_json::String, data_json::String)::String
         "n_proposals_generated" => length(proposals),
         "n_proposals_evaluated" => min(length(proposals), config.max_proposals),
         "primitives_active"     => [string(p) for p in active_prims],
+        "data_vars_detected"    => data_vars,
+        "constants_detected"    => constant_vars,
         "gate_stats" => Dict(
             "n_input"        => stats.n_input,
             "n_pass_gate_a"  => stats.n_pass_gate_a,

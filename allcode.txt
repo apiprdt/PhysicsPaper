@@ -1,14 +1,14 @@
 ==========================================================================================
  ADCD CORE REPOSITORY CONSOLIDATION & VALIDATION RESULTS (FRESH DUMP)
- Generated: 2026-08-23 10:12:08
+ Generated: 2026-08-24 12:38:14
  Total Bundled Files: 23 (14 Python + 7 Julia + 2 JSON Results)
 ==========================================================================================
 
 TABLE OF CONTENTS:
    1. [src/adcd/bayesian_ranker.py] (233 lines, 8,510 bytes)
-   2. [src/adcd/run_adcd_v3_validation_blind.py] (613 lines, 27,047 bytes)
+   2. [src/adcd/run_adcd_v3_validation_blind.py] (617 lines, 27,428 bytes)
    3. [src/adcd/anomaly_scenarios.py] (664 lines, 30,823 bytes)
-   4. [src/adcd/julia_bridge.py] (192 lines, 7,265 bytes)
+   4. [src/adcd/julia_bridge.py] (196 lines, 7,541 bytes)
    5. [src/adcd/metrics.py] (333 lines, 13,075 bytes)
    6. [src/adcd/mode_detection.py] (57 lines, 1,979 bytes)
    7. [src/adcd/asymptotic_dictionary_proposer_v3.py] (209 lines, 7,897 bytes)
@@ -19,14 +19,14 @@ TABLE OF CONTENTS:
   12. [src/adcd/jax_optimizer.py] (430 lines, 18,329 bytes)
   13. [src/adcd/quickfit.py] (608 lines, 27,711 bytes)
   14. [eval/benchmark_noise_robustness.py] (187 lines, 7,055 bytes)
-  15. [ADCDEngine/src/ADCDEngine.jl] (153 lines, 7,550 bytes)
-  16. [ADCDEngine/src/CorrectionProposer.jl] (187 lines, 8,585 bytes)
+  15. [ADCDEngine/src/ADCDEngine.jl] (165 lines, 7,912 bytes)
+  16. [ADCDEngine/src/CorrectionProposer.jl] (186 lines, 8,491 bytes)
   17. [ADCDEngine/src/FilterCascade.jl] (248 lines, 8,604 bytes)
   18. [ADCDEngine/src/IdentifiabilityGate.jl] (113 lines, 4,654 bytes)
   19. [ADCDEngine/src/ConstantFitter.jl] (289 lines, 10,861 bytes)
   20. [ADCDEngine/src/PrimitiveRegistry.jl] (102 lines, 5,252 bytes)
   21. [ADCDEngine/src/ADCDDimensions.jl] (328 lines, 13,655 bytes)
-  22. [run_outputs/adcd_v3_taxonomy_validation_report.json] (319 lines, 11,891 bytes)
+  22. [run_outputs/adcd_v3_taxonomy_validation_report.json] (342 lines, 11,897 bytes)
   23. [run_outputs/noise_robustness_julia.json] (7364 lines, 280,025 bytes)
 
 ==========================================================================================
@@ -273,7 +273,7 @@ class BayesianReranker:
 
 
 ==========================================================================================
- FILE #2: src/adcd/run_adcd_v3_validation_blind.py (614 lines, 27,047 bytes)
+ FILE #2: src/adcd/run_adcd_v3_validation_blind.py (618 lines, 27,428 bytes)
 ==========================================================================================
 
 """
@@ -547,6 +547,8 @@ def _run_search(
             dimensional_checker=checker,
         )
         proposer._julia_primitives_active = result.primitives_active
+        proposer._julia_data_vars_detected = result.data_vars_detected
+        proposer._julia_constants_detected = result.constants_detected
         return ranked, space_size, proposer
 
     else:
@@ -664,6 +666,8 @@ def run_scenario_protocol(
     result.checks["budget_disclosure"] = {
         "search_space_size": space_size_blind,
         "primitives": getattr(proposer, "_julia_primitives_active", list(proposer._active_primitives.keys())),
+        "data_vars_detected": getattr(proposer, "_julia_data_vars_detected", list(scenario.classical_variables)),
+        "constants_detected": getattr(proposer, "_julia_constants_detected", list(scenario.classical_constants.keys())),
         "pass": True,
     }
 
@@ -1564,7 +1568,7 @@ def get_mv_scenario(name: str) -> AnomalyScenario:
 
 
 ==========================================================================================
- FILE #4: src/adcd/julia_bridge.py (193 lines, 7,265 bytes)
+ FILE #4: src/adcd/julia_bridge.py (197 lines, 7,541 bytes)
 ==========================================================================================
 
 from __future__ import annotations
@@ -1669,6 +1673,8 @@ class ADCDEngineResult:
     results: list[CandidateResult]
     n_proposals_evaluated: int = 0
     primitives_active: list[str] = field(default_factory=list)
+    data_vars_detected: list[str] = field(default_factory=list)
+    constants_detected: list[str] = field(default_factory=list)
 
     @property
     def identifiable(self) -> list[CandidateResult]:
@@ -1742,6 +1748,8 @@ class ADCDJuliaEngine:
             n_proposals_generated=raw["n_proposals_generated"],
             n_proposals_evaluated=raw.get("n_proposals_evaluated", raw["n_proposals_generated"]),
             primitives_active=list(raw.get("primitives_active", [])),
+            data_vars_detected=list(raw.get("data_vars_detected", [])),
+            constants_detected=list(raw.get("constants_detected", [])),
             gate_stats=dict(raw["gate_stats"]),
             results=[CandidateResult.from_dict(dict(r)) for r in raw["results"]],
         )
@@ -4502,7 +4510,7 @@ if __name__ == "__main__":
 
 
 ==========================================================================================
- FILE #15: ADCDEngine/src/ADCDEngine.jl (153 lines, 7,550 bytes)
+ FILE #15: ADCDEngine/src/ADCDEngine.jl (165 lines, 7,912 bytes)
 ==========================================================================================
 
 # ADCDEngine.jl (Hardened & Unified)
@@ -4560,13 +4568,23 @@ function run_adcd(config_json::String, data_json::String)::String
 
     # Detect dynamic variables (variables that vary across samples)
     data_vars = String[]
+    constant_vars = String[]
     for (k, v) in vars_data
         if length(v) > 1
             mu = mean(abs.(v))
             sd = std(v)
             if (mu > 0 && sd / mu > 1e-6) || (mu == 0 && sd > 1e-6)
                 push!(data_vars, k)
+            else
+                push!(constant_vars, k)
             end
+        else
+            push!(constant_vars, k)
+        end
+    end
+    for k in keys(config.known_constants)
+        if !(k in constant_vars)
+            push!(constant_vars, k)
         end
     end
     if isempty(data_vars)
@@ -4621,6 +4639,8 @@ function run_adcd(config_json::String, data_json::String)::String
         "n_proposals_generated" => length(proposals),
         "n_proposals_evaluated" => min(length(proposals), config.max_proposals),
         "primitives_active"     => [string(p) for p in active_prims],
+        "data_vars_detected"    => data_vars,
+        "constants_detected"    => constant_vars,
         "gate_stats" => Dict(
             "n_input"        => stats.n_input,
             "n_pass_gate_a"  => stats.n_pass_gate_a,
@@ -4661,7 +4681,7 @@ end  # module ADCDEngine
 
 
 ==========================================================================================
- FILE #16: ADCDEngine/src/CorrectionProposer.jl (188 lines, 8,585 bytes)
+ FILE #16: ADCDEngine/src/CorrectionProposer.jl (187 lines, 8,491 bytes)
 ==========================================================================================
 
 # ADCD Engine: CorrectionProposer (Hardened)
@@ -4708,11 +4728,10 @@ num_node(v::Real)    = Dict{String,Any}("num" => Float64(v))
 function build_ratio_nodes(vars::Vector{String}, theta_idx::Int; data_vars::Union{Vector{String},Nothing}=nothing)::Vector{Dict{String,Any}}
     results = Dict{String,Any}[]
     
-    # 1. Dimensionless Buckingham Pi ratios (e.g. v/c and (v/c)^2)
+    # 1. Dimensionless Buckingham Pi ratios (already covers degree 1 and degree 2)
     ratios = enumerate_dimensionless_ratios(vars, 2; data_vars=data_vars)
     for ratio_expr in ratios
         push!(results, op_node("mul", [theta_node(theta_idx), ratio_expr]))
-        push!(results, op_node("mul", [theta_node(theta_idx), op_node("pow", [ratio_expr, num_node(2.0)])]))
     end
     
     # 2. Single variables (scaled by theta, e.g. theta * r or r / theta)
@@ -5970,7 +5989,7 @@ end  # module ADCDDimensions
 
 
 ==========================================================================================
- FILE #22: run_outputs/adcd_v3_taxonomy_validation_report.json (319 lines, 11,891 bytes)
+ FILE #22: run_outputs/adcd_v3_taxonomy_validation_report.json (342 lines, 11,897 bytes)
 ==========================================================================================
 
 {
@@ -5980,20 +5999,27 @@ end  # module ADCDDimensions
     "all_passed": false,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 44,
+        "search_space_size": 28,
         "primitives": [
           "D_lor"
+        ],
+        "data_vars_detected": [
+          "v",
+          "t_0"
+        ],
+        "constants_detected": [
+          "c"
         ],
         "pass": true
       },
       "primary_search": {
         "pass": true,
-        "top_candidate": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
-        "nmse": 0.412094804339714,
-        "bic": -386.05298869603416,
+        "top_candidate": "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))",
+        "nmse": 0.4120991137634981,
+        "bic": -386.95486748242615,
         "theta_fit": {
-          "theta_0": 6.711891362334025,
-          "theta_1": 0.38413301902763985
+          "theta_0": 0.9234789473254843,
+          "theta_1": 1.0764291253665954
         },
         "discovered_class": "rational",
         "match_level": "class_only",
@@ -6002,29 +6028,9 @@ end  # module ADCDDimensions
         "counts_toward_verdict": false,
         "pareto_front": [
           {
-            "expr_str": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
-            "nmse": 0.412094804339714,
-            "bic": -386.05298869603416,
-            "class": "rational",
-            "theta_fit": {
-              "theta_0": 6.711891362334025,
-              "theta_1": 0.38413301902763985
-            }
-          },
-          {
-            "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v * (c**-1))**2.0)))) - 1))",
-            "nmse": 0.4120991137634981,
-            "bic": -386.05089723494007,
-            "class": "rational",
-            "theta_fit": {
-              "theta_0": 0.9234789473254843,
-              "theta_1": 1.0764291253665954
-            }
-          },
-          {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))",
             "nmse": 0.4120991137634981,
-            "bic": -386.05089723494007,
+            "bic": -386.95486748242615,
             "class": "rational",
             "theta_fit": {
               "theta_0": 0.9234789473254843,
@@ -6034,7 +6040,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * (v * (c**-1))))) - 1))",
             "nmse": 0.414862388379545,
-            "bic": -384.71430060093167,
+            "bic": -385.61827084841775,
             "class": "rational",
             "theta_fit": {
               "theta_0": 2.565291024684205,
@@ -6044,35 +6050,55 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * v))) - 1))",
             "nmse": 0.414862388379545,
-            "bic": -384.71430060093167,
+            "bic": -385.61827084841775,
             "class": "rational",
             "theta_fit": {
               "theta_0": 2.565291024684205,
               "theta_1": 0.0466306380581869
             }
+          },
+          {
+            "expr_str": "(theta_1 * (1/sqrt(1 - ((v / theta_0))) - 1))",
+            "nmse": 0.41486239015866583,
+            "bic": -385.6182699907256,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 0.38982505781623594,
+              "theta_1": 0.04663100122534433
+            }
+          },
+          {
+            "expr_str": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * ((v**2) * (c**-2)))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * ((v**2) * (c**-2)))))) - 1))))",
+            "nmse": 0.4159809970828493,
+            "bic": -385.07972921770056,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 13.376945065666629,
+              "theta_1": 0.0431653381280222
+            }
           }
         ],
-        "bayesian_best_weight": 0.18809788043185208,
+        "bayesian_best_weight": 0.3413763198996631,
         "evidence_vs_null_label": "decisive",
         "evidence_top2_label": "weak",
-        "posterior_entropy": 2.8893017433255626
+        "posterior_entropy": 2.2375074132432906
       },
       "positive_control": {
-        "search_space_size": 44,
-        "nmse": 0.412094804339714,
+        "search_space_size": 28,
+        "nmse": 0.4120991137634981,
         "pass": false
       },
       "ablation_control": {
         "ablated_bic": Infinity,
-        "true_structure_bic": -386.05298869603416,
+        "true_structure_bic": -386.95486748242615,
         "bic_diff": Infinity,
         "pass": true
       },
       "determinism_check": {
         "runs": [
-          "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
-          "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))",
-          "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * (((v**2) * (c**-2))**2.0))))) - 1))))"
+          "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))",
+          "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))",
+          "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))"
         ],
         "pass": true
       }
@@ -6084,10 +6110,18 @@ end  # module ADCDDimensions
     "all_passed": true,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 252,
+        "search_space_size": 180,
         "primitives": [
           "D_exp",
           "D_rat"
+        ],
+        "data_vars_detected": [
+          "q1",
+          "r",
+          "q2"
+        ],
+        "constants_detected": [
+          "k_e"
         ],
         "pass": true
       },
@@ -6095,7 +6129,7 @@ end  # module ADCDDimensions
         "pass": true,
         "top_candidate": "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
         "nmse": 0.0002772155195392813,
-        "bic": -2072.814502354342,
+        "bic": -2073.4874468275843,
         "theta_fit": {
           "theta_0": 1.493300906422077,
           "theta_1": -0.9987128880579966
@@ -6109,7 +6143,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
             "nmse": 0.0002772155195392813,
-            "bic": -2072.814502354342,
+            "bic": -2073.4874468275843,
             "class": "exponential",
             "theta_fit": {
               "theta_0": 1.493300906422077,
@@ -6119,7 +6153,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * (1 - exp(-Abs((theta_0 * r)))))",
             "nmse": 0.00027721555857847783,
-            "bic": -2072.814474189113,
+            "bic": -2073.487418662355,
             "class": "exponential",
             "theta_fit": {
               "theta_0": -0.6696562880022479,
@@ -6129,7 +6163,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "((theta_1 * (1 - exp(-Abs((r / theta_0))))) + (theta_2 * (((r / theta_0)) / (1 + ((r / theta_0))**2))))",
             "nmse": 0.00027168776414560617,
-            "bic": -2071.5445392984734,
+            "bic": -2072.2174837717157,
             "class": "exponential",
             "theta_fit": {
               "theta_0": 1.610916857353137,
@@ -6140,7 +6174,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "((theta_1 * (1 - exp(-Abs((theta_0 * r))))) + (theta_2 * (((theta_0 * r)) / (1 + ((theta_0 * r))**2))))",
             "nmse": 0.00027168815154920636,
-            "bic": -2071.5442541157195,
+            "bic": -2072.2171985889618,
             "class": "exponential",
             "theta_fit": {
               "theta_0": -0.6203911076351585,
@@ -6151,7 +6185,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "((theta_1 * (((theta_0 * r)) / (1 + ((theta_0 * r))**2))) + (theta_2 * (1 - exp(-Abs((theta_0 * r))))))",
             "nmse": 0.0002716882070467114,
-            "bic": -2071.544213261896,
+            "bic": -2072.2171577351382,
             "class": "exponential",
             "theta_fit": {
               "theta_0": 0.6211652796937818,
@@ -6160,19 +6194,19 @@ end  # module ADCDDimensions
             }
           }
         ],
-        "bayesian_best_weight": 0.16695368434604027,
+        "bayesian_best_weight": 0.18435107763557693,
         "evidence_vs_null_label": "decisive",
         "evidence_top2_label": "weak",
-        "posterior_entropy": 4.091592182925436
+        "posterior_entropy": 3.7074624698751
       },
       "positive_control": {
-        "search_space_size": 56,
+        "search_space_size": 40,
         "nmse": 0.0002772155195392813,
         "pass": true
       },
       "ablation_control": {
-        "ablated_bic": -1316.016520217826,
-        "true_structure_bic": -2072.814502354342,
+        "ablated_bic": -1316.6894646910682,
+        "true_structure_bic": -2073.4874468275843,
         "bic_diff": 756.7979821365161,
         "pass": true
       },
@@ -6192,10 +6226,18 @@ end  # module ADCDDimensions
     "all_passed": false,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 520,
+        "search_space_size": 224,
         "primitives": [
           "D_exp",
           "D_log"
+        ],
+        "data_vars_detected": [
+          "V_i",
+          "dV"
+        ],
+        "constants_detected": [
+          "S_i",
+          "nR"
         ],
         "pass": true
       },
@@ -6203,7 +6245,7 @@ end  # module ADCDDimensions
         "pass": true,
         "top_candidate": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
         "nmse": 0.015937367822209263,
-        "bic": -1191.4717454849622,
+        "bic": -1193.156111004403,
         "theta_fit": {
           "theta_0": 1.0191770956907646,
           "theta_1": 8.181799078864573
@@ -6217,7 +6259,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
             "nmse": 0.015937367822209263,
-            "bic": -1191.4717454849622,
+            "bic": -1193.156111004403,
             "class": "logarithmic",
             "theta_fit": {
               "theta_0": 1.0191770956907646,
@@ -6227,17 +6269,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * (log(1 + Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2)))))) / (1.0 + log(1 + Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2)))))))))",
             "nmse": 0.015999934435482168,
-            "bic": -1190.688126470321,
-            "class": "logarithmic",
-            "theta_fit": {
-              "theta_0": 0.08444956255911963,
-              "theta_1": 28.230749375315014
-            }
-          },
-          {
-            "expr_str": "(theta_1 * (log(1 + Abs(sqrt((theta_0 * (((V_i**-1) * dV)**2.0))))) / (1.0 + log(1 + Abs(sqrt((theta_0 * (((V_i**-1) * dV)**2.0))))))))",
-            "nmse": 0.015999934435482168,
-            "bic": -1190.688126470321,
+            "bic": -1192.372491989762,
             "class": "logarithmic",
             "theta_fit": {
               "theta_0": 0.08444956255911963,
@@ -6247,7 +6279,7 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * (1 - exp(-Abs(log(1 + Abs((theta_0 * ((V_i**-1) * dV))))))))",
             "nmse": 0.016010913872807,
-            "bic": -1190.5509300093008,
+            "bic": -1192.2352955287417,
             "class": "rational",
             "theta_fit": {
               "theta_0": 0.4270122292016231,
@@ -6257,28 +6289,38 @@ end  # module ADCDDimensions
           {
             "expr_str": "(theta_1 * ((1 - exp(-Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2))))))) / (1.0 + (1 - exp(-Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2))))))))))",
             "nmse": 0.01602407049076487,
-            "bic": -1190.3866518745183,
+            "bic": -1192.0710173939592,
             "class": "exponential",
             "theta_fit": {
               "theta_0": 0.07750078808352573,
               "theta_1": 29.332444832251227
             }
+          },
+          {
+            "expr_str": "(theta_1 * log(1 + Abs((1 - exp(-Abs((theta_0 * ((V_i**-1) * dV))))))))",
+            "nmse": 0.016024166388371983,
+            "bic": -1192.0698204781042,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": -0.42000296006209514,
+              "theta_1": 19.445591073706407
+            }
           }
         ],
-        "bayesian_best_weight": 0.14419686879719482,
+        "bayesian_best_weight": 0.20297570924749583,
         "evidence_vs_null_label": "decisive",
         "evidence_top2_label": "weak",
-        "posterior_entropy": 4.32484309415764
+        "posterior_entropy": 3.6424578298572836
       },
       "positive_control": {
-        "search_space_size": 124,
+        "search_space_size": 52,
         "nmse": 0.015937367822209263,
         "pass": true
       },
       "ablation_control": {
-        "ablated_bic": -1193.2537463664592,
-        "true_structure_bic": -1191.4717454849622,
-        "bic_diff": -1.7820008814969697,
+        "ablated_bic": -1194.9918220605064,
+        "true_structure_bic": -1193.156111004403,
+        "bic_diff": -1.8357110561032641,
         "pass": false
       },
       "determinism_check": {

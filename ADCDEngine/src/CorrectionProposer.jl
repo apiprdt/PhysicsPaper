@@ -42,11 +42,10 @@ num_node(v::Real)    = Dict{String,Any}("num" => Float64(v))
 function build_ratio_nodes(vars::Vector{String}, theta_idx::Int; data_vars::Union{Vector{String},Nothing}=nothing)::Vector{Dict{String,Any}}
     results = Dict{String,Any}[]
     
-    # 1. Dimensionless Buckingham Pi ratios (e.g. v/c and (v/c)^2)
+    # 1. Dimensionless Buckingham Pi ratios (already covers degree 1 and degree 2)
     ratios = enumerate_dimensionless_ratios(vars, 2; data_vars=data_vars)
     for ratio_expr in ratios
         push!(results, op_node("mul", [theta_node(theta_idx), ratio_expr]))
-        push!(results, op_node("mul", [theta_node(theta_idx), op_node("pow", [ratio_expr, num_node(2.0)])]))
     end
     
     # 2. Single variables (scaled by theta, e.g. theta * r or r / theta)

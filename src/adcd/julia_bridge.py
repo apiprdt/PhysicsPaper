@@ -100,6 +100,8 @@ class ADCDEngineResult:
     results: list[CandidateResult]
     n_proposals_evaluated: int = 0
     primitives_active: list[str] = field(default_factory=list)
+    data_vars_detected: list[str] = field(default_factory=list)
+    constants_detected: list[str] = field(default_factory=list)
 
     @property
     def identifiable(self) -> list[CandidateResult]:
@@ -173,6 +175,8 @@ class ADCDJuliaEngine:
             n_proposals_generated=raw["n_proposals_generated"],
             n_proposals_evaluated=raw.get("n_proposals_evaluated", raw["n_proposals_generated"]),
             primitives_active=list(raw.get("primitives_active", [])),
+            data_vars_detected=list(raw.get("data_vars_detected", [])),
+            constants_detected=list(raw.get("constants_detected", [])),
             gate_stats=dict(raw["gate_stats"]),
             results=[CandidateResult.from_dict(dict(r)) for r in raw["results"]],
         )

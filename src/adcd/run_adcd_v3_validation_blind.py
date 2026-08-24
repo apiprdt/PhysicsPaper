@@ -269,6 +269,8 @@ def _run_search(
             dimensional_checker=checker,
         )
         proposer._julia_primitives_active = result.primitives_active
+        proposer._julia_data_vars_detected = result.data_vars_detected
+        proposer._julia_constants_detected = result.constants_detected
         return ranked, space_size, proposer
 
     else:
@@ -386,6 +388,8 @@ def run_scenario_protocol(
     result.checks["budget_disclosure"] = {
         "search_space_size": space_size_blind,
         "primitives": getattr(proposer, "_julia_primitives_active", list(proposer._active_primitives.keys())),
+        "data_vars_detected": getattr(proposer, "_julia_data_vars_detected", list(scenario.classical_variables)),
+        "constants_detected": getattr(proposer, "_julia_constants_detected", list(scenario.classical_constants.keys())),
         "pass": True,
     }
 
