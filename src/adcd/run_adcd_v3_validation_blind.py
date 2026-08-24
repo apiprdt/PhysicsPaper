@@ -331,7 +331,7 @@ def _run_search(
             exclude_primitives=exclude_primitives,
             dimensional_checker=checker,
         )
-        proposer._julia_primitives_active = getattr(result, "primitives_active", list(proposer._active_primitives.keys()) if hasattr(proposer, "_active_primitives") else [])
+        proposer._julia_primitives_active = getattr(result, "primitives_active", list(proposer._active_primitives.keys()))
         proposer._julia_data_vars_detected = getattr(result, "data_vars_detected", list(scenario.classical_variables))
         proposer._julia_constants_detected = getattr(result, "constants_detected", list(scenario.classical_constants.keys()))
         return ranked, space_size, proposer
@@ -594,7 +594,7 @@ def run_scenario_protocol(
             return "held by non-determinism (results vary across runs with identical seed)"
         return "held by unspecified formal gate"
 
-    # Three-Tier Epistemic Verdict (Universal for Synthetic & Real Observational Data)
+    # Three-Tier Epistemic Verdict
     evn_label = result.checks.get("primary_search", {}).get("evidence_vs_null_label", "unknown")
     formal_pass = all(
         result.checks[name].get("pass", False) for name in FORMAL_PROTOCOL_CHECKS if name in result.checks
