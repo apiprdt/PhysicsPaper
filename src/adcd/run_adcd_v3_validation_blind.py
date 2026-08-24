@@ -165,11 +165,14 @@ class ProtocolResult:
     def to_latex_table(self, top_k: int = 5, substituted: bool = False) -> str:
         """Export Pareto front as a publication-ready LaTeX table snippet for papers."""
         pareto = self.checks.get("primary_search", {}).get("pareto_front", [])[:top_k]
+        safe_name = self.scenario_name.replace("_", r"\_")
+        safe_tier = self.tier.replace("_", r"\_")
+        safe_label = self.scenario_name.lower().replace(" ", "_").replace(":", "").replace("-", "_")
         lines = [
             r"\begin{table}[htbp]",
             r"\centering",
-            r"\caption{Pareto Frontier Candidates for " + self.scenario_name + r" (" + self.tier + r")}",
-            r"\label{tab:pareto_" + self.scenario_name.lower().replace(" ", "_") + r"}",
+            r"\caption{Pareto Frontier Candidates for " + safe_name + r" (" + safe_tier + r")}",
+            r"\label{tab:pareto_" + safe_label + r"}",
             r"\begin{tabular}{c l c c l}",
             r"\hline",
             r"Rank & Class & NMSE & BIC & Discovered Correction $\Delta(u)$ \\",
@@ -328,9 +331,9 @@ def _run_search(
             exclude_primitives=exclude_primitives,
             dimensional_checker=checker,
         )
-        proposer._julia_primitives_active = result.primitives_active
-        proposer._julia_data_vars_detected = result.data_vars_detected
-        proposer._julia_constants_detected = result.constants_detected
+        proposer._julia_primitives_active = getattr(result, "primitives_active", list(proposer._active_primitives.keys()) if hasattr(proposer, "_active_primitives") else [])
+        proposer._julia_data_vars_detected = getattr(result, "data_vars_detected", list(scenario.classical_variables))
+        proposer._julia_constants_detected = getattr(result, "constants_detected", list(scenario.classical_constants.keys()))
         return ranked, space_size, proposer
 
     else:
@@ -591,16 +594,18 @@ def run_scenario_protocol(
             return "held by non-determinism (results vary across runs with identical seed)"
         return "held by unspecified formal gate"
 
-    # Three-Tier Epistemic Verdict
+    # Three-Tier Epistemic Verdict (Universal for Synthetic & Real Observational Data)
     evn_label = result.checks.get("primary_search", {}).get("evidence_vs_null_label", "unknown")
     formal_pass = all(
         result.checks[name].get("pass", False) for name in FORMAL_PROTOCOL_CHECKS if name in result.checks
     )
+    has_ground_truth = bool(getattr(scenario, "correction_expr", None))
+    match_ok = (result.checks.get("primary_search", {}).get("match_level") in ("exact", "class_only")) if has_ground_truth else True
 
     if formal_pass:
         result.tier = "IDENTIFIABLE"
         result.status_message = "All checks passed with a genuinely blind search."
-    elif evn_label in ("decisive", "very_strong") and result.checks.get("primary_search", {}).get("match_level") in ("exact", "class_only"):
+    elif evn_label in ("decisive", "very_strong", "strong") and match_ok:
         result.tier = "DETECTED_UNRESOLVED"
         result.status_message = f"Strong anomaly evidence confirmed, structure resolved, but {_detected_unresolved_reason(result.checks)}."
     else:

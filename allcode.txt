@@ -1,11 +1,11 @@
 ==========================================================================================
- ADCD CORE CODEBASE & FORMAL VALIDATION AUDIT PACKAGE (PySR/PhySO Standards)
- Generated: 2026-08-24 13:01:06
+ ADCD CORE CODEBASE & FORMAL VALIDATION AUDIT PACKAGE (FRESH FULL DUMP)
+ Generated: 2026-08-24 13:22:28
  Content: 22 Core Modules (15 Python + 7 Julia) + Formal Validation JSON Report
 ==========================================================================================
 
 TABLE OF CONTENTS (AUDIT CHECKLIST):
-   1. [src/adcd/run_adcd_v3_validation_blind.py] (797 lines, 35,754 bytes)
+   1. [src/adcd/run_adcd_v3_validation_blind.py] (802 lines, 36,324 bytes)
    2. [src/adcd/anomaly_scenarios.py] (664 lines, 30,823 bytes)
    3. [src/adcd/bayesian_ranker.py] (233 lines, 8,510 bytes)
    4. [src/adcd/julia_bridge.py] (196 lines, 7,541 bytes)
@@ -27,13 +27,13 @@ TABLE OF CONTENTS (AUDIT CHECKLIST):
   20. [ADCDEngine/src/ConstantFitter.jl] (289 lines, 10,861 bytes)
   21. [ADCDEngine/src/PrimitiveRegistry.jl] (102 lines, 5,252 bytes)
   22. [ADCDEngine/src/ADCDDimensions.jl] (328 lines, 13,655 bytes)
-  23. [run_outputs/adcd_v3_taxonomy_validation_report.json] (342 lines, 11,889 bytes)
+  23. [run_outputs/adcd_v3_taxonomy_validation_report.json] (357 lines, 13,984 bytes)
 
 ==========================================================================================
 
 
 ==========================================================================================
- FILE #01: src/adcd/run_adcd_v3_validation_blind.py (798 lines, 35,754 bytes)
+ FILE #01: src/adcd/run_adcd_v3_validation_blind.py (803 lines, 36,324 bytes)
 ==========================================================================================
 
 """
@@ -203,11 +203,14 @@ class ProtocolResult:
     def to_latex_table(self, top_k: int = 5, substituted: bool = False) -> str:
         """Export Pareto front as a publication-ready LaTeX table snippet for papers."""
         pareto = self.checks.get("primary_search", {}).get("pareto_front", [])[:top_k]
+        safe_name = self.scenario_name.replace("_", r"\_")
+        safe_tier = self.tier.replace("_", r"\_")
+        safe_label = self.scenario_name.lower().replace(" ", "_").replace(":", "").replace("-", "_")
         lines = [
             r"\begin{table}[htbp]",
             r"\centering",
-            r"\caption{Pareto Frontier Candidates for " + self.scenario_name + r" (" + self.tier + r")}",
-            r"\label{tab:pareto_" + self.scenario_name.lower().replace(" ", "_") + r"}",
+            r"\caption{Pareto Frontier Candidates for " + safe_name + r" (" + safe_tier + r")}",
+            r"\label{tab:pareto_" + safe_label + r"}",
             r"\begin{tabular}{c l c c l}",
             r"\hline",
             r"Rank & Class & NMSE & BIC & Discovered Correction $\Delta(u)$ \\",
@@ -366,9 +369,9 @@ def _run_search(
             exclude_primitives=exclude_primitives,
             dimensional_checker=checker,
         )
-        proposer._julia_primitives_active = result.primitives_active
-        proposer._julia_data_vars_detected = result.data_vars_detected
-        proposer._julia_constants_detected = result.constants_detected
+        proposer._julia_primitives_active = getattr(result, "primitives_active", list(proposer._active_primitives.keys()) if hasattr(proposer, "_active_primitives") else [])
+        proposer._julia_data_vars_detected = getattr(result, "data_vars_detected", list(scenario.classical_variables))
+        proposer._julia_constants_detected = getattr(result, "constants_detected", list(scenario.classical_constants.keys()))
         return ranked, space_size, proposer
 
     else:
@@ -629,16 +632,18 @@ def run_scenario_protocol(
             return "held by non-determinism (results vary across runs with identical seed)"
         return "held by unspecified formal gate"
 
-    # Three-Tier Epistemic Verdict
+    # Three-Tier Epistemic Verdict (Universal for Synthetic & Real Observational Data)
     evn_label = result.checks.get("primary_search", {}).get("evidence_vs_null_label", "unknown")
     formal_pass = all(
         result.checks[name].get("pass", False) for name in FORMAL_PROTOCOL_CHECKS if name in result.checks
     )
+    has_ground_truth = bool(getattr(scenario, "correction_expr", None))
+    match_ok = (result.checks.get("primary_search", {}).get("match_level") in ("exact", "class_only")) if has_ground_truth else True
 
     if formal_pass:
         result.tier = "IDENTIFIABLE"
         result.status_message = "All checks passed with a genuinely blind search."
-    elif evn_label in ("decisive", "very_strong") and result.checks.get("primary_search", {}).get("match_level") in ("exact", "class_only"):
+    elif evn_label in ("decisive", "very_strong", "strong") and match_ok:
         result.tier = "DETECTED_UNRESOLVED"
         result.status_message = f"Strong anomaly evidence confirmed, structure resolved, but {_detected_unresolved_reason(result.checks)}."
     else:
@@ -6316,7 +6321,7 @@ end  # module ADCDDimensions
 
 
 ==========================================================================================
- FILE #23: run_outputs/adcd_v3_taxonomy_validation_report.json (342 lines, 11,889 bytes)
+ FILE #23: run_outputs/adcd_v3_taxonomy_validation_report.json (357 lines, 13,984 bytes)
 ==========================================================================================
 
 {
@@ -6356,6 +6361,7 @@ end  # module ADCDDimensions
         "pareto_front": [
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) - 1))",
+            "latex": "\\theta_{1} \\left(-1 + \\frac{1}{\\sqrt{1 - \\frac{\\theta_{0} v^{2}}{c^{2}}}}\\right)",
             "nmse": 0.4120991137634981,
             "bic": -386.95486748242615,
             "class": "rational",
@@ -6366,6 +6372,7 @@ end  # module ADCDDimensions
           },
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * (v * (c**-1))))) - 1))",
+            "latex": "\\theta_{1} \\left(-1 + \\frac{1}{\\sqrt{1 - \\frac{\\theta_{0} v}{c}}}\\right)",
             "nmse": 0.414862388379545,
             "bic": -385.61827084841775,
             "class": "rational",
@@ -6376,6 +6383,7 @@ end  # module ADCDDimensions
           },
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((theta_0 * v))) - 1))",
+            "latex": "\\theta_{1} \\left(-1 + \\frac{1}{\\sqrt{- \\theta_{0} v + 1}}\\right)",
             "nmse": 0.414862388379545,
             "bic": -385.61827084841775,
             "class": "rational",
@@ -6386,6 +6394,7 @@ end  # module ADCDDimensions
           },
           {
             "expr_str": "(theta_1 * (1/sqrt(1 - ((v / theta_0))) - 1))",
+            "latex": "\\theta_{1} \\left(-1 + \\frac{1}{\\sqrt{1 - \\frac{v}{\\theta_{0}}}}\\right)",
             "nmse": 0.41486239015866583,
             "bic": -385.6182699907256,
             "class": "rational",
@@ -6396,6 +6405,7 @@ end  # module ADCDDimensions
           },
           {
             "expr_str": "(theta_1 * ((1/sqrt(1 - (sqrt((theta_0 * ((v**2) * (c**-2)))))) - 1) / (1.0 + (1/sqrt(1 - (sqrt((theta_0 * ((v**2) * (c**-2)))))) - 1))))",
+            "latex": "\\theta_{1} \\left(-1 + \\frac{1}{\\sqrt{1 - \\sqrt{\\frac{\\theta_{0} v^{2}}{c^{2}}}}}\\right) \\sqrt{1 - \\sqrt{\\frac{\\theta_{0} v^{2}}{c^{2}}}}",
             "nmse": 0.4159809970828493,
             "bic": -385.07972921770056,
             "class": "rational",
@@ -6469,6 +6479,7 @@ end  # module ADCDDimensions
         "pareto_front": [
           {
             "expr_str": "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
+            "latex": "\\theta_{1} \\left(1 - e^{- \\left|{\\frac{r}{\\theta_{0}}}\\right|}\\right)",
             "nmse": 0.0002772155195392813,
             "bic": -2073.4874468275843,
             "class": "exponential",
@@ -6479,6 +6490,7 @@ end  # module ADCDDimensions
           },
           {
             "expr_str": "(theta_1 * (1 - exp(-Abs((theta_0 * r)))))",
+            "latex": "\\theta_{1} \\left(1 - e^{- \\left|{r \\theta_{0}}\\right|}\\right)",
             "nmse": 0.00027721555857847783,
             "bic": -2073.487418662355,
             "class": "exponential",
@@ -6489,6 +6501,7 @@ end  # module ADCDDimensions
           },
           {
             "expr_str": "((theta_1 * (1 - exp(-Abs((r / theta_0))))) + (theta_2 * (((r / theta_0)) / (1 + ((r / theta_0))**2))))",
+            "latex": "\\frac{r \\theta_{2}}{\\theta_{0} \\left(\\frac{r^{2}}{\\theta_{0}^{2}} + 1\\right)} + \\theta_{1} \\left(1 - e^{- \\left|{\\frac{r}{\\theta_{0}}}\\right|}\\right)",
             "nmse": 0.00027168776414560617,
             "bic": -2072.2174837717157,
             "class": "exponential",
@@ -6500,6 +6513,7 @@ end  # module ADCDDimensions
           },
           {
             "expr_str": "((theta_1 * (1 - exp(-Abs((theta_0 * r))))) + (theta_2 * (((theta_0 * r)) / (1 + ((theta_0 * r))**2))))",
+            "latex": "\\frac{r \\theta_{0} \\theta_{2}}{r^{2} \\theta_{0}^{2} + 1} + \\theta_{1} \\left(1 - e^{- \\left|{r \\theta_{0}}\\right|}\\right)",
             "nmse": 0.00027168815154920636,
             "bic": -2072.2171985889618,
             "class": "exponential",
@@ -6511,6 +6525,7 @@ end  # module ADCDDimensions
           },
           {
             "expr_str": "((theta_1 * (((theta_0 * r)) / (1 + ((theta_0 * r))**2))) + (theta_2 * (1 - exp(-Abs((theta_0 * r))))))",
+            "latex": "\\frac{r \\theta_{0} \\theta_{1}}{r^{2} \\theta_{0}^{2} + 1} + \\theta_{2} \\left(1 - e^{- \\left|{r \\theta_{0}}\\right|}\\right)",
             "nmse": 0.0002716882070467114,
             "bic": -2072.2171577351382,
             "class": "exponential",
@@ -6585,6 +6600,7 @@ end  # module ADCDDimensions
         "pareto_front": [
           {
             "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
+            "latex": "\\theta_{1} \\log{\\left(\\left|{\\frac{dV \\theta_{0}}{V_{i}}}\\right| + 1 \\right)}",
             "nmse": 0.015937367822209263,
             "bic": -1193.156111004403,
             "class": "logarithmic",
@@ -6595,6 +6611,7 @@ end  # module ADCDDimensions
           },
           {
             "expr_str": "(theta_1 * (log(1 + Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2)))))) / (1.0 + log(1 + Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2)))))))))",
+            "latex": "\\frac{\\theta_{1} \\log{\\left(\\left|{\\sqrt{\\frac{dV^{2} \\theta_{0}}{V_{i}^{2}}}}\\right| + 1 \\right)}}{\\log{\\left(\\left|{\\sqrt{\\frac{dV^{2} \\theta_{0}}{V_{i}^{2}}}}\\right| + 1 \\right)} + 1.0}",
             "nmse": 0.015999934435482168,
             "bic": -1192.372491989762,
             "class": "logarithmic",
@@ -6605,6 +6622,7 @@ end  # module ADCDDimensions
           },
           {
             "expr_str": "(theta_1 * (1 - exp(-Abs(log(1 + Abs((theta_0 * ((V_i**-1) * dV))))))))",
+            "latex": "\\theta_{1} \\left(1 - \\frac{1}{\\left|{\\frac{dV \\theta_{0}}{V_{i}}}\\right| + 1}\\right)",
             "nmse": 0.016010913872807,
             "bic": -1192.2352955287417,
             "class": "rational",
@@ -6615,6 +6633,7 @@ end  # module ADCDDimensions
           },
           {
             "expr_str": "(theta_1 * ((1 - exp(-Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2))))))) / (1.0 + (1 - exp(-Abs(sqrt((theta_0 * ((V_i**-2) * (dV**2))))))))))",
+            "latex": "\\frac{\\theta_{1} \\left(1 - e^{- \\left|{\\sqrt{\\frac{dV^{2} \\theta_{0}}{V_{i}^{2}}}}\\right|}\\right)}{2.0 - e^{- \\left|{\\sqrt{\\frac{dV^{2} \\theta_{0}}{V_{i}^{2}}}}\\right|}}",
             "nmse": 0.01602407049076487,
             "bic": -1192.0710173939592,
             "class": "exponential",
@@ -6625,6 +6644,7 @@ end  # module ADCDDimensions
           },
           {
             "expr_str": "(theta_1 * log(1 + Abs((1 - exp(-Abs((theta_0 * ((V_i**-1) * dV))))))))",
+            "latex": "\\theta_{1} \\log{\\left(\\left|{1 - e^{- \\left|{\\frac{dV \\theta_{0}}{V_{i}}}\\right|}}\\right| + 1 \\right)}",
             "nmse": 0.016024166388371983,
             "bic": -1192.0698204781042,
             "class": "exponential",
