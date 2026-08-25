@@ -24,7 +24,7 @@ class JuliaEngineConfig:
     nmse_fine: float = 0.1
     n_restarts: int = 15
     max_proposals: int = 500
-    groups: Optional[list[list[int]]] = None  # Perbaikan tipe list of lists
+    groups: Optional[list[list[int]]] = None  # Group indices (1-based) for clustered/panel evaluation
     excluded_primitives: list[str] = field(default_factory=list)
     correction_type: str = "multiplicative"
     classical_limit_direction: str = "0"

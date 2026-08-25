@@ -178,11 +178,9 @@ class Stage1Pipeline:
             deferred_arc = False
             if arc_score <= 0.0:
                 if has_params:
-                    # FIXED: do NOT fabricate a perfect score. Mark as deferred
-                    # and let it through UNSCORED (arc_score stays 0.0) so that
-                    # BIC/likelihood ranking downstream does not treat it as
-                    # ARC-verified. It must clear `_reverify_arc_at_fitted_theta`
-                    # after Stage 2 or it gets dropped there.
+                    # Parameterized candidates with zero initial ARC score are deferred
+                    # through Stage 1 unscored (arc_score = 0.0). They must pass
+                    # _reverify_arc_at_fitted_theta after parameter fitting in Stage 2.
                     deferred_arc = True
                     if stats is not None:
                         stats.deferred_arc += 1

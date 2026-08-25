@@ -251,11 +251,10 @@ def _evaluate_delta_array(
         return np.zeros(n_points)
 
 
-# WARNING FOR ANY FUTURE EDITOR (human or AI):
-# NEVER OR nmse_full into the class_match criterion. nmse_full is almost
-# always small under correction-first design because the baseline dominates
-# -- that makes it a false shortcut to PASS. This rule is unchanged from the
-# original audit and remains correct; it is preserved here as-is.
+# Architecture Invariant:
+# Do not incorporate nmse_full into the class_match criterion.
+# Under correction-first discovery, nmse_full is dominated by the classical baseline,
+# which can mask poor residual fits. Only residual NMSE (nmse_res) is evaluated.
 def evaluate_correction(
     discovered_expr_str: str,
     scenario,
@@ -307,7 +306,7 @@ def evaluate_correction(
         (true_cls == disc_cls) and is_genuinely_good_fit and bool(discovered_expr_str.strip())
     )
 
-    # FIXED parameter-recovery matching (see match_parameters docstring).
+    # Parameter recovery matching via permutation invariance (see match_parameters docstring).
     param_errors, structural_match, count_mismatch = match_parameters(
         true_params=scenario.correction_constants,
         fit_params={k: v for k, v in theta_fit.items() if k.startswith("theta_")},

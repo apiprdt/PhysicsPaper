@@ -1,23 +1,23 @@
 ==========================================================================================
  ADCD CORE CODEBASE & FORMAL VALIDATION AUDIT PACKAGE (PySR/PhySO Standards)
- Generated: 2026-08-24 13:28:15
+ Generated: 2026-08-25 18:59:35
  Content: 22 Core Modules (15 Python + 7 Julia) + Formal Validation JSON Report
 ==========================================================================================
 
 TABLE OF CONTENTS (AUDIT CHECKLIST):
-   1. [src/adcd/run_adcd_v3_validation_blind.py] (802 lines, 36,221 bytes)
-   2. [src/adcd/anomaly_scenarios.py] (664 lines, 30,823 bytes)
+   1. [src/adcd/run_adcd_v3_validation_blind.py] (801 lines, 36,137 bytes)
+   2. [src/adcd/anomaly_scenarios.py] (662 lines, 30,717 bytes)
    3. [src/adcd/bayesian_ranker.py] (233 lines, 8,510 bytes)
-   4. [src/adcd/julia_bridge.py] (196 lines, 7,541 bytes)
-   5. [src/adcd/metrics.py] (369 lines, 14,056 bytes)
+   4. [src/adcd/julia_bridge.py] (196 lines, 7,567 bytes)
+   5. [src/adcd/metrics.py] (368 lines, 13,993 bytes)
    6. [src/adcd/mode_detection.py] (57 lines, 1,979 bytes)
    7. [src/adcd/asymptotic_dictionary_proposer_v3.py] (209 lines, 7,897 bytes)
    8. [src/adcd/grammar_proposer_v3.py] (70 lines, 2,923 bytes)
-   9. [src/adcd/dimensional_checker.py] (250 lines, 10,246 bytes)
+   9. [src/adcd/dimensional_checker.py] (247 lines, 10,039 bytes)
   10. [src/adcd/arc_scorer.py] (306 lines, 12,222 bytes)
-  11. [src/adcd/pipeline.py] (219 lines, 8,665 bytes)
+  11. [src/adcd/pipeline.py] (217 lines, 8,539 bytes)
   12. [src/adcd/jax_optimizer.py] (430 lines, 18,329 bytes)
-  13. [src/adcd/quickfit.py] (608 lines, 27,711 bytes)
+  13. [src/adcd/quickfit.py] (608 lines, 27,722 bytes)
   14. [eval/benchmark_noise_robustness.py] (187 lines, 7,055 bytes)
   15. [eval/plot_pareto.py] (104 lines, 3,547 bytes)
   16. [ADCDEngine/src/ADCDEngine.jl] (165 lines, 7,912 bytes)
@@ -33,7 +33,7 @@ TABLE OF CONTENTS (AUDIT CHECKLIST):
 
 
 ==========================================================================================
- FILE #01: src/adcd/run_adcd_v3_validation_blind.py (803 lines, 36,221 bytes)
+ FILE #01: src/adcd/run_adcd_v3_validation_blind.py (802 lines, 36,137 bytes)
 ==========================================================================================
 
 """
@@ -554,20 +554,19 @@ def run_scenario_protocol(
             "match_level": match_level, "true_structure_rank": true_structure_rank,
             "ground_truth_match_diagnostic_only": is_diag_pass,
             "counts_toward_verdict": False, "pareto_front": top_candidates,
-            # Bayesian Audit
+            # Bayesian Evidence & Model Averaging Metrics
             "bayesian_best_weight": bma.best_posterior_weight,
             "evidence_vs_null_label": bma.evidence_vs_null.label,
             "evidence_top2_label": bma.evidence_top2.label,
             "posterior_entropy": bma.posterior_entropy,
         }
-        
+
         # Guard rail for catastrophic BIC numerical scaling anomalies
         if bic is not None and abs(bic) > 1e5:
             import warnings
             warnings.warn(
-                f"\n[SANITY CHECK GAGAL] {scenario.name}: |BIC|={abs(bic):,.0f} jauh di luar "
-                f"rentang wajar (biasanya puluhan-ribuan). Kemungkinan besar sigma_y/skala "
-                f"likelihood pincang. JANGAN percaya verdict ini sebelum diverifikasi manual.",
+                f"\n[NUMERICAL SCALE WARNING] {scenario.name}: |BIC|={abs(bic):,.0f} exceeds expected "
+                f"range (|BIC| <= 1e5). Verify residual variance scaling.",
                 RuntimeWarning
             )
             
@@ -842,7 +841,7 @@ if __name__ == "__main__":
 
 
 ==========================================================================================
- FILE #02: src/adcd/anomaly_scenarios.py (665 lines, 30,823 bytes)
+ FILE #02: src/adcd/anomaly_scenarios.py (663 lines, 30,717 bytes)
 ==========================================================================================
 
 import numpy as np
@@ -996,9 +995,7 @@ class AnomalyScenario:
         elif self.name == "Misspecification 2: Missing Variable":
             X["m"] = rng.uniform(1.0, 10.0, size=n_points)
             X["g"] = np.full(n_points, 9.81)
-            # We generate 'v' here internally to create the ground truth, 
-            # even though the user (classical_variables) didn't specify it.
-            # We must explicitly add it to local_corr_dict later.
+            # Generate latent variable 'v' internally for ground-truth synthesis in missing-variable benchmarks.
             self._hidden_v = rng.uniform(0.1, 5.0, size=n_points)
             
         elif self.name == "Misspecification 3: Spurious Variable":
@@ -1753,7 +1750,7 @@ class BayesianReranker:
 
 
 ==========================================================================================
- FILE #04: src/adcd/julia_bridge.py (197 lines, 7,541 bytes)
+ FILE #04: src/adcd/julia_bridge.py (197 lines, 7,567 bytes)
 ==========================================================================================
 
 from __future__ import annotations
@@ -1782,7 +1779,7 @@ class JuliaEngineConfig:
     nmse_fine: float = 0.1
     n_restarts: int = 15
     max_proposals: int = 500
-    groups: Optional[list[list[int]]] = None  # Perbaikan tipe list of lists
+    groups: Optional[list[list[int]]] = None  # Group indices (1-based) for clustered/panel evaluation
     excluded_primitives: list[str] = field(default_factory=list)
     correction_type: str = "multiplicative"
     classical_limit_direction: str = "0"
@@ -1956,7 +1953,7 @@ def data_from_scenario(scenario: Any, y_classical: np.ndarray, y_obs: np.ndarray
 
 
 ==========================================================================================
- FILE #05: src/adcd/metrics.py (370 lines, 14,056 bytes)
+ FILE #05: src/adcd/metrics.py (369 lines, 13,993 bytes)
 ==========================================================================================
 
 import itertools
@@ -2212,11 +2209,10 @@ def _evaluate_delta_array(
         return np.zeros(n_points)
 
 
-# WARNING FOR ANY FUTURE EDITOR (human or AI):
-# NEVER OR nmse_full into the class_match criterion. nmse_full is almost
-# always small under correction-first design because the baseline dominates
-# -- that makes it a false shortcut to PASS. This rule is unchanged from the
-# original audit and remains correct; it is preserved here as-is.
+# Architecture Invariant:
+# Do not incorporate nmse_full into the class_match criterion.
+# Under correction-first discovery, nmse_full is dominated by the classical baseline,
+# which can mask poor residual fits. Only residual NMSE (nmse_res) is evaluated.
 def evaluate_correction(
     discovered_expr_str: str,
     scenario,
@@ -2268,7 +2264,7 @@ def evaluate_correction(
         (true_cls == disc_cls) and is_genuinely_good_fit and bool(discovered_expr_str.strip())
     )
 
-    # FIXED parameter-recovery matching (see match_parameters docstring).
+    # Parameter recovery matching via permutation invariance (see match_parameters docstring).
     param_errors, structural_match, count_mismatch = match_parameters(
         true_params=scenario.correction_constants,
         fit_params={k: v for k, v in theta_fit.items() if k.startswith("theta_")},
@@ -2689,7 +2685,7 @@ class GrammarProposerV3(BaseProposer):
 
 
 ==========================================================================================
- FILE #09: src/adcd/dimensional_checker.py (251 lines, 10,246 bytes)
+ FILE #09: src/adcd/dimensional_checker.py (248 lines, 10,039 bytes)
 ==========================================================================================
 
 import sympy as sp
@@ -2714,10 +2710,7 @@ DIMENSIONS = {
     'b': [1, 0, -1, 0, 0],
     'A': [0, 2, 0, 0, 0],
     'sigma': [1, 0, -3, -4, 0],
-    'a': [0, 1, -2, 0, 0],   # NEW: acceleration [L T^-2] -- needed for real-data
-                             # scenarios (e.g. SPARC/RAR: gbar, gobs, a0 all have
-                             # this dimension). Added during the audit; was
-                             # absent from the original registry.
+    'a': [0, 1, -2, 0, 0],   # Acceleration [L T^-2] (e.g. gravitational acceleration gbar, gobs, a0)
     'q': [0, 0, 0, 0, 1],
     'Q': [0, 0, 0, 0, 1],
     'k_e': [1, 3, -2, 0, -2],
@@ -3259,7 +3252,7 @@ class ARCScorer:
 
 
 ==========================================================================================
- FILE #11: src/adcd/pipeline.py (220 lines, 8,665 bytes)
+ FILE #11: src/adcd/pipeline.py (218 lines, 8,539 bytes)
 ==========================================================================================
 
 import sympy as sp
@@ -3442,11 +3435,9 @@ class Stage1Pipeline:
             deferred_arc = False
             if arc_score <= 0.0:
                 if has_params:
-                    # FIXED: do NOT fabricate a perfect score. Mark as deferred
-                    # and let it through UNSCORED (arc_score stays 0.0) so that
-                    # BIC/likelihood ranking downstream does not treat it as
-                    # ARC-verified. It must clear `_reverify_arc_at_fitted_theta`
-                    # after Stage 2 or it gets dropped there.
+                    # Parameterized candidates with zero initial ARC score are deferred
+                    # through Stage 1 unscored (arc_score = 0.0). They must pass
+                    # _reverify_arc_at_fitted_theta after parameter fitting in Stage 2.
                     deferred_arc = True
                     if stats is not None:
                         stats.deferred_arc += 1
@@ -3922,7 +3913,7 @@ class JAXOptimizer:
 
 
 ==========================================================================================
- FILE #13: src/adcd/quickfit.py (609 lines, 27,711 bytes)
+ FILE #13: src/adcd/quickfit.py (609 lines, 27,722 bytes)
 ==========================================================================================
 
 from __future__ import annotations
@@ -4324,7 +4315,7 @@ def _evaluate_formula(
     """
     import sympy as sp
 
-    # Build symbol namespace: only variables explicitly declared by user
+    # Build symbol namespace from explicitly declared input variables and constants
     all_names = list(data_arrays.keys())
     if constants:
         all_names += [k for k in constants if k not in data_arrays]

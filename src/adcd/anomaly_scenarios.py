@@ -149,9 +149,7 @@ class AnomalyScenario:
         elif self.name == "Misspecification 2: Missing Variable":
             X["m"] = rng.uniform(1.0, 10.0, size=n_points)
             X["g"] = np.full(n_points, 9.81)
-            # We generate 'v' here internally to create the ground truth, 
-            # even though the user (classical_variables) didn't specify it.
-            # We must explicitly add it to local_corr_dict later.
+            # Generate latent variable 'v' internally for ground-truth synthesis in missing-variable benchmarks.
             self._hidden_v = rng.uniform(0.1, 5.0, size=n_points)
             
         elif self.name == "Misspecification 3: Spurious Variable":

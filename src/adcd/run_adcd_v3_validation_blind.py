@@ -516,20 +516,19 @@ def run_scenario_protocol(
             "match_level": match_level, "true_structure_rank": true_structure_rank,
             "ground_truth_match_diagnostic_only": is_diag_pass,
             "counts_toward_verdict": False, "pareto_front": top_candidates,
-            # Bayesian Audit
+            # Bayesian Evidence & Model Averaging Metrics
             "bayesian_best_weight": bma.best_posterior_weight,
             "evidence_vs_null_label": bma.evidence_vs_null.label,
             "evidence_top2_label": bma.evidence_top2.label,
             "posterior_entropy": bma.posterior_entropy,
         }
-        
+
         # Guard rail for catastrophic BIC numerical scaling anomalies
         if bic is not None and abs(bic) > 1e5:
             import warnings
             warnings.warn(
-                f"\n[SANITY CHECK GAGAL] {scenario.name}: |BIC|={abs(bic):,.0f} jauh di luar "
-                f"rentang wajar (biasanya puluhan-ribuan). Kemungkinan besar sigma_y/skala "
-                f"likelihood pincang. JANGAN percaya verdict ini sebelum diverifikasi manual.",
+                f"\n[NUMERICAL SCALE WARNING] {scenario.name}: |BIC|={abs(bic):,.0f} exceeds expected "
+                f"range (|BIC| <= 1e5). Verify residual variance scaling.",
                 RuntimeWarning
             )
             

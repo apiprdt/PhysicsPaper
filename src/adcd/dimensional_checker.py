@@ -20,10 +20,7 @@ DIMENSIONS = {
     'b': [1, 0, -1, 0, 0],
     'A': [0, 2, 0, 0, 0],
     'sigma': [1, 0, -3, -4, 0],
-    'a': [0, 1, -2, 0, 0],   # NEW: acceleration [L T^-2] -- needed for real-data
-                             # scenarios (e.g. SPARC/RAR: gbar, gobs, a0 all have
-                             # this dimension). Added during the audit; was
-                             # absent from the original registry.
+    'a': [0, 1, -2, 0, 0],   # Acceleration [L T^-2] (e.g. gravitational acceleration gbar, gobs, a0)
     'q': [0, 0, 0, 0, 1],
     'Q': [0, 0, 0, 0, 1],
     'k_e': [1, 3, -2, 0, -2],

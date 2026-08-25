@@ -397,7 +397,7 @@ def _evaluate_formula(
     """
     import sympy as sp
 
-    # Build symbol namespace: only variables explicitly declared by user
+    # Build symbol namespace from explicitly declared input variables and constants
     all_names = list(data_arrays.keys())
     if constants:
         all_names += [k for k in constants if k not in data_arrays]
