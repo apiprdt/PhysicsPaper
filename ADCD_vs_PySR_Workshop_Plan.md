@@ -63,7 +63,7 @@ All decisions below are implemented in `eval/benchmark_pysr_comparison.py`.
 | **PySR parameter count for BIC** | Counted from SymPy expression's free numeric constants, NOT from `complexity` column | `complexity` = AST node count ≠ degrees of freedom; using it would overpenalise PySR in Phase 2 |
 | **Seeds** | ≥5 independent seeds per (scenario, noise) point | `DEFAULT_SEEDS = [42, 43, 44, 45, 46]` |
 | **Confidence intervals** | Wilson 95% CI, not normal approximation | More accurate at 0%/100% recovery (guaranteed to occur at extreme noise) |
-| **Reproducibility** | PySR runs with `deterministic=True, parallelism="serial"` | Reduces PySR throughput but enables cross-seed reproducibility; documented in paper Methods |
+| **Extrapolation domains** | Explicit separation: `TRAIN_DOMAINS` vs `EXTRAP_TEST_DOMAINS` | For Time Dilation, training uses $v \le 0.30c$ and extrapolation tests $v \in (0.30c, 0.80c]$ to remain safely below the $v=c$ relativistic singularity ($\gamma \to \infty$) |
 
 ---
 
@@ -160,4 +160,4 @@ experimental results. An empty table here means no deviations occurred.*
 
 | Date | Change | Justification |
 |---|---|---|
-| — | — | — |
+| 2026-08-26 | Clarified `TRAIN_DOMAINS` vs `EXTRAP_TEST_DOMAINS` | For Time Dilation, training on $v \le 0.30c$ and extrapolating to $v \in (0.30c, 0.80c]$ avoids singularity $\gamma \to \infty$ at $v=c$ while providing a valid out-of-domain asymptotic test. Added runtime assertion `extrap_domain_max > domain_max`. |

@@ -1,6 +1,6 @@
 ==========================================================================================
  ADCD CORE CODEBASE & FORMAL VALIDATION AUDIT PACKAGE (PySR/PhySO Standards)
- Generated: 2026-08-26 12:43:13
+ Generated: 2026-08-26 12:46:54
  Content: Core Modules (Python + Julia) + Formal Validation JSON Report
 ==========================================================================================
 
@@ -21,7 +21,7 @@ TABLE OF CONTENTS (AUDIT CHECKLIST):
   14. [src/adcd/auto_scenario.py] (522 lines, 24,167 bytes)
   15. [src/adcd/identifiability.py] (215 lines, 9,271 bytes)
   16. [eval/benchmark_noise_robustness.py] (187 lines, 7,055 bytes)
-  17. [eval/benchmark_pysr_comparison.py] (857 lines, 30,691 bytes)
+  17. [eval/benchmark_pysr_comparison.py] (846 lines, 30,585 bytes)
   18. [eval/plot_pareto.py] (104 lines, 3,547 bytes)
   19. [ADCDEngine/src/ADCDEngine.jl] (165 lines, 7,912 bytes)
   20. [ADCDEngine/src/CorrectionProposer.jl] (186 lines, 8,491 bytes)
@@ -5455,7 +5455,7 @@ if __name__ == "__main__":
 
 
 ==========================================================================================
- FILE #17: eval/benchmark_pysr_comparison.py (858 lines, 30,691 bytes)
+ FILE #17: eval/benchmark_pysr_comparison.py (847 lines, 30,585 bytes)
 ==========================================================================================
 
 #!/usr/bin/env python3
@@ -5464,7 +5464,7 @@ benchmark_pysr_comparison.py
 ==============================================================================
 Comparative Benchmark Harness: ADCD vs PySR (Noise Robustness & Extrapolation).
 
-Evaluates structural recovery rate and extrapolation performance across
+Evaluates structural recovery rate and asymptotic extrapolation performance across
 systematic noise sweeps under identical data, search targets, and feature sets.
 ==============================================================================
 """
@@ -5491,7 +5491,6 @@ from adcd.anomaly_scenarios import get_all_scenarios
 from adcd.mode_detection import detect_correction_mode
 from adcd.metrics import classify_structure, extended_bic_score
 from adcd.run_adcd_v3_validation_blind import (
-    DOMAIN_RESTRICTIONS,
     ScenarioThresholdConfig,
     run_scenario_protocol,
 )
@@ -5508,7 +5507,7 @@ except ImportError:
 
 
 # ==============================================================================
-# Benchmark Configuration & Default Regimes
+# Benchmark Configuration & Observation Regimes
 # ==============================================================================
 
 NOISE_SWEEP: List[float] = [0.01, 0.02, 0.05, 0.10, 0.15, 0.20, 0.30]
@@ -5516,16 +5515,18 @@ DEFAULT_SEEDS: List[int] = [42, 43, 44, 45, 46]
 
 LOCKED_SCENARIOS: List[str] = ["Time Dilation", "Screened Coulomb", "Entropy Expansion"]
 
-DEFAULT_CLEAN_DOMAINS: Dict[str, float] = {
-    "Time Dilation": 0.99,
-    "Screened Coulomb": 4.0,
-    "Entropy Expansion": 3.0,
+# Training domain upper bounds for benchmark evaluation
+TRAIN_DOMAINS: Dict[str, float] = {
+    "Time Dilation": 0.30,      # Historical low-velocity window (v <= 0.30c)
+    "Screened Coulomb": 4.0,    # Standard spatial window (r <= 4.0 m)
+    "Entropy Expansion": 3.0,   # Expansion ratio window (dV/V_i <= 3.0)
 }
 
-EXTRAP_DOMAIN_MULTIPLIER: Dict[str, float] = {
-    "Time Dilation": 0.90,
-    "Screened Coulomb": 8.0,
-    "Entropy Expansion": 6.0,
+# Held-out extrapolation domain upper bounds (strictly greater than TRAIN_DOMAINS)
+EXTRAP_TEST_DOMAINS: Dict[str, float] = {
+    "Time Dilation": 0.80,      # Relativistic domain (0.30c < v <= 0.80c, below v=c singularity)
+    "Screened Coulomb": 8.0,    # Extended spatial domain (4.0 m < r <= 8.0 m)
+    "Entropy Expansion": 6.0,   # High expansion domain (3.0 < dV/V_i <= 6.0)
 }
 
 # Standard out-of-the-box operator basis for PySR
@@ -5603,6 +5604,12 @@ def build_shared_data(
     """
     _assert_generate_data_deterministic(scenario, noise, seed, domain_max)
 
+    if extrap_domain_max is not None:
+        assert extrap_domain_max > domain_max, (
+            f"Configuration error: extrap_domain_max ({extrap_domain_max}) must be "
+            f"strictly greater than training domain_max ({domain_max}) for '{scenario.name}'."
+        )
+
     X, y_obs, y_classical, _ = scenario.generate_data(
         noise_level=noise, seed=seed, domain_max=domain_max
     )
@@ -5619,9 +5626,9 @@ def build_shared_data(
 
     feature_names = list(scenario.classical_variables)
 
-    # Generate held-out extrapolation domain (wider domain, noiseless reference)
+    # Generate held-out extrapolation domain (wider domain, zero noise)
     X_extrap, target_extrap = None, None
-    if extrap_domain_max is not None and extrap_domain_max > domain_max:
+    if extrap_domain_max is not None:
         Xe, ye, yc_e, _ = scenario.generate_data(
             noise_level=0.0, seed=seed + 1000, domain_max=extrap_domain_max
         )
@@ -5679,17 +5686,6 @@ def _compute_nmse_extrap(
     y_true = data.target_extrap
     var_y = float(np.var(y_true)) + 1e-300
     return float(np.mean((pred - y_true) ** 2) / var_y)
-
-
-def _extract_numeric_constants_as_theta_fit(expr: sp.Expr) -> Dict[str, float]:
-    """Extract fitted numeric literals to assist structural classification."""
-    theta_fit: Dict[str, float] = {}
-    idx = 0
-    for node in sp.preorder_traversal(expr):
-        if isinstance(node, sp.Number) and not node.is_Integer:
-            theta_fit[f"theta_{idx}"] = float(node)
-            idx += 1
-    return theta_fit
 
 
 # ==============================================================================
@@ -5800,8 +5796,7 @@ def run_pysr_once(
         best_expr_sympy = sp.sympify("0")
         best_expr_str = "0"
 
-    theta_fit = _extract_numeric_constants_as_theta_fit(best_expr_sympy)
-    discovered_class = classify_structure(best_expr_sympy, theta_fit=theta_fit)
+    discovered_class = classify_structure(best_expr_sympy)
     is_match = discovered_class == scenario.correction_class
 
     try:
@@ -5875,8 +5870,7 @@ def run_pysr_bic_reselect(
 
     try:
         best_expr_sympy = sp.sympify(best_expr_str)
-        theta_fit = _extract_numeric_constants_as_theta_fit(best_expr_sympy)
-        discovered_class = classify_structure(best_expr_sympy, theta_fit=theta_fit)
+        discovered_class = classify_structure(best_expr_sympy)
     except Exception:
         discovered_class = "unknown"
 
@@ -5914,7 +5908,7 @@ def run_one_combination(
 
     try:
         pysr_res = run_pysr_once(scenario, data, seed, timeout_seconds=pysr_timeout)
-    except (ImportError, RuntimeError, Exception) as exc:
+    except Exception as exc:
         pysr_res = {"method": "PySR", "is_match": None, "error": str(exc)}
 
     adcd_nmse_extrap = _compute_nmse_extrap(adcd_res.get("expr_str", ""), data)
@@ -6251,13 +6245,8 @@ def main() -> int:
 
     done = 0
     for sc_name in targets:
-        dmax = DEFAULT_CLEAN_DOMAINS.get(
-            sc_name, DOMAIN_RESTRICTIONS.get(sc_name, {}).get("domain_max", 1.0)
-        )
-        extrap_dmax = (
-            None if args.no_extrap
-            else EXTRAP_DOMAIN_MULTIPLIER.get(sc_name)
-        )
+        dmax = TRAIN_DOMAINS.get(sc_name, 1.0)
+        extrap_dmax = None if args.no_extrap else EXTRAP_TEST_DOMAINS.get(sc_name)
 
         for noise in args.noise_sweep:
             for seed in args.seeds:
