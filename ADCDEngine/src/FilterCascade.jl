@@ -240,7 +240,7 @@ function run_cascade_on_proposals(
         push!(results, result)
     end
 
-    # Pengurutan deterministik: IDENTIFIABLE terlebih dahulu, lalu nilai delta_bic tertinggi
+    # Deterministic ordering: IDENTIFIABLE first, followed by descending delta_bic
     sort!(results, by = r -> (r.verdict != IDENTIFIABLE, -r.delta_bic))
     return results, agg
 end

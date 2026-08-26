@@ -77,15 +77,7 @@ class JAXOptimizer:
         beta       : float = 1.0,
         n_steps    : int   = 500,   # kept for API compatibility, unused by L-BFGS directly
         lr         : float = 0.05,  # kept for API compatibility
-        log_param  : bool  = True,  # RESTORED. Default changed to True: the
-                                    # original had this default to False,
-                                    # but log-param is what actually keeps
-                                    # Time Dilation/Entropy Expansion stable
-                                    # AND is the mechanism intended to help
-                                    # with extreme-scale scenarios. Verify
-                                    # this default against your own repo's
-                                    # existing calling code before trusting
-                                    # it silently changes behavior elsewhere.
+        log_param  : bool  = True,  # Log-space parameterization for multi-scale parameter stability
         maxiter    : int   = 150,
     ):
         self.n_restarts = n_restarts

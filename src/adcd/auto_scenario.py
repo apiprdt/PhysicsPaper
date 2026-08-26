@@ -56,8 +56,7 @@ from typing import Dict, List, Optional, Tuple, Set
 from adcd.anomaly_scenarios import AnomalyScenario
 from adcd.quickfit import DOMAIN_TAXONOMY
 
-# --- Fix (dependency hygiene): fail with an actionable message at import
-# time instead of a bare ModuleNotFoundError deep inside a call stack.
+# Dependency check: provide actionable error if optional pint dependency is missing
 try:
     import pint
 except ImportError as e:
@@ -294,7 +293,7 @@ class UnitExtractor:
             vec, scale, canon = result
             return header_clean, canon, vec, scale, header_clean
 
-        # 5. Fail loud (fix Bug #2)
+        # 5. Unresolved unit handling
         var_name_cleaned = UnitExtractor._strip_all_brackets(header_clean) or header_clean
         if strict:
             raise UnitParseError(
@@ -311,15 +310,11 @@ class UnitExtractor:
 
 def verify_name_invariance(headers: List[str]) -> bool:
     """
-    Feynman-style falsification audit (fixed -- see Bug #1).
+    Falsification check for unit parser robustness.
 
-    Replaces every variable name with an arbitrary gibberish token while
-    preserving the RAW matched unit token (not its post-normalization form),
-    then verifies UnitExtractor produces an identical (dim_vector, scale)
-    regardless of whether the name is a physics word ('velocity') or noise
-    ('xJ9'). This is a genuine test of "does the parser look at the name at
-    all", unlike the v1 version, which accidentally could not pass for the
-    project's own primary header format (suffix-style, no brackets).
+    Replaces every variable name with an arbitrary token while
+    preserving the raw matched unit token, verifying that UnitExtractor
+    produces identical (dim_vector, scale) regardless of variable naming.
     """
     originals = [UnitExtractor.parse_header(h, strict=False) for h in headers]
 
@@ -373,9 +368,7 @@ class AutoCSVScenario(AnomalyScenario):
         trusted_bare_suffixes: Optional[Set[str]] = None,
         engine: str = "python",
     ):
-        # `domain` is now REQUIRED (no silent default) and validated (fix:
-        # the same silent-taxonomy-bypass class of bug found in the
-        # hand-written scenarios -- see audit report).
+        # Validate domain key against registered DOMAIN_TAXONOMY
         if domain not in DOMAIN_TAXONOMY:
             raise DomainTaxonomyError(
                 f"domain='{domain}' does not match any DOMAIN_TAXONOMY key "

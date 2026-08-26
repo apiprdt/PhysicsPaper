@@ -33,14 +33,12 @@ class IdentifiabilityAnalyzer:
         noise_level: float = 0.0,
         X_data: Optional[Dict[str, np.ndarray]] = None,
         data_vars: Optional[List[str]] = None,
-        correction_type: str = "additive",   # NEW: needed to reconstruct y_obs correctly
+        correction_type: str = "additive",
     ) -> IdentifiabilityReport:
         residual = np.asarray(residual, dtype=float)
         y_classical = np.asarray(y_classical, dtype=float)
 
-        # --- FIXED: reconstruct the actual observed signal to reference the
-        # noise scale against, instead of the (possibly constant/zero-variance)
-        # classical baseline alone.
+        # Reconstruct observation array to compute reference variance
         if correction_type == "multiplicative":
             y_obs_reconstructed = y_classical * (1.0 + residual)
         else:
@@ -52,9 +50,7 @@ class IdentifiabilityAnalyzer:
         correction_magnitude = float(np.std(residual))
 
         if degenerate_reference:
-            # Cannot honestly estimate a noise scale from a dataset with (near)
-            # zero variance in the observed signal. Do NOT fabricate an
-            # infinite SNR -- report the failure explicitly.
+            # Zero-variance reference signal: set SNR to 0.0
             snr = 0.0
         else:
             noise_magnitude = float(noise_level * reference_std) + 1e-15

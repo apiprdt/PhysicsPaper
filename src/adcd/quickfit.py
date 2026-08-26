@@ -12,24 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 # =====================================================================
-# DOMAIN TAXONOMY — Locked BEFORE any scenario results are seen.
+# Domain Taxonomy (Phenomenon-Specific Functional Priors)
 #
-# DESIGN PHILOSOPHY (v3.1 — Phenomenon-Specific Taxonomy):
-# Each domain key names a PHYSICAL PHENOMENON, not a broad field.
-# The primitive set for each domain is derived exclusively from the
-# FUNDAMENTAL EQUATIONS of that phenomenon (Klein-Gordon, Lorentz, etc).
-# This is not cherry-picking: it is the same principled narrowing that
-# physicists themselves apply. Einstein did not try 5 primitives for
-# Special Relativity — he followed Lorentz invariance to a single form.
-#
-# Consequence for reviewers: the primitive set needs no defense beyond
-# citing the founding paper of the phenomenon. "Why only D_exp for
-# Yukawa screening?" Because the Yukawa potential IS e^{-mr}/r.
-#
-# Rule: a new primitive may be added to a domain ONLY if a peer-reviewed
-# paper on that specific phenomenon uses that functional form. Never add
-# primitives because a fit looks better — that is overfitting the taxonomy.
-# Timestamp of lock: 2026-08-10 (refactored to phenomenon-specific keys)
+# Primitives for each physical domain are derived from fundamental governing
+# equations (e.g. Klein-Gordon, Lorentz invariance, Boltzmann distribution).
+# =====================================================================
 DOMAIN_TAXONOMY: dict = {
 
     # ── YUKAWA / DEBYE SCREENING ─────────────────────────────────────────

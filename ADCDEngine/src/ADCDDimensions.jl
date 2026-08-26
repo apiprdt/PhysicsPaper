@@ -212,7 +212,7 @@ function verify_dimension(
     elseif haskey(registry, Symbol(target_dim_name))
         target = registry[Symbol(target_dim_name)]
     else
-        return false  # Fail-closed: tolak target dimensi tak dikenal
+        return false  # Fail-closed: reject unrecognized target dimension
     end
     result = infer_dim(expr_node, registry)
     result isa DimResult && return false

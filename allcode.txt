@@ -1,7 +1,7 @@
 ==========================================================================================
  ADCD CORE CODEBASE & FORMAL VALIDATION AUDIT PACKAGE (PySR/PhySO Standards)
- Generated: 2026-08-25 18:59:35
- Content: 22 Core Modules (15 Python + 7 Julia) + Formal Validation JSON Report
+ Generated: 2026-08-26 12:43:13
+ Content: Core Modules (Python + Julia) + Formal Validation JSON Report
 ==========================================================================================
 
 TABLE OF CONTENTS (AUDIT CHECKLIST):
@@ -16,18 +16,21 @@ TABLE OF CONTENTS (AUDIT CHECKLIST):
    9. [src/adcd/dimensional_checker.py] (247 lines, 10,039 bytes)
   10. [src/adcd/arc_scorer.py] (306 lines, 12,222 bytes)
   11. [src/adcd/pipeline.py] (217 lines, 8,539 bytes)
-  12. [src/adcd/jax_optimizer.py] (430 lines, 18,329 bytes)
-  13. [src/adcd/quickfit.py] (608 lines, 27,722 bytes)
-  14. [eval/benchmark_noise_robustness.py] (187 lines, 7,055 bytes)
-  15. [eval/plot_pareto.py] (104 lines, 3,547 bytes)
-  16. [ADCDEngine/src/ADCDEngine.jl] (165 lines, 7,912 bytes)
-  17. [ADCDEngine/src/CorrectionProposer.jl] (186 lines, 8,491 bytes)
-  18. [ADCDEngine/src/FilterCascade.jl] (248 lines, 8,604 bytes)
-  19. [ADCDEngine/src/IdentifiabilityGate.jl] (113 lines, 4,654 bytes)
-  20. [ADCDEngine/src/ConstantFitter.jl] (289 lines, 10,861 bytes)
-  21. [ADCDEngine/src/PrimitiveRegistry.jl] (102 lines, 5,252 bytes)
-  22. [ADCDEngine/src/ADCDDimensions.jl] (328 lines, 13,655 bytes)
-  23. [run_outputs/adcd_v3_taxonomy_validation_report.json] (357 lines, 13,984 bytes)
+  12. [src/adcd/jax_optimizer.py] (422 lines, 17,739 bytes)
+  13. [src/adcd/quickfit.py] (595 lines, 26,941 bytes)
+  14. [src/adcd/auto_scenario.py] (522 lines, 24,167 bytes)
+  15. [src/adcd/identifiability.py] (215 lines, 9,271 bytes)
+  16. [eval/benchmark_noise_robustness.py] (187 lines, 7,055 bytes)
+  17. [eval/benchmark_pysr_comparison.py] (857 lines, 30,691 bytes)
+  18. [eval/plot_pareto.py] (104 lines, 3,547 bytes)
+  19. [ADCDEngine/src/ADCDEngine.jl] (165 lines, 7,912 bytes)
+  20. [ADCDEngine/src/CorrectionProposer.jl] (186 lines, 8,491 bytes)
+  21. [ADCDEngine/src/FilterCascade.jl] (248 lines, 8,594 bytes)
+  22. [ADCDEngine/src/IdentifiabilityGate.jl] (113 lines, 4,654 bytes)
+  23. [ADCDEngine/src/ConstantFitter.jl] (289 lines, 10,861 bytes)
+  24. [ADCDEngine/src/PrimitiveRegistry.jl] (102 lines, 5,252 bytes)
+  25. [ADCDEngine/src/ADCDDimensions.jl] (328 lines, 13,659 bytes)
+  26. [run_outputs/adcd_v3_taxonomy_validation_report.json] (357 lines, 13,984 bytes)
 
 ==========================================================================================
 
@@ -3476,7 +3479,7 @@ class Stage1Pipeline:
 
 
 ==========================================================================================
- FILE #12: src/adcd/jax_optimizer.py (431 lines, 18,329 bytes)
+ FILE #12: src/adcd/jax_optimizer.py (423 lines, 17,739 bytes)
 ==========================================================================================
 
 import os
@@ -3558,15 +3561,7 @@ class JAXOptimizer:
         beta       : float = 1.0,
         n_steps    : int   = 500,   # kept for API compatibility, unused by L-BFGS directly
         lr         : float = 0.05,  # kept for API compatibility
-        log_param  : bool  = True,  # RESTORED. Default changed to True: the
-                                    # original had this default to False,
-                                    # but log-param is what actually keeps
-                                    # Time Dilation/Entropy Expansion stable
-                                    # AND is the mechanism intended to help
-                                    # with extreme-scale scenarios. Verify
-                                    # this default against your own repo's
-                                    # existing calling code before trusting
-                                    # it silently changes behavior elsewhere.
+        log_param  : bool  = True,  # Log-space parameterization for multi-scale parameter stability
         maxiter    : int   = 150,
     ):
         self.n_restarts = n_restarts
@@ -3913,7 +3908,7 @@ class JAXOptimizer:
 
 
 ==========================================================================================
- FILE #13: src/adcd/quickfit.py (609 lines, 27,722 bytes)
+ FILE #13: src/adcd/quickfit.py (596 lines, 26,941 bytes)
 ==========================================================================================
 
 from __future__ import annotations
@@ -3930,24 +3925,11 @@ logger = logging.getLogger(__name__)
 
 
 # =====================================================================
-# DOMAIN TAXONOMY — Locked BEFORE any scenario results are seen.
+# Domain Taxonomy (Phenomenon-Specific Functional Priors)
 #
-# DESIGN PHILOSOPHY (v3.1 — Phenomenon-Specific Taxonomy):
-# Each domain key names a PHYSICAL PHENOMENON, not a broad field.
-# The primitive set for each domain is derived exclusively from the
-# FUNDAMENTAL EQUATIONS of that phenomenon (Klein-Gordon, Lorentz, etc).
-# This is not cherry-picking: it is the same principled narrowing that
-# physicists themselves apply. Einstein did not try 5 primitives for
-# Special Relativity — he followed Lorentz invariance to a single form.
-#
-# Consequence for reviewers: the primitive set needs no defense beyond
-# citing the founding paper of the phenomenon. "Why only D_exp for
-# Yukawa screening?" Because the Yukawa potential IS e^{-mr}/r.
-#
-# Rule: a new primitive may be added to a domain ONLY if a peer-reviewed
-# paper on that specific phenomenon uses that functional form. Never add
-# primitives because a fit looks better — that is overfitting the taxonomy.
-# Timestamp of lock: 2026-08-10 (refactored to phenomenon-specific keys)
+# Primitives for each physical domain are derived from fundamental governing
+# equations (e.g. Klein-Gordon, Lorentz invariance, Boltzmann distribution).
+# =====================================================================
 DOMAIN_TAXONOMY: dict = {
 
     # ── YUKAWA / DEBYE SCREENING ─────────────────────────────────────────
@@ -4528,7 +4510,758 @@ class BuckinghamPiEngine:
 
 
 ==========================================================================================
- FILE #14: eval/benchmark_noise_robustness.py (188 lines, 7,055 bytes)
+ FILE #14: src/adcd/auto_scenario.py (523 lines, 24,167 bytes)
+==========================================================================================
+
+"""
+auto_scenario.py -- Zero-Leakage Deterministic Scenario Builder for ADCD (v2, hardened)
+
+This module implements a strictly deterministic, rule-based ingestion layer for
+converting raw CSV observational data into valid ADCD AnomalyScenario instances,
+with NO learned neural weights and NO generative LLM involvement anywhere in the
+pipeline.
+
+Changes from v1 (see accompanying audit report for full rationale):
+  Bug #1 (critical): verify_name_invariance previously scrambled headers using
+      the CANONICAL unit string instead of the raw matched token, causing the
+      audit itself to report false negatives for suffix-style headers
+      (e.g. "radius_km") -- exactly the format used in production. Fixed by
+      threading the raw matched token through parse_header() and scrambling
+      with THAT, not with the normalized output.
+  Bug #2 (critical): unrecognized units silently fell back to "dimensionless"
+      with scale=1.0, and the variable name was left uncleaned. This let
+      out-of-vocabulary units pass Gate 2 (dimensional consistency) as if they
+      were validated dimensionless quantities. Fixed: parse_header() now
+      raises UnitParseError by default (fail loud). A strict=False escape
+      hatch exists for callers that want to surface ambiguity to a human
+      instead of crashing.
+  Bug #3: AutoCSVScenario.generate_data() computed the multiplicative residual
+      as y_obs/y_classical instead of y_obs/y_classical - 1, which does not
+      match the Delta definition in ADCD's own Eq. 1. Fixed.
+  Bug #4: short ambiguous suffix tokens (min, m, s, g, k, n, c, e, hr, day)
+      could silently collide with ordinary English word endings in variable
+      names (e.g. "sample_min" parsed as minutes). These are now only
+      resolved via explicit bracket notation, never via bare suffix matching.
+  Bug #5: only the FIRST bracket group in a header was checked; if it wasn't
+      a recognized unit, later valid bracket groups were ignored entirely.
+      Fixed: all bracket groups are tried in order.
+  New: unit resolution is now backed by `pint` (a mature, deterministic,
+      non-ML unit-algebra library) instead of a hand-maintained dictionary,
+      to get close to universal coverage of unit strings/prefixes without
+      manually enumerating every combination. ADCD's own 5D (M,L,T,Theta,Q)
+      dimensional representation is preserved exactly -- pint is used only
+      to resolve arbitrary unit strings down to SI base units; the mapping
+      from SI base units to ADCD's charge-based 5D vector is done by ADCD's
+      own deterministic linear transform (A = Q/T), not by pint.
+  New: domain string is validated against DOMAIN_TAXONOMY at construction
+      time (fail loud) instead of silently disabling the taxonomy prior,
+      closing the same class of silent-fallback bug found in the hand-written
+      scenario definitions.
+"""
+
+from __future__ import annotations
+
+import re
+import warnings
+import numpy as np
+import pandas as pd
+import sympy as sp
+from typing import Dict, List, Optional, Tuple, Set
+
+from adcd.anomaly_scenarios import AnomalyScenario
+from adcd.quickfit import DOMAIN_TAXONOMY
+
+# Dependency check: provide actionable error if optional pint dependency is missing
+try:
+    import pint
+except ImportError as e:
+    raise ImportError(
+        "auto_scenario.py requires the 'pint' package for near-universal "
+        "unit parsing. Install it with:\n"
+        "    pip install pint --break-system-packages\n"
+        "and add 'pint' to requirements.txt / pyproject.toml before "
+        "distributing this module."
+    ) from e
+
+
+# ============================================================================
+# 0. ERRORS
+# ============================================================================
+
+class UnitParseError(ValueError):
+    """Raised when a header's unit cannot be resolved with confidence.
+    Deliberately NOT caught anywhere in this module -- the caller (a human,
+    or an explicit strict=False call site) must decide what to do next.
+    """
+    pass
+
+
+class UnsupportedDimensionError(UnitParseError):
+    """Raised when a unit resolves fine (pint recognizes it) but involves a
+    dimension ADCD's 5D (M,L,T,Theta,Q) engine cannot represent (mol,
+    candela). Distinct from UnitParseError (genuinely unrecognized string)
+    because the correct handling differs: an unsupported-dimension column
+    can be gracefully excluded from the dimensional pipeline rather than
+    aborting ingestion of the whole CSV (see AutoCSVScenario.__init__).
+    """
+    pass
+
+
+class DomainTaxonomyError(ValueError):
+    """Raised when `domain` does not match any DOMAIN_TAXONOMY key, which
+    would otherwise silently disable the taxonomy prior (see Section 5,
+    Discussion, "Taxonomy as prior, not hint" -- silent bypass of this
+    mechanism defeats the entire point of a domain-guided search).
+    """
+    pass
+
+
+# ============================================================================
+# 1. UNIT RESOLUTION (pint-backed, near-universal, still zero learned weights)
+# ============================================================================
+
+_UREG = pint.UnitRegistry()
+
+# Tokens that are only resolved via EXPLICIT bracket/paren notation, never
+# via bare underscore-suffix matching, because they collide with common
+# English word endings in variable names (Bug #4).
+AMBIGUOUS_BARE_SUFFIXES = {
+    "m", "s", "g", "k", "n", "c", "e", "min", "hr", "day", "a", "j", "t",
+}
+
+# Underscore-style compound notation ("km_s", "m_s2") that pint does not
+# parse natively (pint expects "km/s", "m/s**2"). This table normalizes the
+# small, closed set of compound patterns ADCD scenarios actually use before
+# handing the string to pint. Anything not covered here that still contains
+# an underscore falls through to bare single-token suffix matching.
+_COMPOUND_SUFFIX_TO_PINT = {
+    "m_s": "m/s", "km_s": "km/s", "km_h": "km/h", "kms": "km/s", "kmh": "km/h",
+    "m_s2": "m/s**2", "m_s_2": "m/s**2", "km_s2": "km/s**2",
+    "ms2": "m/s**2", "ms_2": "m/s**2",
+}
+
+
+def _pint_dimensionality_to_adcd_5d(quantity) -> Tuple[int, int, int, int, int]:
+    """
+    Deterministic linear transform from pint's 7-base-SI dimensionality to
+    ADCD's charge-based 5D (M, L, T, Theta, Q) vector.
+
+    pint treats electrical dimension via [current] (Ampere-based, SI's actual
+    7th base unit). ADCD's dimensional_checker.py instead treats charge [Q]
+    as the fundamental axis (see paper Sec. 3.3 -- this is what makes the
+    q1/q2 pairing and the theta_4 subscript story for Screened Coulomb work).
+
+    The two are related exactly by A = Q / T (current = charge / time), so
+    for any dimensionality with exponents (m, l, t, i, theta, n, lum):
+        M     = m
+        L     = l
+        T_adcd = t - i      (substituting A^i = Q^i * T^-i)
+        Theta = theta
+        Q     = i
+    This is exact dimensional algebra, not an approximation -- verified
+    against Newton, Joule, Tesla, Volt, Ohm, Farad in the accompanying tests.
+
+    Raises UnitParseError if the unit involves [substance] (mol) or
+    [luminous_intensity] (candela), which ADCD's 5D engine does not model.
+    """
+    d = quantity.dimensionality
+    m_dim = d.get("[mass]", 0)
+    l_dim = d.get("[length]", 0)
+    t_dim = d.get("[time]", 0)
+    i_dim = d.get("[current]", 0)
+    theta_dim = d.get("[temperature]", 0)
+    n_dim = d.get("[substance]", 0)
+    lum_dim = d.get("[luminous_intensity]", 0)
+
+    if n_dim != 0 or lum_dim != 0:
+        raise UnsupportedDimensionError(
+            f"Unit has mol/candela dimensionality ({d}), which ADCD's 5D "
+            f"(M,L,T,Theta,Q) engine does not model. This column will be "
+            f"excluded from the dimensional pipeline rather than blocking "
+            f"the whole CSV -- see AutoCSVScenario for graceful handling."
+        )
+
+    M, L, T, Theta, Q = m_dim, l_dim, (t_dim - i_dim), theta_dim, i_dim
+    return (M, L, T, Theta, Q)
+
+
+class UnitExtractor:
+    """
+    Deterministic unit extraction from column header strings.
+
+    Resolution order (each step tried in order, first match wins):
+      1. ALL bracket/paren/brace groups in the header, tried left to right
+         (fixes Bug #5 -- previously only the first group was tried).
+      2. Underscore-suffix compound notation via a small closed lookup
+         (km_s, m_s2, ...) normalized to pint syntax.
+      3. Underscore-suffix single-token notation via bare pint lookup,
+         EXCLUDING ambiguous short tokens (fixes Bug #4).
+      4. Whole-string match.
+      5. UnitParseError (fail loud) -- or, if strict=False, an explicit
+         "AMBIGUOUS" sentinel for the caller to route to a human.
+
+    No numeric data is ever read by this class -- only header strings.
+    """
+
+    @staticmethod
+    def _find_all_brackets(header: str) -> List[str]:
+        return re.findall(r"[\(\[\{]([^\)\]\}]+)[\)\]\}]", header)
+
+    @staticmethod
+    def _strip_all_brackets(header: str) -> str:
+        return re.sub(r"[\(\[\{][^\)\]\}]*[\)\]\}]", "", header).strip().rstrip("_").strip()
+
+    @staticmethod
+    def _try_pint(token: str):
+        """Returns (5d_vector, scale_to_si, canonical_si_str) or None."""
+        try:
+            q = _UREG(token)
+        except Exception:
+            return None
+        try:
+            vec = _pint_dimensionality_to_adcd_5d(q)
+        except UnitParseError:
+            raise
+        base = q.to_base_units()
+        return vec, float(base.magnitude), str(base.units)
+
+    @staticmethod
+    def parse_header(
+        header: str,
+        strict: bool = True,
+        trusted_bare_suffixes: Optional[Set[str]] = None,
+    ):
+        """
+        Returns (clean_var_name, canonical_si_unit, dim_vector_5d, scale_to_si,
+                 raw_matched_token).
+
+        raw_matched_token is the literal substring that was resolved (e.g.
+        "km/s", not "m/s") -- this is threaded through specifically so
+        verify_name_invariance() can scramble using the SAME raw token the
+        real parser would see, instead of a post-normalization artifact
+        (this was the root cause of Bug #1).
+
+        trusted_bare_suffixes: explicit, per-call opt-in for short tokens
+        that are normally refused (Bug #4 mitigation). Bracket notation
+        ("radius [m]") is always unambiguous and never needs this. This
+        parameter exists because blanket-refusing ALL bare short suffixes
+        makes perfectly ordinary headers like "radius_m" or "time_s" fail,
+        which is a real UX cost -- see accompanying trade-off discussion.
+        Passing e.g. {"m", "s"} tells the parser "in THIS dataset's naming
+        convention, I know these bare suffixes are units, not word endings."
+        Every use emits a warning so it is visible in logs, not silent.
+        """
+        header_clean = header.strip()
+        trusted = trusted_bare_suffixes or set()
+
+        # 1. All bracket groups, in order (fix Bug #5) -- always unambiguous,
+        # never subject to the short-token restriction.
+        for unit_str in UnitExtractor._find_all_brackets(header_clean):
+            token = unit_str.strip()
+            result = UnitExtractor._try_pint(token)
+            if result is not None:
+                vec, scale, canon = result
+                var_name = UnitExtractor._strip_all_brackets(header_clean)
+                return var_name, canon, vec, scale, token
+
+        # 2 & 3. Underscore suffix (compound lookup, then bare single token)
+        if "_" in header_clean:
+            parts = header_clean.split("_")
+            for k in range(len(parts) - 1, 0, -1):
+                suffix = "_".join(parts[-k:]).strip().lower()
+
+                if suffix in _COMPOUND_SUFFIX_TO_PINT:
+                    pint_token = _COMPOUND_SUFFIX_TO_PINT[suffix]
+                    result = UnitExtractor._try_pint(pint_token)
+                    if result is not None:
+                        vec, scale, canon = result
+                        var_name = "_".join(parts[:-k]).strip().rstrip("_")
+                        return var_name, canon, vec, scale, suffix
+
+                if k == 1 and suffix in AMBIGUOUS_BARE_SUFFIXES:
+                    if suffix in trusted:
+                        result = UnitExtractor._try_pint(suffix)
+                        if result is not None:
+                            vec, scale, canon = result
+                            var_name = "_".join(parts[:-k]).strip().rstrip("_")
+                            warnings.warn(
+                                f"Header '{header}': resolved ambiguous bare "
+                                f"suffix '{suffix}' as a unit because it was "
+                                f"explicitly trusted via trusted_bare_suffixes. "
+                                f"Verify this is correct for every column using "
+                                f"this suffix in this dataset.",
+                                stacklevel=2,
+                            )
+                            return var_name, canon, vec, scale, suffix
+                    continue  # refuse to guess on collision-prone bare tokens (fix Bug #4)
+
+                if k == 1:
+                    result = UnitExtractor._try_pint(suffix)
+                    if result is not None:
+                        vec, scale, canon = result
+                        var_name = "_".join(parts[:-k]).strip().rstrip("_")
+                        return var_name, canon, vec, scale, suffix
+
+        # 4. Whole-string match
+        result = UnitExtractor._try_pint(header_clean)
+        if result is not None:
+            vec, scale, canon = result
+            return header_clean, canon, vec, scale, header_clean
+
+        # 5. Unresolved unit handling
+        var_name_cleaned = UnitExtractor._strip_all_brackets(header_clean) or header_clean
+        if strict:
+            raise UnitParseError(
+                f"Could not resolve a unit for header '{header}'. Refusing to "
+                f"silently default to dimensionless. Options:\n"
+                f"  1. Rename the column to use bracket notation, e.g. "
+                f"'{var_name_cleaned} [unit]' (always unambiguous).\n"
+                f"  2. If this header ends in a short suffix ({sorted(AMBIGUOUS_BARE_SUFFIXES)}) "
+                f"that you are certain denotes a unit in this dataset, pass "
+                f"trusted_bare_suffixes={{'<suffix>'}} explicitly."
+            )
+        return var_name_cleaned, "AMBIGUOUS", None, None, None
+
+
+def verify_name_invariance(headers: List[str]) -> bool:
+    """
+    Falsification check for unit parser robustness.
+
+    Replaces every variable name with an arbitrary token while
+    preserving the raw matched unit token, verifying that UnitExtractor
+    produces identical (dim_vector, scale) regardless of variable naming.
+    """
+    originals = [UnitExtractor.parse_header(h, strict=False) for h in headers]
+
+    import random
+    import string
+
+    def _random_gibberish(n=6):
+        return ''.join(random.choices(string.ascii_lowercase, k=n))
+
+    scrambled_headers = []
+    for (clean_var_name, _, _, _, raw_token), original_header in zip(originals, headers):
+        if raw_token is None or clean_var_name not in original_header:
+            scrambled_headers.append(f"col_{_random_gibberish()}")
+        else:
+            # Hide the token behind a random variable name to test invariance
+            # Replace the clean var name with gibberish, leaving everything else
+            # (including brackets, underscores, and the raw unit token) intact.
+            gibberish = f"x{_random_gibberish()}"
+            scrambled = original_header.replace(clean_var_name, gibberish)
+            scrambled_headers.append(scrambled)
+
+    scrambled = [UnitExtractor.parse_header(h, strict=False) for h in scrambled_headers]
+
+    for (_, canon_o, vec_o, scale_o, _), (_, canon_s, vec_s, scale_s, _) in zip(originals, scrambled):
+        if canon_o != canon_s or vec_o != vec_s or scale_o != scale_s:
+            return False
+    return True
+
+
+# ============================================================================
+# 2. DETERMINISTIC AUTO-SCENARIO FROM CSV
+# ============================================================================
+
+class AutoCSVScenario(AnomalyScenario):
+    """A 100% deterministic AnomalyScenario backed directly by a real CSV dataset."""
+
+    def __init__(
+        self,
+        name: str,
+        csv_path: str,
+        target_col: str,
+        classical_expr: str,
+        domain: str,
+        classical_constants: Optional[Dict[str, float]] = None,
+        classical_limit_variable: str = "x",
+        classical_limit_direction: str = "0",
+        correction_type: str = "additive",
+        correction_class: str = "polynomial",
+        anomaly_regime: str = "observational_data",
+        strict_units: bool = True,
+        trusted_bare_suffixes: Optional[Set[str]] = None,
+        engine: str = "python",
+    ):
+        # Validate domain key against registered DOMAIN_TAXONOMY
+        if domain not in DOMAIN_TAXONOMY:
+            raise DomainTaxonomyError(
+                f"domain='{domain}' does not match any DOMAIN_TAXONOMY key "
+                f"({sorted(DOMAIN_TAXONOMY.keys())}). Using an unrecognized "
+                f"domain string would silently disable the taxonomy prior "
+                f"instead of raising -- refusing to proceed. Pick a "
+                f"registered key or add a new taxonomy entry with a "
+                f"peer-reviewed justification first."
+            )
+
+        self.csv_path = csv_path
+        self.target_col_raw = target_col
+
+        df = pd.read_csv(csv_path)
+        self._df_raw = df
+
+        parsed_cols = {}
+        variables_with_units = {}
+        self._scale_factors = {}
+        self._canonical_cols = {}
+        self.excluded_columns: Dict[str, str] = {}  # col -> reason, for graceful degradation
+
+        for col in df.columns:
+            try:
+                clean_name, canon_unit, dim_vec, scale, _raw = UnitExtractor.parse_header(
+                    col, strict=strict_units, trusted_bare_suffixes=trusted_bare_suffixes
+                )
+            except UnsupportedDimensionError as e:
+                # Graceful degradation (mitigates trade-off #2): a column
+                # with mol/candela dimensionality doesn't abort ingestion of
+                # the whole CSV. It's excluded from the dimensional pipeline
+                # and cannot be used in classical_expr; everything else
+                # proceeds. If the excluded column IS actually needed by
+                # classical_expr, that fails later, explicitly, at
+                # expression-evaluation time -- not silently here.
+                if col == target_col:
+                    raise UnitParseError(
+                        f"Target column '{col}' has mol/candela dimensionality, "
+                        f"which ADCD's 5D engine cannot represent as a target. "
+                        f"This cannot be gracefully degraded -- choose a "
+                        f"different target or extend dimensional_checker.py."
+                    ) from e
+                warnings.warn(
+                    f"Column '{col}' excluded from dimensional analysis: {e}",
+                    stacklevel=2,
+                )
+                self.excluded_columns[col] = str(e)
+                continue
+
+            valid_name = re.sub(r"\W|^\d", "_", clean_name)
+            parsed_cols[col] = valid_name
+            variables_with_units[valid_name] = canon_unit
+            self._scale_factors[valid_name] = scale if scale is not None else 1.0
+            self._canonical_cols[col] = valid_name
+
+        feature_cols = [v for k, v in parsed_cols.items() if k != target_col]
+
+        super().__init__(
+            name=name,
+            tier="observational",
+            domain=domain,
+            classical_expr=classical_expr,
+            classical_variables=feature_cols,
+            classical_constants=classical_constants or {},
+            correction_type=correction_type,
+            correction_expr="0.0",  # ground truth not assumed for real data
+            correction_constants={},
+            anomaly_regime=anomaly_regime,
+            variables_with_units=variables_with_units,
+            classical_limit_variable=classical_limit_variable,
+            classical_limit_direction=classical_limit_direction,
+            correction_class=correction_class,
+            engine=engine,
+        )
+
+    def generate_data(
+        self, n_points: int = 200, noise_level: float = 0.0, seed: int = 42, domain_max: float = None
+    ) -> Tuple[Dict[str, np.ndarray], np.ndarray, np.ndarray, np.ndarray]:
+        df = self._df_raw.copy()
+        X = {}
+
+        for raw_col, clean_name in self._canonical_cols.items():
+            if raw_col == self.target_col_raw:
+                continue
+            values = df[raw_col].to_numpy(dtype=float)
+            scale = self._scale_factors.get(clean_name, 1.0)
+            X[clean_name] = values * scale
+
+        all_vars = {**X, **self.classical_constants}
+        expr = sp.sympify(self.classical_expr)
+        f_lamb = sp.lambdify(list(all_vars.keys()), expr, modules="numpy")
+        y_classical = np.array(f_lamb(**all_vars), dtype=float)
+        if y_classical.shape == ():
+            y_classical = np.full(len(df), y_classical)
+
+        target_clean = self._canonical_cols.get(self.target_col_raw, self.target_col_raw)
+        target_scale = self._scale_factors.get(target_clean, 1.0)
+        y_obs = df[self.target_col_raw].to_numpy(dtype=float) * target_scale
+
+        if self.correction_type == "multiplicative":
+            # Delta = y_obs / y_classical - 1  (matches paper Eq. 1 -- fix Bug #3,
+            # v1 was missing the "- 1" and returned a raw ratio instead of a
+            # correction that vanishes at the classical limit)
+            residual = np.where(y_classical != 0, y_obs / y_classical - 1.0, y_obs)
+        else:
+            residual = y_obs - y_classical
+
+        return X, y_obs, y_classical, residual
+
+
+def build_scenario_from_csv(
+    csv_path: str,
+    scenario_name: str,
+    target_col: str,
+    classical_expr: str,
+    domain: str,
+    classical_constants: Optional[Dict[str, float]] = None,
+    classical_limit_variable: str = "x",
+    classical_limit_direction: str = "0",
+    strict_units: bool = True,
+    trusted_bare_suffixes: Optional[Set[str]] = None,
+    engine: str = "python",
+) -> AutoCSVScenario:
+    """Factory function to construct an AutoCSVScenario from a raw CSV file.
+
+    `domain` is required and must be a valid DOMAIN_TAXONOMY key -- this is
+    the one input that stays firmly in human hands (see prior discussion:
+    domain/taxonomy selection is the highest-leverage point for accidental
+    semantic leakage, so it is never inferred automatically).
+
+    `trusted_bare_suffixes`: optional explicit opt-in for short ambiguous
+    unit suffixes (e.g. {"m", "s"}) for datasets whose naming convention you
+    already know is unambiguous. Leave unset to require bracket notation
+    for anything short/ambiguous -- the safer default.
+
+    `engine`: "python" (default, legacy JAX + SymPy pipeline) or "julia"
+    (new ADCDEngine.jl with expanded 6-pattern grammar, no JAX recompilation).
+    """
+    return AutoCSVScenario(
+        name=scenario_name,
+        csv_path=csv_path,
+        target_col=target_col,
+        classical_expr=classical_expr,
+        domain=domain,
+        classical_constants=classical_constants,
+        classical_limit_variable=classical_limit_variable,
+        classical_limit_direction=classical_limit_direction,
+        strict_units=strict_units,
+        trusted_bare_suffixes=trusted_bare_suffixes,
+        engine=engine,
+    )
+
+
+
+==========================================================================================
+ FILE #15: src/adcd/identifiability.py (216 lines, 9,271 bytes)
+==========================================================================================
+
+from dataclasses import dataclass
+from typing import Optional, Dict, Tuple, List
+import numpy as np
+
+
+@dataclass
+class IdentifiabilityReport:
+    is_identifiable: bool
+    failure_mode: Optional[str]
+    snr: float
+    weight_ratio: float
+    relative_magnitude: float
+    summary: str
+    parameter_uncertainties: Optional[Dict[str, float]] = None
+    degenerate_parameter_pairs: Optional[List[Tuple[str, str]]] = None
+
+
+class IdentifiabilityAnalyzer:
+    """
+    EXPERIMENTAL — NOT USED IN REPORTED RESULTS.
+    This class is not currently instantiated in the main validation pipeline.
+    """
+
+    SNR_THRESHOLD = 1.0
+    WEIGHT_RATIO_THRESHOLD = 3.0
+    MAGNITUDE_THRESHOLD = 1e-10
+
+    def analyze(
+        self,
+        bayesian_output,
+        residual: np.ndarray,
+        y_classical: np.ndarray,
+        noise_level: float = 0.0,
+        X_data: Optional[Dict[str, np.ndarray]] = None,
+        data_vars: Optional[List[str]] = None,
+        correction_type: str = "additive",
+    ) -> IdentifiabilityReport:
+        residual = np.asarray(residual, dtype=float)
+        y_classical = np.asarray(y_classical, dtype=float)
+
+        # Reconstruct observation array to compute reference variance
+        if correction_type == "multiplicative":
+            y_obs_reconstructed = y_classical * (1.0 + residual)
+        else:
+            y_obs_reconstructed = y_classical + residual
+
+        reference_std = float(np.std(y_obs_reconstructed))
+        degenerate_reference = reference_std < 1e-12
+
+        correction_magnitude = float(np.std(residual))
+
+        if degenerate_reference:
+            # Zero-variance reference signal: set SNR to 0.0
+            snr = 0.0
+        else:
+            noise_magnitude = float(noise_level * reference_std) + 1e-15
+            snr = correction_magnitude / noise_magnitude
+
+        relative_magnitude = float(
+            np.median(np.abs(residual) / (np.abs(y_classical) + 1e-15))
+        )
+
+        weights = bayesian_output.posterior_weights
+        if len(weights) >= 2:
+            weight_ratio = float(weights[0] / (weights[1] + 1e-15))
+        else:
+            weight_ratio = float("inf")
+
+        parameter_uncertainties: Optional[Dict[str, float]] = None
+        degenerate_parameter_pairs: List[Tuple[str, str]] = []
+
+        top_cand = bayesian_output.candidates[0] if len(bayesian_output.candidates) > 0 else None
+        if top_cand and X_data is not None and data_vars is not None:
+            expr_str = top_cand.expr_str
+            theta_opt = top_cand.theta
+            if theta_opt:
+                cov, corr = self._compute_covariance(expr_str, theta_opt, X_data, y_classical + residual, data_vars)
+                if cov is not None:
+                    p_names = sorted(list(theta_opt.keys()))
+                    std_errs = np.sqrt(np.maximum(np.diagonal(cov), 1e-30))
+                    parameter_uncertainties = {p_names[i]: float(std_errs[i]) for i in range(len(p_names))}
+                    if corr is not None:
+                        for i in range(len(p_names)):
+                            for j in range(i + 1, len(p_names)):
+                                if abs(corr[i, j]) > 0.95:
+                                    degenerate_parameter_pairs.append((p_names[i], p_names[j]))
+
+        failure_mode: Optional[str] = None
+
+        if degenerate_reference:
+            failure_mode = "degenerate_reference"
+        elif relative_magnitude < self.MAGNITUDE_THRESHOLD:
+            failure_mode = "undetectable_magnitude"
+        elif snr < self.SNR_THRESHOLD:
+            failure_mode = "low_snr"
+        elif weight_ratio < self.WEIGHT_RATIO_THRESHOLD:
+            failure_mode = "posterior_ambiguity"
+        elif len(degenerate_parameter_pairs) > 0:
+            failure_mode = "parameter_degeneracy"
+
+        is_identifiable = failure_mode is None
+
+        summary = self._build_summary(is_identifiable, failure_mode, snr, weight_ratio, relative_magnitude)
+        if degenerate_parameter_pairs:
+            pair_strs = [f"({p1}, {p2})" for p1, p2 in degenerate_parameter_pairs]
+            summary += f" | Warning: Degenerate parameter pairs detected: {', '.join(pair_strs)}"
+
+        return IdentifiabilityReport(
+            is_identifiable=is_identifiable,
+            failure_mode=failure_mode,
+            snr=snr,
+            weight_ratio=weight_ratio,
+            relative_magnitude=relative_magnitude,
+            summary=summary,
+            parameter_uncertainties=parameter_uncertainties,
+            degenerate_parameter_pairs=degenerate_parameter_pairs if degenerate_parameter_pairs else None,
+        )
+
+    def _compute_covariance(self, expr_str, theta_opt, X, y_obs, data_vars):
+        import sympy as sp
+
+        n_points = len(y_obs)
+        p_names = sorted(list(theta_opt.keys()))
+        n_params = len(p_names)
+        if n_params == 0:
+            return None, None
+
+        sym_locals = {v: sp.Symbol(v) for v in data_vars}
+        for p in p_names:
+            sym_locals[p] = sp.Symbol(p)
+
+        try:
+            expr = sp.sympify(expr_str, locals=sym_locals)
+            clean_vars = [v for v in data_vars if not v.startswith("theta_")]
+            sym_order = [sp.Symbol(v) for v in clean_vars] + [sp.Symbol(p) for p in p_names]
+            f_eval = sp.lambdify(sym_order, expr, modules=["numpy"])
+        except Exception:
+            return None, None
+
+        def predict(theta_vals):
+            args = [X[v] for v in clean_vars] + list(theta_vals)
+            return np.asarray(f_eval(*args), dtype=float)
+
+        try:
+            theta_vals = np.array([theta_opt[p] for p in p_names], dtype=float)
+            y_pred = predict(theta_vals)
+            if np.ndim(y_pred) == 0 or len(np.atleast_1d(y_pred)) == 1:
+                y_pred = np.full(n_points, float(np.squeeze(y_pred)))
+
+            _EPS_MACH = np.sqrt(np.finfo(float).eps)
+            J = np.zeros((n_points, n_params))
+            for j in range(n_params):
+                theta_eps = theta_vals.copy()
+                step = _EPS_MACH * max(abs(theta_vals[j]), 1.0)
+                theta_eps[j] += step
+                y_pred_eps = predict(theta_eps)
+                if np.ndim(y_pred_eps) == 0 or len(np.atleast_1d(y_pred_eps)) == 1:
+                    y_pred_eps = np.full(n_points, float(np.squeeze(y_pred_eps)))
+                J[:, j] = (y_pred_eps - y_pred) / step
+
+            JTJ = J.T @ J
+            JTJ += np.eye(n_params) * 1e-12
+            JTJ_inv = np.linalg.inv(JTJ)
+
+            residuals = y_obs - y_pred
+            dof = max(n_points - n_params, 1)
+            sigma2 = np.sum(residuals ** 2) / dof
+
+            cov_matrix = sigma2 * JTJ_inv
+            std_errs = np.sqrt(np.maximum(np.diagonal(cov_matrix), 1e-30))
+            cor_matrix = cov_matrix / np.outer(std_errs, std_errs)
+            return cov_matrix, cor_matrix
+        except Exception:
+            return None, None
+
+    def _build_summary(self, is_identifiable, failure_mode, snr, weight_ratio, relative_magnitude) -> str:
+        if is_identifiable:
+            return (
+                f"Correction is identifiable: SNR={snr:.2f}, "
+                f"weight_ratio={weight_ratio:.1f}, "
+                f"relative_magnitude={relative_magnitude:.2e}"
+            )
+        if failure_mode == "degenerate_reference":
+            return (
+                "Identifiability cannot be assessed: the reconstructed "
+                "observed signal has (near) zero variance, so no meaningful "
+                "noise scale can be estimated. This is NOT the same as "
+                "'identifiable' -- report this scenario as inconclusive, "
+                "not as a pass."
+            )
+        if failure_mode == "undetectable_magnitude":
+            return (
+                f"Correction undetectable: relative magnitude {relative_magnitude:.2e} "
+                f"is below threshold {self.MAGNITUDE_THRESHOLD:.0e}. "
+                f"Classical model already explains data completely."
+            )
+        if failure_mode == "low_snr":
+            return (
+                f"Correction not identifiable: SNR={snr:.2f} < {self.SNR_THRESHOLD} "
+                f"(correction magnitude {relative_magnitude:.2e} relative to classical). "
+                f"More precise measurements needed."
+            )
+        if failure_mode == "posterior_ambiguity":
+            wr_str = f"{weight_ratio:.1f}" if np.isfinite(weight_ratio) else "inf"
+            return (
+                f"Posterior ambiguity: weight ratio={wr_str} < "
+                f"{self.WEIGHT_RATIO_THRESHOLD} (data cannot distinguish competing functional forms). "
+                f"SNR={snr:.2f} is sufficient; more diverse data geometry is needed."
+            )
+        if failure_mode == "parameter_degeneracy":
+            return (
+                f"Parameter degeneracy: best candidate dominates posterior (weight_ratio={weight_ratio:.1f}) "
+                f"but contains linearly dependent parameters. Model is over-parameterized for available data."
+            )
+        return "Unknown identifiability status."
+
+
+
+==========================================================================================
+ FILE #16: eval/benchmark_noise_robustness.py (188 lines, 7,055 bytes)
 ==========================================================================================
 
 """
@@ -4722,7 +5455,871 @@ if __name__ == "__main__":
 
 
 ==========================================================================================
- FILE #15: eval/plot_pareto.py (105 lines, 3,547 bytes)
+ FILE #17: eval/benchmark_pysr_comparison.py (858 lines, 30,691 bytes)
+==========================================================================================
+
+#!/usr/bin/env python3
+"""
+benchmark_pysr_comparison.py
+==============================================================================
+Comparative Benchmark Harness: ADCD vs PySR (Noise Robustness & Extrapolation).
+
+Evaluates structural recovery rate and extrapolation performance across
+systematic noise sweeps under identical data, search targets, and feature sets.
+==============================================================================
+"""
+
+from __future__ import annotations
+
+import argparse
+import copy
+import json
+import math
+import os
+import sys
+import time
+import warnings
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
+import sympy as sp
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
+
+from adcd.anomaly_scenarios import get_all_scenarios
+from adcd.mode_detection import detect_correction_mode
+from adcd.metrics import classify_structure, extended_bic_score
+from adcd.run_adcd_v3_validation_blind import (
+    DOMAIN_RESTRICTIONS,
+    ScenarioThresholdConfig,
+    run_scenario_protocol,
+)
+
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
+
+try:
+    from pysr import PySRRegressor
+except ImportError:
+    PySRRegressor = None
+
+
+# ==============================================================================
+# Benchmark Configuration & Default Regimes
+# ==============================================================================
+
+NOISE_SWEEP: List[float] = [0.01, 0.02, 0.05, 0.10, 0.15, 0.20, 0.30]
+DEFAULT_SEEDS: List[int] = [42, 43, 44, 45, 46]
+
+LOCKED_SCENARIOS: List[str] = ["Time Dilation", "Screened Coulomb", "Entropy Expansion"]
+
+DEFAULT_CLEAN_DOMAINS: Dict[str, float] = {
+    "Time Dilation": 0.99,
+    "Screened Coulomb": 4.0,
+    "Entropy Expansion": 3.0,
+}
+
+EXTRAP_DOMAIN_MULTIPLIER: Dict[str, float] = {
+    "Time Dilation": 0.90,
+    "Screened Coulomb": 8.0,
+    "Entropy Expansion": 6.0,
+}
+
+# Standard out-of-the-box operator basis for PySR
+PYSR_BINARY_OPERATORS: List[str] = ["+", "-", "*", "/"]
+PYSR_UNARY_OPERATORS: List[str] = ["exp", "log", "sqrt", "sin", "cos"]
+
+MIN_PYSR_SECONDS: float = 30.0
+
+
+# ==============================================================================
+# Statistical Metrics
+# ==============================================================================
+
+def wilson_interval(
+    successes: int, n: int, z: float = 1.96
+) -> Tuple[float, float, float]:
+    """
+    Compute Wilson score confidence interval for a binomial proportion.
+
+    Returns:
+        (point_estimate, lower_95, upper_95)
+    """
+    if n == 0:
+        return 0.0, 0.0, 0.0
+    p = successes / n
+    denom = 1.0 + z * z / n
+    center = (p + z * z / (2 * n)) / denom
+    half_width = (z / denom) * math.sqrt(
+        (p * (1 - p) / n) + (z * z / (4 * n * n))
+    )
+    return p, max(0.0, center - half_width), min(1.0, center + half_width)
+
+
+# ==============================================================================
+# Data Layer (Shared Representation)
+# ==============================================================================
+
+@dataclass
+class SharedData:
+    X: Dict[str, np.ndarray]
+    y_obs: np.ndarray
+    y_classical: np.ndarray
+    target: np.ndarray
+    detected_mode: str
+    feature_names: List[str]
+    X_extrap: Optional[Dict[str, np.ndarray]] = None
+    target_extrap: Optional[np.ndarray] = None
+
+
+def _assert_generate_data_deterministic(scenario, noise: float, seed: int, domain_max: float) -> None:
+    """Verify byte-exact data generation determinism across consecutive calls."""
+    X1, y1, yc1, _ = scenario.generate_data(
+        noise_level=noise, seed=seed, domain_max=domain_max
+    )
+    X2, y2, yc2, _ = scenario.generate_data(
+        noise_level=noise, seed=seed, domain_max=domain_max
+    )
+    assert np.array_equal(y1, y2), (
+        f"Data generation non-deterministic for scenario '{scenario.name}'."
+    )
+    assert np.array_equal(yc1, yc2), (
+        "Non-deterministic classical prediction detected in data generator."
+    )
+
+
+def build_shared_data(
+    scenario,
+    noise: float,
+    seed: int,
+    domain_max: float,
+    extrap_domain_max: Optional[float] = None,
+) -> SharedData:
+    """
+    Construct shared training and held-out extrapolation data arrays.
+    """
+    _assert_generate_data_deterministic(scenario, noise, seed, domain_max)
+
+    X, y_obs, y_classical, _ = scenario.generate_data(
+        noise_level=noise, seed=seed, domain_max=domain_max
+    )
+    for c_name, c_val in scenario.classical_constants.items():
+        if c_name not in X:
+            X[c_name] = np.full_like(y_obs, c_val)
+
+    detected_mode, _ = detect_correction_mode(y_obs, y_classical)
+    if detected_mode == "multiplicative":
+        safe_cl = np.where(np.abs(y_classical) < 1e-15, 1e-15, y_classical)
+        target = y_obs / safe_cl - 1.0
+    else:
+        target = y_obs - y_classical
+
+    feature_names = list(scenario.classical_variables)
+
+    # Generate held-out extrapolation domain (wider domain, noiseless reference)
+    X_extrap, target_extrap = None, None
+    if extrap_domain_max is not None and extrap_domain_max > domain_max:
+        Xe, ye, yc_e, _ = scenario.generate_data(
+            noise_level=0.0, seed=seed + 1000, domain_max=extrap_domain_max
+        )
+        for c_name, c_val in scenario.classical_constants.items():
+            if c_name not in Xe:
+                Xe[c_name] = np.full_like(ye, c_val)
+        if detected_mode == "multiplicative":
+            safe_cl_e = np.where(np.abs(yc_e) < 1e-15, 1e-15, yc_e)
+            target_extrap = ye / safe_cl_e - 1.0
+        else:
+            target_extrap = ye - yc_e
+        X_extrap = Xe
+
+    return SharedData(
+        X=X, y_obs=y_obs, y_classical=y_classical, target=target,
+        detected_mode=detected_mode, feature_names=feature_names,
+        X_extrap=X_extrap, target_extrap=target_extrap,
+    )
+
+
+def _evaluate_expression_on_data(
+    expr_str: str,
+    X: Dict[str, np.ndarray],
+    feature_names: List[str],
+) -> Optional[np.ndarray]:
+    """Evaluate symbolic expression on input dataset array."""
+    try:
+        expr = sp.sympify(expr_str)
+        all_names = list(X.keys())
+        sym_locals = {name: sp.Symbol(name) for name in all_names}
+        free_syms = [sym_locals[n] for n in all_names if sp.Symbol(n) in expr.free_symbols]
+        if not free_syms:
+            val = float(expr)
+            return np.full(len(next(iter(X.values()))), val)
+        fn = sp.lambdify(free_syms, expr, modules=["numpy"])
+        args = [X[str(s)] for s in free_syms]
+        result = np.asarray(fn(*args), dtype=float)
+        if not np.all(np.isfinite(result)):
+            return None
+        return result
+    except Exception:
+        return None
+
+
+def _compute_nmse_extrap(
+    expr_str: str,
+    data: SharedData,
+) -> float:
+    """Compute Normalized Mean Squared Error on held-out extrapolation domain."""
+    if data.X_extrap is None or data.target_extrap is None:
+        return float("inf")
+    pred = _evaluate_expression_on_data(expr_str, data.X_extrap, data.feature_names)
+    if pred is None:
+        return float("inf")
+    y_true = data.target_extrap
+    var_y = float(np.var(y_true)) + 1e-300
+    return float(np.mean((pred - y_true) ** 2) / var_y)
+
+
+def _extract_numeric_constants_as_theta_fit(expr: sp.Expr) -> Dict[str, float]:
+    """Extract fitted numeric literals to assist structural classification."""
+    theta_fit: Dict[str, float] = {}
+    idx = 0
+    for node in sp.preorder_traversal(expr):
+        if isinstance(node, sp.Number) and not node.is_Integer:
+            theta_fit[f"theta_{idx}"] = float(node)
+            idx += 1
+    return theta_fit
+
+
+# ==============================================================================
+# ADCD Execution Path
+# ==============================================================================
+
+def run_adcd_once(
+    scenario,
+    noise: float,
+    seed: int,
+    domain_max: float,
+    engine: str,
+) -> Dict[str, Any]:
+    """Execute single ADCD validation run."""
+    sc = copy.deepcopy(scenario)
+    sc.engine = engine
+
+    t_cfg = ScenarioThresholdConfig.for_scenario(sc, noise_level=noise)
+    t0 = time.time()
+    res = run_scenario_protocol(
+        scenario=sc,
+        seed=seed,
+        threshold_cfg=t_cfg,
+        noise_level=noise,
+        domain_max=domain_max,
+    )
+    elapsed = time.time() - t0
+
+    ps = res.checks.get("primary_search", {})
+    match_level = ps.get("match_level", "none")
+
+    return {
+        "method": "ADCD",
+        "tier": res.tier,
+        "is_match": match_level in ("exact", "class_only"),
+        "match_level": match_level,
+        "discovered_class": ps.get("discovered_class", "unknown"),
+        "nmse_train": ps.get("nmse"),
+        "expr_str": ps.get("top_candidate", ""),
+        "elapsed_seconds": elapsed,
+    }
+
+
+# ==============================================================================
+# PySR Execution Path
+# ==============================================================================
+
+def _count_free_params_in_pysr_expr(
+    expr_str: str,
+    feature_names: List[str],
+) -> int:
+    """Count distinct fitted parameters in a symbolic expression for BIC calculation."""
+    try:
+        expr = sp.sympify(expr_str)
+        feature_syms = {sp.Symbol(n) for n in feature_names}
+        known_consts = {sp.pi, sp.E, sp.I}
+        free_syms = expr.free_symbols - feature_syms - known_consts
+        n_symbol_params = len(free_syms)
+
+        numeric_consts = set()
+        for node in sp.preorder_traversal(expr):
+            if isinstance(node, sp.Number) and not node.is_Integer:
+                numeric_consts.add(float(node))
+        n_numeric_params = len(numeric_consts)
+
+        return max(1, n_symbol_params + n_numeric_params)
+    except Exception:
+        return 1
+
+
+def run_pysr_once(
+    scenario,
+    data: SharedData,
+    seed: int,
+    timeout_seconds: float,
+) -> Dict[str, Any]:
+    """Execute single PySR regression run on residual data."""
+    if PySRRegressor is None:
+        raise ImportError("PySR is not installed.")
+    if pd is None:
+        raise ImportError("pandas is required for PySR.")
+
+    X_df = pd.DataFrame({name: data.X[name] for name in data.feature_names})
+    y = np.asarray(data.target, dtype=float)
+
+    t0 = time.time()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        model = PySRRegressor(
+            binary_operators=PYSR_BINARY_OPERATORS,
+            unary_operators=PYSR_UNARY_OPERATORS,
+            model_selection="best",
+            timeout_in_seconds=timeout_seconds,
+            random_state=seed,
+            deterministic=True,
+            parallelism="serial",
+            verbosity=0,
+            progress=False,
+            temp_equation_file=True,
+        )
+        model.fit(X_df, y)
+    elapsed = time.time() - t0
+
+    try:
+        best_expr_sympy = model.sympy()
+        best_expr_str = str(best_expr_sympy)
+    except Exception:
+        best_expr_sympy = sp.sympify("0")
+        best_expr_str = "0"
+
+    theta_fit = _extract_numeric_constants_as_theta_fit(best_expr_sympy)
+    discovered_class = classify_structure(best_expr_sympy, theta_fit=theta_fit)
+    is_match = discovered_class == scenario.correction_class
+
+    try:
+        pred = model.predict(X_df)
+        var_y = float(np.var(y)) + 1e-300
+        nmse_train = float(np.mean((y - pred) ** 2) / var_y)
+    except Exception:
+        nmse_train = float("nan")
+
+    n_pareto = len(model.equations_) if hasattr(model, "equations_") else None
+
+    return {
+        "method": "PySR",
+        "is_match": is_match,
+        "discovered_class": discovered_class,
+        "nmse_train": nmse_train,
+        "expr_str": best_expr_str,
+        "elapsed_seconds": elapsed,
+        "n_equations_in_pareto": n_pareto,
+        "_model_equations": model.equations_ if hasattr(model, "equations_") else None,
+        "_feature_names": data.feature_names,
+    }
+
+
+def run_pysr_bic_reselect(
+    scenario,
+    data: SharedData,
+    pysr_result: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Reselect best PySR Pareto candidate using extended BIC score."""
+    eqs = pysr_result.get("_model_equations")
+    feature_names = pysr_result.get("_feature_names", data.feature_names)
+
+    if eqs is None or len(eqs) == 0:
+        return {
+            "method": "PySR+ADCD_BIC",
+            "is_match": False,
+            "discovered_class": "unknown",
+            "note": "no_pareto_front",
+        }
+
+    n_points = len(data.target)
+    n_candidates = len(eqs)
+    var_y = float(np.var(data.target)) + 1e-300
+
+    best_bic, best_expr_str = None, None
+    for _, row in eqs.iterrows():
+        try:
+            loss = float(row["loss"])
+            nmse = loss / var_y
+
+            expr_str_row = str(row.get("sympy_format", row.get("equation", "0")))
+            n_params = _count_free_params_in_pysr_expr(expr_str_row, feature_names)
+
+            b = extended_bic_score(
+                nmse, n_params, n_points, n_candidates=n_candidates
+            )
+            if best_bic is None or b < best_bic:
+                best_bic = b
+                best_expr_str = expr_str_row
+        except Exception:
+            continue
+
+    if best_expr_str is None:
+        return {
+            "method": "PySR+ADCD_BIC",
+            "is_match": False,
+            "discovered_class": "unknown",
+            "note": "reselection_failed",
+        }
+
+    try:
+        best_expr_sympy = sp.sympify(best_expr_str)
+        theta_fit = _extract_numeric_constants_as_theta_fit(best_expr_sympy)
+        discovered_class = classify_structure(best_expr_sympy, theta_fit=theta_fit)
+    except Exception:
+        discovered_class = "unknown"
+
+    return {
+        "method": "PySR+ADCD_BIC",
+        "is_match": discovered_class == scenario.correction_class,
+        "discovered_class": discovered_class,
+        "expr_str": best_expr_str,
+        "bic": best_bic,
+    }
+
+
+# ==============================================================================
+# Experiment Orchestration
+# ==============================================================================
+
+def run_one_combination(
+    scenario_name: str,
+    noise: float,
+    seed: int,
+    engine: str,
+    domain_max: float,
+    extrap_domain_max: Optional[float],
+    min_pysr_seconds: float,
+    include_ablation: bool,
+) -> Dict[str, Any]:
+    """Execute paired ADCD and PySR runs on identical data sample."""
+    scenarios = {s.name: s for s in get_all_scenarios()}
+    scenario = scenarios[scenario_name]
+
+    adcd_res = run_adcd_once(scenario, noise, seed, domain_max, engine)
+    pysr_timeout = max(adcd_res["elapsed_seconds"], min_pysr_seconds)
+
+    data = build_shared_data(scenario, noise, seed, domain_max, extrap_domain_max)
+
+    try:
+        pysr_res = run_pysr_once(scenario, data, seed, timeout_seconds=pysr_timeout)
+    except (ImportError, RuntimeError, Exception) as exc:
+        pysr_res = {"method": "PySR", "is_match": None, "error": str(exc)}
+
+    adcd_nmse_extrap = _compute_nmse_extrap(adcd_res.get("expr_str", ""), data)
+    pysr_nmse_extrap = (
+        _compute_nmse_extrap(pysr_res.get("expr_str", ""), data)
+        if pysr_res.get("is_match") is not None else float("inf")
+    )
+    adcd_res["nmse_extrap"] = adcd_nmse_extrap
+    pysr_res["nmse_extrap"] = pysr_nmse_extrap
+
+    ablation_res = None
+    if include_ablation and pysr_res.get("is_match") is not None:
+        ablation_res = run_pysr_bic_reselect(scenario, data, pysr_res)
+        if ablation_res:
+            ab_expr = ablation_res.get("expr_str", "")
+            ablation_res["nmse_extrap"] = _compute_nmse_extrap(ab_expr, data)
+
+    pysr_res.pop("_model_equations", None)
+    pysr_res.pop("_feature_names", None)
+
+    return {
+        "scenario": scenario_name,
+        "noise": noise,
+        "seed": seed,
+        "pysr_timeout_seconds_used": pysr_timeout,
+        "adcd": adcd_res,
+        "pysr": pysr_res,
+        "ablation_pysr_adcd_bic": ablation_res,
+    }
+
+
+def aggregate_summary(
+    all_results: List[Dict[str, Any]],
+    targets: List[str],
+    noise_sweep: List[float],
+    include_ablation: bool,
+) -> Dict[str, List[Dict[str, Any]]]:
+    """Aggregate run statistics and compute Wilson confidence intervals."""
+    summary: Dict[str, List[Dict[str, Any]]] = {}
+    for sc_name in targets:
+        rows = []
+        for noise in noise_sweep:
+            subset = [
+                r for r in all_results
+                if r["scenario"] == sc_name and abs(r["noise"] - noise) < 1e-9
+            ]
+            n = len(subset)
+            a_succ = sum(1 for r in subset if r["adcd"]["is_match"])
+            p_succ = sum(1 for r in subset if r["pysr"].get("is_match") is True)
+
+            a_p, a_lo, a_hi = wilson_interval(a_succ, n)
+            p_p, p_lo, p_hi = wilson_interval(p_succ, n)
+
+            a_extrap = [r["adcd"].get("nmse_extrap", float("inf")) for r in subset]
+            p_extrap = [r["pysr"].get("nmse_extrap", float("inf")) for r in subset]
+            a_extrap_finite = [v for v in a_extrap if math.isfinite(v)]
+            p_extrap_finite = [v for v in p_extrap if math.isfinite(v)]
+
+            row: Dict[str, Any] = {
+                "noise": noise,
+                "n": n,
+                "adcd_recovery": a_p,
+                "adcd_ci95": [a_lo, a_hi],
+                "adcd_nmse_extrap_median": (
+                    float(np.median(a_extrap_finite)) if a_extrap_finite else float("inf")
+                ),
+                "pysr_recovery": p_p,
+                "pysr_ci95": [p_lo, p_hi],
+                "pysr_nmse_extrap_median": (
+                    float(np.median(p_extrap_finite)) if p_extrap_finite else float("inf")
+                ),
+            }
+
+            if include_ablation:
+                ab_succ = sum(
+                    1 for r in subset
+                    if r.get("ablation_pysr_adcd_bic") and
+                    r["ablation_pysr_adcd_bic"].get("is_match") is True
+                )
+                ab_p, ab_lo, ab_hi = wilson_interval(ab_succ, n)
+                row["ablation_recovery"] = ab_p
+                row["ablation_ci95"] = [ab_lo, ab_hi]
+
+            rows.append(row)
+        summary[sc_name] = rows
+    return summary
+
+
+# ==============================================================================
+# Visualization & Reporting
+# ==============================================================================
+
+def plot_results(
+    summary: Dict[str, List[Dict[str, Any]]],
+    out_dir: str,
+    include_ablation: bool,
+) -> None:
+    """Generate comparative publication figures (PDF and PNG)."""
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        import matplotlib.ticker as ticker
+    except ImportError:
+        print("[WARN] matplotlib not installed -- skipping plot generation.")
+        return
+
+    scenarios = list(summary.keys())
+    n_panels = len(scenarios)
+
+    fig, axes = plt.subplots(1, n_panels, figsize=(4.5 * n_panels, 4.0), sharey=True)
+    if n_panels == 1:
+        axes = [axes]
+
+    ADCD_COLOR = "#1f77b4"
+    PYSR_COLOR = "#ff7f0e"
+    ABLATION_COLOR = "#2ca02c"
+
+    has_extrap = any(
+        math.isfinite(row.get("adcd_nmse_extrap_median", float("inf")))
+        for rows in summary.values()
+        for row in rows
+    )
+
+    for ax, sc_name in zip(axes, scenarios):
+        rows = summary[sc_name]
+        noise_x = [r["noise"] for r in rows]
+
+        a_rates = [r["adcd_recovery"] * 100 for r in rows]
+        a_lo = [r["adcd_ci95"][0] * 100 for r in rows]
+        a_hi = [r["adcd_ci95"][1] * 100 for r in rows]
+
+        p_rates = [r["pysr_recovery"] * 100 for r in rows]
+        p_lo = [r["pysr_ci95"][0] * 100 for r in rows]
+        p_hi = [r["pysr_ci95"][1] * 100 for r in rows]
+
+        ax.plot(noise_x, a_rates, "o-", color=ADCD_COLOR, lw=2,
+                label="ADCD (ours)", zorder=3)
+        ax.fill_between(noise_x, a_lo, a_hi, alpha=0.18, color=ADCD_COLOR)
+
+        ax.plot(noise_x, p_rates, "s--", color=PYSR_COLOR, lw=2,
+                label="PySR (default)", zorder=3)
+        ax.fill_between(noise_x, p_lo, p_hi, alpha=0.18, color=PYSR_COLOR)
+
+        if include_ablation and "ablation_recovery" in rows[0]:
+            ab_rates = [r.get("ablation_recovery", 0) * 100 for r in rows]
+            ab_lo = [r.get("ablation_ci95", [0, 0])[0] * 100 for r in rows]
+            ab_hi = [r.get("ablation_ci95", [0, 0])[1] * 100 for r in rows]
+            ax.plot(noise_x, ab_rates, "^:", color=ABLATION_COLOR, lw=1.5,
+                    label="PySR + ADCD-BIC", zorder=2)
+            ax.fill_between(noise_x, ab_lo, ab_hi, alpha=0.12, color=ABLATION_COLOR)
+
+        ax.set_xlim(min(noise_x) * 0.9, max(noise_x) * 1.05)
+        ax.set_ylim(-5, 105)
+        ax.set_xlabel("Noise level (fraction)", fontsize=10)
+        ax.set_title(sc_name, fontsize=10, fontweight="bold")
+        ax.xaxis.set_major_formatter(ticker.PercentFormatter(xmax=1.0))
+        ax.grid(True, linestyle="--", alpha=0.4)
+        ax.legend(fontsize=8, loc="lower left")
+
+    axes[0].set_ylabel("Structural recovery rate (%)", fontsize=10)
+    fig.suptitle(
+        "ADCD vs PySR: Structural Recovery Rate vs Noise Level\n"
+        "(shaded bands = Wilson 95% CI, n=5 seeds per point)",
+        fontsize=10, y=1.02,
+    )
+    fig.tight_layout()
+    for ext in ("pdf", "png"):
+        path = os.path.join(out_dir, f"fig_comparison_recovery.{ext}")
+        fig.savefig(path, bbox_inches="tight", dpi=150)
+    plt.close(fig)
+    print(f"[OK] Recovery figure saved to {out_dir}/fig_comparison_recovery.{{pdf,png}}")
+
+    if has_extrap:
+        fig2, axes2 = plt.subplots(1, n_panels, figsize=(4.5 * n_panels, 4.0), sharey=True)
+        if n_panels == 1:
+            axes2 = [axes2]
+
+        for ax, sc_name in zip(axes2, scenarios):
+            rows = summary[sc_name]
+            noise_x = [r["noise"] for r in rows]
+            a_ext = [r.get("adcd_nmse_extrap_median", float("nan")) for r in rows]
+            p_ext = [r.get("pysr_nmse_extrap_median", float("nan")) for r in rows]
+
+            a_ext_disp = [v if math.isfinite(v) else float("nan") for v in a_ext]
+            p_ext_disp = [v if math.isfinite(v) else float("nan") for v in p_ext]
+
+            ax.semilogy(noise_x, a_ext_disp, "o-", color=ADCD_COLOR, lw=2,
+                        label="ADCD (ours)", zorder=3)
+            ax.semilogy(noise_x, p_ext_disp, "s--", color=PYSR_COLOR, lw=2,
+                        label="PySR (default)", zorder=3)
+            ax.axhline(y=1.0, color="gray", linestyle=":", lw=1, label="NMSE = 1.0 (chance)")
+            ax.set_xlabel("Noise level (fraction)", fontsize=10)
+            ax.set_title(sc_name, fontsize=10, fontweight="bold")
+            ax.xaxis.set_major_formatter(ticker.PercentFormatter(xmax=1.0))
+            ax.grid(True, linestyle="--", alpha=0.4)
+            ax.legend(fontsize=8)
+
+        axes2[0].set_ylabel("Extrapolation NMSE (log scale)", fontsize=10)
+        fig2.suptitle(
+            "ADCD vs PySR: Extrapolation NMSE (out-of-training domain)\n"
+            "(lower = better; median across 5 seeds per point)",
+            fontsize=10, y=1.02,
+        )
+        fig2.tight_layout()
+        for ext in ("pdf", "png"):
+            path = os.path.join(out_dir, f"fig_comparison_extrap.{ext}")
+            fig2.savefig(path, bbox_inches="tight", dpi=150)
+        plt.close(fig2)
+        print(f"[OK] Extrapolation figure saved to {out_dir}/fig_comparison_extrap.{{pdf,png}}")
+
+
+def print_summary_table(
+    summary: Dict[str, List[Dict[str, Any]]],
+    include_ablation: bool,
+) -> None:
+    """Print formatted comparative summary table to stdout."""
+    for sc_name, rows in summary.items():
+        n = rows[0]["n"]
+        header = f" STRUCTURAL RECOVERY RATE vs NOISE -- {sc_name}  (n={n} seeds per point)"
+        print("\n" + "=" * 92)
+        print(header)
+        print("-" * 92)
+
+        cols = f"{'Noise':<8} | {'ADCD':<26} | {'PySR':<26}"
+        if include_ablation and "ablation_recovery" in rows[0]:
+            cols += f" | {'PySR+ADCD-BIC':<26}"
+        cols += f" | {'ADCD extrap NMSE':<18} | {'PySR extrap NMSE':<18}"
+        print(cols)
+        print("-" * 92)
+
+        for row in rows:
+            a_str = (
+                f"{row['adcd_recovery']*100:5.0f}%"
+                f" [{row['adcd_ci95'][0]*100:4.0f}-{row['adcd_ci95'][1]*100:4.0f}%]"
+            )
+            p_str = (
+                f"{row['pysr_recovery']*100:5.0f}%"
+                f" [{row['pysr_ci95'][0]*100:4.0f}-{row['pysr_ci95'][1]*100:4.0f}%]"
+            )
+            a_ext = row.get("adcd_nmse_extrap_median", float("inf"))
+            p_ext = row.get("pysr_nmse_extrap_median", float("inf"))
+            a_ext_str = f"{a_ext:.3f}" if math.isfinite(a_ext) else "N/A"
+            p_ext_str = f"{p_ext:.3f}" if math.isfinite(p_ext) else "N/A"
+
+            line = f"{row['noise']:<8.2f} | {a_str:<26} | {p_str:<26}"
+            if include_ablation and "ablation_recovery" in row:
+                ab_str = (
+                    f"{row['ablation_recovery']*100:5.0f}%"
+                    f" [{row['ablation_ci95'][0]*100:4.0f}-{row['ablation_ci95'][1]*100:4.0f}%]"
+                )
+                line += f" | {ab_str:<26}"
+            line += f" | {a_ext_str:<18} | {p_ext_str:<18}"
+            print(line)
+    print("=" * 92)
+
+
+# ==============================================================================
+# CLI Entry Point
+# ==============================================================================
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Comparative Benchmark Harness: ADCD vs PySR.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--engine", choices=["python", "julia"], default="julia",
+        help="ADCD backend engine.",
+    )
+    parser.add_argument(
+        "--scenario", default="all",
+        help="Scenario name to run, or 'all' for all locked scenarios.",
+    )
+    parser.add_argument(
+        "--seeds", type=int, nargs="+", default=DEFAULT_SEEDS,
+        help="Random seeds for replication.",
+    )
+    parser.add_argument(
+        "--noise-sweep", type=float, nargs="+", default=NOISE_SWEEP,
+        help="Noise levels to evaluate.",
+    )
+    parser.add_argument(
+        "--min-pysr-seconds", type=float, default=MIN_PYSR_SECONDS,
+        help="Minimum PySR timeout in seconds.",
+    )
+    parser.add_argument(
+        "--include-ablation", action="store_true",
+        help="Evaluate PySR+ADCD_BIC reselection.",
+    )
+    parser.add_argument(
+        "--no-extrap", action="store_true",
+        help="Disable extrapolation evaluation.",
+    )
+    parser.add_argument(
+        "--out", default=None,
+        help="Output JSON path (default: run_outputs/pysr_comparison.json).",
+    )
+    parser.add_argument(
+        "--plot-only", default=None, metavar="JSON_PATH",
+        help="Regenerate figures from existing JSON report without running search.",
+    )
+    args = parser.parse_args()
+
+    out_path = args.out or os.path.join("run_outputs", "pysr_comparison.json")
+    out_dir = os.path.dirname(out_path) or "."
+    os.makedirs(out_dir, exist_ok=True)
+
+    if args.plot_only:
+        with open(args.plot_only, "r", encoding="utf-8") as f:
+            saved = json.load(f)
+        summary = saved.get("summary", {})
+        include_ablation = saved.get("config", {}).get("include_ablation", False)
+        print_summary_table(summary, include_ablation)
+        plot_results(summary, out_dir, include_ablation)
+        return 0
+
+    if PySRRegressor is None:
+        print("[ERROR] PySR is not installed.", file=sys.stderr)
+        return 1
+
+    targets = LOCKED_SCENARIOS if args.scenario == "all" else [args.scenario]
+    all_results: List[Dict[str, Any]] = []
+
+    total = len(targets) * len(args.noise_sweep) * len(args.seeds)
+    print("=" * 92)
+    print(
+        f" ADCD vs PySR Benchmark\n"
+        f" Total runs: {total}  "
+        f"({len(targets)} scenario(s) x {len(args.noise_sweep)} noise levels x {len(args.seeds)} seeds)\n"
+        f" Extrapolation evaluation: {'disabled' if args.no_extrap else 'enabled'}"
+    )
+    print("=" * 92)
+
+    done = 0
+    for sc_name in targets:
+        dmax = DEFAULT_CLEAN_DOMAINS.get(
+            sc_name, DOMAIN_RESTRICTIONS.get(sc_name, {}).get("domain_max", 1.0)
+        )
+        extrap_dmax = (
+            None if args.no_extrap
+            else EXTRAP_DOMAIN_MULTIPLIER.get(sc_name)
+        )
+
+        for noise in args.noise_sweep:
+            for seed in args.seeds:
+                t0 = time.time()
+                try:
+                    r = run_one_combination(
+                        sc_name, noise, seed, args.engine, dmax, extrap_dmax,
+                        args.min_pysr_seconds, args.include_ablation,
+                    )
+                except Exception as exc:
+                    r = {
+                        "scenario": sc_name, "noise": noise, "seed": seed,
+                        "error": str(exc),
+                        "adcd": {"is_match": False, "nmse_extrap": float("inf")},
+                        "pysr": {"is_match": None, "nmse_extrap": float("inf")},
+                        "ablation_pysr_adcd_bic": None,
+                    }
+                all_results.append(r)
+                done += 1
+
+                a_match = r["adcd"].get("is_match", False)
+                p_match = r["pysr"].get("is_match")
+                elapsed = time.time() - t0
+                print(
+                    f"[{done:>3}/{total}] {sc_name:<20} noise={noise:<5.2f} seed={seed:<3}"
+                    f" | ADCD={'MATCH' if a_match else 'miss':<5}"
+                    f" PySR={'MATCH' if p_match else ('miss' if p_match is False else 'N/A'):<5}"
+                    f" ({elapsed:.1f}s)"
+                )
+
+    summary = aggregate_summary(all_results, targets, args.noise_sweep, args.include_ablation)
+
+    print_summary_table(summary, args.include_ablation)
+    plot_results(summary, out_dir, args.include_ablation)
+
+    payload = {
+        "config": {
+            "engine": args.engine,
+            "seeds": args.seeds,
+            "noise_sweep": args.noise_sweep,
+            "binary_operators": PYSR_BINARY_OPERATORS,
+            "unary_operators": PYSR_UNARY_OPERATORS,
+            "min_pysr_seconds": args.min_pysr_seconds,
+            "include_ablation": args.include_ablation,
+            "extrapolation_enabled": not args.no_extrap,
+        },
+        "summary": summary,
+        "raw_runs": all_results,
+    }
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, default=str)
+    print(f"\n[OK] Results saved to: {out_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
+==========================================================================================
+ FILE #18: eval/plot_pareto.py (105 lines, 3,547 bytes)
 ==========================================================================================
 
 ﻿"""
@@ -4833,7 +6430,7 @@ if __name__ == "__main__":
 
 
 ==========================================================================================
- FILE #16: ADCDEngine/src/ADCDEngine.jl (165 lines, 7,912 bytes)
+ FILE #19: ADCDEngine/src/ADCDEngine.jl (165 lines, 7,912 bytes)
 ==========================================================================================
 
 # ADCDEngine.jl (Hardened & Unified)
@@ -5004,7 +6601,7 @@ end  # module ADCDEngine
 
 
 ==========================================================================================
- FILE #17: ADCDEngine/src/CorrectionProposer.jl (187 lines, 8,491 bytes)
+ FILE #20: ADCDEngine/src/CorrectionProposer.jl (187 lines, 8,491 bytes)
 ==========================================================================================
 
 # ADCD Engine: CorrectionProposer (Hardened)
@@ -5197,7 +6794,7 @@ end  # module CorrectionProposer
 
 
 ==========================================================================================
- FILE #18: ADCDEngine/src/FilterCascade.jl (249 lines, 8,604 bytes)
+ FILE #21: ADCDEngine/src/FilterCascade.jl (249 lines, 8,594 bytes)
 ==========================================================================================
 
 # ============================================================================
@@ -5442,7 +7039,7 @@ function run_cascade_on_proposals(
         push!(results, result)
     end
 
-    # Pengurutan deterministik: IDENTIFIABLE terlebih dahulu, lalu nilai delta_bic tertinggi
+    # Deterministic ordering: IDENTIFIABLE first, followed by descending delta_bic
     sort!(results, by = r -> (r.verdict != IDENTIFIABLE, -r.delta_bic))
     return results, agg
 end
@@ -5452,7 +7049,7 @@ end  # module FilterCascade
 
 
 ==========================================================================================
- FILE #19: ADCDEngine/src/IdentifiabilityGate.jl (114 lines, 4,654 bytes)
+ FILE #22: ADCDEngine/src/IdentifiabilityGate.jl (114 lines, 4,654 bytes)
 ==========================================================================================
 
 # ============================================================================
@@ -5572,7 +7169,7 @@ end  # module IdentifiabilityGate
 
 
 ==========================================================================================
- FILE #20: ADCDEngine/src/ConstantFitter.jl (290 lines, 10,861 bytes)
+ FILE #23: ADCDEngine/src/ConstantFitter.jl (290 lines, 10,861 bytes)
 ==========================================================================================
 
 # ADCD Engine: ConstantFitter (Hardened & Unified)
@@ -5868,7 +7465,7 @@ end  # module ConstantFitter
 
 
 ==========================================================================================
- FILE #21: ADCDEngine/src/PrimitiveRegistry.jl (103 lines, 5,252 bytes)
+ FILE #24: ADCDEngine/src/PrimitiveRegistry.jl (103 lines, 5,252 bytes)
 ==========================================================================================
 
 # ADCD Engine: PrimitiveRegistry (Hardened)
@@ -5977,7 +7574,7 @@ end  # module PrimitiveRegistry
 
 
 ==========================================================================================
- FILE #22: ADCDEngine/src/ADCDDimensions.jl (329 lines, 13,655 bytes)
+ FILE #25: ADCDEngine/src/ADCDDimensions.jl (329 lines, 13,659 bytes)
 ==========================================================================================
 
 # ADCD Engine: ADCDDimensions (Hardened & Unified)
@@ -6194,7 +7791,7 @@ function verify_dimension(
     elseif haskey(registry, Symbol(target_dim_name))
         target = registry[Symbol(target_dim_name)]
     else
-        return false  # Fail-closed: tolak target dimensi tak dikenal
+        return false  # Fail-closed: reject unrecognized target dimension
     end
     result = infer_dim(expr_node, registry)
     result isa DimResult && return false
@@ -6312,7 +7909,7 @@ end  # module ADCDDimensions
 
 
 ==========================================================================================
- FILE #23: run_outputs/adcd_v3_taxonomy_validation_report.json (357 lines, 13,984 bytes)
+ FILE #26: run_outputs/adcd_v3_taxonomy_validation_report.json (357 lines, 13,984 bytes)
 ==========================================================================================
 
 {
