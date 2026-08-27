@@ -413,7 +413,10 @@ def run_adcd_once(
     # the extrap bound catches small-parameter singularities (e.g. near-zero
     # denominators) that produce finite training NMSE but catastrophic extrap.
     theta_sane = _is_physically_sane(theta_fit)
-    extrap_sane = not math.isfinite(nmse_extrap) or nmse_extrap < _EXTRAP_SANITY_BOUND
+    if data is not None and data.X_extrap is not None:
+        extrap_sane = math.isfinite(nmse_extrap) and nmse_extrap < _EXTRAP_SANITY_BOUND
+    else:
+        extrap_sane = True
     is_match = is_match_structural and theta_sane and extrap_sane
 
     label = "ADCD" if use_taxonomy_prior else "ADCD-blind"
@@ -703,7 +706,10 @@ def run_one_combination(
         pysr_nmse_extrap = _compute_nmse_extrap(pysr_res.get("expr_str", ""), data)
         pysr_res["nmse_extrap"] = pysr_nmse_extrap
         if pysr_res.get("is_match") is True:
-            extrap_sane = not math.isfinite(pysr_nmse_extrap) or pysr_nmse_extrap < _EXTRAP_SANITY_BOUND
+            if data.X_extrap is not None:
+                extrap_sane = math.isfinite(pysr_nmse_extrap) and pysr_nmse_extrap < _EXTRAP_SANITY_BOUND
+            else:
+                extrap_sane = True
             if not extrap_sane:
                 pysr_res["is_match"] = False
                 pysr_res["degenerate_fit"] = True
@@ -715,7 +721,10 @@ def run_one_combination(
             t2_nmse_extrap = _compute_nmse_extrap(tier2_res.get("expr_str", ""), data)
             tier2_res["nmse_extrap"] = t2_nmse_extrap
             if tier2_res.get("is_match") is True:
-                extrap_sane = not math.isfinite(t2_nmse_extrap) or t2_nmse_extrap < _EXTRAP_SANITY_BOUND
+                if data.X_extrap is not None:
+                    extrap_sane = math.isfinite(t2_nmse_extrap) and t2_nmse_extrap < _EXTRAP_SANITY_BOUND
+                else:
+                    extrap_sane = True
                 if not extrap_sane:
                     tier2_res["is_match"] = False
                     tier2_res["degenerate_fit"] = True
