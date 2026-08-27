@@ -1074,6 +1074,20 @@ def main() -> int:
     include_blind   = run_adcd_blind
 
     all_results: List[Dict[str, Any]] = []
+    completed_keys = set()
+    if os.path.exists(out_path):
+        try:
+            with open(out_path, "r", encoding="utf-8") as f:
+                prev_data = json.load(f)
+            if isinstance(prev_data, dict) and "raw_runs" in prev_data:
+                for r in prev_data["raw_runs"]:
+                    if "scenario" in r and "noise" in r and "seed" in r:
+                        all_results.append(r)
+                        completed_keys.add((r["scenario"], round(float(r["noise"]), 6), int(r["seed"])))
+                print(f"[CHECKPOINT] Resuming from {len(all_results)} existing runs in {out_path}")
+        except Exception as e:
+            print(f"[WARNING] Could not load checkpoint from {out_path}: {e}")
+
     total = len(targets) * len(args.noise_sweep) * len(args.seeds)
 
     mode_label = "TIER2-ONLY" if args.tier2_only else (
@@ -1086,7 +1100,7 @@ def main() -> int:
           f"Blind arm: {'disabled' if args.no_blind else 'enabled'}")
     print("=" * 110)
 
-    done = 0
+    done = len(all_results)
     for sc_name in targets:
         dmax = DEFAULT_CLEAN_DOMAINS.get(
             sc_name, DOMAIN_RESTRICTIONS.get(sc_name, {}).get("domain_max", 1.0)
@@ -1096,6 +1110,10 @@ def main() -> int:
 
         for noise in args.noise_sweep:
             for seed in args.seeds:
+                run_key = (sc_name, round(float(noise), 6), int(seed))
+                if run_key in completed_keys:
+                    continue
+
                 t0 = time.time()
                 try:
                     r = run_one_combination(
@@ -1119,8 +1137,42 @@ def main() -> int:
                         "ablation_pysr_adcd_bic": None,
                     }
                 all_results.append(r)
+                completed_keys.add(run_key)
                 done += 1
                 elapsed = time.time() - t0
+
+                # Incremental checkpoint save
+                try:
+                    partial_summary = aggregate_summary(
+                        all_results, targets, args.noise_sweep,
+                        include_ablation=args.include_ablation and run_tier1,
+                        include_tier2=run_tier2,
+                        include_blind=include_blind,
+                    )
+                    checkpoint_payload = {
+                        "config": {
+                            "engine": args.engine,
+                            "seeds": args.seeds,
+                            "noise_sweep": args.noise_sweep,
+                            "binary_operators": PYSR_BINARY_OPERATORS,
+                            "unary_operators": PYSR_UNARY_OPERATORS,
+                            "min_pysr_seconds": args.min_pysr_seconds,
+                            "include_ablation": args.include_ablation,
+                            "include_tier2": run_tier2,
+                            "tier2_only": args.tier2_only,
+                            "include_blind": include_blind,
+                            "dimensional_constraint_penalty": PYSR_DIMENSIONAL_CONSTRAINT_PENALTY if run_tier2 else None,
+                            "degenerate_theta_bound": _DEGENERATE_THETA_BOUND,
+                            "extrap_sanity_bound": _EXTRAP_SANITY_BOUND,
+                            "extrapolation_enabled": not args.no_extrap,
+                        },
+                        "summary": partial_summary,
+                        "raw_runs": all_results,
+                    }
+                    with open(out_path, "w", encoding="utf-8") as f:
+                        json.dump(checkpoint_payload, f, indent=2, default=str)
+                except Exception:
+                    pass
 
                 a_match  = r["adcd"].get("is_match")
                 ab_match = r.get("adcd_blind", {}).get("is_match")
