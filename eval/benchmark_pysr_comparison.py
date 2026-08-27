@@ -2,10 +2,26 @@
 """
 benchmark_pysr_comparison.py
 ==============================================================================
-Comparative Benchmark Harness: ADCD vs PySR (Noise Robustness & Extrapolation).
+Comparative Benchmark: ADCD vs PySR — Noise Robustness & Extrapolation.
 
-Evaluates structural recovery rate and extrapolation performance across
-systematic noise sweeps under identical data, search targets, and feature sets.
+Three comparison arms (see ADCD_vs_PySR_Workshop_Plan.md §9):
+  ADCD-guided : ADCD with domain taxonomy prior (use_taxonomy_prior=True)
+  ADCD-blind  : ADCD without taxonomy prior (use_taxonomy_prior=False)
+  PySR Tier 1 : PySR default, no unit information
+  PySR Tier 2 : PySR + dimensional_constraint_penalty via X_units/y_units
+
+Run modes:
+  Default          : ADCD-guided + ADCD-blind + Tier-1 in one pass
+  --include-tier2  : also run Tier-2 in the same pass
+  --tier2-only     : run only Tier-2 (skip ADCD and Tier-1)
+  --plot-only FILE : regenerate figures from saved JSON, no search
+  --merge-tier2    : used with --plot-only to splice a Tier-2 JSON in
+
+SCOPE NOTE — Tier-2 additive-mode limitation:
+  y_units for multiplicative targets is always "" (dimensionless ratio).
+  Additive mode would require deriving y_units from classical_expr symbolically
+  — not implemented. All three locked scenarios are multiplicative, so this
+  does not affect the current experiment.
 ==============================================================================
 """
 
@@ -41,14 +57,9 @@ try:
 except ImportError:
     pd = None
 
-try:
-    from pysr import PySRRegressor
-except ImportError:
-    PySRRegressor = None
-
 
 # ==============================================================================
-# Benchmark Configuration & Default Regimes
+# Configuration
 # ==============================================================================
 
 NOISE_SWEEP: List[float] = [0.01, 0.02, 0.05, 0.10, 0.15, 0.20, 0.30]
@@ -62,55 +73,57 @@ DEFAULT_CLEAN_DOMAINS: Dict[str, float] = {
     "Entropy Expansion": 3.0,
 }
 
-# Extrapolation experiment uses a narrower training domain than the recovery-rate
-# experiment. Required for Time Dilation: DEFAULT_CLEAN_DOMAINS uses 0.99c (near
-# the physical singularity), leaving no room for a held-out extrapolation interval.
-# The extrapolation test uses the historical observation window as training domain
-# so that a genuinely wider evaluation domain exists below the singularity.
+# Extrapolation uses a narrower training domain than the recovery-rate experiment.
+# For Time Dilation, 0.99c is near the singularity, leaving no room for a
+# held-out evaluation interval. Training is restricted to 0.30c; evaluation
+# to 0.80c (safely below the gamma divergence at v=c).
 EXTRAP_TRAIN_DOMAIN: Dict[str, float] = {
-    "Time Dilation": 0.30,   # historical observation window (v <= 0.3c)
+    "Time Dilation": 0.30,
     "Screened Coulomb": 4.0,
     "Entropy Expansion": 3.0,
 }
 EXTRAP_TEST_DOMAIN: Dict[str, float] = {
-    "Time Dilation": 0.80,   # safe margin below v=c singularity (gamma diverges at 1.0)
+    "Time Dilation": 0.80,
     "Screened Coulomb": 8.0,
     "Entropy Expansion": 6.0,
 }
 
-# Standard out-of-the-box operator basis for PySR
 PYSR_BINARY_OPERATORS: List[str] = ["+", "-", "*", "/"]
 PYSR_UNARY_OPERATORS: List[str] = ["exp", "log", "sqrt", "sin", "cos"]
 
 MIN_PYSR_SECONDS: float = 30.0
 
+# Penalty value recommended in PySR documentation for Tier-2 runs.
+# Not tuned against any scenario result (pre-registered).
+PYSR_DIMENSIONAL_CONSTRAINT_PENALTY: float = 1000.0
+
+# Fitted parameters with absolute value exceeding this bound are flagged as
+# degenerate (optimizer diverged). Physical constants in all three locked
+# scenarios are O(1)–O(1e5); 1e6 provides ample margin.
+_DEGENERATE_THETA_BOUND: float = 1e6
+
 
 # ==============================================================================
-# Statistical Metrics
+# Statistical Utilities
 # ==============================================================================
 
-def wilson_interval(
-    successes: int, n: int, z: float = 1.96
-) -> Tuple[float, float, float]:
-    """
-    Compute Wilson score confidence interval for a binomial proportion.
+def wilson_interval(successes: int, n: int, z: float = 1.96) -> Tuple[float, float, float]:
+    """Wilson score confidence interval for a binomial proportion.
 
-    Returns:
-        (point_estimate, lower_95, upper_95)
+    Returns (point_estimate, lower_bound, upper_bound).
+    Preferred over normal approximation when proportions approach 0 or 1.
     """
     if n == 0:
         return 0.0, 0.0, 0.0
     p = successes / n
     denom = 1.0 + z * z / n
     center = (p + z * z / (2 * n)) / denom
-    half_width = (z / denom) * math.sqrt(
-        (p * (1 - p) / n) + (z * z / (4 * n * n))
-    )
+    half_width = (z / denom) * math.sqrt((p * (1 - p) / n) + (z * z / (4 * n * n)))
     return p, max(0.0, center - half_width), min(1.0, center + half_width)
 
 
 # ==============================================================================
-# Data Layer (Shared Representation)
+# Data Layer
 # ==============================================================================
 
 @dataclass
@@ -126,19 +139,11 @@ class SharedData:
 
 
 def _assert_generate_data_deterministic(scenario, noise: float, seed: int, domain_max: float) -> None:
-    """Verify byte-exact data generation determinism across consecutive calls."""
-    X1, y1, yc1, _ = scenario.generate_data(
-        noise_level=noise, seed=seed, domain_max=domain_max
-    )
-    X2, y2, yc2, _ = scenario.generate_data(
-        noise_level=noise, seed=seed, domain_max=domain_max
-    )
-    assert np.array_equal(y1, y2), (
-        f"Data generation non-deterministic for scenario '{scenario.name}'."
-    )
-    assert np.array_equal(yc1, yc2), (
-        "Non-deterministic classical prediction detected in data generator."
-    )
+    """Assert byte-exact reproducibility of data generation across two calls."""
+    X1, y1, yc1, _ = scenario.generate_data(noise_level=noise, seed=seed, domain_max=domain_max)
+    X2, y2, yc2, _ = scenario.generate_data(noise_level=noise, seed=seed, domain_max=domain_max)
+    assert np.array_equal(y1, y2), f"Non-deterministic y_obs for scenario '{scenario.name}'."
+    assert np.array_equal(yc1, yc2), f"Non-deterministic y_classical for scenario '{scenario.name}'."
 
 
 def build_shared_data(
@@ -149,14 +154,11 @@ def build_shared_data(
     extrap_domain_max: Optional[float] = None,
     extrap_train_domain_max: Optional[float] = None,
 ) -> SharedData:
-    """
-    Construct shared training and held-out extrapolation data arrays.
+    """Build training arrays and optional held-out extrapolation arrays.
 
-    extrap_train_domain_max overrides domain_max when generating the training
-    data for the extrapolation sub-experiment. Used when the recovery-rate
-    domain and the extrapolation training domain must differ (e.g. Time Dilation).
-    extrap_domain_max must be strictly greater than extrap_train_domain_max (or
-    domain_max if extrap_train_domain_max is not supplied).
+    extrap_train_domain_max sets the training domain for the extrapolation
+    sub-experiment when it must differ from the recovery-rate domain_max.
+    extrap_domain_max must be strictly greater than extrap_train_domain_max.
     """
     _assert_generate_data_deterministic(scenario, noise, seed, domain_max)
 
@@ -180,11 +182,9 @@ def build_shared_data(
     if extrap_domain_max is not None:
         effective_train_dmax = extrap_train_domain_max if extrap_train_domain_max is not None else domain_max
         assert extrap_domain_max > effective_train_dmax, (
-            f"extrap_domain_max ({extrap_domain_max}) must exceed the effective extrapolation "
-            f"training domain ({effective_train_dmax}) for scenario '{scenario.name}'. "
-            f"If recovery-rate domain equals or exceeds the intended extrapolation domain, "
-            f"use EXTRAP_TRAIN_DOMAIN to define a narrower training split. "
-            f"Silent failure (nmse_extrap=inf) is not acceptable."
+            f"extrap_domain_max ({extrap_domain_max}) must exceed effective training domain "
+            f"({effective_train_dmax}) for '{scenario.name}'. "
+            f"Use EXTRAP_TRAIN_DOMAIN to define a narrower training split."
         )
         Xe, ye, yc_e, _ = scenario.generate_data(
             noise_level=0.0, seed=seed + 1000, domain_max=extrap_domain_max
@@ -212,12 +212,14 @@ def _evaluate_expression_on_data(
     feature_names: List[str],
     theta_fit: Optional[Dict[str, float]] = None,
 ) -> Optional[np.ndarray]:
-    """Evaluate symbolic expression on input dataset, substituting fitted parameters first."""
+    """Evaluate a symbolic expression against input arrays.
+
+    Substitutes theta_* symbols before lambdify so that ADCD expressions
+    (which carry unfitted theta_0, theta_1, ... as SymPy symbols) can be
+    evaluated on data without NameError.
+    """
     try:
         expr = sp.sympify(expr_str)
-        # Substitute fitted parameter values (ADCD theta symbols) before lambdify.
-        # ADCD expressions carry symbolic theta_0, theta_1, etc.; without substitution
-        # these symbols are absent from X_extrap and evaluation raises NameError.
         if theta_fit:
             sub_dict = {
                 sp.Symbol(k): float(v)
@@ -246,7 +248,7 @@ def _compute_nmse_extrap(
     data: SharedData,
     theta_fit: Optional[Dict[str, float]] = None,
 ) -> float:
-    """Compute Normalized Mean Squared Error on held-out extrapolation domain."""
+    """NMSE on the held-out extrapolation domain. Returns inf if unavailable."""
     if data.X_extrap is None or data.target_extrap is None or not expr_str:
         return float("inf")
     pred = _evaluate_expression_on_data(expr_str, data.X_extrap, data.feature_names, theta_fit)
@@ -258,7 +260,7 @@ def _compute_nmse_extrap(
 
 
 def _extract_numeric_constants_as_theta_fit(expr: sp.Expr) -> Dict[str, float]:
-    """Extract non-integer numeric literals from a PySR expression for structural classification."""
+    """Extract non-integer numeric literals as a theta_fit dict for classify_structure."""
     theta_fit: Dict[str, float] = {}
     idx = 0
     for node in sp.preorder_traversal(expr):
@@ -268,8 +270,62 @@ def _extract_numeric_constants_as_theta_fit(expr: sp.Expr) -> Dict[str, float]:
     return theta_fit
 
 
+def _is_physically_sane(theta_fit: Dict[str, Any], bound: float = _DEGENERATE_THETA_BOUND) -> bool:
+    """Return False if any fitted parameter exceeds the physical sanity bound.
+
+    A very large fitted constant (e.g. theta_1 = -6.9e10) indicates the
+    optimizer diverged to a degenerate solution that happens to interpolate
+    the training data but carries no structural meaning. The four-gate ADCD
+    protocol does not explicitly guard against this because NMSE is measured
+    on the training domain where the degenerate fit may still appear valid.
+    """
+    for v in theta_fit.values():
+        try:
+            if abs(float(v)) > bound:
+                return False
+        except (TypeError, ValueError):
+            pass
+    return True
+
+
 # ==============================================================================
-# ADCD Execution Path
+# Tier-2 Unit Resolution
+# ==============================================================================
+
+def build_units_for_scenario(
+    scenario,
+    feature_names: List[str],
+    detected_mode: str,
+) -> Optional[Tuple[List[str], str]]:
+    """Build (X_units, y_units) for PySR from scenario.variables_with_units.
+
+    Returns None (not raises) when units are unavailable or mode is additive.
+    Callers must skip Tier-2 for that combination and log the reason.
+
+    Additive mode is not supported: deriving y_units from classical_expr
+    symbolically is out of scope for this experiment. All three locked
+    scenarios are multiplicative, so this limitation does not block the
+    current experiment.
+    """
+    units_map = getattr(scenario, "variables_with_units", None)
+    if not units_map:
+        return None
+    if detected_mode != "multiplicative":
+        return None
+
+    x_units = []
+    for name in feature_names:
+        u = units_map.get(name)
+        if u is None:
+            return None  # incomplete units — skip, do not guess
+        x_units.append(u)
+
+    y_units = ""  # target = y_obs/y_classical - 1 is dimensionless
+    return x_units, y_units
+
+
+# ==============================================================================
+# ADCD Execution
 # ==============================================================================
 
 def run_adcd_once(
@@ -278,11 +334,19 @@ def run_adcd_once(
     seed: int,
     domain_max: float,
     engine: str,
+    use_taxonomy_prior: bool = True,
 ) -> Dict[str, Any]:
-    """Execute single ADCD validation run."""
+    """Run ADCD validation protocol for one (scenario, noise, seed) triple.
+
+    use_taxonomy_prior=True  : restrict primitives to the domain taxonomy list.
+    use_taxonomy_prior=False : search across all registered primitives (blind).
+
+    The ADCD-guided vs ADCD-blind distinction is the primary mechanism for
+    quantifying how much of ADCD's advantage comes from domain knowledge
+    vs. the physics grammar and four-gate statistical framework.
+    """
     sc = copy.deepcopy(scenario)
     sc.engine = engine
-
     t_cfg = ScenarioThresholdConfig.for_scenario(sc, noise_level=noise)
     t0 = time.time()
     res = run_scenario_protocol(
@@ -291,60 +355,80 @@ def run_adcd_once(
         threshold_cfg=t_cfg,
         noise_level=noise,
         domain_max=domain_max,
+        use_taxonomy_prior=use_taxonomy_prior,
     )
     elapsed = time.time() - t0
 
     ps = res.checks.get("primary_search", {})
     match_level = ps.get("match_level", "none")
+    theta_fit = ps.get("theta_fit", {})
+    is_match_structural = match_level in ("exact", "class_only")
 
+    # Reject structurally correct but physically degenerate fits.
+    sane = _is_physically_sane(theta_fit)
+    is_match = is_match_structural and sane
+
+    label = "ADCD" if use_taxonomy_prior else "ADCD-blind"
     return {
-        "method": "ADCD",
+        "method": label,
         "tier": res.tier,
-        "is_match": match_level in ("exact", "class_only"),
+        "is_match": is_match,
+        "degenerate_fit": is_match_structural and not sane,
         "match_level": match_level,
         "discovered_class": ps.get("discovered_class", "unknown"),
         "nmse_train": ps.get("nmse"),
         "expr_str": ps.get("top_candidate", ""),
-        "theta_fit": ps.get("theta_fit", {}),
+        "theta_fit": theta_fit,
         "elapsed_seconds": elapsed,
     }
 
 
 # ==============================================================================
-# PySR Execution Path
+# PySR Execution
 # ==============================================================================
 
-def _count_free_params_in_pysr_expr(
-    expr_str: str,
-    feature_names: List[str],
-) -> int:
-    """Count distinct fitted parameters in a symbolic expression for BIC calculation."""
+def _count_free_params_in_pysr_expr(expr_str: str, feature_names: List[str]) -> int:
+    """Count free parameters in a PySR expression for BIC reselection.
+
+    Counts: symbolic unknowns (excluding input features and mathematical
+    constants) plus distinct non-integer numeric literals. Uses max(1, ...)
+    to avoid BIC degeneracy on constant expressions.
+    """
     try:
         expr = sp.sympify(expr_str)
         feature_syms = {sp.Symbol(n) for n in feature_names}
         known_consts = {sp.pi, sp.E, sp.I}
         free_syms = expr.free_symbols - feature_syms - known_consts
         n_symbol_params = len(free_syms)
-
         numeric_consts = set()
         for node in sp.preorder_traversal(expr):
             if isinstance(node, sp.Number) and not node.is_Integer:
                 numeric_consts.add(float(node))
-        n_numeric_params = len(numeric_consts)
-
-        return max(1, n_symbol_params + n_numeric_params)
+        return max(1, n_symbol_params + len(numeric_consts))
     except Exception:
         return 1
 
 
-def run_pysr_once(
+def _run_pysr_core(
     scenario,
     data: SharedData,
     seed: int,
     timeout_seconds: float,
+    method_label: str,
+    units: Optional[Tuple[List[str], str]] = None,
 ) -> Dict[str, Any]:
-    """Execute single PySR regression run on residual data."""
-    if PySRRegressor is None:
+    """Core PySR execution shared by Tier-1 and Tier-2.
+
+    The only difference between tiers is the units argument:
+      Tier-1: units=None  (no unit information passed to PySR)
+      Tier-2: units=(x_units, y_units)  (dimensional_constraint_penalty active)
+
+    dimensional_constraint_penalty goes in the PySRRegressor constructor;
+    X_units/y_units go in fit(). This matches the PySR v1.x API.
+    """
+    try:
+        from pysr import PySRRegressor
+    except ImportError:
         raise ImportError("PySR is not installed.")
     if pd is None:
         raise ImportError("pandas is required for PySR.")
@@ -352,22 +436,31 @@ def run_pysr_once(
     X_df = pd.DataFrame({name: data.X[name] for name in data.feature_names})
     y = np.asarray(data.target, dtype=float)
 
+    constructor_kwargs: Dict[str, Any] = dict(
+        binary_operators=PYSR_BINARY_OPERATORS,
+        unary_operators=PYSR_UNARY_OPERATORS,
+        model_selection="best",
+        timeout_in_seconds=timeout_seconds,
+        random_state=seed,
+        deterministic=True,
+        parallelism="serial",
+        verbosity=0,
+        progress=False,
+        temp_equation_file=True,
+    )
+
+    fit_kwargs: Dict[str, Any] = {}
+    if units is not None:
+        x_units, y_units = units
+        constructor_kwargs["dimensional_constraint_penalty"] = PYSR_DIMENSIONAL_CONSTRAINT_PENALTY
+        fit_kwargs["X_units"] = x_units
+        fit_kwargs["y_units"] = y_units
+
     t0 = time.time()
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        model = PySRRegressor(
-            binary_operators=PYSR_BINARY_OPERATORS,
-            unary_operators=PYSR_UNARY_OPERATORS,
-            model_selection="best",
-            timeout_in_seconds=timeout_seconds,
-            random_state=seed,
-            deterministic=True,
-            parallelism="serial",
-            verbosity=0,
-            progress=False,
-            temp_equation_file=True,
-        )
-        model.fit(X_df, y)
+        model = PySRRegressor(**constructor_kwargs)
+        model.fit(X_df, y, **fit_kwargs)
     elapsed = time.time() - t0
 
     try:
@@ -388,37 +481,51 @@ def run_pysr_once(
     except Exception:
         nmse_train = float("nan")
 
-    n_pareto = len(model.equations_) if hasattr(model, "equations_") else None
-
     return {
-        "method": "PySR",
+        "method": method_label,
         "is_match": is_match,
         "discovered_class": discovered_class,
         "nmse_train": nmse_train,
         "expr_str": best_expr_str,
         "elapsed_seconds": elapsed,
-        "n_equations_in_pareto": n_pareto,
+        "n_equations_in_pareto": len(model.equations_) if hasattr(model, "equations_") else None,
         "_model_equations": model.equations_ if hasattr(model, "equations_") else None,
         "_feature_names": data.feature_names,
     }
 
 
+def run_pysr_once(scenario, data: SharedData, seed: int, timeout_seconds: float) -> Dict[str, Any]:
+    """Tier-1: PySR default, no unit information."""
+    return _run_pysr_core(scenario, data, seed, timeout_seconds, method_label="PySR", units=None)
+
+
+def run_pysr_tier2_once(scenario, data: SharedData, seed: int, timeout_seconds: float) -> Dict[str, Any]:
+    """Tier-2: PySR + dimensional_constraint_penalty.
+
+    Returns a skip record (is_match=None, note=...) if units are unavailable
+    for this scenario/mode combination rather than raising an exception.
+    """
+    units = build_units_for_scenario(scenario, data.feature_names, data.detected_mode)
+    if units is None:
+        return {
+            "method": "PySR+units",
+            "is_match": None,
+            "discovered_class": "unknown",
+            "note": "units_unavailable_or_additive_mode_unsupported",
+        }
+    return _run_pysr_core(scenario, data, seed, timeout_seconds, method_label="PySR+units", units=units)
+
+
 def run_pysr_bic_reselect(
-    scenario,
-    data: SharedData,
-    pysr_result: Dict[str, Any],
+    scenario, data: SharedData, pysr_result: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """Reselect best PySR Pareto candidate using extended BIC score."""
+    """Reselect best PySR Pareto candidate by extended BIC (Phase-2 ablation)."""
     eqs = pysr_result.get("_model_equations")
     feature_names = pysr_result.get("_feature_names", data.feature_names)
 
     if eqs is None or len(eqs) == 0:
-        return {
-            "method": "PySR+ADCD_BIC",
-            "is_match": False,
-            "discovered_class": "unknown",
-            "note": "no_pareto_front",
-        }
+        return {"method": "PySR+ADCD_BIC", "is_match": False, "discovered_class": "unknown",
+                "note": "no_pareto_front"}
 
     n_points = len(data.target)
     n_candidates = len(eqs)
@@ -429,26 +536,17 @@ def run_pysr_bic_reselect(
         try:
             loss = float(row["loss"])
             nmse = loss / var_y
-
             expr_str_row = str(row.get("sympy_format", row.get("equation", "0")))
             n_params = _count_free_params_in_pysr_expr(expr_str_row, feature_names)
-
-            b = extended_bic_score(
-                nmse, n_params, n_points, n_candidates=n_candidates
-            )
+            b = extended_bic_score(nmse, n_params, n_points, n_candidates=n_candidates)
             if best_bic is None or b < best_bic:
-                best_bic = b
-                best_expr_str = expr_str_row
+                best_bic, best_expr_str = b, expr_str_row
         except Exception:
             continue
 
     if best_expr_str is None:
-        return {
-            "method": "PySR+ADCD_BIC",
-            "is_match": False,
-            "discovered_class": "unknown",
-            "note": "reselection_failed",
-        }
+        return {"method": "PySR+ADCD_BIC", "is_match": False, "discovered_class": "unknown",
+                "note": "reselection_failed"}
 
     try:
         best_expr_sympy = sp.sympify(best_expr_str)
@@ -480,13 +578,35 @@ def run_one_combination(
     extrap_train_domain_max: Optional[float],
     min_pysr_seconds: float,
     include_ablation: bool,
+    run_adcd_guided: bool = True,
+    run_adcd_blind: bool = True,
+    run_tier1: bool = True,
+    run_tier2: bool = False,
 ) -> Dict[str, Any]:
-    """Execute paired ADCD and PySR runs on identical data sample."""
+    """Run all requested arms for one (scenario, noise, seed) combination.
+
+    ADCD is run before PySR so its elapsed time sets the PySR timeout budget,
+    guaranteeing compute fairness (PySR always gets at least as much time).
+    """
     scenarios = {s.name: s for s in get_all_scenarios()}
     scenario = scenarios[scenario_name]
 
-    adcd_res = run_adcd_once(scenario, noise, seed, domain_max, engine)
-    pysr_timeout = max(adcd_res["elapsed_seconds"], min_pysr_seconds)
+    adcd_guided_res: Dict[str, Any] = {"method": "ADCD", "is_match": None, "elapsed_seconds": 0.0}
+    adcd_blind_res: Dict[str, Any] = {"method": "ADCD-blind", "is_match": None, "elapsed_seconds": 0.0}
+
+    if run_adcd_guided:
+        adcd_guided_res = run_adcd_once(scenario, noise, seed, domain_max, engine,
+                                        use_taxonomy_prior=True)
+    if run_adcd_blind:
+        adcd_blind_res = run_adcd_once(scenario, noise, seed, domain_max, engine,
+                                       use_taxonomy_prior=False)
+
+    # PySR timeout = max of both ADCD runs, floored at min_pysr_seconds.
+    adcd_wall = max(
+        adcd_guided_res.get("elapsed_seconds", 0.0),
+        adcd_blind_res.get("elapsed_seconds", 0.0),
+    )
+    pysr_timeout = max(adcd_wall, min_pysr_seconds)
 
     data = build_shared_data(
         scenario, noise, seed, domain_max,
@@ -494,40 +614,83 @@ def run_one_combination(
         extrap_train_domain_max=extrap_train_domain_max,
     )
 
-    try:
-        pysr_res = run_pysr_once(scenario, data, seed, timeout_seconds=pysr_timeout)
-    except Exception as exc:
-        pysr_res = {"method": "PySR", "is_match": None, "error": str(exc)}
+    pysr_res: Dict[str, Any] = {"method": "PySR", "is_match": None}
+    if run_tier1:
+        try:
+            pysr_res = run_pysr_once(scenario, data, seed, timeout_seconds=pysr_timeout)
+        except Exception as exc:
+            pysr_res = {"method": "PySR", "is_match": None, "error": str(exc)}
 
-    adcd_nmse_extrap = _compute_nmse_extrap(
-        adcd_res.get("expr_str", ""), data,
-        theta_fit=adcd_res.get("theta_fit") or {},
-    )
-    pysr_nmse_extrap = (
-        _compute_nmse_extrap(pysr_res.get("expr_str", ""), data)
-        if pysr_res.get("is_match") is not None else float("inf")
-    )
-    adcd_res["nmse_extrap"] = adcd_nmse_extrap
-    pysr_res["nmse_extrap"] = pysr_nmse_extrap
+    tier2_res: Optional[Dict[str, Any]] = None
+    if run_tier2:
+        try:
+            tier2_res = run_pysr_tier2_once(scenario, data, seed, timeout_seconds=pysr_timeout)
+        except Exception as exc:
+            tier2_res = {"method": "PySR+units", "is_match": None, "error": str(exc)}
+
+    # Extrapolation NMSE is always computed for ADCD (even if is_match=False)
+    # because it is a separate diagnostic independent of structural classification.
+    if run_adcd_guided:
+        adcd_guided_res["nmse_extrap"] = _compute_nmse_extrap(
+            adcd_guided_res.get("expr_str", ""), data,
+            theta_fit=adcd_guided_res.get("theta_fit") or {},
+        )
+    if run_adcd_blind:
+        adcd_blind_res["nmse_extrap"] = _compute_nmse_extrap(
+            adcd_blind_res.get("expr_str", ""), data,
+            theta_fit=adcd_blind_res.get("theta_fit") or {},
+        )
+    if run_tier1:
+        pysr_res["nmse_extrap"] = (
+            _compute_nmse_extrap(pysr_res.get("expr_str", ""), data)
+            if pysr_res.get("is_match") is not None else float("inf")
+        )
+    if tier2_res is not None:
+        tier2_res["nmse_extrap"] = (
+            _compute_nmse_extrap(tier2_res.get("expr_str", ""), data)
+            if tier2_res.get("is_match") is not None else float("inf")
+        )
 
     ablation_res = None
-    if include_ablation and pysr_res.get("is_match") is not None:
+    if include_ablation and run_tier1 and pysr_res.get("is_match") is not None:
         ablation_res = run_pysr_bic_reselect(scenario, data, pysr_res)
         if ablation_res:
-            ab_expr = ablation_res.get("expr_str", "")
-            ablation_res["nmse_extrap"] = _compute_nmse_extrap(ab_expr, data)
+            ablation_res["nmse_extrap"] = _compute_nmse_extrap(
+                ablation_res.get("expr_str", ""), data
+            )
 
     pysr_res.pop("_model_equations", None)
     pysr_res.pop("_feature_names", None)
+    if tier2_res is not None:
+        tier2_res.pop("_model_equations", None)
+        tier2_res.pop("_feature_names", None)
 
     return {
         "scenario": scenario_name,
         "noise": noise,
         "seed": seed,
         "pysr_timeout_seconds_used": pysr_timeout,
-        "adcd": adcd_res,
+        "adcd": adcd_guided_res,
+        "adcd_blind": adcd_blind_res,
         "pysr": pysr_res,
+        "pysr_tier2": tier2_res,
         "ablation_pysr_adcd_bic": ablation_res,
+    }
+
+
+# ==============================================================================
+# Aggregation
+# ==============================================================================
+
+def _extrap_stats(values: List[float]) -> Dict[str, float]:
+    """Compute median and max of finite extrapolation NMSE values."""
+    finite = [v for v in values if math.isfinite(v)]
+    if not finite:
+        return {"median": float("inf"), "max": float("inf"), "n_finite": 0}
+    return {
+        "median": float(np.median(finite)),
+        "max": float(np.max(finite)),
+        "n_finite": len(finite),
     }
 
 
@@ -536,8 +699,10 @@ def aggregate_summary(
     targets: List[str],
     noise_sweep: List[float],
     include_ablation: bool,
+    include_tier2: bool = False,
+    include_blind: bool = True,
 ) -> Dict[str, List[Dict[str, Any]]]:
-    """Aggregate run statistics and compute Wilson confidence intervals."""
+    """Aggregate per-run results into per-(scenario, noise) statistics."""
     summary: Dict[str, List[Dict[str, Any]]] = {}
     for sc_name in targets:
         rows = []
@@ -547,31 +712,51 @@ def aggregate_summary(
                 if r["scenario"] == sc_name and abs(r["noise"] - noise) < 1e-9
             ]
             n = len(subset)
-            a_succ = sum(1 for r in subset if r["adcd"]["is_match"])
-            p_succ = sum(1 for r in subset if r["pysr"].get("is_match") is True)
 
+            a_succ = sum(1 for r in subset if r["adcd"].get("is_match") is True)
+            p_succ = sum(1 for r in subset if r["pysr"].get("is_match") is True)
             a_p, a_lo, a_hi = wilson_interval(a_succ, n)
             p_p, p_lo, p_hi = wilson_interval(p_succ, n)
 
-            a_extrap = [r["adcd"].get("nmse_extrap", float("inf")) for r in subset]
-            p_extrap = [r["pysr"].get("nmse_extrap", float("inf")) for r in subset]
-            a_extrap_finite = [v for v in a_extrap if math.isfinite(v)]
-            p_extrap_finite = [v for v in p_extrap if math.isfinite(v)]
-
             row: Dict[str, Any] = {
-                "noise": noise,
-                "n": n,
-                "adcd_recovery": a_p,
-                "adcd_ci95": [a_lo, a_hi],
-                "adcd_nmse_extrap_median": (
-                    float(np.median(a_extrap_finite)) if a_extrap_finite else float("inf")
+                "noise": noise, "n": n,
+                "adcd_recovery": a_p, "adcd_ci95": [a_lo, a_hi],
+                "adcd_nmse_extrap": _extrap_stats(
+                    [r["adcd"].get("nmse_extrap", float("inf")) for r in subset]
                 ),
-                "pysr_recovery": p_p,
-                "pysr_ci95": [p_lo, p_hi],
-                "pysr_nmse_extrap_median": (
-                    float(np.median(p_extrap_finite)) if p_extrap_finite else float("inf")
+                "adcd_degenerate_count": sum(
+                    1 for r in subset if r["adcd"].get("degenerate_fit", False)
+                ),
+                "pysr_recovery": p_p, "pysr_ci95": [p_lo, p_hi],
+                "pysr_nmse_extrap": _extrap_stats(
+                    [r["pysr"].get("nmse_extrap", float("inf")) for r in subset]
                 ),
             }
+
+            if include_blind:
+                blind_succ = sum(
+                    1 for r in subset if r.get("adcd_blind", {}).get("is_match") is True
+                )
+                b_p, b_lo, b_hi = wilson_interval(blind_succ, n)
+                row["adcd_blind_recovery"] = b_p
+                row["adcd_blind_ci95"] = [b_lo, b_hi]
+                row["adcd_blind_nmse_extrap"] = _extrap_stats(
+                    [r.get("adcd_blind", {}).get("nmse_extrap", float("inf")) for r in subset]
+                )
+
+            if include_tier2:
+                # Only count seeds where Tier-2 actually ran (is_match is not None).
+                t2_valid = [r for r in subset
+                            if r.get("pysr_tier2") and r["pysr_tier2"].get("is_match") is not None]
+                n_t2 = len(t2_valid)
+                t2_succ = sum(1 for r in t2_valid if r["pysr_tier2"]["is_match"] is True)
+                t2_p, t2_lo, t2_hi = wilson_interval(t2_succ, n_t2) if n_t2 > 0 else (0.0, 0.0, 0.0)
+                row["tier2_recovery"] = t2_p
+                row["tier2_ci95"] = [t2_lo, t2_hi]
+                row["tier2_n"] = n_t2
+                row["tier2_nmse_extrap"] = _extrap_stats(
+                    [r["pysr_tier2"].get("nmse_extrap", float("inf")) for r in t2_valid]
+                )
 
             if include_ablation:
                 ab_succ = sum(
@@ -588,69 +773,115 @@ def aggregate_summary(
     return summary
 
 
+def merge_tier2_into_summary(
+    summary: Dict[str, List[Dict[str, Any]]],
+    tier2_payload: Dict[str, Any],
+) -> None:
+    """Merge a separate Tier-2 JSON report into an existing Tier-1 summary in-place.
+
+    Matched by (scenario, noise) float comparison, not list index, so minor
+    differences in noise_sweep ordering between runs are handled safely.
+    """
+    t2_summary = tier2_payload.get("summary", {})
+    for sc_name, rows in summary.items():
+        t2_rows = {r["noise"]: r for r in t2_summary.get(sc_name, [])}
+        for row in rows:
+            t2_row = t2_rows.get(row["noise"])
+            if t2_row is None:
+                # Tier-2 data missing for this noise point; insert null placeholders.
+                row["tier2_recovery"] = None
+                row["tier2_ci95"] = [0.0, 0.0]
+                row["tier2_n"] = 0
+                row["tier2_nmse_extrap"] = {"median": float("inf"), "max": float("inf"), "n_finite": 0}
+            else:
+                row["tier2_recovery"] = t2_row.get("tier2_recovery", t2_row.get("pysr_recovery"))
+                row["tier2_ci95"] = t2_row.get("tier2_ci95", t2_row.get("pysr_ci95", [0.0, 0.0]))
+                row["tier2_n"] = t2_row.get("tier2_n", t2_row.get("n", 0))
+                row["tier2_nmse_extrap"] = t2_row.get(
+                    "tier2_nmse_extrap",
+                    {"median": float("inf"), "max": float("inf"), "n_finite": 0}
+                )
+
+
 # ==============================================================================
-# Visualization & Reporting
+# Visualization
 # ==============================================================================
 
 def plot_results(
     summary: Dict[str, List[Dict[str, Any]]],
     out_dir: str,
     include_ablation: bool,
+    include_tier2: bool = False,
+    include_blind: bool = True,
 ) -> None:
-    """Generate comparative publication figures (PDF and PNG)."""
+    """Generate recovery rate and extrapolation NMSE figures (PDF and PNG)."""
     try:
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
         import matplotlib.ticker as ticker
     except ImportError:
-        print("[WARN] matplotlib not installed -- skipping plot generation.")
+        print("[WARN] matplotlib not installed — skipping plot generation.")
         return
 
     scenarios = list(summary.keys())
     n_panels = len(scenarios)
 
+    COLORS = {
+        "adcd":       "#1f77b4",
+        "adcd_blind": "#17becf",
+        "pysr":       "#ff7f0e",
+        "tier2":      "#9467bd",
+        "ablation":   "#2ca02c",
+    }
+
+    # Recovery rate figure
     fig, axes = plt.subplots(1, n_panels, figsize=(4.5 * n_panels, 4.0), sharey=True)
     if n_panels == 1:
         axes = [axes]
-
-    ADCD_COLOR = "#1f77b4"
-    PYSR_COLOR = "#ff7f0e"
-    ABLATION_COLOR = "#2ca02c"
-
-    has_extrap = any(
-        math.isfinite(row.get("adcd_nmse_extrap_median", float("inf")))
-        for rows in summary.values()
-        for row in rows
-    )
 
     for ax, sc_name in zip(axes, scenarios):
         rows = summary[sc_name]
         noise_x = [r["noise"] for r in rows]
 
-        a_rates = [r["adcd_recovery"] * 100 for r in rows]
-        a_lo = [r["adcd_ci95"][0] * 100 for r in rows]
-        a_hi = [r["adcd_ci95"][1] * 100 for r in rows]
+        def _plot_arm(rates, lo, hi, color, label, marker, ls, ax=ax, noise_x=noise_x):
+            ax.plot(noise_x, rates, marker + ls, color=color, lw=2, label=label, zorder=4)
+            ax.fill_between(noise_x, lo, hi, alpha=0.18, color=color)
 
-        p_rates = [r["pysr_recovery"] * 100 for r in rows]
-        p_lo = [r["pysr_ci95"][0] * 100 for r in rows]
-        p_hi = [r["pysr_ci95"][1] * 100 for r in rows]
-
-        ax.plot(noise_x, a_rates, "o-", color=ADCD_COLOR, lw=2,
-                label="ADCD (ours)", zorder=3)
-        ax.fill_between(noise_x, a_lo, a_hi, alpha=0.18, color=ADCD_COLOR)
-
-        ax.plot(noise_x, p_rates, "s--", color=PYSR_COLOR, lw=2,
-                label="PySR (default)", zorder=3)
-        ax.fill_between(noise_x, p_lo, p_hi, alpha=0.18, color=PYSR_COLOR)
-
+        _plot_arm(
+            [r["adcd_recovery"] * 100 for r in rows],
+            [r["adcd_ci95"][0] * 100 for r in rows],
+            [r["adcd_ci95"][1] * 100 for r in rows],
+            COLORS["adcd"], "ADCD (guided)", "o", "-",
+        )
+        if include_blind and "adcd_blind_recovery" in rows[0]:
+            _plot_arm(
+                [r["adcd_blind_recovery"] * 100 for r in rows],
+                [r["adcd_blind_ci95"][0] * 100 for r in rows],
+                [r["adcd_blind_ci95"][1] * 100 for r in rows],
+                COLORS["adcd_blind"], "ADCD (blind)", "v", "-.",
+            )
+        _plot_arm(
+            [r["pysr_recovery"] * 100 for r in rows],
+            [r["pysr_ci95"][0] * 100 for r in rows],
+            [r["pysr_ci95"][1] * 100 for r in rows],
+            COLORS["pysr"], "PySR (default)", "s", "--",
+        )
+        if include_tier2 and rows[0].get("tier2_recovery") is not None:
+            _plot_arm(
+                [r.get("tier2_recovery") * 100 if r.get("tier2_recovery") is not None else float("nan")
+                 for r in rows],
+                [r.get("tier2_ci95", [0, 0])[0] * 100 for r in rows],
+                [r.get("tier2_ci95", [0, 0])[1] * 100 for r in rows],
+                COLORS["tier2"], "PySR + units", "D", "-.",
+            )
         if include_ablation and "ablation_recovery" in rows[0]:
-            ab_rates = [r.get("ablation_recovery", 0) * 100 for r in rows]
-            ab_lo = [r.get("ablation_ci95", [0, 0])[0] * 100 for r in rows]
-            ab_hi = [r.get("ablation_ci95", [0, 0])[1] * 100 for r in rows]
-            ax.plot(noise_x, ab_rates, "^:", color=ABLATION_COLOR, lw=1.5,
-                    label="PySR + ADCD-BIC", zorder=2)
-            ax.fill_between(noise_x, ab_lo, ab_hi, alpha=0.12, color=ABLATION_COLOR)
+            _plot_arm(
+                [r.get("ablation_recovery", 0) * 100 for r in rows],
+                [r.get("ablation_ci95", [0, 0])[0] * 100 for r in rows],
+                [r.get("ablation_ci95", [0, 0])[1] * 100 for r in rows],
+                COLORS["ablation"], "PySR + ADCD-BIC", "^", ":",
+            )
 
         ax.set_xlim(min(noise_x) * 0.9, max(noise_x) * 1.05)
         ax.set_ylim(-5, 105)
@@ -658,7 +889,7 @@ def plot_results(
         ax.set_title(sc_name, fontsize=10, fontweight="bold")
         ax.xaxis.set_major_formatter(ticker.PercentFormatter(xmax=1.0))
         ax.grid(True, linestyle="--", alpha=0.4)
-        ax.legend(fontsize=8, loc="lower left")
+        ax.legend(fontsize=7.5, loc="lower left")
 
     axes[0].set_ylabel("Structural recovery rate (%)", fontsize=10)
     fig.suptitle(
@@ -668,97 +899,124 @@ def plot_results(
     )
     fig.tight_layout()
     for ext in ("pdf", "png"):
-        path = os.path.join(out_dir, f"fig_comparison_recovery.{ext}")
-        fig.savefig(path, bbox_inches="tight", dpi=150)
+        fig.savefig(os.path.join(out_dir, f"fig_comparison_recovery.{ext}"),
+                    bbox_inches="tight", dpi=150)
     plt.close(fig)
     print(f"[OK] Recovery figure saved to {out_dir}/fig_comparison_recovery.{{pdf,png}}")
 
-    if has_extrap:
-        fig2, axes2 = plt.subplots(1, n_panels, figsize=(4.5 * n_panels, 4.0), sharey=True)
-        if n_panels == 1:
-            axes2 = [axes2]
+    # Extrapolation NMSE figure (log scale, median + max per arm)
+    has_extrap = any(
+        math.isfinite(row.get("adcd_nmse_extrap", {}).get("median", float("inf")))
+        for rows in summary.values() for row in rows
+    )
+    if not has_extrap:
+        return
 
-        for ax, sc_name in zip(axes2, scenarios):
-            rows = summary[sc_name]
-            noise_x = [r["noise"] for r in rows]
-            a_ext = [r.get("adcd_nmse_extrap_median", float("nan")) for r in rows]
-            p_ext = [r.get("pysr_nmse_extrap_median", float("nan")) for r in rows]
+    fig2, axes2 = plt.subplots(1, n_panels, figsize=(4.5 * n_panels, 4.0), sharey=True)
+    if n_panels == 1:
+        axes2 = [axes2]
 
-            a_ext_disp = [v if math.isfinite(v) else float("nan") for v in a_ext]
-            p_ext_disp = [v if math.isfinite(v) else float("nan") for v in p_ext]
+    for ax, sc_name in zip(axes2, scenarios):
+        rows = summary[sc_name]
+        noise_x = [r["noise"] for r in rows]
 
-            ax.semilogy(noise_x, a_ext_disp, "o-", color=ADCD_COLOR, lw=2,
-                        label="ADCD (ours)", zorder=3)
-            ax.semilogy(noise_x, p_ext_disp, "s--", color=PYSR_COLOR, lw=2,
-                        label="PySR (default)", zorder=3)
-            ax.axhline(y=1.0, color="gray", linestyle=":", lw=1, label="NMSE = 1.0 (chance)")
-            ax.set_xlabel("Noise level (fraction)", fontsize=10)
-            ax.set_title(sc_name, fontsize=10, fontweight="bold")
-            ax.xaxis.set_major_formatter(ticker.PercentFormatter(xmax=1.0))
-            ax.grid(True, linestyle="--", alpha=0.4)
-            ax.legend(fontsize=8)
+        def _get_stat(key, stat, rows_=rows):
+            return [r.get(key, {}).get(stat, float("nan")) for r in rows_]
 
-        axes2[0].set_ylabel("Extrapolation NMSE (log scale)", fontsize=10)
-        fig2.suptitle(
-            "ADCD vs PySR: Extrapolation NMSE (out-of-training domain)\n"
-            "(lower = better; median across 5 seeds per point)",
-            fontsize=10, y=1.02,
-        )
-        fig2.tight_layout()
-        for ext in ("pdf", "png"):
-            path = os.path.join(out_dir, f"fig_comparison_extrap.{ext}")
-            fig2.savefig(path, bbox_inches="tight", dpi=150)
-        plt.close(fig2)
-        print(f"[OK] Extrapolation figure saved to {out_dir}/fig_comparison_extrap.{{pdf,png}}")
+        for key, color, label in [
+            ("adcd_nmse_extrap",       COLORS["adcd"],       "ADCD (guided)"),
+            ("adcd_blind_nmse_extrap", COLORS["adcd_blind"], "ADCD (blind)"),
+            ("pysr_nmse_extrap",       COLORS["pysr"],       "PySR (default)"),
+        ]:
+            if not include_blind and "blind" in key:
+                continue
+            med = [v if math.isfinite(v) else float("nan") for v in _get_stat(key, "median")]
+            mx  = [v if math.isfinite(v) else float("nan") for v in _get_stat(key, "max")]
+            ax.semilogy(noise_x, med, "o-", color=color, lw=2, label=label + " (median)", zorder=3)
+            ax.semilogy(noise_x, mx,  "x:", color=color, lw=1, label=label + " (max)", zorder=2)
 
+        ax.axhline(y=1.0, color="gray", linestyle=":", lw=1, label="NMSE = 1 (chance)")
+        ax.set_xlabel("Noise level (fraction)", fontsize=10)
+        ax.set_title(sc_name, fontsize=10, fontweight="bold")
+        ax.xaxis.set_major_formatter(ticker.PercentFormatter(xmax=1.0))
+        ax.grid(True, linestyle="--", alpha=0.4)
+        ax.legend(fontsize=7.5)
+
+    axes2[0].set_ylabel("Extrapolation NMSE (log scale)", fontsize=10)
+    fig2.suptitle(
+        "Extrapolation NMSE — out-of-training domain (lower = better)\n"
+        "solid = median across seeds, dashed = worst-case (max) per noise level",
+        fontsize=10, y=1.02,
+    )
+    fig2.tight_layout()
+    for ext in ("pdf", "png"):
+        fig2.savefig(os.path.join(out_dir, f"fig_comparison_extrap.{ext}"),
+                     bbox_inches="tight", dpi=150)
+    plt.close(fig2)
+    print(f"[OK] Extrapolation figure saved to {out_dir}/fig_comparison_extrap.{{pdf,png}}")
+
+
+# ==============================================================================
+# Console Reporting
+# ==============================================================================
 
 def print_summary_table(
     summary: Dict[str, List[Dict[str, Any]]],
     include_ablation: bool,
+    include_tier2: bool = False,
+    include_blind: bool = True,
 ) -> None:
-    """Print formatted comparative summary table to stdout."""
+    """Print recovery rate table with extrapolation NMSE (median / max)."""
     for sc_name, rows in summary.items():
         n = rows[0]["n"]
-        header = f" STRUCTURAL RECOVERY RATE vs NOISE -- {sc_name}  (n={n} seeds per point)"
-        print("\n" + "=" * 92)
-        print(header)
-        print("-" * 92)
+        print("\n" + "=" * 110)
+        print(f" STRUCTURAL RECOVERY RATE vs NOISE — {sc_name}  (n={n} seeds per point)")
+        print("-" * 110)
 
-        cols = f"{'Noise':<8} | {'ADCD':<26} | {'PySR':<26}"
+        header = f"{'Noise':<8} | {'ADCD (guided)':<26} | {'PySR (default)':<26}"
+        if include_blind and "adcd_blind_recovery" in rows[0]:
+            header += f" | {'ADCD (blind)':<26}"
+        if include_tier2 and rows[0].get("tier2_recovery") is not None:
+            header += f" | {'PySR+units':<26}"
         if include_ablation and "ablation_recovery" in rows[0]:
-            cols += f" | {'PySR+ADCD-BIC':<26}"
-        cols += f" | {'ADCD extrap NMSE':<18} | {'PySR extrap NMSE':<18}"
-        print(cols)
-        print("-" * 92)
+            header += f" | {'PySR+ADCD-BIC':<26}"
+        header += f" | {'ADCD extrap (med/max)':<24} | {'PySR extrap (med/max)':<24}"
+        print(header)
+        print("-" * 110)
 
         for row in rows:
-            a_str = (
-                f"{row['adcd_recovery']*100:5.0f}%"
-                f" [{row['adcd_ci95'][0]*100:4.0f}-{row['adcd_ci95'][1]*100:4.0f}%]"
-            )
-            p_str = (
-                f"{row['pysr_recovery']*100:5.0f}%"
-                f" [{row['pysr_ci95'][0]*100:4.0f}-{row['pysr_ci95'][1]*100:4.0f}%]"
-            )
-            a_ext = row.get("adcd_nmse_extrap_median", float("inf"))
-            p_ext = row.get("pysr_nmse_extrap_median", float("inf"))
-            a_ext_str = f"{a_ext:.3f}" if math.isfinite(a_ext) else "N/A"
-            p_ext_str = f"{p_ext:.3f}" if math.isfinite(p_ext) else "N/A"
+            def _fmt_recovery(rate, ci):
+                return f"{rate*100:5.0f}% [{ci[0]*100:4.0f}-{ci[1]*100:4.0f}%]"
 
-            line = f"{row['noise']:<8.2f} | {a_str:<26} | {p_str:<26}"
+            def _fmt_extrap(stats):
+                if stats.get("n_finite", 0) == 0:
+                    return "N/A"
+                med = stats.get("median", float("inf"))
+                mx  = stats.get("max", float("inf"))
+                return f"{med:.3f}/{mx:.3f}"
+
+            line = (
+                f"{row['noise']:<8.2f} | "
+                f"{_fmt_recovery(row['adcd_recovery'], row['adcd_ci95']):<26} | "
+                f"{_fmt_recovery(row['pysr_recovery'], row['pysr_ci95']):<26}"
+            )
+            if include_blind and "adcd_blind_recovery" in row:
+                line += f" | {_fmt_recovery(row['adcd_blind_recovery'], row['adcd_blind_ci95']):<26}"
+            if include_tier2 and row.get("tier2_recovery") is not None:
+                line += f" | {_fmt_recovery(row['tier2_recovery'], row['tier2_ci95']):<26}"
             if include_ablation and "ablation_recovery" in row:
-                ab_str = (
-                    f"{row['ablation_recovery']*100:5.0f}%"
-                    f" [{row['ablation_ci95'][0]*100:4.0f}-{row['ablation_ci95'][1]*100:4.0f}%]"
-                )
-                line += f" | {ab_str:<26}"
-            line += f" | {a_ext_str:<18} | {p_ext_str:<18}"
+                line += f" | {_fmt_recovery(row['ablation_recovery'], row['ablation_ci95']):<26}"
+            line += (
+                f" | {_fmt_extrap(row.get('adcd_nmse_extrap', {})):<24}"
+                f" | {_fmt_extrap(row.get('pysr_nmse_extrap', {})):<24}"
+            )
             print(line)
-    print("=" * 92)
+
+    print("=" * 110)
 
 
 # ==============================================================================
-# CLI Entry Point
+# CLI
 # ==============================================================================
 
 def main() -> int:
@@ -766,45 +1024,34 @@ def main() -> int:
         description="Comparative Benchmark Harness: ADCD vs PySR.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument(
-        "--engine", choices=["python", "julia"], default="julia",
-        help="ADCD backend engine.",
-    )
-    parser.add_argument(
-        "--scenario", default="all",
-        help="Scenario name to run, or 'all' for all locked scenarios.",
-    )
-    parser.add_argument(
-        "--seeds", type=int, nargs="+", default=DEFAULT_SEEDS,
-        help="Random seeds for replication.",
-    )
-    parser.add_argument(
-        "--noise-sweep", type=float, nargs="+", default=NOISE_SWEEP,
-        help="Noise levels to evaluate.",
-    )
-    parser.add_argument(
-        "--min-pysr-seconds", type=float, default=MIN_PYSR_SECONDS,
-        help="Minimum PySR timeout in seconds.",
-    )
-    parser.add_argument(
-        "--include-ablation", action="store_true",
-        help="Evaluate PySR+ADCD_BIC reselection.",
-    )
-    parser.add_argument(
-        "--no-extrap", action="store_true",
-        help="Disable extrapolation evaluation.",
-    )
-    parser.add_argument(
-        "--out", default=None,
-        help="Output JSON path (default: run_outputs/pysr_comparison.json).",
-    )
-    parser.add_argument(
-        "--plot-only", default=None, metavar="JSON_PATH",
-        help="Regenerate figures from existing JSON report without running search.",
-    )
+    parser.add_argument("--engine", choices=["python", "julia"], default="julia")
+    parser.add_argument("--scenario", default="all",
+                        help="Scenario name or 'all' for all locked scenarios.")
+    parser.add_argument("--seeds", type=int, nargs="+", default=DEFAULT_SEEDS)
+    parser.add_argument("--noise-sweep", type=float, nargs="+", default=NOISE_SWEEP)
+    parser.add_argument("--min-pysr-seconds", type=float, default=MIN_PYSR_SECONDS)
+    parser.add_argument("--include-ablation", action="store_true",
+                        help="Run PySR+ADCD_BIC reselection (Phase-2 ablation).")
+    parser.add_argument("--include-tier2", action="store_true",
+                        help="Run Tier-2 (PySR+units) in the same pass as Tier-1.")
+    parser.add_argument("--tier2-only", action="store_true",
+                        help="Run only Tier-2; skip ADCD and Tier-1.")
+    parser.add_argument("--no-extrap", action="store_true",
+                        help="Disable extrapolation evaluation.")
+    parser.add_argument("--no-blind", action="store_true",
+                        help="Skip ADCD-blind arm (use_taxonomy_prior=False).")
+    parser.add_argument("--out", default=None,
+                        help="Output JSON path.")
+    parser.add_argument("--plot-only", default=None, metavar="JSON_PATH",
+                        help="Regenerate figures from existing JSON without running search.")
+    parser.add_argument("--merge-tier2", default=None, metavar="TIER2_JSON",
+                        help="With --plot-only: splice a Tier-2 JSON into the summary before plotting.")
     args = parser.parse_args()
 
-    out_path = args.out or os.path.join("run_outputs", "pysr_comparison.json")
+    out_path = args.out or os.path.join(
+        "run_outputs",
+        "pysr_comparison_tier2.json" if args.tier2_only else "pysr_comparison.json",
+    )
     out_dir = os.path.dirname(out_path) or "."
     os.makedirs(out_dir, exist_ok=True)
 
@@ -812,34 +1059,52 @@ def main() -> int:
         with open(args.plot_only, "r", encoding="utf-8") as f:
             saved = json.load(f)
         summary = saved.get("summary", {})
-        include_ablation = saved.get("config", {}).get("include_ablation", False)
-        print_summary_table(summary, include_ablation)
-        plot_results(summary, out_dir, include_ablation)
+        cfg = saved.get("config", {})
+        include_ablation = cfg.get("include_ablation", False)
+        include_tier2 = bool(args.merge_tier2)
+        include_blind = cfg.get("include_blind", True)
+
+        if args.merge_tier2:
+            with open(args.merge_tier2, "r", encoding="utf-8") as f:
+                tier2_saved = json.load(f)
+            merge_tier2_into_summary(summary, tier2_saved)
+
+        print_summary_table(summary, include_ablation, include_tier2, include_blind)
+        plot_results(summary, out_dir, include_ablation, include_tier2, include_blind)
         return 0
 
-    if PySRRegressor is None:
+    import importlib.util
+    if importlib.util.find_spec("pysr") is None:
         print("[ERROR] PySR is not installed.", file=sys.stderr)
         return 1
 
     targets = LOCKED_SCENARIOS if args.scenario == "all" else [args.scenario]
-    all_results: List[Dict[str, Any]] = []
 
+    run_adcd_guided = not args.tier2_only
+    run_adcd_blind  = not args.tier2_only and not args.no_blind
+    run_tier1       = not args.tier2_only
+    run_tier2       = args.tier2_only or args.include_tier2
+    include_blind   = run_adcd_blind
+
+    all_results: List[Dict[str, Any]] = []
     total = len(targets) * len(args.noise_sweep) * len(args.seeds)
-    print("=" * 92)
-    print(
-        f" ADCD vs PySR Benchmark\n"
-        f" Total runs: {total}  "
-        f"({len(targets)} scenario(s) x {len(args.noise_sweep)} noise levels x {len(args.seeds)} seeds)\n"
-        f" Extrapolation evaluation: {'disabled' if args.no_extrap else 'enabled'}"
+
+    mode_label = "TIER2-ONLY" if args.tier2_only else (
+        "ADCD-guided+ADCD-blind+Tier1" + ("+Tier2" if run_tier2 else "")
     )
-    print("=" * 92)
+    print("=" * 110)
+    print(f" ADCD vs PySR Benchmark  [mode: {mode_label}]")
+    print(f" Total runs: {total}  ({len(targets)} scenarios x {len(args.noise_sweep)} noise x {len(args.seeds)} seeds)")
+    print(f" Extrapolation: {'disabled' if args.no_extrap else 'enabled'}  "
+          f"Blind arm: {'disabled' if args.no_blind else 'enabled'}")
+    print("=" * 110)
 
     done = 0
     for sc_name in targets:
         dmax = DEFAULT_CLEAN_DOMAINS.get(
             sc_name, DOMAIN_RESTRICTIONS.get(sc_name, {}).get("domain_max", 1.0)
         )
-        extrap_dmax = None if args.no_extrap else EXTRAP_TEST_DOMAIN.get(sc_name)
+        extrap_dmax       = None if args.no_extrap else EXTRAP_TEST_DOMAIN.get(sc_name)
         extrap_train_dmax = None if args.no_extrap else EXTRAP_TRAIN_DOMAIN.get(sc_name)
 
         for noise in args.noise_sweep:
@@ -849,33 +1114,55 @@ def main() -> int:
                     r = run_one_combination(
                         sc_name, noise, seed, args.engine, dmax,
                         extrap_dmax, extrap_train_dmax,
-                        args.min_pysr_seconds, args.include_ablation,
+                        args.min_pysr_seconds,
+                        args.include_ablation and run_tier1,
+                        run_adcd_guided=run_adcd_guided,
+                        run_adcd_blind=run_adcd_blind,
+                        run_tier1=run_tier1,
+                        run_tier2=run_tier2,
                     )
                 except Exception as exc:
                     r = {
                         "scenario": sc_name, "noise": noise, "seed": seed,
                         "error": str(exc),
-                        "adcd": {"is_match": False, "nmse_extrap": float("inf")},
-                        "pysr": {"is_match": None, "nmse_extrap": float("inf")},
+                        "adcd":       {"is_match": None, "nmse_extrap": float("inf")},
+                        "adcd_blind": {"is_match": None, "nmse_extrap": float("inf")},
+                        "pysr":       {"is_match": None, "nmse_extrap": float("inf")},
+                        "pysr_tier2": None,
                         "ablation_pysr_adcd_bic": None,
                     }
                 all_results.append(r)
                 done += 1
-
-                a_match = r["adcd"].get("is_match", False)
-                p_match = r["pysr"].get("is_match")
                 elapsed = time.time() - t0
-                print(
-                    f"[{done:>3}/{total}] {sc_name:<20} noise={noise:<5.2f} seed={seed:<3}"
-                    f" | ADCD={'MATCH' if a_match else 'miss':<5}"
-                    f" PySR={'MATCH' if p_match else ('miss' if p_match is False else 'N/A'):<5}"
-                    f" ({elapsed:.1f}s)"
-                )
 
-    summary = aggregate_summary(all_results, targets, args.noise_sweep, args.include_ablation)
+                a_match  = r["adcd"].get("is_match")
+                ab_match = r.get("adcd_blind", {}).get("is_match")
+                p_match  = r["pysr"].get("is_match")
+                t2_match = (r.get("pysr_tier2") or {}).get("is_match")
 
-    print_summary_table(summary, args.include_ablation)
-    plot_results(summary, out_dir, args.include_ablation)
+                parts = [f"[{done:>3}/{total}] {sc_name:<20} noise={noise:<5.2f} seed={seed:<3}"]
+                if run_adcd_guided:
+                    parts.append(f"ADCD={'MATCH' if a_match else ('miss' if a_match is False else 'N/A'):<5}")
+                if run_adcd_blind:
+                    parts.append(f"blind={'MATCH' if ab_match else ('miss' if ab_match is False else 'N/A'):<5}")
+                if run_tier1:
+                    parts.append(f"PySR={'MATCH' if p_match else ('miss' if p_match is False else 'N/A'):<5}")
+                if run_tier2:
+                    parts.append(f"Tier2={'MATCH' if t2_match else ('miss' if t2_match is False else 'N/A'):<5}")
+                parts.append(f"({elapsed:.1f}s)")
+                print(" | ".join(parts))
+
+    summary = aggregate_summary(
+        all_results, targets, args.noise_sweep,
+        include_ablation=args.include_ablation and run_tier1,
+        include_tier2=run_tier2,
+        include_blind=include_blind,
+    )
+
+    print_summary_table(summary, args.include_ablation and run_tier1, run_tier2, include_blind)
+
+    if not args.tier2_only:
+        plot_results(summary, out_dir, args.include_ablation and run_tier1, run_tier2, include_blind)
 
     payload = {
         "config": {
@@ -886,6 +1173,11 @@ def main() -> int:
             "unary_operators": PYSR_UNARY_OPERATORS,
             "min_pysr_seconds": args.min_pysr_seconds,
             "include_ablation": args.include_ablation,
+            "include_tier2": run_tier2,
+            "tier2_only": args.tier2_only,
+            "include_blind": include_blind,
+            "dimensional_constraint_penalty": PYSR_DIMENSIONAL_CONSTRAINT_PENALTY if run_tier2 else None,
+            "degenerate_theta_bound": _DEGENERATE_THETA_BOUND,
             "extrapolation_enabled": not args.no_extrap,
         },
         "summary": summary,
