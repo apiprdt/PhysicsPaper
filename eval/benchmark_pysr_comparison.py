@@ -2,26 +2,11 @@
 """
 benchmark_pysr_comparison.py
 ==============================================================================
-Comparative Benchmark: ADCD vs PySR — Noise Robustness & Extrapolation.
+Comparative Benchmark Harness: ADCD vs PySR (Noise Robustness & Extrapolation).
 
-Three comparison arms (see ADCD_vs_PySR_Workshop_Plan.md §9):
-  ADCD-guided : ADCD with domain taxonomy prior (use_taxonomy_prior=True)
-  ADCD-blind  : ADCD without taxonomy prior (use_taxonomy_prior=False)
-  PySR Tier 1 : PySR default, no unit information
-  PySR Tier 2 : PySR + dimensional_constraint_penalty via X_units/y_units
-
-Run modes:
-  Default          : ADCD-guided + ADCD-blind + Tier-1 in one pass
-  --include-tier2  : also run Tier-2 in the same pass
-  --tier2-only     : run only Tier-2 (skip ADCD and Tier-1)
-  --plot-only FILE : regenerate figures from saved JSON, no search
-  --merge-tier2    : used with --plot-only to splice a Tier-2 JSON in
-
-SCOPE NOTE — Tier-2 additive-mode limitation:
-  y_units for multiplicative targets is always "" (dimensionless ratio).
-  Additive mode would require deriving y_units from classical_expr symbolically
-  — not implemented. All three locked scenarios are multiplicative, so this
-  does not affect the current experiment.
+Evaluates structural recovery rate and extrapolation performance across
+systematic noise sweeps under identical data, search targets, and feature sets.
+Supports ADCD (guided / blind) and PySR (default / dimensionally constrained).
 ==============================================================================
 """
 
@@ -73,10 +58,6 @@ DEFAULT_CLEAN_DOMAINS: Dict[str, float] = {
     "Entropy Expansion": 3.0,
 }
 
-# Extrapolation uses a narrower training domain than the recovery-rate experiment.
-# For Time Dilation, 0.99c is near the singularity, leaving no room for a
-# held-out evaluation interval. Training is restricted to 0.30c; evaluation
-# to 0.80c (safely below the gamma divergence at v=c).
 EXTRAP_TRAIN_DOMAIN: Dict[str, float] = {
     "Time Dilation": 0.30,
     "Screened Coulomb": 4.0,
@@ -92,21 +73,8 @@ PYSR_BINARY_OPERATORS: List[str] = ["+", "-", "*", "/"]
 PYSR_UNARY_OPERATORS: List[str] = ["exp", "log", "sqrt", "sin", "cos"]
 
 MIN_PYSR_SECONDS: float = 30.0
-
-# Penalty value recommended in PySR documentation for Tier-2 runs.
-# Not tuned against any scenario result (pre-registered).
 PYSR_DIMENSIONAL_CONSTRAINT_PENALTY: float = 1000.0
-
-# Fitted parameters with absolute value exceeding this bound are flagged as
-# degenerate (optimizer diverged). Physical constants in all three locked
-# scenarios are O(1)–O(1e5); 1e6 provides ample margin.
 _DEGENERATE_THETA_BOUND: float = 1e6
-
-# Matches whose extrapolation NMSE exceeds this value are flagged degenerate,
-# regardless of parameter magnitude. NMSE > 2.0 means the model predicts worse
-# than the trivial mean baseline on the held-out domain. This catches cases
-# like theta_0 = -2.7e-6 (not large in absolute terms) that still produce
-# catastrophic extrapolation (nmse_extrap = 7.36) due to ratio singularities.
 _EXTRAP_SANITY_BOUND: float = 2.0
 
 
@@ -307,14 +275,7 @@ def _extract_numeric_constants_as_theta_fit(expr: sp.Expr) -> Dict[str, float]:
 
 
 def _is_physically_sane(theta_fit: Dict[str, Any], bound: float = _DEGENERATE_THETA_BOUND) -> bool:
-    """Return False if any fitted parameter exceeds the physical sanity bound.
-
-    A very large fitted constant (e.g. theta_1 = -6.9e10) indicates the
-    optimizer diverged to a degenerate solution that happens to interpolate
-    the training data but carries no structural meaning. The four-gate ADCD
-    protocol does not explicitly guard against this because NMSE is measured
-    on the training domain where the degenerate fit may still appear valid.
-    """
+    """Check if fitted parameter magnitudes remain within physical bounds."""
     for v in theta_fit.values():
         try:
             if abs(float(v)) > bound:
@@ -333,30 +294,19 @@ def build_units_for_scenario(
     feature_names: List[str],
     detected_mode: str,
 ) -> Optional[Tuple[List[str], str]]:
-    """Build (X_units, y_units) for PySR from scenario.variables_with_units.
-
-    Returns None (not raises) when units are unavailable or mode is additive.
-    Callers must skip Tier-2 for that combination and log the reason.
-
-    Additive mode is not supported: deriving y_units from classical_expr
-    symbolically is out of scope for this experiment. All three locked
-    scenarios are multiplicative, so this limitation does not block the
-    current experiment.
-    """
+    """Extract input and target physical units for PySR dimensional constraints."""
     units_map = getattr(scenario, "variables_with_units", None)
-    if not units_map:
-        return None
-    if detected_mode != "multiplicative":
+    if not units_map or detected_mode != "multiplicative":
         return None
 
     x_units = []
     for name in feature_names:
         u = units_map.get(name)
         if u is None:
-            return None  # incomplete units — skip, do not guess
+            return None
         x_units.append(u)
 
-    y_units = ""  # target = y_obs/y_classical - 1 is dimensionless
+    y_units = ""  # Multiplicative target is dimensionless
     return x_units, y_units
 
 
@@ -373,17 +323,7 @@ def run_adcd_once(
     use_taxonomy_prior: bool = True,
     data: Optional["SharedData"] = None,
 ) -> Dict[str, Any]:
-    """Run ADCD validation protocol for one (scenario, noise, seed) triple.
-
-    use_taxonomy_prior=True  : restrict primitives to the domain taxonomy list.
-    use_taxonomy_prior=False : search across all registered primitives (blind).
-
-    data is the pre-built SharedData (with extrap arrays). When supplied,
-    nmse_extrap is computed here and used in the is_match sanity decision —
-    catching degenerate fits (e.g. theta_0=-2.7e-6 inside a ratio) that look
-    fine on training data but fail catastrophically on extrapolation, which
-    _is_physically_sane(theta_fit) alone cannot detect.
-    """
+    """Run ADCD discovery protocol with or without taxonomy domain prior."""
     sc = copy.deepcopy(scenario)
     sc.engine = engine
     t_cfg = ScenarioThresholdConfig.for_scenario(sc, noise_level=noise)
@@ -404,14 +344,8 @@ def run_adcd_once(
     expr_str = ps.get("top_candidate", "")
     is_match_structural = match_level in ("exact", "class_only")
 
-    # Compute extrap NMSE now so it is available for the sanity decision below.
     nmse_extrap = _compute_nmse_extrap(expr_str, data, theta_fit=theta_fit) if data is not None else float("inf")
 
-    # A match is only accepted if BOTH parameter magnitudes are physical AND
-    # the fit generalises beyond the training domain. The two checks are
-    # complementary: _is_physically_sane catches large-parameter divergence;
-    # the extrap bound catches small-parameter singularities (e.g. near-zero
-    # denominators) that produce finite training NMSE but catastrophic extrap.
     theta_sane = _is_physically_sane(theta_fit)
     if data is not None and data.X_extrap is not None:
         extrap_sane = math.isfinite(nmse_extrap) and nmse_extrap < _EXTRAP_SANITY_BOUND
@@ -435,18 +369,12 @@ def run_adcd_once(
     }
 
 
-
 # ==============================================================================
 # PySR Execution
 # ==============================================================================
 
 def _count_free_params_in_pysr_expr(expr_str: str, feature_names: List[str]) -> int:
-    """Count free parameters in a PySR expression for BIC reselection.
-
-    Counts: symbolic unknowns (excluding input features and mathematical
-    constants) plus distinct non-integer numeric literals. Uses max(1, ...)
-    to avoid BIC degeneracy on constant expressions.
-    """
+    """Count free parameters in a PySR expression for BIC reselection."""
     try:
         expr = sp.sympify(expr_str)
         feature_syms = {sp.Symbol(n) for n in feature_names}
@@ -470,15 +398,7 @@ def _run_pysr_core(
     method_label: str,
     units: Optional[Tuple[List[str], str]] = None,
 ) -> Dict[str, Any]:
-    """Core PySR execution shared by Tier-1 and Tier-2.
-
-    The only difference between tiers is the units argument:
-      Tier-1: units=None  (no unit information passed to PySR)
-      Tier-2: units=(x_units, y_units)  (dimensional_constraint_penalty active)
-
-    dimensional_constraint_penalty goes in the PySRRegressor constructor;
-    X_units/y_units go in fit(). This matches the PySR v1.x API.
-    """
+    """Execute PySR regression search on residual data."""
     try:
         from pysr import PySRRegressor
     except ImportError:
@@ -525,8 +445,6 @@ def _run_pysr_core(
 
     theta_fit = _extract_numeric_constants_as_theta_fit(best_expr_sympy)
     discovered_class = classify_structure(best_expr_sympy, theta_fit=theta_fit)
-    # Apply the same parameter-sanity filter used for ADCD to keep the
-    # comparison symmetric: neither arm is uniquely penalised.
     is_match_structural = discovered_class == scenario.correction_class
     theta_sane = _is_physically_sane(theta_fit)
     is_match = is_match_structural and theta_sane
@@ -640,18 +558,10 @@ def run_one_combination(
     run_tier1: bool = True,
     run_tier2: bool = False,
 ) -> Dict[str, Any]:
-    """Run all requested arms for one (scenario, noise, seed) combination.
-
-    SharedData (including extrap arrays) is built FIRST so that run_adcd_once
-    can compute nmse_extrap inside and include it in the is_match decision.
-    ADCD wall-clock time still sets the PySR timeout — data build time is
-    excluded from the timing measurement used for that purpose.
-    """
+    """Run comparative benchmark arms on identical data sample."""
     scenarios = {s.name: s for s in get_all_scenarios()}
     scenario = scenarios[scenario_name]
 
-    # Build shared data before ADCD so extrap arrays are available for the
-    # is_match sanity check inside run_adcd_once.
     data = build_shared_data(
         scenario, noise, seed, domain_max,
         extrap_domain_max=extrap_domain_max,
@@ -678,7 +588,7 @@ def run_one_combination(
             use_taxonomy_prior=False, data=data,
         )
 
-    # PySR timeout = max of both ADCD runs, floored at min_pysr_seconds.
+    # PySR timeout matches ADCD runtime (floored at min_pysr_seconds)
     adcd_wall = max(
         adcd_guided_res.get("elapsed_seconds", 0.0),
         adcd_blind_res.get("elapsed_seconds", 0.0),
@@ -699,9 +609,6 @@ def run_one_combination(
         except Exception as exc:
             tier2_res = {"method": "PySR+units", "is_match": None, "error": str(exc)}
 
-    # Compute and apply extrap sanity for PySR — symmetric with ADCD.
-    # PySR nmse_extrap is computed here (not inside _run_pysr_core) because
-    # _run_pysr_core does not hold the data object at this stage.
     if run_tier1 and pysr_res.get("is_match") is not None:
         pysr_nmse_extrap = _compute_nmse_extrap(pysr_res.get("expr_str", ""), data)
         pysr_res["nmse_extrap"] = pysr_nmse_extrap
