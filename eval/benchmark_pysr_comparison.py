@@ -197,6 +197,25 @@ def build_shared_data(
             target_extrap = ye / safe_cl_e - 1.0
         else:
             target_extrap = ye - yc_e
+
+        # Restrict extrapolation evaluation strictly to points outside the training domain
+        if scenario.name == "Time Dilation":
+            c_val = scenario.classical_constants.get("c", 1.0)
+            mask_extrap = Xe["v"] > (effective_train_dmax * c_val)
+        elif scenario.name == "Screened Coulomb":
+            mask_extrap = Xe["r"] > effective_train_dmax
+        elif scenario.name == "Entropy Expansion":
+            mask_extrap = (Xe["dV"] / Xe["V_i"]) > effective_train_dmax
+        elif hasattr(scenario, "classical_limit_variable") and scenario.classical_limit_variable in Xe:
+            var = scenario.classical_limit_variable
+            mask_extrap = Xe[var] > effective_train_dmax
+        else:
+            mask_extrap = np.ones(len(ye), dtype=bool)
+
+        if np.any(mask_extrap):
+            Xe = {k: v[mask_extrap] for k, v in Xe.items()}
+            target_extrap = target_extrap[mask_extrap]
+
         X_extrap = Xe
 
     return SharedData(
@@ -230,12 +249,21 @@ def _evaluate_expression_on_data(
         all_names = list(X.keys())
         sym_locals = {name: sp.Symbol(name) for name in all_names}
         free_syms = [sym_locals[n] for n in all_names if sp.Symbol(n) in expr.free_symbols]
+
+        unresolved = expr.free_symbols - set(free_syms) - {sp.pi, sp.E, sp.I}
+        if unresolved:
+            return None
+
+        n_samples = len(next(iter(X.values())))
         if not free_syms:
             val = float(expr)
-            return np.full(len(next(iter(X.values()))), val)
+            return np.full(n_samples, val)
+
         fn = sp.lambdify(free_syms, expr, modules=["numpy"])
         args = [X[str(s)] for s in free_syms]
         result = np.asarray(fn(*args), dtype=float)
+        if result.ndim == 0:
+            result = np.full(n_samples, float(result))
         if not np.all(np.isfinite(result)):
             return None
         return result
