@@ -102,6 +102,14 @@ PYSR_DIMENSIONAL_CONSTRAINT_PENALTY: float = 1000.0
 # scenarios are O(1)–O(1e5); 1e6 provides ample margin.
 _DEGENERATE_THETA_BOUND: float = 1e6
 
+# Matches whose extrapolation NMSE exceeds this value are flagged degenerate,
+# regardless of parameter magnitude. NMSE > 2.0 means the model predicts worse
+# than the trivial mean baseline on the held-out domain. This catches cases
+# like theta_0 = -2.7e-6 (not large in absolute terms) that still produce
+# catastrophic extrapolation (nmse_extrap = 7.36) due to ratio singularities.
+_EXTRAP_SANITY_BOUND: float = 2.0
+
+
 
 # ==============================================================================
 # Statistical Utilities
@@ -363,15 +371,18 @@ def run_adcd_once(
     domain_max: float,
     engine: str,
     use_taxonomy_prior: bool = True,
+    data: Optional["SharedData"] = None,
 ) -> Dict[str, Any]:
     """Run ADCD validation protocol for one (scenario, noise, seed) triple.
 
     use_taxonomy_prior=True  : restrict primitives to the domain taxonomy list.
     use_taxonomy_prior=False : search across all registered primitives (blind).
 
-    The ADCD-guided vs ADCD-blind distinction is the primary mechanism for
-    quantifying how much of ADCD's advantage comes from domain knowledge
-    vs. the physics grammar and four-gate statistical framework.
+    data is the pre-built SharedData (with extrap arrays). When supplied,
+    nmse_extrap is computed here and used in the is_match sanity decision —
+    catching degenerate fits (e.g. theta_0=-2.7e-6 inside a ratio) that look
+    fine on training data but fail catastrophically on extrapolation, which
+    _is_physically_sane(theta_fit) alone cannot detect.
     """
     sc = copy.deepcopy(scenario)
     sc.engine = engine
@@ -390,25 +401,36 @@ def run_adcd_once(
     ps = res.checks.get("primary_search", {})
     match_level = ps.get("match_level", "none")
     theta_fit = ps.get("theta_fit", {})
+    expr_str = ps.get("top_candidate", "")
     is_match_structural = match_level in ("exact", "class_only")
 
-    # Reject structurally correct but physically degenerate fits.
-    sane = _is_physically_sane(theta_fit)
-    is_match = is_match_structural and sane
+    # Compute extrap NMSE now so it is available for the sanity decision below.
+    nmse_extrap = _compute_nmse_extrap(expr_str, data, theta_fit=theta_fit) if data is not None else float("inf")
+
+    # A match is only accepted if BOTH parameter magnitudes are physical AND
+    # the fit generalises beyond the training domain. The two checks are
+    # complementary: _is_physically_sane catches large-parameter divergence;
+    # the extrap bound catches small-parameter singularities (e.g. near-zero
+    # denominators) that produce finite training NMSE but catastrophic extrap.
+    theta_sane = _is_physically_sane(theta_fit)
+    extrap_sane = not math.isfinite(nmse_extrap) or nmse_extrap < _EXTRAP_SANITY_BOUND
+    is_match = is_match_structural and theta_sane and extrap_sane
 
     label = "ADCD" if use_taxonomy_prior else "ADCD-blind"
     return {
         "method": label,
         "tier": res.tier,
         "is_match": is_match,
-        "degenerate_fit": is_match_structural and not sane,
+        "degenerate_fit": is_match_structural and not (theta_sane and extrap_sane),
         "match_level": match_level,
         "discovered_class": ps.get("discovered_class", "unknown"),
         "nmse_train": ps.get("nmse"),
-        "expr_str": ps.get("top_candidate", ""),
+        "expr_str": expr_str,
         "theta_fit": theta_fit,
         "elapsed_seconds": elapsed,
+        "nmse_extrap": nmse_extrap,
     }
+
 
 
 # ==============================================================================
@@ -500,7 +522,11 @@ def _run_pysr_core(
 
     theta_fit = _extract_numeric_constants_as_theta_fit(best_expr_sympy)
     discovered_class = classify_structure(best_expr_sympy, theta_fit=theta_fit)
-    is_match = discovered_class == scenario.correction_class
+    # Apply the same parameter-sanity filter used for ADCD to keep the
+    # comparison symmetric: neither arm is uniquely penalised.
+    is_match_structural = discovered_class == scenario.correction_class
+    theta_sane = _is_physically_sane(theta_fit)
+    is_match = is_match_structural and theta_sane
 
     try:
         pred = model.predict(X_df)
@@ -613,21 +639,41 @@ def run_one_combination(
 ) -> Dict[str, Any]:
     """Run all requested arms for one (scenario, noise, seed) combination.
 
-    ADCD is run before PySR so its elapsed time sets the PySR timeout budget,
-    guaranteeing compute fairness (PySR always gets at least as much time).
+    SharedData (including extrap arrays) is built FIRST so that run_adcd_once
+    can compute nmse_extrap inside and include it in the is_match decision.
+    ADCD wall-clock time still sets the PySR timeout — data build time is
+    excluded from the timing measurement used for that purpose.
     """
     scenarios = {s.name: s for s in get_all_scenarios()}
     scenario = scenarios[scenario_name]
 
-    adcd_guided_res: Dict[str, Any] = {"method": "ADCD", "is_match": None, "elapsed_seconds": 0.0}
-    adcd_blind_res: Dict[str, Any] = {"method": "ADCD-blind", "is_match": None, "elapsed_seconds": 0.0}
+    # Build shared data before ADCD so extrap arrays are available for the
+    # is_match sanity check inside run_adcd_once.
+    data = build_shared_data(
+        scenario, noise, seed, domain_max,
+        extrap_domain_max=extrap_domain_max,
+        extrap_train_domain_max=extrap_train_domain_max,
+    )
+
+    adcd_guided_res: Dict[str, Any] = {
+        "method": "ADCD", "is_match": None, "elapsed_seconds": 0.0,
+        "nmse_extrap": float("inf"),
+    }
+    adcd_blind_res: Dict[str, Any] = {
+        "method": "ADCD-blind", "is_match": None, "elapsed_seconds": 0.0,
+        "nmse_extrap": float("inf"),
+    }
 
     if run_adcd_guided:
-        adcd_guided_res = run_adcd_once(scenario, noise, seed, domain_max, engine,
-                                        use_taxonomy_prior=True)
+        adcd_guided_res = run_adcd_once(
+            scenario, noise, seed, domain_max, engine,
+            use_taxonomy_prior=True, data=data,
+        )
     if run_adcd_blind:
-        adcd_blind_res = run_adcd_once(scenario, noise, seed, domain_max, engine,
-                                       use_taxonomy_prior=False)
+        adcd_blind_res = run_adcd_once(
+            scenario, noise, seed, domain_max, engine,
+            use_taxonomy_prior=False, data=data,
+        )
 
     # PySR timeout = max of both ADCD runs, floored at min_pysr_seconds.
     adcd_wall = max(
@@ -635,12 +681,6 @@ def run_one_combination(
         adcd_blind_res.get("elapsed_seconds", 0.0),
     )
     pysr_timeout = max(adcd_wall, min_pysr_seconds)
-
-    data = build_shared_data(
-        scenario, noise, seed, domain_max,
-        extrap_domain_max=extrap_domain_max,
-        extrap_train_domain_max=extrap_train_domain_max,
-    )
 
     pysr_res: Dict[str, Any] = {"method": "PySR", "is_match": None}
     if run_tier1:
@@ -656,28 +696,31 @@ def run_one_combination(
         except Exception as exc:
             tier2_res = {"method": "PySR+units", "is_match": None, "error": str(exc)}
 
-    # Extrapolation NMSE is always computed for ADCD (even if is_match=False)
-    # because it is a separate diagnostic independent of structural classification.
-    if run_adcd_guided:
-        adcd_guided_res["nmse_extrap"] = _compute_nmse_extrap(
-            adcd_guided_res.get("expr_str", ""), data,
-            theta_fit=adcd_guided_res.get("theta_fit") or {},
-        )
-    if run_adcd_blind:
-        adcd_blind_res["nmse_extrap"] = _compute_nmse_extrap(
-            adcd_blind_res.get("expr_str", ""), data,
-            theta_fit=adcd_blind_res.get("theta_fit") or {},
-        )
-    if run_tier1:
-        pysr_res["nmse_extrap"] = (
-            _compute_nmse_extrap(pysr_res.get("expr_str", ""), data)
-            if pysr_res.get("is_match") is not None else float("inf")
-        )
+    # Compute and apply extrap sanity for PySR — symmetric with ADCD.
+    # PySR nmse_extrap is computed here (not inside _run_pysr_core) because
+    # _run_pysr_core does not hold the data object at this stage.
+    if run_tier1 and pysr_res.get("is_match") is not None:
+        pysr_nmse_extrap = _compute_nmse_extrap(pysr_res.get("expr_str", ""), data)
+        pysr_res["nmse_extrap"] = pysr_nmse_extrap
+        if pysr_res.get("is_match") is True:
+            extrap_sane = not math.isfinite(pysr_nmse_extrap) or pysr_nmse_extrap < _EXTRAP_SANITY_BOUND
+            if not extrap_sane:
+                pysr_res["is_match"] = False
+                pysr_res["degenerate_fit"] = True
+    else:
+        pysr_res.setdefault("nmse_extrap", float("inf"))
+
     if tier2_res is not None:
-        tier2_res["nmse_extrap"] = (
-            _compute_nmse_extrap(tier2_res.get("expr_str", ""), data)
-            if tier2_res.get("is_match") is not None else float("inf")
-        )
+        if tier2_res.get("is_match") is not None:
+            t2_nmse_extrap = _compute_nmse_extrap(tier2_res.get("expr_str", ""), data)
+            tier2_res["nmse_extrap"] = t2_nmse_extrap
+            if tier2_res.get("is_match") is True:
+                extrap_sane = not math.isfinite(t2_nmse_extrap) or t2_nmse_extrap < _EXTRAP_SANITY_BOUND
+                if not extrap_sane:
+                    tier2_res["is_match"] = False
+                    tier2_res["degenerate_fit"] = True
+        else:
+            tier2_res.setdefault("nmse_extrap", float("inf"))
 
     ablation_res = None
     if include_ablation and run_tier1 and pysr_res.get("is_match") is not None:
@@ -1206,6 +1249,7 @@ def main() -> int:
             "include_blind": include_blind,
             "dimensional_constraint_penalty": PYSR_DIMENSIONAL_CONSTRAINT_PENALTY if run_tier2 else None,
             "degenerate_theta_bound": _DEGENERATE_THETA_BOUND,
+            "extrap_sanity_bound": _EXTRAP_SANITY_BOUND,
             "extrapolation_enabled": not args.no_extrap,
         },
         "summary": summary,
