@@ -119,6 +119,15 @@ ADCD_Upgrade_Plan_v2.md
 ADCD_Writing_Humanization_Plan.md
 ADCD_Master_Learning_Guide.md
 RESTORE_IDENTITY.md
+ADCD_vs_PySR_Workshop_Plan.md
+*.log
+*.tmp
+allcode.txt
+debug_*
+test_*.jl
+fix_*
+dump_*
+patch_*
 
 # ── Release / Zenodo drafts (local only) ─────────────────────────────────────
 zenodo_v*.md
@@ -137,8 +146,6 @@ results/
 outputs/
 
 # Local outputs and logs
-adcd_validation_debug.log
-allcode.txt
 overleaf_submission.zip
 .gemini/
 scratch/
