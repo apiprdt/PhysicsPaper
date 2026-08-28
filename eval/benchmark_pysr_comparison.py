@@ -642,9 +642,26 @@ def run_one_combination(
     if include_ablation and run_tier1 and pysr_res.get("is_match") is not None:
         ablation_res = run_pysr_bic_reselect(scenario, data, pysr_res)
         if ablation_res:
-            ablation_res["nmse_extrap"] = _compute_nmse_extrap(
-                ablation_res.get("expr_str", ""), data
-            )
+            ab_expr = ablation_res.get("expr_str", "")
+            ab_nmse_extrap = _compute_nmse_extrap(ab_expr, data)
+            ablation_res["nmse_extrap"] = ab_nmse_extrap
+
+            try:
+                ab_sympy = sp.sympify(ab_expr)
+                ab_theta_fit = _extract_numeric_constants_as_theta_fit(ab_sympy)
+            except Exception:
+                ab_theta_fit = {}
+
+            ab_theta_sane = _is_physically_sane(ab_theta_fit)
+            if data.X_extrap is not None:
+                ab_extrap_sane = math.isfinite(ab_nmse_extrap) and ab_nmse_extrap < _EXTRAP_SANITY_BOUND
+            else:
+                ab_extrap_sane = True
+
+            if ablation_res.get("is_match") is True:
+                if not (ab_theta_sane and ab_extrap_sane):
+                    ablation_res["is_match"] = False
+                    ablation_res["degenerate_fit"] = True
 
     pysr_res.pop("_model_equations", None)
     pysr_res.pop("_feature_names", None)
