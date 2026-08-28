@@ -47,8 +47,8 @@ except ImportError:
 # Configuration
 # ==============================================================================
 
-NOISE_SWEEP: List[float] = [0.01, 0.02, 0.05, 0.10, 0.15, 0.20, 0.30]
-DEFAULT_SEEDS: List[int] = [42, 43, 44, 45, 46]
+NOISE_SWEEP: List[float] = [0.0]
+DEFAULT_SEEDS: List[int] = list(range(42, 62))
 
 LOCKED_SCENARIOS: List[str] = ["Time Dilation", "Screened Coulomb", "Entropy Expansion"]
 
