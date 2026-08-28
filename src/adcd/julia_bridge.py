@@ -13,6 +13,30 @@ logger = logging.getLogger(__name__)
 
 _ADCD_ENGINE_PATH = Path(os.environ.get("ADCD_ENGINE_PATH", Path(__file__).parent.parent.parent / "ADCDEngine"))
 
+
+def _resolve_julia_executable() -> str:
+    """Return the Julia executable to use for ADCD subprocess calls.
+
+    Priority order:
+    1. ADCD_JULIA_EXE environment variable (explicit override).
+    2. The Julia binary managed by juliapkg/PySR, when available.
+       Using the same binary as PySR ensures both tools share one Julia
+       version and one depot, eliminating file-lock collisions on
+       ~/.julia/compiled during concurrent or sequential runs.
+    3. "julia" from PATH as a final fallback.
+    """
+    explicit = os.environ.get("ADCD_JULIA_EXE")
+    if explicit:
+        return explicit
+    try:
+        import juliapkg
+        exe = juliapkg.executable()
+        if exe and Path(exe).exists():
+            return str(exe)
+    except Exception:
+        pass
+    return "julia"
+
 @dataclass
 class JuliaEngineConfig:
     domain: str
@@ -159,8 +183,11 @@ class ADCDJuliaEngine:
                 cfg_path, dat_path, out_path = f_cfg.name, f_dat.name, f_out.name
 
             try:
-                cmd = ["julia", f"--project={_ADCD_ENGINE_PATH}", cli_script, cfg_path, dat_path, out_path]
-                subprocess.run(cmd, capture_output=True, text=True, check=True)
+                julia_exe = _resolve_julia_executable()
+                cmd = [julia_exe, f"--project={_ADCD_ENGINE_PATH}", cli_script, cfg_path, dat_path, out_path]
+                res = subprocess.run(cmd, capture_output=True, text=True)
+                if res.returncode != 0:
+                    raise RuntimeError(f"Julia CLI failed with exit code {res.returncode}. Stderr: {res.stderr}")
                 with open(out_path, "r", encoding="utf-8") as f_res:
                     raw = json.load(f_res)
             finally:
