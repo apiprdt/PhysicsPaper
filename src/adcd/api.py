@@ -109,30 +109,74 @@ class ADCDResult:
     bic_score: float
     pareto_front: List[Dict[str, Any]]
     checks: Dict[str, Any]
+    is_exploration_mode: bool = False
+    custom_primitives_used: Optional[List[str]] = None
 
     def summary(self) -> str:
         lines = [
-            "=" * 80,
-            " ADCD HYPOTHESIS EXPLORATION & DISCOVERY REPORT",
-            "=" * 80,
+            "=" * 85,
+            "               ADCD HYPOTHESIS EXPLORATION & DISCOVERY REPORT",
+            "=" * 85,
             f" * Epistemic Tier      : {self.tier}",
-            f" * Statistically Sound : {'YES' if self.is_identifiable else 'NO / WITHHELD'}",
+            f" * Statistically Sound : {'YES (Scientifically Identifiable)' if self.is_identifiable else 'NO / WITHHELD (Data Insufficient)'}",
             f" * Discovered Class    : {self.discovered_class}",
             f" * Best Fitted Formula : {self.top_expression}",
             f" * LaTeX Formula       : {self.top_latex}",
             f" * Residual NMSE       : {self.nmse_train:.3e}",
             f" * Bayesian BIC Score  : {self.bic_score:.2f}",
-            f" * Verification Note   : {self.status_message}",
-            "=" * 80,
-            " TOP CANDIDATES ON PARETO FRONT:",
-            "-" * 80,
+            f" * Protocol Verdict    : {self.status_message}",
         ]
+
+        if self.is_exploration_mode:
+            lines.extend([
+                "-" * 85,
+                " [EPISTEMIC SAFETY & EXPLORATION NOTICE]",
+                "   This run operated in User Exploration Mode with custom hypothesis primitives.",
+                f"   - Active Custom Primitives: {', '.join(self.custom_primitives_used or ['None'])}",
+                "   - Multi-Testing Penalization (2*ln M) dynamically scaled to total dictionary size.",
+                "   - Parameter Bounds & AST Dimensional Rejection cascades remained active.",
+            ])
+
+        lines.extend([
+            "-" * 85,
+            " FORMAL VERIFICATION PROTOCOL (4-GATE AUDIT):",
+        ])
+
+        gate_names = [
+            ("budget_disclosure", "Gate 1: Budget Disclosure  "),
+            ("positive_control",  "Gate 2: Positive Control   "),
+            ("ablation_control",  "Gate 3: Ablation Multi-Test"),
+            ("determinism_check", "Gate 4: Determinism Check  "),
+        ]
+        for key, label in gate_names:
+            gate_info = self.checks.get(key, {})
+            passed = gate_info.get("pass", False)
+            status_tag = "[PASS]" if passed else "[FAIL / WITHHELD]"
+            note = gate_info.get("note", "") or gate_info.get("details", "")
+            lines.append(f"   * {label} : {status_tag:<17} | {note}")
+
+        lines.extend([
+            "-" * 85,
+            " TOP CANDIDATES ON PARETO FRONT:",
+        ])
         for idx, cand in enumerate(self.pareto_front[:5], 1):
             lines.append(
-                f" [{idx}] Class: {cand.get('class', '?'):<15} | NMSE: {cand.get('nmse', 0.0):.2e} | "
+                f"   [{idx}] Class: {cand.get('class', '?'):<14} | NMSE: {cand.get('nmse', 0.0):.2e} | "
                 f"BIC: {cand.get('bic', 0.0):.1f} | Expr: {cand.get('expr_str', '')}"
             )
-        lines.append("=" * 80)
+
+        lines.extend([
+            "-" * 85,
+            " [SCIENTIFIC INTEGRITY & CITATION DISCLAIMER]",
+            "   * Publication Standard : Only candidates certified as Tier [IDENTIFIABLE]",
+            "     (passing all 4 verification gates) constitute statistically validated laws.",
+            "   * Exploratory Status   : Models marked [DETECTED_UNRESOLVED] or [WITHHELD]",
+            "     represent unconfirmed hypotheses due to SNR limits or candidate competition.",
+            "     They should be cited as exploratory candidates, not established physical laws.",
+            "   * Dimensional Validity : Physical consistency is guaranteed algebraically within",
+            "     the declared variable unit definitions and classical asymptotic boundary.",
+            "=" * 85,
+        ])
         report_str = "\n".join(lines)
         print(report_str)
         return report_str
