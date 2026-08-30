@@ -99,21 +99,20 @@ We emphasize that the tools compared here address conceptually different problem
 Table~\ref{tab:paradigms} summarizes the key design distinctions between ADCD and related frameworks.
 
 \begin{table*}[t]
-\caption{Conceptual comparison of scientific equation discovery frameworks.
-``Hard algebraic'' means the constraint is imposed as an exact symbolic identity,
-not a soft penalty or regularization term.}
+\caption{Conceptual comparison of scientific discovery paradigms. ADCD restricts its scope to corrections of known physical baselines and enforces boundary limits by construction.}
 \label{tab:paradigms}
 \begin{ruledtabular}
-\begin{tabular}{lllll}
-Framework & Search space & Classical-limit constraint & Identifiability reporting & Primary objective \\
+\small
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llll}
+\textbf{Method} & \textbf{Search Space} & \textbf{Boundary Constraint} & \textbf{Validation / Model Selection} \\
 \hline
-Unconstrained SR (PySR)~\cite{schmidt2009,cranmer2023} & Free expression tree & None & None (best fit returned) & Open-ended equation discovery \\
-SINDy~\cite{brunton2016}        & Polynomial library & None & Parsimony threshold & Dynamical sparse identification \\
-PINNs~\cite{raissi2019}         & Neural network & Soft loss penalty & None & PDE forward/inverse solving \\
-AI Feynman~\cite{udrescu2020}   & Free tree + symmetry & Dimensional/separability tests & None & Physics equation cracking \\
-AI Descartes~\cite{cornelio2023}& Axiom theory + data & Logical axioms & Formal derivability & Theory-consistent regression \\
-\textbf{ADCD (ours)}            & Regularized primitive dict. & \textbf{Hard algebraic (exact)} & \textbf{Formal 3-tier validation} & \textbf{Certified physical corrections} \\
-\end{tabular}
+PySR~\cite{cranmer2023}         & Free expression tree        & None                             & Complexity-penalized Pareto fit \\
+SINDy~\cite{brunton2016}        & Polynomial library          & None                             & Sequential thresholded regression \\
+PINNs~\cite{raissi2019}         & Neural network              & Soft PDE residual loss           & Multi-objective gradient loss \\
+AI Feynman~\cite{udrescu2020}   & Free tree + symmetry        & Dimensional/separability tests   & Pareto frontier selection \\
+AI Descartes~\cite{cornelio2023}& Axiom theory + data         & Logical physical axioms          & Formal logical derivability \\
+\textbf{ADCD (ours)}            & Regularized primitive dict. & \textbf{Exact algebraic ($\lim_{u\to 0} D=0$)} & \textbf{Formal 4-step epistemic audit} \\
+\end{tabular*}
 \end{ruledtabular}
 \end{table*}
 
