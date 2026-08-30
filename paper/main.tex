@@ -337,6 +337,7 @@ correction is $\le 5\%$ of the classical prediction) to broader macroscopic
 domains required for thermodynamic identifiability (e.g., $dV/V_i \le 3.0$
 for Entropy Expansion, where the logarithmic form becomes structurally
 distinguishable from polynomial alternatives).
+To maintain IEEE 754 floating-point stability during nonlinear optimization, synthetic raw variables (e.g., mass, charge, distance) are generated in normalized macroscopic $\mathcal{O}(1)$ units. However, the dimensionless arguments driving the structural anomaly (such as $v/c$ or $r/\lambda$) strictly mirror the geometric regimes of historical laboratory observations.
 
 We select PySR~\cite{cranmer2023} as our primary baseline, not because it
 is expected to solve the same problem as ADCD, but because it represents
