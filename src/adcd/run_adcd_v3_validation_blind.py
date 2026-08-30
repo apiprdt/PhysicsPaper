@@ -599,12 +599,14 @@ def run_scenario_protocol(
         result.checks[name].get("pass", False) for name in FORMAL_PROTOCOL_CHECKS if name in result.checks
     )
     has_ground_truth = bool(getattr(scenario, "correction_expr", None))
-    match_ok = (result.checks.get("primary_search", {}).get("match_level") in ("exact", "class_only")) if has_ground_truth else True
-
+    # EPISTEMIC HONESTY FIX: We no longer peek at match_ok to assign tiers.
+    # The system must assign DETECTED_UNRESOLVED autonomously if evidence vs null is strong,
+    # regardless of whether it accidentally latched onto a false positive structure.
+    
     if formal_pass:
         result.tier = "IDENTIFIABLE"
         result.status_message = "All checks passed with a genuinely blind search."
-    elif evn_label in ("decisive", "very_strong", "strong") and match_ok:
+    elif evn_label in ("decisive", "very_strong", "strong"):
         result.tier = "DETECTED_UNRESOLVED"
         result.status_message = f"Strong anomaly evidence confirmed, structure resolved, but {_detected_unresolved_reason(result.checks)}."
     else:

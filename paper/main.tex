@@ -243,7 +243,7 @@ ADCD applies a four-step post-fitting validation protocol (implemented in \textt
 \begin{enumerate}[noitemsep,leftmargin=*]
   \item \textbf{Gate V.1 (Search budget disclosure):} Total candidates generated, evaluated, and pruned are logged with all operator budgets.
   \item \textbf{Gate V.2 (Positive control):} The optimizer is evaluated on a restricted candidate space containing only the isolated target primitive family, verifying that numerical optimization reliably converges to low loss ($\mathrm{NMSE} \le 0.1$) when given the true functional class alone.
-  \item \textbf{Gate V.3 (Ablation control):} An ablated search is performed with the winning primitive class removed from the dictionary. The true model must outperform the best available alternative by a decisive Bayesian margin ($\Delta\mathrm{BIC}_\mathrm{ablation} = \mathrm{BIC}_\mathrm{ablated} - \mathrm{EBIC}_\mathrm{candidate} \ge 10.0$).
+  \item \textbf{Gate V.3 (Ablation control):} An ablated search is performed with the winning primitive class removed from the dictionary. The true model must outperform the best available alternative by a decisive Bayesian margin ($\Delta\mathrm{BIC}_\mathrm{ablation} = \mathrm{EBIC}_\mathrm{ablated} - \mathrm{EBIC}_\mathrm{candidate} \ge 10.0$).
   \item \textbf{Gate V.4 (Determinism check):} Three independent runs with identical inputs produce byte-exact identical numerical and symbolic results via deterministic cryptographic seeding of the optimizer's \texttt{MersenneTwister}.
 \end{enumerate}
 
@@ -297,9 +297,9 @@ ADCD classifies discovery results into three formal epistemic outcome tiers:
     \If{$\mathcal{C}_\mathrm{valid} = \emptyset$}
         \State \Return $\langle\texttt{WITHHELD},\; \text{None},\; \text{None},\; 0.0\rangle$
     \EndIf
-    \State $\hat{c}, \boldsymbol{\theta}^*, \mathrm{EBIC}^* \leftarrow \arg\min_{(c,\boldsymbol{\theta},\mathrm{EBIC}) \in \mathcal{C}_\mathrm{valid}} \mathrm{EBIC}$
+    \State $\hat{c}, \boldsymbol{\theta}^*, \mathrm{EBIC}^*, \mathrm{NMSE}^* \leftarrow \arg\min_{(c,\boldsymbol{\theta},\mathrm{EBIC}) \in \mathcal{C}_\mathrm{valid}} \mathrm{EBIC}$
     \State $\Delta\mathrm{BIC}_\mathrm{gate} \leftarrow \mathrm{BIC}_\mathrm{null} - \mathrm{EBIC}^*$
-    \If{$\Delta\mathrm{BIC}_\mathrm{gate} < \Delta\mathrm{BIC}^*$}
+    \If{$\Delta\mathrm{BIC}_\mathrm{gate} < \Delta\mathrm{BIC}^*$ \textbf{or} $\mathrm{NMSE}^* > \mathrm{NMSE}_\mathrm{max}$}
         \State \Return $\langle\texttt{WITHHELD},\; \hat{c},\; \boldsymbol{\theta}^*,\; \Delta\mathrm{BIC}_\mathrm{gate}\rangle$
     \EndIf
     

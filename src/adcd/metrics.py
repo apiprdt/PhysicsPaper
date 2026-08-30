@@ -119,15 +119,16 @@ def _nmse(mse: float, reference: np.ndarray) -> float:
     return float(mse / denom) if denom > 0 else 1.0
 
 
-def bic_score(nmse: float, n_params: int, n_points: int) -> float:
+def bic_score(nmse: float, n_params: int, n_points: int, n_groups: Optional[int] = None) -> float:
+    n_eff = n_groups if n_groups is not None else n_points
     nmse_floored = max(nmse, 1e-6)
     rss = nmse_floored * n_points
     log_likelihood = -n_points / 2 * np.log(rss / n_points + 1e-30)
-    return float(-2 * log_likelihood + n_params * np.log(n_points))
+    return float(-2 * log_likelihood + n_params * np.log(n_eff))
 
 
-def extended_bic_score(nmse: float, n_params: int, n_points: int, n_candidates: int = 1) -> float:
-    base_bic = bic_score(nmse, n_params, n_points)
+def extended_bic_score(nmse: float, n_params: int, n_points: int, n_candidates: int = 1, n_groups: Optional[int] = None) -> float:
+    base_bic = bic_score(nmse, n_params, n_points, n_groups=n_groups)
     m_penalty = float(2.0 * np.log(max(1, n_candidates)))
     return base_bic + m_penalty
 
