@@ -88,7 +88,7 @@ Extrapolation errors (median held-out NMSE $\le 10^{-7}$ for ADCD) and noise-swe
 
 Symbolic regression has evolved along two distinct trajectories. \textbf{Unconstrained SR engines} (Eureqa~\cite{schmidt2009}, PySR~\cite{cranmer2023}, AI Feynman~\cite{udrescu2020,udrescu2020b}, $\Phi$-SO~\cite{tenachi2023}, symbolic regression with neural networks~\cite{cranmer2020}) perform open-ended equation discovery without prior knowledge of the underlying physical law. \textbf{Physics-informed discovery} frameworks incorporate constraints: SINDy~\cite{brunton2016,rudy2017,rackauckas2020} searches linear combinations of predefined library terms for dynamical systems; PINNs~\cite{raissi2019,karniadakis2021} embed differential equation residuals into neural loss functions; $\Phi$-SO~\cite{tenachi2023} enforces dimensional consistency via reinforcement learning; and grammar-guided SR~\cite{petersen2021,li2019,cornelio2023} restricts search spaces using domain grammars. Model selection in SR typically relies on the Pareto frontier of loss versus complexity, or information criteria (AIC~\cite{akaike1974}, BIC~\cite{schwarz1978}, Kass--Raftery thresholds~\cite{kass1995}).
 
-ADCD occupies a distinct point in this space: it restricts search exclusively to corrections of known physical laws, enforces asymptotic boundary conditions algebraically by construction rather than through loss penalties or grammar rules, and implements an explicit epistemic validation protocol that reports WITHHELD when identifiability cannot be established.
+ADCD occupies a distinct point in this space: it restricts search exclusively to corrections of known physical laws, enforces asymptotic boundary conditions algebraically by construction rather than through loss penalties or grammar rules, and implements an explicit epistemic validation protocol that reports an explicit 3-tier epistemic verdict (\texttt{IDENTIFIABLE}, \texttt{DETECTED\_UNRESOLVED}, or \texttt{WITHHELD}) to prevent false-positive structural claims.
 
 We emphasize that the tools compared here address conceptually different problems. General SR engines target unconstrained equation discovery across arbitrary functional forms, representing a broader and fundamentally harder problem than correction discovery. ADCD deliberately restricts its scope to corrections of known baselines, trading generality for stronger identifiability guarantees within this narrower domain. The comparison presented in Section~\ref{sec:experiments} is therefore not evaluative (which approach is ``better'') but characterizing: it examines how different design choices (parsimony-driven selection versus identifiability-driven selection) manifest in structural recovery behavior when applied to the same correction tasks.
 
@@ -108,7 +108,7 @@ SINDy~\cite{brunton2016}        & Polynomial library & None & Parsimony threshol
 PINNs~\cite{raissi2019}         & Neural network & Soft loss penalty & None & PDE forward/inverse solving \\
 AI Feynman~\cite{udrescu2020}   & Free tree + symmetry & Dimensional/separability tests & None & Physics equation cracking \\
 AI Descartes~\cite{cornelio2023}& Axiom theory + data & Logical axioms & Formal derivability & Theory-consistent regression \\
-\textbf{ADCD (ours)}            & Regularized primitive dict. & \textbf{Hard algebraic (exact)} & \textbf{Formal $\Delta$BIC + WITHHELD} & \textbf{Certified physical corrections} \\
+\textbf{ADCD (ours)}            & Regularized primitive dict. & \textbf{Hard algebraic (exact)} & \textbf{Formal 3-tier validation} & \textbf{Certified physical corrections} \\
 \end{tabular}
 \end{ruledtabular}
 \end{table*}
@@ -370,9 +370,9 @@ functional class is identified) and is distinct from the
 \textbf{epistemic certification} provided by the post-fitting four-step
 validation protocol (Section~\ref{sec:validation}).
 A run may satisfy the structural match criterion while still receiving a
-WITHHELD verdict if $\Delta\mathrm{BIC} \le 10$; in that case, the
-correct structure was found but the data are insufficient to formally
-certify the claim.
+\texttt{DETECTED\_UNRESOLVED} verdict if $\Delta\mathrm{BIC}_\mathrm{ablation} < 10$; in that case, the
+correct structure was found but the observation window or SNR is insufficient to unequivocally
+certify the claim against competing functional alternatives.
 The threshold $\mathrm{NMSE}_\mathrm{extrap} < 2.0$ acts as a coarse filter
 to reject catastrophic pole singularities and floating-point overflow
 (e.g., failed extrapolations, such as PySR on Screened Coulomb, routinely shoot to $\mathrm{NMSE}_\mathrm{extrap} > 1000$ outside the training domain);
@@ -669,6 +669,9 @@ interpretable physical law discovery.
 The full implementation of ADCD, benchmark scenarios, evaluation scripts, and replication data are publicly available at \url{https://github.com/apiprdt/PhysicsPaper/tree/JuliaADCD} (branch: \texttt{JuliaADCD}).
 Full audit logs, raw run outputs ($n=165$), and visualization scripts are included.
 
+\paragraph{Implementation Architecture.}
+ADCD was originally prototyped as a pure-Python/JAX implementation; the search and continuous optimization core has since been migrated to a native Julia (\texttt{Optim.jl}) production engine for high-throughput zero-allocation AST evaluation and robust parameter optimization (Section~\ref{sec:cascade}). The legacy Python/JAX path remains in the repository (selectable via \texttt{--engine python}) for cross-validation during migration but was not used to generate any of the results reported in this paper; all reported numbers use the authoritative Julia backend (\texttt{--engine julia}, the default). Where configuration defaults between the two backends differ (e.g., $n_\mathrm{restarts}$, $\mathrm{EBIC}$ thresholds), the Julia values documented in Section~\ref{sec:cascade} are authoritative.
+
 % ---------------------------------------------------------------
 % REFERENCES
 % ---------------------------------------------------------------
@@ -697,7 +700,7 @@ ADCD requires four mandatory inputs and accepts three optional inputs:
   \item \texttt{delta\_bic\_threshold} (\texttt{float}, default $= 10$): Kass--Raftery threshold.
 \end{itemize}
 
-ADCD returns an \texttt{ADCDResult} dataclass containing the epistemic verdict (\texttt{tier}: \texttt{"IDENTIFIABLE"} or \texttt{"WITHHELD"}), \texttt{top\_expression} (SymPy string), \texttt{top\_latex}, \texttt{discovered\_class}, \texttt{nmse\_train}, \texttt{bic\_score}, \texttt{pareto\_front} (all surviving candidates ranked by BIC), and \texttt{checks} (complete machine-readable audit trail). \texttt{WITHHELD} does not mean ``no output''; the full Pareto front and diagnostic summary are always accessible.
+ADCD returns an \texttt{ADCDResult} dataclass containing the epistemic verdict (\texttt{tier}: \texttt{"IDENTIFIABLE"}, \texttt{"DETECTED\_UNRESOLVED"}, or \texttt{"WITHHELD"}), \texttt{top\_expression} (SymPy string), \texttt{top\_latex}, \texttt{discovered\_class}, \texttt{nmse\_train}, \texttt{bic\_score}, \texttt{pareto\_front} (all surviving candidates ranked by BIC), and \texttt{checks} (complete machine-readable audit trail). \texttt{WITHHELD} does not mean ``no output''; the full Pareto front and diagnostic summary are always accessible.
 
 \subsection{Minimal Python Usage and Primitive Registration}
 
@@ -730,7 +733,7 @@ result = discover_correction(
 
 # 3. Read epistemic results
 result.summary()             # prints full audit
-print(result.tier)           # IDENTIFIABLE / WITHHELD
+print(result.tier)           # IDENTIFIABLE / DETECTED_UNRESOLVED / WITHHELD
 print(result.top_expression) # discovered formula
 print(result.bic_score)      # BIC of Rank-1
 chk = result.checks["ablation_control"]
