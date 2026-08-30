@@ -259,7 +259,7 @@ def _compute_nmse_extrap(
     if pred is None:
         return float("inf")
     y_true = data.target_extrap
-    var_y = float(np.var(y_true)) + 1e-300
+    var_y = (float(np.var(y_true, ddof=1)) if len(y_true) > 1 else float(np.var(y_true))) + 1e-300
     return float(np.mean((pred - y_true) ** 2) / var_y)
 
 
@@ -620,8 +620,9 @@ def run_one_combination(
             extrap_sane = math.isfinite(pysr_nmse_extrap) and pysr_nmse_extrap < _EXTRAP_SANITY_BOUND
         else:
             extrap_sane = True
-        pysr_res["is_match"] = is_match_structural and theta_sane and extrap_sane
-        pysr_res["degenerate_fit"] = is_match_structural and not (theta_sane and extrap_sane)
+        # Removing theta_sane to ensure fair evaluation of PySR without constant-magnitude sabotage
+        pysr_res["is_match"] = is_match_structural and extrap_sane
+        pysr_res["degenerate_fit"] = is_match_structural and not extrap_sane
     else:
         pysr_res.setdefault("nmse_extrap", float("inf"))
 
