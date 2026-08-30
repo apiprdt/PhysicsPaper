@@ -170,7 +170,7 @@ at $u = 10^{-8}$; in \texttt{float64}, precision degrades progressively
 (11\% relative error at $u = 10^{-15}$; total collapse at $u = 10^{-16}$).
 The regularized form $u\,/\,[\sqrt{1-u}(\sqrt{1-u}+1)]$ preserves full
 precision at all scales, returning $5.0 \times 10^{-17}$ at $u = 10^{-16}$
-where the naive form returns 0.0.
+where the naive form returns 0.0 (in numerical evaluation, a floating-point safety bound $u \le 1 - 10^{-9}$ is enforced to prevent division-by-zero at the singular horizon).
 
 \begin{table}[t]
 \caption{The five principal algebraically regularized primitives evaluated in this study. Each satisfies
@@ -217,7 +217,7 @@ Before exhaustive continuous optimization and model selection, each candidate AS
   \item \textbf{Gate A (Dimensional consistency with theta-relaxation):} Verifies that the candidate has the physical dimensions of the residual $\Delta$. Crucially, arguments of transcendental functions containing free parameters $\theta$ are dimensionally relaxed, as continuous optimization assigns inverse units to $\theta$ to render the composite argument dimensionless.
   \item \textbf{Gate B (Numerical asymptotic boundary probe):} Evaluates the candidate at the asymptotic boundary $u = 10^{-12}$ with nominal parameters $\boldsymbol{\theta} = \mathbf{1}$. Candidates failing $|D(u)| < 10^{-4}$ are rejected without expensive optimization.
   \item \textbf{Gate C (Coarse parameter pre-fit):} Executes a lightweight continuous fit via Nelder--Mead ($n_\mathrm{restarts} = 3$). Candidates with coarse loss $\mathrm{NMSE} > 1.0$ are pruned early.
-  \item \textbf{Gate D (Fine parameter fit):} Surviving candidates undergo full continuous parameter optimization using \texttt{Optim.jl} Nelder--Mead ($n_\mathrm{restarts} = 15$) in \texttt{float64} precision with symmetric log-uniform parameter initializations to avoid local minima.
+  \item \textbf{Gate D (Fine parameter fit):} Surviving candidates undergo full continuous parameter optimization using \texttt{Optim.jl} Nelder--Mead ($n_\mathrm{restarts} = 15$) in \texttt{float64} precision across five initialization scales ($10^{-6}$ to $10^6$) with quadrant sign permutations and log-uniform exponent sampling to robustly escape non-convex local minima.
   \item \textbf{Gate E (Identifiability and EBIC certification vs null model):} Evaluates the candidate against the classical null model ($\Delta = 0$).
 \end{enumerate}
 
@@ -244,7 +244,7 @@ ADCD applies a four-step post-fitting validation protocol (implemented in \textt
 
 \begin{enumerate}[noitemsep,leftmargin=*]
   \item \textbf{Gate V.1 (Search budget disclosure):} Total candidates generated, evaluated, and pruned are logged with all operator budgets.
-  \item \textbf{Gate V.2 (Positive control):} The Rank-1 candidate must recover the correct asymptotic power-law or limiting slope on an asymptotic sub-domain ($u \to 0$), verifying that numerical optimization did not settle into an unphysical local minimum.
+  \item \textbf{Gate V.2 (Positive control):} The optimizer is evaluated on a restricted candidate space containing only the isolated target primitive family, verifying that numerical optimization reliably converges to low loss ($\mathrm{NMSE} \le 0.1$) when given the true functional class alone.
   \item \textbf{Gate V.3 (Ablation control):} An ablated search is performed with the winning primitive class removed from the dictionary. The true model must outperform the best available alternative by a decisive Bayesian margin ($\Delta\mathrm{BIC}_\mathrm{ablation} = \mathrm{BIC}_\mathrm{ablated} - \mathrm{EBIC}_\mathrm{candidate} \ge 10.0$).
   \item \textbf{Gate V.4 (Determinism check):} Three independent runs with identical inputs produce byte-exact identical numerical and symbolic results via deterministic cryptographic seeding of the optimizer's \texttt{MersenneTwister}.
 \end{enumerate}
@@ -357,7 +357,7 @@ criterion (accessed via \texttt{model.sympy()}).
 Two ADCD variants are evaluated: \emph{guided} (with domain taxonomy prior restricting primitives) and \emph{blind} (full dictionary, no domain hints), to isolate the contribution of taxonomy information. Evaluation uses two complementary experimental regimes:
 \begin{enumerate}[noitemsep,leftmargin=*]
   \item \textbf{Zero-noise baseline} ($n = 20$ seeds per scenario, $60$ runs total): isolates structural recovery capability independent of noise.
-  \item \textbf{Noise-level sweep} ($7$ levels from $1\%$ to $30\%$, $n = 5$ seeds, $105$ runs total): characterizes how observation noise modulates structural recovery.
+  \item \textbf{Noise-level sweep} ($7$ levels from $1\%$ to $30\%$, $n = 5$ seeds, $105$ runs total): observational noise is injected multiplicatively ($y_\mathrm{obs} = y_\mathrm{true}(1 + \epsilon)$, $\epsilon \sim \mathcal{N}(0, \sigma^2)$) for multiplicative corrections, characterizing how relative measurement noise modulates structural recovery.
 \end{enumerate}
 
 Structural recovery is evaluated via functional class recovery: an expression
