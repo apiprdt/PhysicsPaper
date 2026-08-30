@@ -550,16 +550,21 @@ def run_scenario_protocol(
     discovered_primitive = None
     if ranked_blind:
         discovered_primitive = _guess_true_primitive(ranked_blind[0][0])
-# Step 2: Positive Control
-    ranked_isolated, space_size_isolated, _ = _run_search(
-        scenario,
-        exclude_primitives=[p for p in PRIMITIVE_REGISTRY if p != discovered_primitive],
-        seed=seed, threshold_cfg=tcfg, noise_level=noise_level, domain_max=domain_max
-    )
-    pc_pass = len(ranked_isolated) > 0 and ranked_isolated[0][1] <= tcfg.nmse_fine
+    # Step 2: Positive Control
+    if discovered_primitive is not None:
+        ranked_isolated, space_size_isolated, _ = _run_search(
+            scenario,
+            exclude_primitives=[p for p in PRIMITIVE_REGISTRY if p != discovered_primitive],
+            seed=seed, threshold_cfg=tcfg, noise_level=noise_level, domain_max=domain_max
+        )
+        pc_pass = len(ranked_isolated) > 0 and ranked_isolated[0][1] <= tcfg.nmse_fine
+        pc_nmse = ranked_isolated[0][1] if ranked_isolated else None
+    else:
+        space_size_isolated, pc_pass, pc_nmse = 0, False, None
+
     result.checks["positive_control"] = {
         "search_space_size": space_size_isolated,
-        "nmse": ranked_isolated[0][1] if ranked_isolated else None,
+        "nmse": pc_nmse,
         "pass": pc_pass,
     }
 
