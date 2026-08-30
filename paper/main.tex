@@ -158,6 +158,7 @@ The core numerical contribution of ADCD is the design of algebraically
 regularized primitive functions.
 Except for specialized forms with physically motivated divergent boundaries, each asymptotically regularized primitive $D(u)$ satisfies $\lim_{u\to 0} D(u) = 0$ as an exact algebraic
 identity, not a numerical approximation.
+While primitives are designed to vanish exactly by construction, the pre-fitting asymptotic boundary verification employs a robust three-tier protocol. It prioritizes exact symbolic limit evaluation (via SymPy), but autonomously falls back to Laurent series expansions and numerical boundary probes ($u \approx 10^{\pm 6}$) to ensure computational stability when evaluating complex transcendental argument compositions.
 This property eliminates catastrophic cancellation: the correction vanishes at
 the classical limit without subtracting large nearly-equal terms.
 
