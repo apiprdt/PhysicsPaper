@@ -37,7 +37,7 @@
     We present \textbf{ADCD} (Asymptotic Dictionary Correction Discovery), a
     deterministic symbolic regression framework that discovers corrections to
     known physical laws with formal identifiability guarantees.
-    Standard symbolic regression engines are designed to recover complete
+    General unconstrained symbolic regression engines (such as PySR) are designed to recover complete
     equations from scratch, representing a fundamentally broader objective
     than correction discovery.
     We show that this difference has measurable consequences: at zero noise, an unconstrained SR baseline (PySR) structurally recovers the
@@ -107,7 +107,7 @@ not a soft penalty or regularization term.}
 \begin{tabular}{lllll}
 Framework & Search space & Classical-limit constraint & Identifiability reporting & Primary objective \\
 \hline
-Standard SR~\cite{schmidt2009,cranmer2023} & Free expression tree & None & None (best fit returned) & Open-ended discovery \\
+Unconstrained SR (PySR)~\cite{schmidt2009,cranmer2023} & Free expression tree & None & None (best fit returned) & Open-ended equation discovery \\
 SINDy~\cite{brunton2016}        & Polynomial library & None & Parsimony threshold & Dynamical sparse identification \\
 PINNs~\cite{raissi2019}         & Neural network & Soft loss penalty & None & PDE forward/inverse solving \\
 AI Feynman~\cite{udrescu2020}   & Free tree + symmetry & Dimensional/separability tests & None & Physics equation cracking \\
