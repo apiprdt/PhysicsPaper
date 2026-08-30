@@ -104,7 +104,7 @@ function run_adcd(config_json::String, data_json::String)::String
             if op in ("exp", "log", "sin", "cos", "tan", "tanh")
                 return op * "(" * node_to_sympy(args[1]) * ")"
             end
-            if op == "d_lor";         u = node_to_sympy(args[1]); return "(1/sqrt(1 - (" * u * ")) - 1)"; end
+            if op == "d_lor";         u = node_to_sympy(args[1]); return "((" * u * ") / (sqrt(1 - (" * u * ")) * (1 + sqrt(1 - (" * u * ")))))"; end
             if op == "d_exp";         u = node_to_sympy(args[1]); return "(1 - exp(-Abs(" * u * ")))"; end
             if op == "d_rat";         u = node_to_sympy(args[1]); return "((" * u * ") / (1 + (" * u * ")**2))"; end
             if op == "d_pow";         u = node_to_sympy(args[1]); return "(sqrt(Abs(" * u * ")) * (1 - exp(-Abs(" * u * "))))"; end

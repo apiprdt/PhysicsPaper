@@ -113,7 +113,7 @@ def compute_levenshtein_distance(seq1: List[str], seq2: List[str]) -> int:
 
 
 def _nmse(mse: float, reference: np.ndarray) -> float:
-    var_y = float(np.var(reference))
+    var_y = float(np.var(reference, ddof=1)) if len(reference) > 1 else float(np.var(reference))
     eps = max(var_y * 1e-6, 1e-36)
     denom = var_y + eps
     return float(mse / denom) if denom > 0 else 1.0

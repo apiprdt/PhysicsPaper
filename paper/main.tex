@@ -71,9 +71,7 @@ We present ADCD, a correction-first framework that assumes the classical
 baseline is known and searches only for the residual correction.
 Algebraically regularized primitives eliminate catastrophic cancellation
 by construction.
-Candidates are assembled by deterministic grammar enumeration and filtered
-through a four-gate physical and epistemic cascade before any numerical
-fitting.
+Candidates are assembled by deterministic grammar enumeration and evaluated through a tiered filter cascade integrating dimensional relaxation, asymptotic boundary probes, and coarse/fine parameter fitting before formal epistemic certification.
 Identifiability is explicitly reported via a post-fitting four-step
 validation protocol: ADCD withholds structural claims when
 evidence is ambiguous.
@@ -227,7 +225,7 @@ Loss is normalized mean squared error:
 \end{equation}
 To ensure numerical stability in regimes with extreme scaling, ADCD dynamically monitors the observation range: if $\max(|y|) / \min(|y|) > 10^4$, the loss target shifts from residual space $\Delta$ to full observation space $y_\mathrm{obs}$.
 
-Surviving candidates are ranked by the Extended Bayesian Information Criterion (EBIC)~\cite{chen2008extended}, which incorporates a complexity penalty for the size of the candidate dictionary $|\mathcal{C}|$:
+Surviving candidates are ranked by the Extended Bayesian Information Criterion (EBIC)~\cite{chen2008}, which incorporates a complexity penalty for the size of the candidate dictionary $|\mathcal{C}|$:
 \begin{equation}
   \mathrm{EBIC} = k \ln N - 2\ln\hat{L} + 2 \ln |\mathcal{C}|
 \end{equation}
