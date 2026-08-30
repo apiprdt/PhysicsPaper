@@ -215,7 +215,7 @@ Before exhaustive continuous optimization and model selection, each candidate AS
   \item \textbf{Gate A (Dimensional consistency with theta-relaxation):} Verifies that the candidate has the physical dimensions of the residual $\Delta$. Crucially, arguments of transcendental functions containing free parameters $\theta$ are dimensionally relaxed, as continuous optimization assigns inverse units to $\theta$ to render the composite argument dimensionless.
   \item \textbf{Gate B (Numerical asymptotic boundary probe):} Evaluates the candidate at the asymptotic boundary $u = 10^{-12}$ with nominal parameters $\boldsymbol{\theta} = \mathbf{1}$. Candidates failing $|D(u)| < 10^{-4}$ are rejected without expensive optimization.
   \item \textbf{Gate C (Coarse parameter pre-fit):} Executes a lightweight continuous fit via Nelder--Mead ($n_\mathrm{restarts} = 3$). Candidates with coarse loss $\mathrm{NMSE} > 1.0$ are pruned early.
-  \item \textbf{Gate D (Fine parameter fit):} Surviving candidates undergo full continuous parameter optimization using \texttt{Optim.jl} Nelder--Mead ($n_\mathrm{restarts} = 15$) in \texttt{float64} precision across five initialization scales ($10^{-6}$ to $10^6$) with quadrant sign permutations and log-uniform exponent sampling to robustly escape non-convex local minima.
+  \item \textbf{Gate D (Fine parameter fit):} Surviving candidates undergo full continuous parameter optimization using \texttt{Optim.jl} Nelder--Mead ($n_\mathrm{restarts} = 50$) in \texttt{float64} precision across five initialization scales ($10^{-6}$ to $10^6$) with quadrant sign permutations and log-uniform exponent sampling to robustly escape non-convex local minima.
   \item \textbf{Gate E (Identifiability and EBIC certification vs null model):} Evaluates the candidate against the classical null model ($\Delta = 0$).
 \end{enumerate}
 
@@ -285,7 +285,7 @@ ADCD classifies discovery results into three formal epistemic outcome tiers:
         \If{$\textsc{IsDimensionlessRelaxed}(c, \mathcal{U})$ \textbf{and} $\textsc{AsymptoticProbe}(c, 10^{-12}) < 10^{-4}$}
             \State $\boldsymbol{\theta}_c^\mathrm{coarse} \leftarrow \textsc{NelderMead}(c, \Delta, \text{restarts}=3)$
             \If{$\mathrm{NMSE}(\boldsymbol{\theta}_c^\mathrm{coarse}) \le 1.0$}
-                \State $\boldsymbol{\theta}_c^* \leftarrow \textsc{NelderMead}(c, \Delta, \text{restarts}=15)$ \Comment{fine fit}
+                \State $\boldsymbol{\theta}_c^* \leftarrow \textsc{NelderMead}(c, \Delta, \text{restarts}=50)$ \Comment{fine fit}
                 \State $\mathrm{EBIC}_c \leftarrow k_c \ln N - 2\ln\hat{L}_c + 2\ln|\mathcal{C}|$
                 \State $\mathcal{C}_\mathrm{valid} \leftarrow \mathcal{C}_\mathrm{valid} \cup \{(c, \boldsymbol{\theta}_c^*, \mathrm{EBIC}_c)\}$
             \EndIf
