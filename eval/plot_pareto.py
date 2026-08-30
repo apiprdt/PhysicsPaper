@@ -77,11 +77,11 @@ def plot_validation_pareto_fronts(
         ax1.legend(frameon=True)
 
         # Plot 2: Pareto Rank vs BIC
-        ax2.plot(ranks, bics, "s-", color="#2ca02c", linewidth=1.8, markersize=7, label="Information Criterion")
-        ax2.scatter([ranks[0]], [bics[0]], color="#d62728", s=120, zorder=5, label=f"Rank 1 (BIC={bics[0]:.2f})")
+        ax2.plot(ranks, bics, "s-", color="#2ca02c", linewidth=1.8, markersize=7, label="Extended Info Criterion")
+        ax2.scatter([ranks[0]], [bics[0]], color="#d62728", s=120, zorder=5, label=f"Rank 1 (EBIC={bics[0]:.2f})")
         ax2.set_xlabel("Pareto Rank")
-        ax2.set_ylabel("BIC Score")
-        ax2.set_title(f"Bayesian Information Criterion\n(Tier: {tier})")
+        ax2.set_ylabel("EBIC Score")
+        ax2.set_title(f"Extended Bayesian Information Criterion\n(Tier: {tier})")
         ax2.set_xticks(ranks)
         ax2.legend(frameon=True)
 
