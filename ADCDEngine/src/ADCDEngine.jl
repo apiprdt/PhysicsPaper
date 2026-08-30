@@ -31,7 +31,7 @@ function run_adcd(config_json::String, data_json::String)::String
         config_dict["target_dim"],
         String[string(v) for v in config_dict["input_vars"]],
         Dict{String,Float64}(k => Float64(v) for (k, v) in get(config_dict, "known_constants", Dict())),
-        Float64(get(config_dict, "bic_threshold", 6.0)),
+        Float64(get(config_dict, "bic_threshold", 10.0)),
         Float64(get(config_dict, "nmse_coarse",   1.0)),
         Float64(get(config_dict, "nmse_fine",     0.1)),
         Int(get(config_dict, "n_restarts", 15)),

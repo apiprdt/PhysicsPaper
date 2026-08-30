@@ -43,7 +43,7 @@ class JuliaEngineConfig:
     target_dim: str
     input_vars: list[str]
     known_constants: dict[str, float] = field(default_factory=dict)
-    bic_threshold: float = 6.0
+    bic_threshold: float = 10.0
     nmse_coarse: float = 1.0
     nmse_fine: float = 0.1
     n_restarts: int = 15

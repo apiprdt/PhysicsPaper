@@ -38,7 +38,7 @@ function identifiability_gate(
     fit_result       ::FitResult,
     y_classical      ::Vector{Float64},
     y_obs            ::Vector{Float64};
-    bic_threshold    ::Float64 = 6.0,
+    bic_threshold    ::Float64 = 10.0,
     nmse_threshold   ::Float64 = 0.1,
     groups           ::Union{Vector{Vector{Int}},Nothing} = nothing,
     correction_type  ::String = "multiplicative",
