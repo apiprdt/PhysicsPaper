@@ -438,7 +438,6 @@ def run_scenario_protocol(
 ) -> ProtocolResult:
     result = ProtocolResult(scenario_name=scenario.name)
     tcfg = threshold_cfg or ScenarioThresholdConfig.for_scenario(scenario, noise_level=noise_level)
-    true_primitive = _guess_true_primitive(scenario.correction_expr)
 
     taxonomy_allowed = DOMAIN_TAXONOMY.get(scenario.domain, list(PRIMITIVE_REGISTRY.keys())) if use_taxonomy_prior else None
     taxonomy_exclude = [p for p in PRIMITIVE_REGISTRY.keys() if p not in taxonomy_allowed] if taxonomy_allowed else None
@@ -535,10 +534,15 @@ def run_scenario_protocol(
     else:
         result.checks["primary_search"] = {"pass": False}
 
-    # Step 2: Positive Control
+    
+    # Get the discovered primitive from the top candidate for autonomous Gate 2 and Gate 3
+    discovered_primitive = None
+    if ranked_blind:
+        discovered_primitive = _guess_true_primitive(ranked_blind[0][0])
+# Step 2: Positive Control
     ranked_isolated, space_size_isolated, _ = _run_search(
         scenario,
-        exclude_primitives=[p for p in PRIMITIVE_REGISTRY if p != true_primitive],
+        exclude_primitives=[p for p in PRIMITIVE_REGISTRY if p != discovered_primitive],
         seed=seed, threshold_cfg=tcfg, noise_level=noise_level, domain_max=domain_max
     )
     pc_pass = len(ranked_isolated) > 0 and ranked_isolated[0][1] <= tcfg.nmse_fine
@@ -550,8 +554,8 @@ def run_scenario_protocol(
 
     # Step 3: Ablation Control
     ablation_exclude_list = list(taxonomy_exclude) if taxonomy_exclude is not None else []
-    if true_primitive and true_primitive not in ablation_exclude_list:
-        ablation_exclude_list.append(true_primitive)
+    if discovered_primitive and discovered_primitive not in ablation_exclude_list:
+        ablation_exclude_list.append(discovered_primitive)
 
     ranked_ablated, _, _ = _run_search(
         scenario, exclude_primitives=ablation_exclude_list, seed=seed,

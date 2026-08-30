@@ -120,7 +120,7 @@ AI Descartes~\cite{cornelio2023}& Axiom theory + data & Logical axioms & Formal 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{fig4_pipeline.pdf}
-\caption{The ADCD discovery and certification pipeline. Raw inputs $(y_\mathrm{obs}, y_\mathrm{cl}, \mathbf{X}, \mathcal{U})$ enter Stage~1 (dynamic mode selection via Spearman $|\rho|$). Stage~2 generates dimensionless arguments via Buckingham-$\pi$ with degree pruning and applies 6 structural templates. Stage~3 screens candidates through a tiered filter cascade (dimensional relaxation, numerical asymptotic boundary probe, coarse/fine Nelder--Mead parameter optimization, and Gate~E EBIC null test). Stage~5 applies the 4-step post-fitting epistemic validation protocol (budget disclosure, positive control, ablation margin $\Delta\mathrm{BIC}_\mathrm{ablation} \ge 10.0$, and cryptographic determinism), yielding a 3-tier verdict (\texttt{IDENTIFIABLE}, \texttt{DETECTED\_UNRESOLVED}, or \texttt{WITHHELD}).}
+\caption{The ADCD discovery and certification pipeline. Raw inputs $(y_\mathrm{obs}, y_\mathrm{cl}, \mathbf{X}, \mathcal{U})$ enter Stage~1 (dynamic mode selection via Spearman $|\rho|$). Stage~2 generates dimensionless arguments via Buckingham-$\pi$ with degree pruning and applies 6 structural templates. Stage~3 screens candidates through a tiered filter cascade (dimensional relaxation, numerical asymptotic boundary probe, coarse/fine Nelder--Mead parameter optimization, and Gate~E EBIC null test). Stage~5 applies the 4-step post-fitting epistemic validation protocol (budget disclosure, positive control, ablation margin $\Delta\mathrm{BIC}_\mathrm{ablation} \ge 10.0$, and computational reproducibility), yielding a 3-tier verdict (\texttt{IDENTIFIABLE}, \texttt{DETECTED\_UNRESOLVED}, or \texttt{WITHHELD}).}
 \label{fig:pipeline}
 \end{figure*}
 
@@ -244,14 +244,14 @@ ADCD applies a four-step post-fitting validation protocol (implemented in \textt
   \item \textbf{Gate V.1 (Search budget disclosure):} Total candidates generated, evaluated, and pruned are logged with all operator budgets.
   \item \textbf{Gate V.2 (Positive control):} The optimizer is evaluated on a restricted candidate space containing only the isolated target primitive family, verifying that numerical optimization reliably converges to low loss ($\mathrm{NMSE} \le 0.1$) when given the true functional class alone.
   \item \textbf{Gate V.3 (Ablation control):} An ablated search is performed with the winning primitive class removed from the dictionary. The true model must outperform the best available alternative by a decisive Bayesian margin ($\Delta\mathrm{BIC}_\mathrm{ablation} = \mathrm{EBIC}_\mathrm{ablated} - \mathrm{EBIC}_\mathrm{candidate} \ge 10.0$).
-  \item \textbf{Gate V.4 (Determinism check):} Three independent runs with identical inputs produce byte-exact identical numerical and symbolic results via deterministic cryptographic seeding of the optimizer's \texttt{MersenneTwister}.
+  \item \textbf{Gate V.4 (Computational reproducibility):} Three independent runs with identical inputs produce byte-exact identical numerical and symbolic results via deterministic cryptographic seeding of the optimizer's \texttt{MersenneTwister}. This serves as a software sanity check, not a formal epistemic proof.
 \end{enumerate}
 
 ADCD classifies discovery results into three formal epistemic outcome tiers:
 \begin{itemize}[noitemsep,leftmargin=*]
   \item \textbf{\texttt{IDENTIFIABLE}:} The candidate passes all four validation gates with decisive evidence ($\Delta\mathrm{BIC}_\mathrm{ablation} \ge 10.0$) and verified positive control.
   \item \textbf{\texttt{DETECTED\_UNRESOLVED}:} Strong evidence of a physical anomaly is confirmed against the classical null model ($\Delta\mathrm{BIC}_\mathrm{gate} \ge 10.0$), but the candidate fails either Gate V.2 (Positive control) or Gate V.3 (Ablation control margin $< 10.0$). This outcome explicitly informs the researcher that real physics beyond the baseline exists, but the observation domain or SNR is insufficient to unequivocally isolate the true functional form from competing alternatives.
-  \item \textbf{\texttt{WITHHELD}:} The data are consistent with pure Gaussian noise around the classical baseline ($\Delta\mathrm{BIC}_\mathrm{gate} < 10.0$), non-convergence, or determinism failure, confirming that the classical baseline alone is sufficient.
+  \item \textbf{\texttt{WITHHELD}:} The data are consistent with pure Gaussian noise around the classical baseline ($\Delta\mathrm{BIC}_\mathrm{gate} < 10.0$), non-convergence, or reproducibility failure, confirming that the classical baseline alone is sufficient.
 \end{itemize}
 
 \begin{table*}[t]
@@ -307,7 +307,7 @@ ADCD classifies discovery results into three formal epistemic outcome tiers:
     \State \textbf{// Stage 5: Four-Step Post-Fitting Epistemic Validation}
     \State $\text{pass}_\mathrm{pos} \leftarrow \textsc{PositiveControl}(\hat{c}, \Omega_0)$
     \State $\Delta\mathrm{BIC}_\mathrm{ablation} \leftarrow \textsc{AblationControl}(\hat{c}, \mathcal{D} \setminus \{\text{class}(\hat{c})\})$
-    \State $\text{pass}_\mathrm{det} \leftarrow \textsc{DeterminismCheck}(\hat{c})$
+    \State $\text{pass}_\mathrm{det} \leftarrow \textsc{ReproducibilityCheck}(\hat{c})$
     
     \If{$\text{pass}_\mathrm{det}$ \textbf{and} $\text{pass}_\mathrm{pos}$ \textbf{and} $\Delta\mathrm{BIC}_\mathrm{ablation} \ge \Delta\mathrm{BIC}^*$}
         \State \Return $\langle\texttt{IDENTIFIABLE},\; \hat{c},\; \boldsymbol{\theta}^*,\; \Delta\mathrm{BIC}_\mathrm{ablation}\rangle$
@@ -489,24 +489,11 @@ Noise ($\sigma$) & ADCD & PySR & ADCD & PySR & ADCD & PySR \\
 \subsection{Extrapolation behavior}
 \label{sec:extrap}
 
-We evaluate out-of-domain generalization to examine whether asymptotic
-regularization (a design feature of ADCD but not of general
-SR) translates to improved extrapolation consistency.
-Held-out extrapolation evaluation is conducted strictly on non-overlapping
-extended domains: $v \in (0.3c, 0.8c]$ for Time Dilation, $r \in (4.0, 8.0]$
-for Screened Coulomb, and $dV/V_i \in (3.0, 6.0]$ for Entropy Expansion.
-ADCD's expressions, constrained to vanish at the classical limit by
-construction, maintain physical consistency outside the training domain:
-across the zero-noise experiment ($n = 20$ seeds), median extrapolation
-NMSE is below $10^{-7}$ for all three scenarios.
-PySR's expressions, not designed with extrapolation constraints, exhibit
-variable behavior depending on the functional form selected, which is a direct
-and expected consequence of the two frameworks' different design
-priorities.
-The most pronounced illustration is in the Screened Coulomb zero-noise
-experiment: PySR's worst-case extrapolation NMSE reaches $1530.5$ across
-$20$ seeds (median: $0.054$), reflecting runs where the selected
-expression diverges outside the training domain.
+We evaluate out-of-domain generalization to examine whether asymptotic regularization (a design feature of ADCD but not of general SR) translates to improved extrapolation consistency.
+Held-out extrapolation evaluation is conducted strictly on non-overlapping extended domains: $v \in (0.3c, 0.8c]$ for Time Dilation, $r \in (4.0, 8.0]$ for Screened Coulomb, and $dV/V_i \in (3.0, 6.0]$ for Entropy Expansion.
+ADCD's expressions, constrained to vanish at the classical limit by construction, maintain physical consistency outside the training domain: across the zero-noise experiment ($n = 20$ seeds), median extrapolation NMSE is below $10^{-7}$ for all three scenarios.
+PySR's expressions, not designed with extrapolation constraints, exhibit variable behavior depending on the functional form selected. The most pronounced illustration is in the Screened Coulomb zero-noise experiment: PySR's worst-case extrapolation NMSE reaches $1530.5$ across $20$ seeds (median: $0.054$), reflecting runs where the selected expression diverges outside the training domain.
+We explicitly acknowledge that this extrapolation metric is inherently biased towards ADCD by design. It highlights the mathematical reality of standard SR when unconstrained by boundary conditions, rather than indicating a defect in PySR itself. PySR is a general unconstrained exploratory engine, whereas ADCD is heavily specialized to force algebraic primitives to vanish at the classical limit.
 
 \subsection{Ablation: taxonomy contribution}
 \label{sec:ablation}
@@ -558,7 +545,7 @@ Table~\ref{tab:results} reports the detailed BIC analysis under the single-seed 
   All three scenarios recover the correct structure at Rank~1.
   $\Delta\mathrm{BIC} = \mathrm{BIC}_\mathrm{ablated} - \mathrm{EBIC}_\mathrm{correct}$;
   $\Delta\mathrm{BIC} \ge 10.0$ (Kass--Raftery ``very strong evidence'' threshold) supports
-  an identifiability claim when accompanied by passing positive and determinism controls.
+  an identifiability claim when accompanied by passing positive and reproducibility controls.
   Subscripts on $\theta_k$ reflect AST parameter assignment order during grammar
   enumeration.}
   \label{tab:results}
