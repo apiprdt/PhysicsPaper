@@ -221,28 +221,38 @@ def _make_pipeline(checker: DimensionalChecker, scenario: Any) -> Stage1Pipeline
 
 
 def _guess_true_primitive(expr_str: str) -> Optional[str]:
-    """Identifikasi primitif sejati secara robust."""
+    """Identifikasi primitif sejati secara robust menggunakan SymPy AST."""
     if not expr_str:
         return None
     try:
         expr = sp.sympify(expr_str)
-        s_str = str(expr)
     except Exception:
-        s_str = expr_str
+        return None
 
-    if "exp" in s_str:
+    funcs = {type(f) for f in expr.atoms(sp.Function)}
+    if sp.exp in funcs:
         return "D_exp"
-    if "log" in s_str or "ln" in s_str:
+    if sp.log in funcs:
         return "D_log"
-    if "cos" in s_str or "sin" in s_str:
+    if any(f in funcs for f in (sp.sin, sp.cos)):
         return "D_osc"
-    if "tanh" in s_str:
+    if sp.tanh in funcs:
         return "D_sat"
-    if "sqrt" in s_str:
-        if any(tok in s_str for tok in ["1 -", "1.0 -", "1.0-", "1-"]):
-            return "D_lor"
+
+    # Check for sqrt or fractional powers
+    sqrts = [
+        arg
+        for arg in expr.atoms(sp.Pow)
+        if arg.exp == sp.Rational(1, 2) or arg.exp == -sp.Rational(1, 2)
+    ]
+    if sqrts:
+        for s in sqrts:
+            poly = sp.Poly(s.base)
+            if any(c < 0 for c in poly.coeffs()):
+                return "D_lor"
         return "D_sqrt_inv"
-    if "/" in s_str:
+
+    if any(arg.exp < 0 for arg in expr.atoms(sp.Pow)):
         return "D_rat"
     return "D_pow"
 
@@ -405,9 +415,9 @@ def _find_true_structure_in_pareto(ranked_blind: List[tuple], scenario: Any) -> 
             if not free_cand:
                 return bool(abs(float(expr_cand_sub) - float(expr_true_sub)) < 1e-4)
 
-            np.random.seed(42)
+            rng = np.random.default_rng(42)
             for _ in range(5):
-                point_subs = {sym: float(np.random.uniform(0.2, 0.8)) for sym in free_cand}
+                point_subs = {sym: float(rng.uniform(0.2, 0.8)) for sym in free_cand}
                 val_c = float(expr_cand_sub.subs(point_subs).evalf())
                 val_t = float(expr_true_sub.subs(point_subs).evalf())
                 if not np.isclose(val_c, val_t, rtol=1e-2, atol=1e-3):
@@ -443,8 +453,9 @@ def run_scenario_protocol(
     taxonomy_exclude = [p for p in PRIMITIVE_REGISTRY.keys() if p not in taxonomy_allowed] if taxonomy_allowed else None
 
     # Step 0: Budget Disclosure
+    # Fix n_candidates=0 returning 0 proposals. We pass n_candidates=1 to get the actual grammar combinatorial space size.
     _, space_size_blind, proposer = _run_search(
-        scenario, exclude_primitives=taxonomy_exclude, seed=seed, n_candidates=0,
+        scenario, exclude_primitives=taxonomy_exclude, seed=seed, n_candidates=1,
         threshold_cfg=tcfg, noise_level=noise_level, domain_max=domain_max
     )
     result.checks["budget_disclosure"] = {
@@ -571,22 +582,39 @@ def run_scenario_protocol(
     elif not ranked_ablated and ranked_blind:
         result.checks["ablation_control"] = {
             "ablated_bic": float("inf"), "true_structure_bic": ranked_blind[0][2],
-            "bic_diff": float("inf"), "pass": True,
+            "bic_diff": float("inf"), "pass": False, # Cannot pass if no alternative was found
         }
     else:
         result.checks["ablation_control"] = {"pass": False}
 
-    # Step 4: Determinism Check
-    runs = []
-    for _ in range(3):
+    # Step 4: Determinism (Computational Reproducibility)
+    runs_res = [ranked_blind[0] if ranked_blind else None]
+    for s in (seed + 1000, seed + 2000):
         r, _, _ = _run_search(
-            scenario, exclude_primitives=taxonomy_exclude, seed=seed,
+            scenario, exclude_primitives=taxonomy_exclude, seed=s,
             threshold_cfg=tcfg, noise_level=noise_level, domain_max=domain_max
         )
-        runs.append(r[0][0] if r else None)
+        runs_res.append(r[0] if r else None)
 
-    determinism_pass = (not all(r is None for r in runs)) and (len(set(runs)) == 1)
-    result.checks["determinism_check"] = {"runs": runs, "pass": determinism_pass}
+    dc_pass = False
+    if all(r is not None for r in runs_res):
+        sym_match = len(set(r[0] for r in runs_res)) == 1
+        if sym_match:
+            try:
+                theta_dicts = [r[3] for r in runs_res]
+                max_diff = 0.0
+                for k in theta_dicts[0]:
+                    if k.startswith("theta_"):
+                        vals = [d.get(k, 0.0) for d in theta_dicts]
+                        max_diff = max(max_diff, max(vals) - min(vals))
+                dc_pass = max_diff < 1e-4
+            except Exception:
+                dc_pass = False
+
+    result.checks["determinism_check"] = {
+        "pass": dc_pass,
+        "runs": [r[0] if r else None for r in runs_res]
+    }
 
     def _detected_unresolved_reason(checks: dict) -> str:
         if not checks.get("positive_control", {}).get("pass", True):
