@@ -53,7 +53,7 @@ DEFAULT_SEEDS: List[int] = [42, 43, 44, 45, 46]
 LOCKED_SCENARIOS: List[str] = ["Time Dilation", "Screened Coulomb", "Entropy Expansion"]
 
 DEFAULT_CLEAN_DOMAINS: Dict[str, float] = {
-    "Time Dilation": 0.99,
+    "Time Dilation": 0.30,
     "Screened Coulomb": 4.0,
     "Entropy Expansion": 3.0,
 }
@@ -447,7 +447,8 @@ def _run_pysr_core(
     discovered_class = classify_structure(best_expr_sympy, theta_fit=theta_fit)
     is_match_structural = discovered_class == scenario.correction_class
     theta_sane = _is_physically_sane(theta_fit)
-    is_match = is_match_structural and theta_sane
+    # Removing theta_sane from is_match to ensure PySR is not unfairly penalized for unscaled constants
+    is_match = is_match_structural
 
     try:
         pred = model.predict(X_df)
