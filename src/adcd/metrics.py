@@ -208,7 +208,9 @@ def match_parameters(
                 if not (np.isfinite(tv) and np.isfinite(fv)):
                     ok = False
                     break
-                total_err += abs(fv - tv) / max(abs(tv), 1e-15)
+                err_direct = abs(fv - tv) / max(abs(tv), 1e-15)
+                err_abs = abs(abs(fv) - abs(tv)) / max(abs(tv), 1e-15)
+                total_err += min(err_direct, err_abs)
             if ok and total_err < best_err:
                 best_err = total_err
                 best_perm = perm
@@ -220,8 +222,9 @@ def match_parameters(
     param_errors = {}
     for tk, fk in zip(true_keys, best_perm):
         tv, fv = true_params[tk], fit_params[fk]
-        err = abs(fv - tv) / abs(tv) if abs(tv) > 1e-15 else abs(fv - tv)
-        param_errors[tk] = float(err)
+        err_direct = abs(fv - tv) / abs(tv) if abs(tv) > 1e-15 else abs(fv - tv)
+        err_abs = abs(abs(fv) - abs(tv)) / abs(tv) if abs(tv) > 1e-15 else abs(abs(fv) - abs(tv))
+        param_errors[tk] = float(min(err_direct, err_abs))
 
     return param_errors, structural_match, False
 
@@ -287,7 +290,11 @@ def evaluate_correction(
 
     if scenario.correction_type == "multiplicative":
         y_recon = y_classical * (1.0 + delta_discovered)
-        safe_cl = np.where(np.abs(y_classical) < 1e-15, 1e-15, y_classical)
+        safe_cl = np.where(
+            np.abs(y_classical) < 1e-15,
+            np.where(y_classical >= 0, 1e-15, -1e-15),
+            y_classical,
+        )
         residual_obs = y_obs / safe_cl - 1.0
         mse_res = np.mean((delta_discovered - residual_obs) ** 2)
         nmse_res = _nmse(mse_res, residual_obs)
@@ -317,7 +324,7 @@ def evaluate_correction(
 
     n_params = len([k for k in theta_fit.keys() if k.startswith("theta_")])
     n_points = len(y_obs)
-    bic_val = bic_score(nmse_res, n_params, n_points)
+    bic_val = bic_score(nmse_res, n_params, n_points, n_groups=n_groups)
 
     return CorrectionEvaluation(
         nmse_residual=float(nmse_res),
