@@ -24,10 +24,10 @@ from adcd.run_adcd_v3_validation_blind import (
 )
 
 NOISE_SWEEP = [0.01, 0.02, 0.05, 0.10, 0.15, 0.20, 0.30]
-SEEDS = [42, 43, 44]
+SEEDS = [42, 43, 44, 45, 46]
 
 DEFAULT_CLEAN_DOMAINS: Dict[str, float] = {
-    "Time Dilation": 0.99,       # Full relativistic domain
+    "Time Dilation": 0.30,       # Narrow historically-accurate relativistic domain
     "Screened Coulomb": 4.0,     # Standard domain
     "Entropy Expansion": 3.0,    # Broad domain (breaks Taylor degeneracy)
 }
