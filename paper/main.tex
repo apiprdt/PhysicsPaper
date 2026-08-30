@@ -52,7 +52,7 @@
     Evaluated on three canonical physics scenarios across $165$ unique
     data instances (scenario $\times$ seed $\times$ noise level),
     ADCD demonstrates consistent structural recovery under both noiseless
-    and noisy conditions ($1\%$--$30\%$ Gaussian noise). Crucially, ADCD explicitly differentiates between structural search success and formal epistemic certification: across all 165 runs, ADCD formally certified 112 runs as \texttt{IDENTIFIABLE}, explicitly qualified 53 runs as \texttt{DETECTED\_UNRESOLVED} due to SNR-limited ambiguity, and assigned 0 false positives to the null hypothesis.
+    and noisy conditions ($1\%$--$30\%$ Gaussian noise). Crucially, ADCD explicitly differentiates between structural search success and formal epistemic certification: across all 165 runs, ADCD formally certified 112 runs as \texttt{IDENTIFIABLE}, explicitly qualified 53 runs as \texttt{DETECTED\_UNRESOLVED} due to SNR-limited ambiguity, and produced zero false-positive structural certifications across all noise-degraded and unresolved regimes.
 \end{abstract}
 
 \keywords{symbolic regression, correction discovery, structural identifiability, dimensional analysis, Bayesian model selection}
@@ -216,7 +216,7 @@ Before exhaustive continuous optimization and model selection, each candidate AS
   \item \textbf{Gate A (Dimensional consistency with theta-relaxation):} Verifies that the candidate has the physical dimensions of the residual $\Delta$. Crucially, arguments of transcendental functions containing free parameters $\theta$ are dimensionally relaxed, as continuous optimization assigns inverse units to $\theta$ to render the composite argument dimensionless.
   \item \textbf{Gate B (Numerical asymptotic boundary probe):} Evaluates the candidate at the asymptotic boundary $u = 10^{-12}$ with nominal parameters $\boldsymbol{\theta} = \mathbf{1}$. Candidates failing $|D(u)| < 10^{-4}$ are rejected without expensive optimization.
   \item \textbf{Gate C (Coarse parameter pre-fit):} Executes a lightweight continuous fit via Nelder--Mead ($n_\mathrm{restarts} = 3$). Candidates with coarse loss $\mathrm{NMSE} > 1.0$ are pruned early.
-  \item \textbf{Gate D (Fine parameter fit):} Surviving candidates undergo full continuous parameter optimization using \texttt{Optim.jl} Nelder--Mead ($n_\mathrm{restarts} = 50$) in \texttt{float64} precision across five initialization scales ($10^{-6}$ to $10^6$) with quadrant sign permutations and log-uniform exponent sampling to robustly escape non-convex local minima.
+  \item \textbf{Gate D (Fine parameter fit):} Surviving candidates undergo full continuous parameter optimization using native \texttt{Optim.jl} Nelder--Mead ($n_\mathrm{restarts} = 50$) in the core Julia engine (a pure-Python/JAX backend is also included in the repository for rapid prototyping and gradient cross-validation) in \texttt{float64} precision across five initialization scales ($10^{-6}$ to $10^6$) with quadrant sign permutations and log-uniform exponent sampling to robustly escape non-convex local minima.
   \item \textbf{Gate E (Identifiability and EBIC certification vs null model):} Evaluates the candidate against the classical null model ($\Delta = 0$).
 \end{enumerate}
 
@@ -243,7 +243,7 @@ ADCD applies a four-step post-fitting validation protocol (implemented in \textt
 
 \begin{enumerate}[noitemsep,leftmargin=*]
   \item \textbf{Gate V.1 (Search budget disclosure):} Total candidates generated, evaluated, and pruned are logged with all operator budgets.
-  \item \textbf{Gate V.2 (Positive control):} The optimizer is evaluated on a restricted candidate space containing only the isolated target primitive family, verifying that numerical optimization reliably converges to low loss ($\mathrm{NMSE} \le 0.1$) when given the true functional class alone.
+  \item \textbf{Gate V.2 (Positive control):} The optimizer is evaluated on a restricted candidate space containing only the isolated target primitive family, verifying that numerical optimization reliably converges to low loss ($\mathrm{NMSE} \le 0.1$) when given the discovered primitive family of its top-ranked candidate alone (operating autonomously without ground-truth knowledge).
   \item \textbf{Gate V.3 (Ablation control):} An ablated search is performed with the winning primitive class removed from the dictionary. The true model must outperform the best available alternative by a decisive Bayesian margin ($\Delta\mathrm{BIC}_\mathrm{ablation} = \mathrm{EBIC}_\mathrm{ablated} - \mathrm{EBIC}_\mathrm{candidate} \ge 10.0$).
   \item \textbf{Gate V.4 (Computational reproducibility):} Three independent runs with identical inputs produce byte-exact identical numerical and symbolic results via deterministic cryptographic seeding of the optimizer's \texttt{MersenneTwister}. This serves as a software sanity check, not a formal epistemic proof.
 \end{enumerate}
@@ -618,16 +618,16 @@ On such domains, the true generating function and several simpler alternatives a
 
 Neither strategy is universally superior: parsimony excels when the goal is compact prediction within the training domain; identifiability excels when the goal is recovering the generating physical structure for theoretical interpretation or extrapolation.
 
-\subsection{WITHHELD as a design feature}
+\subsection{Qualified detection and epistemic tiering as a design feature}
 
 The Time Dilation scenario ($\Delta\mathrm{BIC} = -0.74$) illustrates the
-intended identifiability protocol: when the data do not provide
-very strong evidence over competing alternatives ($\Delta\mathrm{BIC} \le 10$),
-ADCD withholds its structural claim rather than reporting an unsupported
+intended epistemic protocol: when the data do not provide
+very strong evidence over competing alternatives ($\Delta\mathrm{BIC} < 10$),
+ADCD assigns a qualified verdict of \texttt{DETECTED\_UNRESOLVED} rather than reporting an unsupported
 discovery.
-This is the scientifically appropriate response when evidence is
-genuinely insufficient, and represents a deliberate design feature rather
-than a limitation.
+This transparently informs the researcher that while an anomalous signal is detected relative to the baseline, the observation domain is insufficient to distinguish the relativistic Lorentz form from simpler polynomial approximations.
+The \texttt{WITHHELD} tier is reserved for cases where the classical baseline itself is sufficient (consistent with the $\Delta = 0$ null model).
+This tri-tier discrimination represents a deliberate design feature rather than a limitation, preventing false-positive scientific claims.
 
 \subsection{Complementary strengths}
 
@@ -642,6 +642,7 @@ Several methodological scope boundaries warrant explicit disclosure:
   \item \textbf{Sample sizes and observational domains:} Zero-noise recovery rates at $n = 20$ carry Wilson 95\% CI widths of $\approx 16$--$40$ percentage points; larger-scale replication ($n \ge 50$) will further tighten confidence bounds.
   \item \textbf{Epistemic qualification in high noise:} In the noise-sweep regime ($1\%$--$30\%$), 53 out of 105 runs yielded \texttt{DETECTED\_UNRESOLVED} verdicts due to noise-induced ambiguity between competing functional forms, demonstrating that while ADCD avoids false-positive claims, high measurement noise naturally bounds formal structural certifiability.
   \item \textbf{Baseline comparison framing:} Our comparison with PySR evaluates structural recovery under ADCD's criteria (functional class recovery with extrapolation stability); PySR was evaluated under its default parsimony objective without dimensional penalty extensions, reflecting its role as an unconstrained exploratory baseline rather than a correction-specialized engine.
+  \item \textbf{Extended scenario suite and observational connectors:} In addition to the three canonical benchmark scenarios evaluated in this paper, the open-source repository implements an extended suite of 21 multi-variable coupled scenarios (including Yukawa forces, nonlinear damping, and blind held-out identity batteries) as well as preliminary observational connectors for historical experimental datasets (Mercury perihelion precession, SPARC galactic rotation curves, and Pantheon+ supernovae). While systematic multi-seed benchmarking on this extended suite represents ongoing work, the open-source infrastructure is released to facilitate community expansion.
 \end{enumerate}
 
 % ---------------------------------------------------------------

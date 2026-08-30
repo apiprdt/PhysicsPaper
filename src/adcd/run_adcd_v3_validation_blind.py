@@ -62,7 +62,7 @@ FORMAL_PROTOCOL_CHECKS = (
 DOMAIN_RESTRICTIONS: Dict[str, Dict[str, float]] = {
     "Time Dilation": {"domain_max": 0.3},       # v <= 0.3c (Historical window)
     "Screened Coulomb": {"domain_max": 4.0},    # r <= 4.0 m
-    "Entropy Expansion": {"domain_max": 1.0},   # dV/V_i <= 1.0 (Historical window)
+    "Entropy Expansion": {"domain_max": 3.0},   # dV/V_i <= 3.0 (Matches Table III domain claim)
 }
 
 

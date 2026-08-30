@@ -46,7 +46,7 @@ class JuliaEngineConfig:
     bic_threshold: float = 10.0
     nmse_coarse: float = 1.0
     nmse_fine: float = 0.1
-    n_restarts: int = 15
+    n_restarts: int = 50
     max_proposals: int = 500
     groups: Optional[list[list[int]]] = None  # Group indices (1-based) for clustered/panel evaluation
     excluded_primitives: list[str] = field(default_factory=list)

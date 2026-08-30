@@ -100,7 +100,7 @@ end
 
 """
     fit_constants(proposal_expr, y_classical, y_obs, vars_data, constants;
-                  n_params, n_restarts=15, rng_seed=42, sigma_y=nothing,
+                  n_params, n_restarts=50, rng_seed=42, sigma_y=nothing,
                   correction_type="multiplicative") -> FitResult
 """
 function fit_constants(
@@ -110,7 +110,7 @@ function fit_constants(
     vars_data      ::Dict{String,Vector{Float64}},
     constants      ::Dict{String,Float64},
     n_params       ::Int;
-    n_restarts     ::Int = 15,
+    n_restarts     ::Int = 50,
     rng_seed       ::Int = 42,
     sigma_y        ::Union{Vector{Float64},Nothing} = nothing,
     correction_type::String = "multiplicative",
