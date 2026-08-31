@@ -56,7 +56,7 @@
     Evaluated on three canonical physics scenarios across $165$ unique
     data instances (scenario $\times$ seed $\times$ noise level),
     ADCD demonstrates consistent structural recovery under both noiseless
-    and noisy conditions ($1\%$--$30\%$ Gaussian noise). Crucially, ADCD explicitly differentiates between structural search success and formal epistemic certification: across all 165 runs, ADCD formally certified 112 runs as \texttt{IDENTIFIABLE}, explicitly qualified 53 runs as \texttt{DETECTED\_\allowbreak UNRESOLVED} due to SNR-limited ambiguity, and produced zero false-positive structural certifications across all noise-degraded and unresolved regimes.
+    and noisy conditions ($1\%$--$30\%$ Gaussian noise). Crucially, ADCD explicitly differentiates between structural search success and formal epistemic certification: across all 165 runs, ADCD formally certified 112 runs as \identifiable, explicitly qualified 53 runs as \unresolved due to SNR-limited ambiguity, and produced zero false-positive structural certifications across all noise-degraded and unresolved regimes.
 \end{abstract}
 
 \keywords{symbolic regression, correction discovery, structural identifiability, dimensional analysis, Bayesian model selection}
@@ -92,7 +92,7 @@ Extrapolation errors (median held-out NMSE $\le 10^{-7}$ for ADCD) and noise-swe
 
 Symbolic regression has evolved along two distinct trajectories. \textbf{Unconstrained SR engines} (Eureqa~\cite{schmidt2009}, PySR~\cite{cranmer2023}, AI Feynman~\cite{udrescu2020,udrescu2020b}, $\Phi$-SO~\cite{tenachi2023}, symbolic regression with neural networks~\cite{cranmer2020}) perform open-ended equation discovery without prior knowledge of the underlying physical law. \textbf{Physics-informed discovery} frameworks incorporate constraints: SINDy~\cite{brunton2016,rudy2017,rackauckas2020} searches linear combinations of predefined library terms for dynamical systems; PINNs~\cite{raissi2019,karniadakis2021} embed differential equation residuals into neural loss functions; $\Phi$-SO~\cite{tenachi2023} enforces dimensional consistency via reinforcement learning; and grammar-guided SR~\cite{petersen2021,li2019,cornelio2023} restricts search spaces using domain grammars. Model selection in SR typically relies on the Pareto frontier of loss versus complexity, or information criteria (AIC~\cite{akaike1974}, BIC~\cite{schwarz1978}, Kass--Raftery thresholds~\cite{kass1995}).
 
-ADCD occupies a distinct point in this space: it restricts search exclusively to corrections of known physical laws, enforces asymptotic boundary conditions algebraically by construction rather than through loss penalties or grammar rules, and implements an explicit epistemic validation protocol that reports an explicit 3-tier epistemic verdict (\texttt{IDENTIFIABLE}, \texttt{DETECTED\_\allowbreak UNRESOLVED}, or \texttt{WITHHELD}) to prevent false-positive structural claims.
+ADCD occupies a distinct point in this space: it restricts search exclusively to corrections of known physical laws, enforces asymptotic boundary conditions algebraically by construction rather than through loss penalties or grammar rules, and implements an explicit epistemic validation protocol that reports an explicit 3-tier epistemic verdict (\identifiable, \unresolved, or \withheld) to prevent false-positive structural claims.
 
 We emphasize that the tools compared here address conceptually different problems. General SR engines target unconstrained equation discovery across arbitrary functional forms, representing a broader and fundamentally harder problem than correction discovery. ADCD deliberately restricts its scope to corrections of known baselines, trading generality for stronger identifiability guarantees within this narrower domain. The comparison presented in Section~\ref{sec:experiments} is therefore not evaluative (which approach is ``better'') but characterizing: it examines how different design choices (parsimony-driven selection versus identifiability-driven selection) manifest in structural recovery behavior when applied to the same correction tasks.
 
@@ -123,7 +123,7 @@ AI Descartes~\cite{cornelio2023}& Axiom theory + data         & Logical physical
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{fig4_pipeline.pdf}
-\caption{The ADCD discovery and certification pipeline. Raw inputs $(y_\mathrm{obs}, y_\mathrm{cl}, \mathbf{X}, \mathcal{U})$ enter Stage~1 (dynamic mode selection via Spearman $|\rho|$). Stage~2 generates dimensionless arguments via Buckingham-$\pi$ with degree pruning and applies 6 structural templates. Stage~3 screens candidates through a tiered filter cascade (dimensional relaxation, numerical asymptotic boundary probe, coarse/fine Nelder--Mead parameter optimization, and Gate~E EBIC null test). Stage~5 applies the 4-step post-fitting epistemic validation protocol (budget disclosure, positive control, ablation margin $\Delta\mathrm{BIC}_\mathrm{ablation} \ge 10.0$, and computational reproducibility), yielding a 3-tier verdict (\texttt{IDENTIFIABLE}, \texttt{DETECTED\_\allowbreak UNRESOLVED}, or \texttt{WITHHELD}).}
+\caption{The ADCD discovery and certification pipeline. Raw inputs $(y_\mathrm{obs}, y_\mathrm{cl}, \mathbf{X}, \mathcal{U})$ enter Stage~1 (dynamic mode selection via Spearman $|\rho|$). Stage~2 generates dimensionless arguments via Buckingham-$\pi$ with degree pruning and applies 6 structural templates. Stage~3 screens candidates through a tiered filter cascade (dimensional relaxation, numerical asymptotic boundary probe, coarse/fine Nelder--Mead parameter optimization). Stage~4 ranks surviving candidates by EBIC and applies the Gate~E null-model test ($\Delta\mathrm{BIC}_\mathrm{gate} \ge 10.0$). Stage~5 applies the 4-step post-fitting epistemic validation protocol (budget disclosure, positive control, ablation margin $\Delta\mathrm{BIC}_\mathrm{ablation} \ge 10.0$, and computational reproducibility), yielding a 3-tier verdict (\identifiable, \unresolved, or \withheld).}
 \label{fig:pipeline}
 \end{figure*}
 
@@ -238,7 +238,7 @@ Surviving candidates are ranked by the Extended Bayesian Information Criterion (
 where $k$ is the number of free continuous parameters, $N$ is the effective sample size, and $\hat{L}$ is the maximized Gaussian likelihood.
 The candidate is certified at Gate~E if it outperforms the classical null baseline by $\Delta\mathrm{BIC}_\mathrm{gate} = \mathrm{BIC}_\mathrm{null} - \mathrm{EBIC}_\mathrm{corr} \ge 10.0$.
 
-In addition to identifying the Rank-1 candidate, ADCD implements Bayesian Model Averaging (BMA) via \texttt{bayesian\_ranker.py}, computing posterior model weights, structural class probabilities, and posterior entropy to quantify structural ambiguity when competing functional forms achieve comparable fit.
+ADCD additionally implements Bayesian Model Averaging (BMA) via \texttt{bayesian\_ranker.py} --- computing posterior model weights, structural class probabilities, and posterior entropy to quantify ambiguity among competing functional forms. BMA outputs are available in the full audit trail but are not the primary quantity reported in the benchmarks of this paper, which focus on structural recovery rate and EBIC-based model selection.
 
 \subsection{Post-fitting four-step epistemic validation}
 \label{sec:validation}
@@ -255,9 +255,9 @@ ADCD applies a four-step post-fitting validation protocol (implemented in \textt
 
 ADCD classifies discovery results into three formal epistemic outcome tiers:
 \begin{itemize}[noitemsep,leftmargin=*]
-  \item \textbf{\texttt{IDENTIFIABLE}:} The candidate passes all four validation gates with decisive evidence ($\Delta\mathrm{BIC}_\mathrm{ablation} \ge 10.0$) and verified positive control.
-  \item \textbf{\texttt{DETECTED\_\allowbreak UNRESOLVED}:} Strong evidence of a physical anomaly is confirmed against the classical null model ($\Delta\mathrm{BIC}_\mathrm{gate} \ge 10.0$), but the candidate fails either Gate V.2 (Positive control) or Gate V.3 (Ablation control margin $< 10.0$). This outcome explicitly informs the researcher that real physics beyond the baseline exists, but the observation domain or SNR is insufficient to unequivocally isolate the true functional form from competing alternatives.
-  \item \textbf{\texttt{WITHHELD}:} The data are consistent with pure Gaussian noise around the classical baseline ($\Delta\mathrm{BIC}_\mathrm{gate} < 10.0$), non-convergence, or reproducibility failure, confirming that the classical baseline alone is sufficient.
+  \item \textbf{\identifiable:} The candidate passes all four validation gates with decisive evidence ($\Delta\mathrm{BIC}_\mathrm{ablation} \ge 10.0$) and verified positive control.
+  \item \textbf{\unresolved:} Strong evidence of a physical anomaly is confirmed against the classical null model ($\Delta\mathrm{BIC}_\mathrm{gate} \ge 10.0$), but the candidate fails either Gate V.2 (Positive control) or Gate V.3 (Ablation control margin $< 10.0$). This outcome explicitly informs the researcher that real physics beyond the baseline exists, but the observation domain or SNR is insufficient to unequivocally isolate the true functional form from competing alternatives.
+  \item \textbf{\withheld:} The data are consistent with pure Gaussian noise around the classical baseline ($\Delta\mathrm{BIC}_\mathrm{gate} < 10.0$), non-convergence, or reproducibility failure, confirming that the classical baseline alone is sufficient.
 \end{itemize}
 
 \begin{table*}[t]
@@ -268,8 +268,8 @@ ADCD classifies discovery results into three formal epistemic outcome tiers:
 \vspace{2pt}
 \hrule height 0.4pt
 \vspace{4pt}
-\noindent\textbf{Input:} Observed array $y_\mathrm{obs}$, classical baseline $y_\mathrm{cl}$, feature matrix $\mathbf{X} = \{x_j\}$, SI unit declarations $\mathcal{U}$, observation window $\Omega$, evidence threshold $\Delta\mathrm{BIC}^* = 10.0$.\\
-\textbf{Output:} Epistemic verdict $v \in \{\texttt{IDENTIFIABLE}, \texttt{DETECTED\_\allowbreak UNRESOLVED}, \texttt{WITHHELD}\}$, certified expression $\hat{\Delta}$, parameter estimates $\boldsymbol{\theta}^*$, Bayes factors, machine-readable audit trail.
+\noindent\textbf{Input:} Observed array $y_\mathrm{obs}$, classical baseline $y_\mathrm{cl}$, feature matrix $\mathbf{X} = \{x_j\}$, SI unit declarations $\mathcal{U}$, observation window $\Omega$, evidence threshold $\Delta\mathrm{BIC}^* = 10.0$, calibrated fit-quality ceiling $\mathrm{NMSE}_\mathrm{max}$ (noise-adaptive; see Section~\ref{sec:cascade}).\\
+\textbf{Output:} Epistemic verdict $v \in \{\identifiable, \unresolved, \withheld\}$, certified expression $\hat{\Delta}$, parameter estimates $\boldsymbol{\theta}^*$, Bayes factors, machine-readable audit trail.
 \vspace{3pt}
 \hrule height 0.4pt
 \vspace{4pt}
@@ -301,12 +301,12 @@ ADCD classifies discovery results into three formal epistemic outcome tiers:
     \vspace{0.2em}
     \State \textbf{// Stage 4: Model Ranking and Gate E Null Test}
     \If{$\mathcal{C}_\mathrm{valid} = \emptyset$}
-        \State \Return $\langle\texttt{WITHHELD},\; \text{None},\; \text{None},\; 0.0\rangle$
+        \State \Return $\langle\withheld,\; \text{None},\; \text{None},\; 0.0\rangle$
     \EndIf
     \State $\hat{c}, \boldsymbol{\theta}^*, \mathrm{EBIC}^*, \mathrm{NMSE}^* \leftarrow \arg\min_{(c,\boldsymbol{\theta},\mathrm{EBIC}) \in \mathcal{C}_\mathrm{valid}} \mathrm{EBIC}$
     \State $\Delta\mathrm{BIC}_\mathrm{gate} \leftarrow \mathrm{BIC}_\mathrm{null} - \mathrm{EBIC}^*$
     \If{$\Delta\mathrm{BIC}_\mathrm{gate} < \Delta\mathrm{BIC}^*$ \textbf{or} $\mathrm{NMSE}^* > \mathrm{NMSE}_\mathrm{max}$}
-        \State \Return $\langle\texttt{WITHHELD},\; \hat{c},\; \boldsymbol{\theta}^*,\; \Delta\mathrm{BIC}_\mathrm{gate}\rangle$
+        \State \Return $\langle\withheld,\; \hat{c},\; \boldsymbol{\theta}^*,\; \Delta\mathrm{BIC}_\mathrm{gate}\rangle$
     \EndIf
     
     \vspace{0.2em}
@@ -316,9 +316,9 @@ ADCD classifies discovery results into three formal epistemic outcome tiers:
     \State $\text{pass}_\mathrm{det} \leftarrow \textsc{ReproducibilityCheck}(\hat{c})$
     
     \If{$\text{pass}_\mathrm{det}$ \textbf{and} $\text{pass}_\mathrm{pos}$ \textbf{and} $\Delta\mathrm{BIC}_\mathrm{ablation} \ge \Delta\mathrm{BIC}^*$}
-        \State \Return $\langle\texttt{IDENTIFIABLE},\; \hat{c},\; \boldsymbol{\theta}^*,\; \Delta\mathrm{BIC}_\mathrm{ablation}\rangle$
+        \State \Return $\langle\identifiable,\; \hat{c},\; \boldsymbol{\theta}^*,\; \Delta\mathrm{BIC}_\mathrm{ablation}\rangle$
     \Else
-        \State \Return $\langle\texttt{DETECTED\_\allowbreak UNRESOLVED},\; \hat{c},\; \boldsymbol{\theta}^*,\; \Delta\mathrm{BIC}_\mathrm{ablation}\rangle$
+        \State \Return $\langle\unresolved,\; \hat{c},\; \boldsymbol{\theta}^*,\; \Delta\mathrm{BIC}_\mathrm{ablation}\rangle$
     \EndIf
 \EndFunction
 \end{algorithmic}
@@ -375,7 +375,7 @@ functional class is identified) and is distinct from the
 \textbf{epistemic certification} provided by the post-fitting four-step
 validation protocol (Section~\ref{sec:validation}).
 A run may satisfy the structural match criterion while still receiving a
-\texttt{DETECTED\_\allowbreak UNRESOLVED} verdict if $\Delta\mathrm{BIC}_\mathrm{ablation} < 10$; in that case, the
+\unresolved verdict if $\Delta\mathrm{BIC}_\mathrm{ablation} < 10$; in that case, the
 correct structure was found but the observation window or SNR is insufficient to unequivocally
 certify the claim against competing functional alternatives.
 The threshold $\mathrm{NMSE}_\mathrm{extrap} < 2.0$ acts as a coarse filter
@@ -571,17 +571,17 @@ Table~\ref{tab:results} reports the detailed BIC analysis under the single-seed 
       & $\theta_0 \dfrac{v^2/c^2}{\sqrt{1 - v^2/c^2}\,(1 + \sqrt{1 - v^2/c^2})}$
       & $-160.88$
       & $-0.74$
-      & \texttt{DETECTED\_\allowbreak UNRESOLVED}\footnote{Failed Gate V.2 (positive control) and Gate V.3 (ablation margin $\Delta\mathrm{BIC} = -0.74 < 10.0$).} \\[6pt]
+      & \unresolved\footnote{Failed Gate V.2 (positive control) and Gate V.3 (ablation margin $\Delta\mathrm{BIC} = -0.74 < 10.0$).} \\[6pt]
     Screened Coulomb ($r \le 4.0$)
       & $\theta_2\,(1 - e^{-r/\theta_0})$
       & $-1617.66$
       & $25.74$
-      & \texttt{DETECTED\_\allowbreak UNRESOLVED}\footnote{Passed Gate V.3 ($\Delta\mathrm{BIC} = 25.74$), but failed Gate V.2 (positive control at $1\%$ noise level).} \\[4pt]
+      & \unresolved\footnote{Passed Gate V.3 ($\Delta\mathrm{BIC} = 25.74$), but failed Gate V.2 (positive control at $1\%$ noise level).} \\[4pt]
     Entropy Expansion ($dV/V_i \le 3.0$)
       & $\theta_3\,\ln\!\left(1 + \tfrac{dV}{V_i}\right)$
       & $-811.34$
       & $37.99$
-      & \texttt{IDENTIFIABLE}\footnote{Passed all four validation gates (Gate V.1--V.4).} \\
+      & \identifiable\footnote{Passed all four validation gates (Gate V.1--V.4).} \\
     \end{tabular*}
   \end{ruledtabular}
 \end{table*}
@@ -593,11 +593,11 @@ threshold: the ablated search finds a competing polynomial-like alternative that
 At this narrow velocity window ($v \le 0.3c$), the relativistic correction is
 $\le 5\%$ of the classical baseline while the noise floor is $1\%$,
 making the correction residual structurally ambiguous.
-ADCD assigns a verdict of \texttt{DETECTED\_\allowbreak UNRESOLVED}, providing transparent diagnostic feedback that anomalous physics exists but cannot be formally certified without broader domain data.
+ADCD assigns a verdict of \unresolved, providing transparent diagnostic feedback that anomalous physics exists but cannot be formally certified without broader domain data.
 For Screened Coulomb, the recovered Debye length $\theta_0 \approx 1.50$
-matches the ground truth $\lambda_D = 1.50$ and achieves decisive ablation margin ($\Delta\mathrm{BIC} = 25.74$), though positive control sensitivity at $1\%$ noise yields a \texttt{DETECTED\_\allowbreak UNRESOLVED} tier in blind mode.
+matches the ground truth $\lambda_D = 1.50$ and achieves decisive ablation margin ($\Delta\mathrm{BIC} = 25.74$), though positive control sensitivity at $1\%$ noise yields a \unresolved tier in blind mode.
 For Entropy Expansion, the logarithmic form passes all four gates with
-$\Delta\mathrm{BIC} = 37.99$, achieving full \texttt{IDENTIFIABLE} certification.
+$\Delta\mathrm{BIC} = 37.99$, achieving full \identifiable certification.
 
 \begin{table}[t]
 \caption{Aggregate epistemic tier distribution across all 165 evaluation instances ($60$ zero-noise runs $+$ $105$ noise-sweep runs). This explicitly demonstrates the separation between structural search capability and formal epistemic certification.}
@@ -606,7 +606,7 @@ $\Delta\mathrm{BIC} = 37.99$, achieving full \texttt{IDENTIFIABLE} certification
 \scriptsize
 \setlength{\tabcolsep}{2pt}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lccc}
-Regime & \textsc{Identifiable} & \shortstack{\textsc{Detected}\\\textsc{Unresolved}} & \textsc{Withheld} \\
+Regime & \textsc{Identifiable} & \shortstack{\texttt{DETECTED}\\\texttt{UNRESOLVED}} & \textsc{Withheld} \\
 \hline
 Zero Noise ($n=60$) & 60 & 0 & 0 \\
 Noisy ($n=105$)     & 52 & 53 & 0 \\
@@ -633,10 +633,10 @@ Neither strategy is universally superior: parsimony excels when the goal is comp
 The Time Dilation scenario ($\Delta\mathrm{BIC} = -0.74$) illustrates the
 intended epistemic protocol: when the data do not provide
 very strong evidence over competing alternatives ($\Delta\mathrm{BIC} < 10$),
-ADCD assigns a qualified verdict of \texttt{DETECTED\_\allowbreak UNRESOLVED} rather than reporting an unsupported
+ADCD assigns a qualified verdict of \unresolved rather than reporting an unsupported
 discovery.
 This transparently informs the researcher that while an anomalous signal is detected relative to the baseline, the observation domain is insufficient to distinguish the relativistic Lorentz form from simpler polynomial approximations.
-The \texttt{WITHHELD} tier is reserved for cases where the classical baseline itself is sufficient (consistent with the $\Delta = 0$ null model).
+The \withheld tier is reserved for cases where the classical baseline itself is sufficient (consistent with the $\Delta = 0$ null model).
 This tri-tier discrimination represents a deliberate design feature rather than a limitation, preventing false-positive scientific claims.
 
 \subsection{Complementary strengths}
@@ -650,7 +650,7 @@ Several methodological scope boundaries warrant explicit disclosure:
 \begin{enumerate}[noitemsep,leftmargin=*]
   \item \textbf{Primitive dictionary scope:} While the ADCD production registry contains 11 regularized primitives (including MOND acceleration, Langevin saturation, and oscillatory forms), our empirical benchmarks focused on 5 canonical primitives across 3 core physics scenarios. Systematic validation across the remaining 6 primitives and multi-variable coupled systems represents ongoing work.
   \item \textbf{Sample sizes and observational domains:} Zero-noise recovery rates at $n = 20$ carry Wilson 95\% CI widths of $\approx 16$--$40$ percentage points; larger-scale replication ($n \ge 50$) will further tighten confidence bounds.
-  \item \textbf{Epistemic qualification in high noise:} In the noise-sweep regime ($1\%$--$30\%$), 53 out of 105 runs yielded \texttt{DETECTED\_\allowbreak UNRESOLVED} verdicts due to noise-induced ambiguity between competing functional forms, demonstrating that while ADCD avoids false-positive claims, high measurement noise naturally bounds formal structural certifiability.
+  \item \textbf{Epistemic qualification in high noise:} In the noise-sweep regime ($1\%$--$30\%$), 53 out of 105 runs yielded \unresolved verdicts due to noise-induced ambiguity between competing functional forms, demonstrating that while ADCD avoids false-positive claims, high measurement noise naturally bounds formal structural certifiability.
   \item \textbf{Baseline comparison framing:} Our comparison with PySR evaluates structural recovery under ADCD's criteria (functional class recovery with extrapolation stability); PySR was evaluated under its default parsimony objective without dimensional penalty extensions, reflecting its role as an unconstrained exploratory baseline rather than a correction-specialized engine.
   \item \textbf{Extended scenario suite and observational connectors:} In addition to the three canonical benchmark scenarios evaluated in this paper, the open-source repository implements an extended suite of 21 multi-variable coupled scenarios (including Yukawa forces, nonlinear damping, and blind held-out identity batteries) as well as preliminary observational connectors for historical experimental datasets (Mercury perihelion precession, SPARC galactic rotation curves, and Pantheon+ supernovae). While systematic multi-seed benchmarking on this extended suite represents ongoing work, the open-source infrastructure is released to facilitate community expansion.
 \end{enumerate}
@@ -680,7 +680,7 @@ The full implementation of ADCD, benchmark scenarios, evaluation scripts, and re
 Full audit logs, raw run outputs ($n=165$), and visualization scripts are included.
 
 \paragraph{Implementation Architecture.}
-ADCD was originally prototyped as a pure-Python/JAX implementation; the search and continuous optimization core has since been migrated to a native Julia (\texttt{Optim.jl}) production engine for high-throughput zero-allocation AST evaluation and robust parameter optimization (Section~\ref{sec:cascade}). The legacy Python/JAX path remains in the repository (selectable via \texttt{--engine python}) for cross-validation during migration but was not used to generate any of the results reported in this paper; all reported numbers use the authoritative Julia backend (\texttt{--engine julia}, the default). Where configuration defaults between the two backends differ (e.g., $n_\mathrm{restarts}$, $\mathrm{EBIC}$ thresholds), the Julia values documented in Section~\ref{sec:cascade} are authoritative.
+ADCD was originally prototyped as a pure-Python/JAX implementation; the search and continuous optimization core has since been migrated to a native Julia (\texttt{Optim.jl}) production engine for high-throughput AST evaluation and robust parameter optimization (Section~\ref{sec:cascade}). The legacy Python/JAX path remains in the repository (selectable via \texttt{--engine python}) for cross-validation during migration but was not used to generate any of the results reported in this paper; all reported numbers use the authoritative Julia backend (\texttt{--engine julia}, the default). Where configuration defaults between the two backends differ (e.g., $n_\mathrm{restarts}$, $\mathrm{EBIC}$ thresholds), the Julia values documented in Section~\ref{sec:cascade} are authoritative.
 
 % ---------------------------------------------------------------
 % REFERENCES
@@ -710,7 +710,7 @@ ADCD requires four mandatory inputs and accepts three optional inputs:
   \item \texttt{delta\_bic\_threshold} (\texttt{float}, default $= 10$): Kass--Raftery threshold.
 \end{itemize}
 
-ADCD returns an \texttt{ADCDResult} dataclass containing the epistemic verdict (\texttt{tier}: \texttt{"IDENTIFIABLE"}, \texttt{"DETECTED\_UNRESOLVED"}, or \texttt{"WITHHELD"}), \texttt{top\_expression} (SymPy string), \texttt{top\_latex}, \texttt{discovered\_class}, \texttt{nmse\_train}, \texttt{bic\_score}, \texttt{pareto\_front} (all surviving candidates ranked by BIC), and \texttt{checks} (complete machine-readable audit trail). \texttt{WITHHELD} does not mean ``no output''; the full Pareto front and diagnostic summary are always accessible.
+ADCD returns an \texttt{ADCDResult} dataclass containing the epistemic verdict (\texttt{tier}: \texttt{"IDENTIFIABLE"}, \texttt{"DETECTED\_UNRESOLVED"}, or \texttt{"WITHHELD"}), \texttt{top\_expression} (SymPy string), \texttt{top\_latex}, \texttt{discovered\_class}, \texttt{nmse\_train}, \texttt{bic\_score}, \texttt{pareto\_front} (all surviving candidates ranked by BIC), and \texttt{checks} (complete machine-readable audit trail). \withheld does not mean ``no output''; the full Pareto front and diagnostic summary are always accessible.
 
 \subsection{Minimal Python Usage and Primitive Registration}
 
