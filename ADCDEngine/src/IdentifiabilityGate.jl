@@ -5,10 +5,10 @@ module IdentifiabilityGate
 
 using ..ConstantFitter
 
-export IdentVerdict, IDENTIFIABLE, WITHHELD, POSITIVE_CONTROL_FAILED
+export IdentVerdict, IDENTIFIABLE, WITHHELD
 export bic_score, hierarchical_bic_penalty, identifiability_gate, hierarchical_bic, compute_effective_sample_size
 
-@enum IdentVerdict IDENTIFIABLE WITHHELD POSITIVE_CONTROL_FAILED
+@enum IdentVerdict IDENTIFIABLE WITHHELD
 
 """
     bic_score(n_points, n_params, log_likelihood, n_groups=nothing)

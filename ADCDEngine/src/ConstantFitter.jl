@@ -81,7 +81,7 @@ function evaluate_expr(
         if op == "cosh"; return cosh.(clamp.(_eval(args[1]), -500.0, 500.0)); end
 
         # Primitives
-        if op == "d_lor";         u = _eval(args[1]); uc = clamp.(u, 0.0, 1.0 - 1e-9); s = sqrt.(1.0 .- uc); return uc ./ (s .* (1.0 .+ s)); end
+        if op == "d_lor";         u = _eval(args[1]); uc = min.(u, 1.0 - 1e-9); s = sqrt.(max.(1.0 .- uc, 0.0)); return uc ./ (s .* (1.0 .+ s)); end
         if op == "d_exp";         u = _eval(args[1]); return 1.0 .- exp.(-abs.(u)); end
         if op == "d_rat";         u = _eval(args[1]); return u ./ (1.0 .+ u.^2); end
         if op == "d_pow";         u = _eval(args[1]); return sqrt.(abs.(u)) .* (1.0 .- exp.(-abs.(u))); end
@@ -90,8 +90,8 @@ function evaluate_expr(
         if op == "d_sqrt_inv";    u = _eval(args[1]); s = sqrt.(abs.(u)); return s ./ (1.0 .+ s); end
         if op == "d_tanh_sq";     u = _eval(args[1]); return tanh.(u.^2); end
         if op == "d_osc";         u = _eval(args[1]); return 1.0 .- cos.(u); end
-        if op == "d_nested_mond"; u = _eval(args[1]); s = sqrt.(abs.(u)); return exp.(-s) .* (1.0 .- exp.(-s)); end
-        if op == "d_rar";         u = _eval(args[1]); s = sqrt.(abs.(u) .+ 1e-15); e = exp.(-s); return e ./ max.(1.0 .- e, 1e-12); end
+        if op == "d_nested_mond"; u = _eval(args[1]); s = sqrt.(abs.(u)); e = exp.(-s); return e .* (1.0 .- e); end
+        if op == "d_rar";         u = _eval(args[1]); s = sqrt.(abs.(u)); e = exp.(-s); return e ./ max.(1.0 .- e, 1e-12); end
 
         error("Unknown op: $op")
     end

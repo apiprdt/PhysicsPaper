@@ -169,7 +169,7 @@ While the full production registry (implemented in \texttt{PrimitiveRegistry.jl}
 The practical consequence is demonstrated for \texttt{D\_lor}: in
 \texttt{float32}, the naive form $(1-u)^{-1/2} - 1$ collapses to exactly 0.0
 at $u = 10^{-8}$; in \texttt{float64}, precision degrades progressively
-(11\% relative error at $u = 10^{-15}$; total collapse at $u = 10^{-16}$).
+($11\%$ relative error at $u = 2 \times 10^{-15}$; total collapse to $0.0$ at $u \le 10^{-17}$).
 The regularized form $u\,/\,[\sqrt{1-u}(\sqrt{1-u}+1)]$ preserves full
 precision at all scales, returning $5.0 \times 10^{-17}$ at $u = 10^{-16}$
 where the naive form returns 0.0 (in numerical evaluation, a floating-point safety bound $u \le 1 - 10^{-9}$ is enforced to prevent division-by-zero at the singular horizon).
@@ -236,7 +236,12 @@ Surviving candidates are ranked by the Extended Bayesian Information Criterion (
   \mathrm{EBIC} = k \ln N - 2\ln\hat{L} + 2 \ln |\mathcal{C}|
 \end{equation}
 where $k$ is the number of free continuous parameters, $N$ is the effective sample size, and $\hat{L}$ is the maximized Gaussian likelihood.
-The candidate is certified at Gate~E if it outperforms the classical null baseline by $\Delta\mathrm{BIC}_\mathrm{gate} = \mathrm{BIC}_\mathrm{null} - \mathrm{EBIC}_\mathrm{corr} \ge 10.0$.
+The candidate is certified at Gate~E if it outperforms the classical null baseline by $\Delta\mathrm{BIC}_\mathrm{gate} = \mathrm{BIC}_\mathrm{null} - \mathrm{EBIC}_\mathrm{corr} \ge 10.0$ and satisfies the noise-adaptive fit-quality ceiling:
+\begin{align}
+  \mathrm{NMSE}^* &\le \mathrm{NMSE}_\mathrm{max} \notag\\
+  &= \operatorname{clip}\!\left(1.35\,\sigma_\mathrm{n}^2 + 1.645\,\sigma_\mathrm{n}^2 \sqrt{2/N_\mathrm{eff}},\, 0.10,\, 0.60\right)
+\end{align}
+where $\sigma_\mathrm{n}$ denotes the measurement noise level, $1.35\,\sigma_\mathrm{n}^2$ accounts for the expected residual sum-of-squares under Gaussian perturbations with a 35\% inflation margin for finite-sample non-normality, $1.645\,\sigma_\mathrm{n}^2 \sqrt{2/N_\mathrm{eff}}$ represents the one-sided 95\% upper confidence bound ($z_{0.95} = 1.645$) on the sampling variance of the $\chi^2$ distribution, and clipping to $[0.10, 0.60]$ enforces an absolute sanity floor and ceiling preventing runaway divergent fits.
 
 ADCD additionally implements Bayesian Model Averaging (BMA) via \texttt{bayesian\_ranker.py} --- computing posterior model weights, structural class probabilities, and posterior entropy to quantify ambiguity among competing functional forms. BMA outputs are available in the full audit trail but are not the primary quantity reported in the benchmarks of this paper, which focus on structural recovery rate and EBIC-based model selection.
 
@@ -250,7 +255,7 @@ ADCD applies a four-step post-fitting validation protocol (implemented in \textt
   \item \textbf{Gate V.1 (Search budget disclosure):} Total candidates generated, evaluated, and pruned are logged with all operator budgets.
   \item \textbf{Gate V.2 (Positive control):} The optimizer is evaluated on a restricted candidate space containing only the isolated target primitive family, verifying that numerical optimization reliably converges to low loss ($\mathrm{NMSE} \le 0.1$) when given the discovered primitive family of its top-ranked candidate alone (operating autonomously without ground-truth knowledge).
   \item \textbf{Gate V.3 (Ablation control):} An ablated search is performed with the winning primitive class removed from the dictionary. The true model must outperform the best available alternative by a decisive Bayesian margin ($\Delta\mathrm{BIC}_\mathrm{ablation} = \mathrm{EBIC}_\mathrm{ablated} - \mathrm{EBIC}_\mathrm{candidate} \ge 10.0$).
-  \item \textbf{Gate V.4 (Computational reproducibility):} Three independent runs with identical inputs produce byte-exact identical numerical and symbolic results via deterministic cryptographic seeding of the optimizer's \texttt{MersenneTwister}. This serves as a software sanity check, not a formal epistemic proof.
+  \item \textbf{Gate V.4 (Cross-seed structural stability):} Verifies that the top-ranked functional class is robustly recovered across three independent synthetic noise realizations (seeds $s$, $s+1000$, and $s+2000$) with fitted parameter variation $\max_i |\theta_i^{(s)} - \theta_i^{(s')}| < 10^{-4}$, certifying that the discovered functional form is invariant to specific random noise draws.
 \end{enumerate}
 
 ADCD classifies discovery results into three formal epistemic outcome tiers:
@@ -555,8 +560,8 @@ Table~\ref{tab:results} reports the detailed BIC analysis under the single-seed 
   $\Delta\mathrm{BIC} = \mathrm{BIC}_\mathrm{ablated} - \mathrm{EBIC}_\mathrm{correct}$;
   $\Delta\mathrm{BIC} \ge 10.0$ (Kass--Raftery ``very strong evidence'' threshold) supports
   an identifiability claim when accompanied by passing positive and reproducibility controls.
-  Subscripts on $\theta_k$ reflect AST parameter assignment order during grammar
-  enumeration.}
+  Subscripts on $\theta_k$ reflect AST parameter assignment order during grammar enumeration;
+  displayed expressions are algebraically simplified from raw AST templates by dropping terms whose fitted coefficient satisfies $|\theta_i| < 10^{-5}$ for presentation clarity.}
   \label{tab:results}
   \begin{ruledtabular}
     \small
@@ -659,7 +664,7 @@ Several methodological scope boundaries warrant explicit disclosure:
 \section{Conclusion}
 % ---------------------------------------------------------------
 
-We presented ADCD, a correction-first symbolic regression framework with formal identifiability guarantees. Its core contributions are: algebraically regularized primitives that enforce classical-limit consistency by construction; a bounded grammar yielding strictly reproducible search via deterministic cryptographic seeding; and a four-step epistemic validation protocol that explicitly reports when structural claims are and are not supported by the data.
+We presented ADCD, a correction-first symbolic regression framework with formal identifiability guarantees. Its core contributions are: algebraically regularized primitives that enforce classical-limit consistency by construction; a bounded grammar yielding strictly reproducible search via deterministic hashing; and a four-step epistemic validation protocol that explicitly reports when structural claims are and are not supported by the data.
 
 Empirical evaluation across $165$ unique data instances reveals that
 structural identifiability and numerical fit quality are independent

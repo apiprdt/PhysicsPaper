@@ -18,7 +18,7 @@ using JSON3
 using Statistics
 
 export run_adcd, RunConfig, ADCDResult, GateStats
-export IDENTIFIABLE, WITHHELD, POSITIVE_CONTROL_FAILED
+export IDENTIFIABLE, WITHHELD
 export ProposalConfig, propose_corrections
 export verify_dimension, list_primitives
 
@@ -34,7 +34,7 @@ function run_adcd(config_json::String, data_json::String)::String
         Float64(get(config_dict, "bic_threshold", 10.0)),
         Float64(get(config_dict, "nmse_coarse",   1.0)),
         Float64(get(config_dict, "nmse_fine",     0.1)),
-        Int(get(config_dict, "n_restarts", 15)),
+        Int(get(config_dict, "n_restarts", 50)),
         get(config_dict, "groups", nothing) === nothing ? nothing : [Int[Int(x) for x in g] for g in config_dict["groups"]],
         Int(get(config_dict, "max_proposals", 500)),
         String(get(config_dict, "correction_type", "multiplicative")),

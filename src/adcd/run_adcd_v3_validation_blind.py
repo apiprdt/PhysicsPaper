@@ -640,10 +640,13 @@ def run_scenario_protocol(
     # The system must assign DETECTED_UNRESOLVED autonomously if evidence vs null is strong,
     # regardless of whether it accidentally latched onto a false positive structure.
     
+    d_null_val = result.checks.get("primary_search", {}).get("delta_bic_vs_null")
+    is_decisive_vs_null = (d_null_val is not None and d_null_val >= tcfg.bic_threshold) or evn_label in ("decisive",)
+    
     if formal_pass:
         result.tier = "IDENTIFIABLE"
         result.status_message = "All checks passed with a genuinely blind search."
-    elif evn_label in ("decisive", "very_strong", "strong"):
+    elif is_decisive_vs_null:
         result.tier = "DETECTED_UNRESOLVED"
         result.status_message = f"Strong anomaly evidence confirmed, structure resolved, but {_detected_unresolved_reason(result.checks)}."
     else:
