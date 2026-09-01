@@ -4,7 +4,7 @@ Executes formal four-step verification:
   1. Budget Disclosure
   2. Positive Control
   3. Ablation Control (BIC gap check)
-  4. Determinism Check (byte-identical reproducibility)
+  4. Determinism Check (cross-seed structural stability across 3 independent noise draws)
 """
 
 from __future__ import annotations
@@ -531,6 +531,10 @@ def run_scenario_protocol(
             "evidence_vs_null_label": bma.evidence_vs_null.label,
             "evidence_top2_label": bma.evidence_top2.label,
             "posterior_entropy": bma.posterior_entropy,
+            # Numeric ΔBIC vs null — surfaced for tier assignment and audit trail.
+            # For Julia engine: bic_null=0.0 → delta_bic_vs_null = 0 - EBIC_best = -EBIC_best,
+            # which mirrors Gate E's own delta_bic (bic_null - EBIC_corr). Threshold is identical.
+            "delta_bic_vs_null": bma.evidence_vs_null.delta_bic,
         }
 
         # Guard rail for catastrophic BIC numerical scaling anomalies
@@ -640,6 +644,11 @@ def run_scenario_protocol(
     # The system must assign DETECTED_UNRESOLVED autonomously if evidence vs null is strong,
     # regardless of whether it accidentally latched onto a false positive structure.
     
+    # Two-condition design (both equivalent to ΔBIC ≥ 10.0, redundant by design for robustness):
+    #   1. Numeric path:   d_null_val >= tcfg.bic_threshold (10.0) — primary, authoritative.
+    #   2. Label fallback: evn_label == "decisive" — BayesianReranker labels "decisive" at ≥ 10.0
+    #      (_kr_label in bayesian_ranker.py). Guards against None from missing key in older runs.
+    # For Julia engine: bic_null=0.0 → d_null_val = bic_null - EBIC_best mirrors Gate E's delta_bic.
     d_null_val = result.checks.get("primary_search", {}).get("delta_bic_vs_null")
     is_decisive_vs_null = (d_null_val is not None and d_null_val >= tcfg.bic_threshold) or evn_label in ("decisive",)
     
