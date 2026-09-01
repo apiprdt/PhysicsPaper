@@ -159,10 +159,13 @@ def main():
         
         all_passed = report[name]["all_passed"]
         
-        if all_passed:
+        tier = report[name].get("tier", "IDENTIFIABLE" if all_passed else "WITHHELD")
+        if tier == "IDENTIFIABLE":
             verdict = {"label": "IDENTIFIABLE", "color": "#16a34a", "delta_bic": delta_bic}
+        elif tier == "CANDIDATE":
+            verdict = {"label": "CANDIDATE", "color": "#d97706", "delta_bic": delta_bic}
         else:
-            verdict = {"label": "WITHHELD", "color": "#d97706", "delta_bic": delta_bic}
+            verdict = {"label": "WITHHELD", "color": "#dc2626", "delta_bic": delta_bic}
 
 
         X_noise, y_obs_noise, y_classical, residual_noise = get_scenario_data(scenario, name, noise_level=0.01)

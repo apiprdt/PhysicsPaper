@@ -1,0 +1,530 @@
+%apsrev4-2.bst 2019-01-14 (MD) hand-edited version of apsrev4-1.bst
+%Control: key (0)
+%Control: author (8) initials jnrlst
+%Control: editor formatted (1) identically to author
+%Control: production of article title (0) allowed
+%Control: page (0) single
+%Control: year (1) truncated
+%Control: production of eprint (0) enabled
+\begin{thebibliography}{37}%
+\makeatletter
+\providecommand \@ifxundefined [1]{%
+ \@ifx{#1\undefined}
+}%
+\providecommand \@ifnum [1]{%
+ \ifnum #1\expandafter \@firstoftwo
+ \else \expandafter \@secondoftwo
+ \fi
+}%
+\providecommand \@ifx [1]{%
+ \ifx #1\expandafter \@firstoftwo
+ \else \expandafter \@secondoftwo
+ \fi
+}%
+\providecommand \natexlab [1]{#1}%
+\providecommand \enquote  [1]{``#1''}%
+\providecommand \bibnamefont  [1]{#1}%
+\providecommand \bibfnamefont [1]{#1}%
+\providecommand \citenamefont [1]{#1}%
+\providecommand \href@noop [0]{\@secondoftwo}%
+\providecommand \href [0]{\begingroup \@sanitize@url \@href}%
+\providecommand \@href[1]{\@@startlink{#1}\@@href}%
+\providecommand \@@href[1]{\endgroup#1\@@endlink}%
+\providecommand \@sanitize@url [0]{\catcode `\\12\catcode `\$12\catcode
+  `\&12\catcode `\#12\catcode `\^12\catcode `\_12\catcode `\%12\relax}%
+\providecommand \@@startlink[1]{}%
+\providecommand \@@endlink[0]{}%
+\providecommand \url  [0]{\begingroup\@sanitize@url \@url }%
+\providecommand \@url [1]{\endgroup\@href {#1}{\urlprefix }}%
+\providecommand \urlprefix  [0]{URL }%
+\providecommand \Eprint [0]{\href }%
+\providecommand \doibase [0]{https://doi.org/}%
+\providecommand \selectlanguage [0]{\@gobble}%
+\providecommand \bibinfo  [0]{\@secondoftwo}%
+\providecommand \bibfield  [0]{\@secondoftwo}%
+\providecommand \translation [1]{[#1]}%
+\providecommand \BibitemOpen [0]{}%
+\providecommand \bibitemStop [0]{}%
+\providecommand \bibitemNoStop [0]{.\EOS\space}%
+\providecommand \EOS [0]{\spacefactor3000\relax}%
+\providecommand \BibitemShut  [1]{\csname bibitem#1\endcsname}%
+\let\auto@bib@innerbib\@empty
+%</preamble>
+\bibitem [{\citenamefont {Einstein}(1905)}]{einstein1905}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {A.}~\bibnamefont
+  {Einstein}},\ }\bibfield  {title} {\bibinfo {title} {{Zur Elektrodynamik
+  bewegter K\"{o}rper}},\ }\href {https://doi.org/10.1002/andp.19053221004}
+  {\bibfield  {journal} {\bibinfo  {journal} {Annalen der Physik}\ }\textbf
+  {\bibinfo {volume} {322}},\ \bibinfo {pages} {891} (\bibinfo {year}
+  {1905})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Debye}\ and\ \citenamefont
+  {H{\"{u}}ckel}(1923)}]{debye1923}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {P.}~\bibnamefont
+  {Debye}}\ and\ \bibinfo {author} {\bibfnamefont {E.}~\bibnamefont
+  {H{\"{u}}ckel}},\ }\bibfield  {title} {\bibinfo {title} {{Zur Theorie der
+  Elektrolyte. I. Gefrierpunktserniedrigung und verwandte Erscheinungen}},\
+  }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal} {Physikalische
+  Zeitschrift}\ }\textbf {\bibinfo {volume} {24}},\ \bibinfo {pages} {185}
+  (\bibinfo {year} {1923})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Callen}(1985)}]{callen1985}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {H.~B.}\ \bibnamefont
+  {Callen}},\ }\href@noop {} {\emph {\bibinfo {title} {Thermodynamics and an
+  Introduction to Thermostatistics}}},\ \bibinfo {edition} {2nd}\ ed.\
+  (\bibinfo  {publisher} {Wiley},\ \bibinfo {year} {1985})\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {van~der Waals}(1873)}]{vanderwaals1873}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.~D.}\ \bibnamefont
+  {van~der Waals}},\ }\emph {\bibinfo {title} {{Over de Continuiteit van den
+  Gas- en Vloeistoftoestand}}},\ \href@noop {} {Ph.D. thesis},\ \bibinfo
+  {school} {Leiden University} (\bibinfo {year} {1873})\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Michelson}\ and\ \citenamefont
+  {Morley}(1887)}]{michelson1887}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {A.~A.}\ \bibnamefont
+  {Michelson}}\ and\ \bibinfo {author} {\bibfnamefont {E.~W.}\ \bibnamefont
+  {Morley}},\ }\bibfield  {title} {\bibinfo {title} {On the relative motion of
+  the {Earth} and the luminiferous ether},\ }\href
+  {https://doi.org/10.2475/ajs.s3-34.203.333} {\bibfield  {journal} {\bibinfo
+  {journal} {American Journal of Science}\ }\textbf {\bibinfo {volume} {34}},\
+  \bibinfo {pages} {333} (\bibinfo {year} {1887})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Koza}(1994)}]{koza1994}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.~R.}\ \bibnamefont
+  {Koza}},\ }\bibfield  {title} {\bibinfo {title} {Genetic programming as a
+  means for programming computers by natural selection},\ }\href
+  {https://doi.org/10.1007/BF00175355} {\bibfield  {journal} {\bibinfo
+  {journal} {Statistics and Computing}\ }\textbf {\bibinfo {volume} {4}},\
+  \bibinfo {pages} {87} (\bibinfo {year} {1994})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Schmidt}\ and\ \citenamefont
+  {Lipson}(2009)}]{schmidt2009}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Schmidt}}\ and\ \bibinfo {author} {\bibfnamefont {H.}~\bibnamefont
+  {Lipson}},\ }\bibfield  {title} {\bibinfo {title} {Distilling free-form
+  natural laws from experimental data},\ }\href
+  {https://doi.org/10.1126/science.1165893} {\bibfield  {journal} {\bibinfo
+  {journal} {Science}\ }\textbf {\bibinfo {volume} {324}},\ \bibinfo {pages}
+  {81} (\bibinfo {year} {2009})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Udrescu}\ and\ \citenamefont
+  {Tegmark}(2020)}]{udrescu2020}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {S.-M.}\ \bibnamefont
+  {Udrescu}}\ and\ \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Tegmark}},\ }\bibfield  {title} {\bibinfo {title} {{AI Feynman}: A
+  physics-inspired method for symbolic regression},\ }\href
+  {https://doi.org/10.1126/sciadv.aay2631} {\bibfield  {journal} {\bibinfo
+  {journal} {Science Advances}\ }\textbf {\bibinfo {volume} {6}},\ \bibinfo
+  {pages} {eaay2631} (\bibinfo {year} {2020})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Cranmer}(2023)}]{cranmer2023}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Cranmer}},\ }\href {https://doi.org/10.48550/arXiv.2305.01582} {\bibinfo
+  {title} {Interpretable machine learning for science with {PySR} and
+  {SymbolicRegression.jl}}},\ \bibinfo {howpublished} {arXiv preprint}
+  (\bibinfo {year} {2023}),\ \bibinfo {note} {arXiv:2305.01582}\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Bongard}\ and\ \citenamefont
+  {Lipson}(2007)}]{bongard2007}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.}~\bibnamefont
+  {Bongard}}\ and\ \bibinfo {author} {\bibfnamefont {H.}~\bibnamefont
+  {Lipson}},\ }\bibfield  {title} {\bibinfo {title} {Automated reverse
+  engineering of nonlinear dynamical systems},\ }\href
+  {https://doi.org/10.1073/pnas.0609476104} {\bibfield  {journal} {\bibinfo
+  {journal} {Proceedings of the National Academy of Sciences}\ }\textbf
+  {\bibinfo {volume} {104}},\ \bibinfo {pages} {9943} (\bibinfo {year}
+  {2007})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Deb}\ \emph {et~al.}(2002)\citenamefont {Deb},
+  \citenamefont {Pratap}, \citenamefont {Agarwal},\ and\ \citenamefont
+  {Meyarivan}}]{deb2002}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {K.}~\bibnamefont
+  {Deb}}, \bibinfo {author} {\bibfnamefont {A.}~\bibnamefont {Pratap}},
+  \bibinfo {author} {\bibfnamefont {S.}~\bibnamefont {Agarwal}},\ and\ \bibinfo
+  {author} {\bibfnamefont {T.}~\bibnamefont {Meyarivan}},\ }\bibfield  {title}
+  {\bibinfo {title} {A fast and elitist multiobjective genetic algorithm:
+  {NSGA-II}},\ }\href {https://doi.org/10.1109/4235.996017} {\bibfield
+  {journal} {\bibinfo  {journal} {IEEE Transactions on Evolutionary
+  Computation}\ }\textbf {\bibinfo {volume} {6}},\ \bibinfo {pages} {182}
+  (\bibinfo {year} {2002})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Virgolin}\ and\ \citenamefont
+  {Pissis}(2022)}]{virgolin2022}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Virgolin}}\ and\ \bibinfo {author} {\bibfnamefont {S.~P.}\ \bibnamefont
+  {Pissis}},\ }\bibfield  {title} {\bibinfo {title} {Symbolic regression is
+  {NP}-hard},\ }\href {https://openreview.net/forum?id=mFm4qR5J6i} {\bibfield
+  {journal} {\bibinfo  {journal} {Transactions on Machine Learning Research}\ }
+  (\bibinfo {year} {2022})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {La~Cava}\ \emph {et~al.}(2021)\citenamefont
+  {La~Cava}, \citenamefont {Orzechowski}, \citenamefont {Burlacu},
+  \citenamefont {de~Fran{\c{c}}a}, \citenamefont {Virgolin}, \citenamefont
+  {Jin}, \citenamefont {Kommenda},\ and\ \citenamefont {Moore}}]{lacava2021}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {W.}~\bibnamefont
+  {La~Cava}}, \bibinfo {author} {\bibfnamefont {P.}~\bibnamefont
+  {Orzechowski}}, \bibinfo {author} {\bibfnamefont {B.}~\bibnamefont
+  {Burlacu}}, \bibinfo {author} {\bibfnamefont {F.~O.}\ \bibnamefont
+  {de~Fran{\c{c}}a}}, \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Virgolin}}, \bibinfo {author} {\bibfnamefont {Y.}~\bibnamefont {Jin}},
+  \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont {Kommenda}},\ and\
+  \bibinfo {author} {\bibfnamefont {J.~H.}\ \bibnamefont {Moore}},\ }\bibfield
+  {title} {\bibinfo {title} {Contemporary symbolic regression methods and their
+  relative performance},\ }\href {https://arxiv.org/abs/2107.14351} {\bibfield
+  {journal} {\bibinfo  {journal} {Proceedings of the Neural Information
+  Processing Systems Track on Datasets and Benchmarks}\ }\textbf {\bibinfo
+  {volume} {1}} (\bibinfo {year} {2021})},\ \Eprint
+  {https://arxiv.org/abs/2107.14351} {arXiv:2107.14351 [cs.NE]} \BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Udrescu}\ \emph {et~al.}(2020)\citenamefont
+  {Udrescu}, \citenamefont {Tan}, \citenamefont {Feng}, \citenamefont {Neto},
+  \citenamefont {Wu},\ and\ \citenamefont {Tegmark}}]{udrescu2020b}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {S.-M.}\ \bibnamefont
+  {Udrescu}}, \bibinfo {author} {\bibfnamefont {A.}~\bibnamefont {Tan}},
+  \bibinfo {author} {\bibfnamefont {J.}~\bibnamefont {Feng}}, \bibinfo {author}
+  {\bibfnamefont {O.}~\bibnamefont {Neto}}, \bibinfo {author} {\bibfnamefont
+  {T.}~\bibnamefont {Wu}},\ and\ \bibinfo {author} {\bibfnamefont
+  {M.}~\bibnamefont {Tegmark}},\ }\bibfield  {title} {\bibinfo {title} {{AI
+  Feynman} 2.0: Pareto-optimal equations including auxiliary assumptions},\
+  }in\ \href@noop {} {\emph {\bibinfo {booktitle} {Advances in Neural
+  Information Processing Systems}}},\ Vol.~\bibinfo {volume} {33}\ (\bibinfo
+  {year} {2020})\ pp.\ \bibinfo {pages} {4860--4871}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Tenachi}\ \emph {et~al.}(2023)\citenamefont
+  {Tenachi}, \citenamefont {Ibata},\ and\ \citenamefont
+  {Diakogiannis}}]{tenachi2023}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {W.}~\bibnamefont
+  {Tenachi}}, \bibinfo {author} {\bibfnamefont {R.}~\bibnamefont {Ibata}},\
+  and\ \bibinfo {author} {\bibfnamefont {F.~I.}\ \bibnamefont {Diakogiannis}},\
+  }\bibfield  {title} {\bibinfo {title} {Deep symbolic regression for physics
+  guided by units constraints},\ }\href
+  {https://doi.org/10.3847/1538-4357/ad014c} {\bibfield  {journal} {\bibinfo
+  {journal} {The Astrophysical Journal}\ }\textbf {\bibinfo {volume} {959}},\
+  \bibinfo {pages} {99} (\bibinfo {year} {2023})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Cranmer}\ \emph {et~al.}(2020)\citenamefont
+  {Cranmer}, \citenamefont {Sanchez-Gonzalez}, \citenamefont {Battaglia},
+  \citenamefont {Xu}, \citenamefont {Cranmer}, \citenamefont {Spergel},\ and\
+  \citenamefont {Ho}}]{cranmer2020}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Cranmer}}, \bibinfo {author} {\bibfnamefont {A.}~\bibnamefont
+  {Sanchez-Gonzalez}}, \bibinfo {author} {\bibfnamefont {P.}~\bibnamefont
+  {Battaglia}}, \bibinfo {author} {\bibfnamefont {R.}~\bibnamefont {Xu}},
+  \bibinfo {author} {\bibfnamefont {K.}~\bibnamefont {Cranmer}}, \bibinfo
+  {author} {\bibfnamefont {D.}~\bibnamefont {Spergel}},\ and\ \bibinfo {author}
+  {\bibfnamefont {S.}~\bibnamefont {Ho}},\ }\bibfield  {title} {\bibinfo
+  {title} {Discovering symbolic models from deep learning with inductive
+  biases},\ }in\ \href@noop {} {\emph {\bibinfo {booktitle} {Advances in Neural
+  Information Processing Systems}}},\ Vol.~\bibinfo {volume} {33}\ (\bibinfo
+  {year} {2020})\ pp.\ \bibinfo {pages} {17429--17442}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Brunton}\ \emph {et~al.}(2016)\citenamefont
+  {Brunton}, \citenamefont {Proctor},\ and\ \citenamefont
+  {Kutz}}]{brunton2016}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {S.~L.}\ \bibnamefont
+  {Brunton}}, \bibinfo {author} {\bibfnamefont {J.~L.}\ \bibnamefont
+  {Proctor}},\ and\ \bibinfo {author} {\bibfnamefont {J.~N.}\ \bibnamefont
+  {Kutz}},\ }\bibfield  {title} {\bibinfo {title} {Discovering governing
+  equations from data by sparse identification of nonlinear dynamical
+  systems},\ }\href {https://doi.org/10.1073/pnas.1517384113} {\bibfield
+  {journal} {\bibinfo  {journal} {Proceedings of the National Academy of
+  Sciences}\ }\textbf {\bibinfo {volume} {113}},\ \bibinfo {pages} {3932}
+  (\bibinfo {year} {2016})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Rudy}\ \emph {et~al.}(2017)\citenamefont {Rudy},
+  \citenamefont {Brunton}, \citenamefont {Proctor},\ and\ \citenamefont
+  {Kutz}}]{rudy2017}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {S.~H.}\ \bibnamefont
+  {Rudy}}, \bibinfo {author} {\bibfnamefont {S.~L.}\ \bibnamefont {Brunton}},
+  \bibinfo {author} {\bibfnamefont {J.~L.}\ \bibnamefont {Proctor}},\ and\
+  \bibinfo {author} {\bibfnamefont {J.~N.}\ \bibnamefont {Kutz}},\ }\bibfield
+  {title} {\bibinfo {title} {Data-driven discovery of partial differential
+  equations},\ }\href {https://doi.org/10.1126/sciadv.1602614} {\bibfield
+  {journal} {\bibinfo  {journal} {Science Advances}\ }\textbf {\bibinfo
+  {volume} {3}},\ \bibinfo {pages} {e1602614} (\bibinfo {year}
+  {2017})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Rackauckas}\ \emph {et~al.}(2020)\citenamefont
+  {Rackauckas}, \citenamefont {Ma}, \citenamefont {Martensen}, \citenamefont
+  {Warner}, \citenamefont {Zubov}, \citenamefont {Supekar}, \citenamefont
+  {Skinner}, \citenamefont {Ramadhan},\ and\ \citenamefont
+  {Edelman}}]{rackauckas2020}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {C.}~\bibnamefont
+  {Rackauckas}}, \bibinfo {author} {\bibfnamefont {Y.}~\bibnamefont {Ma}},
+  \bibinfo {author} {\bibfnamefont {J.}~\bibnamefont {Martensen}}, \bibinfo
+  {author} {\bibfnamefont {C.}~\bibnamefont {Warner}}, \bibinfo {author}
+  {\bibfnamefont {K.}~\bibnamefont {Zubov}}, \bibinfo {author} {\bibfnamefont
+  {R.}~\bibnamefont {Supekar}}, \bibinfo {author} {\bibfnamefont
+  {D.}~\bibnamefont {Skinner}}, \bibinfo {author} {\bibfnamefont
+  {A.}~\bibnamefont {Ramadhan}},\ and\ \bibinfo {author} {\bibfnamefont
+  {A.}~\bibnamefont {Edelman}},\ }\bibfield  {title} {\bibinfo {title}
+  {Universal differential equations for scientific machine learning},\
+  }\bibfield  {journal} {\bibinfo  {journal} {arXiv preprint}\ }\href
+  {https://doi.org/10.48550/arXiv.2001.04385} {10.48550/arXiv.2001.04385}
+  (\bibinfo {year} {2020}),\ \bibinfo {note} {arXiv:2001.04385}\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Raissi}\ \emph {et~al.}(2019)\citenamefont {Raissi},
+  \citenamefont {Perdikaris},\ and\ \citenamefont {Karniadakis}}]{raissi2019}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Raissi}}, \bibinfo {author} {\bibfnamefont {P.}~\bibnamefont {Perdikaris}},\
+  and\ \bibinfo {author} {\bibfnamefont {G.~E.}\ \bibnamefont {Karniadakis}},\
+  }\bibfield  {title} {\bibinfo {title} {Physics-informed neural networks: A
+  deep learning framework for solving forward and inverse problems involving
+  nonlinear partial differential equations},\ }\href
+  {https://doi.org/10.1016/j.jcp.2018.10.045} {\bibfield  {journal} {\bibinfo
+  {journal} {Journal of Computational Physics}\ }\textbf {\bibinfo {volume}
+  {378}},\ \bibinfo {pages} {686} (\bibinfo {year} {2019})}\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Karniadakis}\ \emph {et~al.}(2021)\citenamefont
+  {Karniadakis}, \citenamefont {Kevrekidis}, \citenamefont {Lu}, \citenamefont
+  {Perdikaris}, \citenamefont {Wang},\ and\ \citenamefont
+  {Yang}}]{karniadakis2021}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {G.~E.}\ \bibnamefont
+  {Karniadakis}}, \bibinfo {author} {\bibfnamefont {I.~G.}\ \bibnamefont
+  {Kevrekidis}}, \bibinfo {author} {\bibfnamefont {L.}~\bibnamefont {Lu}},
+  \bibinfo {author} {\bibfnamefont {P.}~\bibnamefont {Perdikaris}}, \bibinfo
+  {author} {\bibfnamefont {S.}~\bibnamefont {Wang}},\ and\ \bibinfo {author}
+  {\bibfnamefont {L.}~\bibnamefont {Yang}},\ }\bibfield  {title} {\bibinfo
+  {title} {Physics-informed machine learning},\ }\href
+  {https://doi.org/10.1038/s42254-021-00314-5} {\bibfield  {journal} {\bibinfo
+  {journal} {Nature Reviews Physics}\ }\textbf {\bibinfo {volume} {3}},\
+  \bibinfo {pages} {422} (\bibinfo {year} {2021})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Petersen}\ \emph {et~al.}(2021)\citenamefont
+  {Petersen}, \citenamefont {Larma}, \citenamefont {Mundhenk}, \citenamefont
+  {Santiago}, \citenamefont {Kim},\ and\ \citenamefont {Kim}}]{petersen2021}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {B.~K.}\ \bibnamefont
+  {Petersen}}, \bibinfo {author} {\bibfnamefont {M.~L.}\ \bibnamefont {Larma}},
+  \bibinfo {author} {\bibfnamefont {T.~N.}\ \bibnamefont {Mundhenk}}, \bibinfo
+  {author} {\bibfnamefont {C.~P.}\ \bibnamefont {Santiago}}, \bibinfo {author}
+  {\bibfnamefont {S.~K.}\ \bibnamefont {Kim}},\ and\ \bibinfo {author}
+  {\bibfnamefont {J.~T.}\ \bibnamefont {Kim}},\ }\bibfield  {title} {\bibinfo
+  {title} {Deep symbolic regression: Recovering mathematical expressions from
+  data via risk-seeking policy gradients},\ }in\ \href
+  {https://openreview.net/forum?id=m5Qsh0kBQG} {\emph {\bibinfo {booktitle}
+  {International Conference on Learning Representations}}}\ (\bibinfo {year}
+  {2021})\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Li}\ \emph {et~al.}(2019)\citenamefont {Li},
+  \citenamefont {Fan}, \citenamefont {Singh},\ and\ \citenamefont
+  {Riley}}]{li2019}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {L.}~\bibnamefont
+  {Li}}, \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont {Fan}}, \bibinfo
+  {author} {\bibfnamefont {R.}~\bibnamefont {Singh}},\ and\ \bibinfo {author}
+  {\bibfnamefont {P.}~\bibnamefont {Riley}},\ }\href
+  {https://doi.org/10.48550/arXiv.1901.07714} {\bibinfo {title} {Neural-guided
+  symbolic regression with asymptotic constraints}},\ \bibinfo {howpublished}
+  {arXiv preprint} (\bibinfo {year} {2019}),\ \bibinfo {note}
+  {arXiv:1901.07714}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Cornelio}\ \emph {et~al.}(2023)\citenamefont
+  {Cornelio}, \citenamefont {Dash}, \citenamefont {Austel}, \citenamefont
+  {Josephson}, \citenamefont {Goncalves}, \citenamefont {Clarkson},
+  \citenamefont {Megiddo}, \citenamefont {El~Khadir},\ and\ \citenamefont
+  {Horesh}}]{cornelio2023}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {C.}~\bibnamefont
+  {Cornelio}}, \bibinfo {author} {\bibfnamefont {S.}~\bibnamefont {Dash}},
+  \bibinfo {author} {\bibfnamefont {V.}~\bibnamefont {Austel}}, \bibinfo
+  {author} {\bibfnamefont {T.~R.}\ \bibnamefont {Josephson}}, \bibinfo {author}
+  {\bibfnamefont {J.}~\bibnamefont {Goncalves}}, \bibinfo {author}
+  {\bibfnamefont {K.~L.}\ \bibnamefont {Clarkson}}, \bibinfo {author}
+  {\bibfnamefont {N.}~\bibnamefont {Megiddo}}, \bibinfo {author} {\bibfnamefont
+  {B.}~\bibnamefont {El~Khadir}},\ and\ \bibinfo {author} {\bibfnamefont
+  {L.}~\bibnamefont {Horesh}},\ }\bibfield  {title} {\bibinfo {title}
+  {Combining data and theory for derivable scientific discovery with
+  {AI-Descartes}},\ }\href {https://doi.org/10.1038/s41467-023-37236-y}
+  {\bibfield  {journal} {\bibinfo  {journal} {Nature Communications}\ }\textbf
+  {\bibinfo {volume} {14}},\ \bibinfo {pages} {1777} (\bibinfo {year}
+  {2023})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Brence}\ \emph {et~al.}(2021)\citenamefont {Brence},
+  \citenamefont {Todorovski},\ and\ \citenamefont
+  {D{\v{z}}eroski}}]{brence2021}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.}~\bibnamefont
+  {Brence}}, \bibinfo {author} {\bibfnamefont {L.}~\bibnamefont {Todorovski}},\
+  and\ \bibinfo {author} {\bibfnamefont {S.}~\bibnamefont {D{\v{z}}eroski}},\
+  }\bibfield  {title} {\bibinfo {title} {Probabilistic grammars for equation
+  discovery},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Knowledge-Based Systems}\ }\textbf {\bibinfo {volume} {224}},\ \bibinfo
+  {pages} {107077} (\bibinfo {year} {2021})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Akaike}(1974)}]{akaike1974}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {H.}~\bibnamefont
+  {Akaike}},\ }\bibfield  {title} {\bibinfo {title} {A new look at the
+  statistical model identification},\ }\href
+  {https://doi.org/10.1109/TAC.1974.1100705} {\bibfield  {journal} {\bibinfo
+  {journal} {IEEE Transactions on Automatic Control}\ }\textbf {\bibinfo
+  {volume} {19}},\ \bibinfo {pages} {716} (\bibinfo {year} {1974})}\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Schwarz}(1978)}]{schwarz1978}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {G.}~\bibnamefont
+  {Schwarz}},\ }\bibfield  {title} {\bibinfo {title} {Estimating the dimension
+  of a model},\ }\href {https://doi.org/10.1214/aos/1176344136} {\bibfield
+  {journal} {\bibinfo  {journal} {The Annals of Statistics}\ }\textbf {\bibinfo
+  {volume} {6}},\ \bibinfo {pages} {461} (\bibinfo {year} {1978})}\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Kass}\ and\ \citenamefont
+  {Raftery}(1995)}]{kass1995}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {R.~E.}\ \bibnamefont
+  {Kass}}\ and\ \bibinfo {author} {\bibfnamefont {A.~E.}\ \bibnamefont
+  {Raftery}},\ }\bibfield  {title} {\bibinfo {title} {Bayes factors},\ }\href
+  {https://doi.org/10.1080/01621459.1995.10476572} {\bibfield  {journal}
+  {\bibinfo  {journal} {Journal of the American Statistical Association}\
+  }\textbf {\bibinfo {volume} {90}},\ \bibinfo {pages} {773} (\bibinfo {year}
+  {1995})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Landajuela}\ \emph {et~al.}(2022)\citenamefont
+  {Landajuela}, \citenamefont {Lee}, \citenamefont {Yang}, \citenamefont
+  {Glatt}, \citenamefont {Santiago}, \citenamefont {Aravena}, \citenamefont
+  {Mundhenk}, \citenamefont {Kim}, \citenamefont {Mulcahy},\ and\ \citenamefont
+  {Petersen}}]{landajuela2022}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Landajuela}}, \bibinfo {author} {\bibfnamefont {B.~K.}\ \bibnamefont {Lee}},
+  \bibinfo {author} {\bibfnamefont {J.}~\bibnamefont {Yang}}, \bibinfo {author}
+  {\bibfnamefont {R.}~\bibnamefont {Glatt}}, \bibinfo {author} {\bibfnamefont
+  {C.~P.}\ \bibnamefont {Santiago}}, \bibinfo {author} {\bibfnamefont
+  {I.}~\bibnamefont {Aravena}}, \bibinfo {author} {\bibfnamefont {T.~N.}\
+  \bibnamefont {Mundhenk}}, \bibinfo {author} {\bibfnamefont {S.~K.}\
+  \bibnamefont {Kim}}, \bibinfo {author} {\bibfnamefont {G.}~\bibnamefont
+  {Mulcahy}},\ and\ \bibinfo {author} {\bibfnamefont {B.~K.}\ \bibnamefont
+  {Petersen}},\ }\bibfield  {title} {\bibinfo {title} {A unified framework for
+  deep symbolic regression},\ }\href@noop {} {\bibfield  {journal} {\bibinfo
+  {journal} {Advances in Neural Information Processing Systems}\ }\textbf
+  {\bibinfo {volume} {35}},\ \bibinfo {pages} {33985} (\bibinfo {year}
+  {2022})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Stephens}(2015)}]{stephens2015}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {T.}~\bibnamefont
+  {Stephens}},\ }\href@noop {} {\bibinfo {title} {gplearn: Genetic programming
+  in {Python}}},\ \bibinfo {howpublished}
+  {\url{https://github.com/trevorstephens/gplearn}} (\bibinfo {year}
+  {2015})\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Virgolin}\ \emph {et~al.}(2021)\citenamefont
+  {Virgolin}, \citenamefont {Alderliesten},\ and\ \citenamefont
+  {Bosman}}]{virgolin2021}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Virgolin}}, \bibinfo {author} {\bibfnamefont {T.}~\bibnamefont
+  {Alderliesten}},\ and\ \bibinfo {author} {\bibfnamefont {P.~A.~N.}\
+  \bibnamefont {Bosman}},\ }\bibfield  {title} {\bibinfo {title} {Improving
+  model-based genetic programming for symbolic regression of small
+  expressions},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Evolutionary Computation}\ }\textbf {\bibinfo {volume} {29}},\ \bibinfo
+  {pages} {211} (\bibinfo {year} {2021})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Biggio}\ \emph {et~al.}(2021)\citenamefont {Biggio},
+  \citenamefont {Bendinelli}, \citenamefont {Neitz}, \citenamefont {Lucchi},\
+  and\ \citenamefont {Parascandolo}}]{biggio2021}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {L.}~\bibnamefont
+  {Biggio}}, \bibinfo {author} {\bibfnamefont {T.}~\bibnamefont {Bendinelli}},
+  \bibinfo {author} {\bibfnamefont {A.}~\bibnamefont {Neitz}}, \bibinfo
+  {author} {\bibfnamefont {A.}~\bibnamefont {Lucchi}},\ and\ \bibinfo {author}
+  {\bibfnamefont {G.}~\bibnamefont {Parascandolo}},\ }\bibfield  {title}
+  {\bibinfo {title} {Neural symbolic regression that scales},\ }\href@noop {}
+  {\bibfield  {journal} {\bibinfo  {journal} {International Conference on
+  Machine Learning}\ ,\ \bibinfo {pages} {936}} (\bibinfo {year}
+  {2021})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Jin}\ \emph {et~al.}(2019)\citenamefont {Jin},
+  \citenamefont {Fu}, \citenamefont {Kang}, \citenamefont {Guo},\ and\
+  \citenamefont {Guo}}]{jin2019}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {Y.}~\bibnamefont
+  {Jin}}, \bibinfo {author} {\bibfnamefont {W.}~\bibnamefont {Fu}}, \bibinfo
+  {author} {\bibfnamefont {J.}~\bibnamefont {Kang}}, \bibinfo {author}
+  {\bibfnamefont {J.}~\bibnamefont {Guo}},\ and\ \bibinfo {author}
+  {\bibfnamefont {J.}~\bibnamefont {Guo}},\ }\bibfield  {title} {\bibinfo
+  {title} {Bayesian symbolic regression},\ }\href@noop {} {\bibfield  {journal}
+  {\bibinfo  {journal} {arXiv preprint arXiv:1910.08892}\ } (\bibinfo {year}
+  {2019})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {McConaghy}(2011)}]{mcconaghy2011}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {T.}~\bibnamefont
+  {McConaghy}},\ }\bibfield  {title} {\bibinfo {title} {{FFX}: High-performance
+  symbolic regression with fast function extraction},\ }in\ \href@noop {}
+  {\emph {\bibinfo {booktitle} {Genetic Programming Theory and Practice IX}}}\
+  (\bibinfo  {publisher} {Springer},\ \bibinfo {year} {2011})\ pp.\ \bibinfo
+  {pages} {235--260}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Meurer}\ \emph {et~al.}(2017)\citenamefont {Meurer},
+  \citenamefont {Smith}, \citenamefont {Paprocki}, \citenamefont
+  {{\v{C}}ert{\'{i}}k}, \citenamefont {Kirpichev}, \citenamefont {Rocklin},
+  \citenamefont {Kumar}, \citenamefont {Ivanov}, \citenamefont {Moore},
+  \citenamefont {Singh}, \citenamefont {Rathnayake}, \citenamefont {Vig},
+  \citenamefont {Granger}, \citenamefont {Muller}, \citenamefont {Bonazzi},
+  \citenamefont {Gupta}, \citenamefont {Vats}, \citenamefont {Johansson},
+  \citenamefont {Pedregosa}, \citenamefont {Curry}, \citenamefont {Terrel},
+  \citenamefont {Rou{\v{c}}ka}, \citenamefont {Saboo}, \citenamefont
+  {Fernando}, \citenamefont {Kulal}, \citenamefont {Cimrman},\ and\
+  \citenamefont {Scopatz}}]{meurer2017}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {A.}~\bibnamefont
+  {Meurer}}, \bibinfo {author} {\bibfnamefont {C.~P.}\ \bibnamefont {Smith}},
+  \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont {Paprocki}}, \bibinfo
+  {author} {\bibfnamefont {O.}~\bibnamefont {{\v{C}}ert{\'{i}}k}}, \bibinfo
+  {author} {\bibfnamefont {S.~B.}\ \bibnamefont {Kirpichev}}, \bibinfo {author}
+  {\bibfnamefont {M.}~\bibnamefont {Rocklin}}, \bibinfo {author} {\bibfnamefont
+  {A.}~\bibnamefont {Kumar}}, \bibinfo {author} {\bibfnamefont
+  {S.}~\bibnamefont {Ivanov}}, \bibinfo {author} {\bibfnamefont {J.~K.}\
+  \bibnamefont {Moore}}, \bibinfo {author} {\bibfnamefont {S.}~\bibnamefont
+  {Singh}}, \bibinfo {author} {\bibfnamefont {T.}~\bibnamefont {Rathnayake}},
+  \bibinfo {author} {\bibfnamefont {S.}~\bibnamefont {Vig}}, \bibinfo {author}
+  {\bibfnamefont {B.~E.}\ \bibnamefont {Granger}}, \bibinfo {author}
+  {\bibfnamefont {R.~P.}\ \bibnamefont {Muller}}, \bibinfo {author}
+  {\bibfnamefont {F.}~\bibnamefont {Bonazzi}}, \bibinfo {author} {\bibfnamefont
+  {H.}~\bibnamefont {Gupta}}, \bibinfo {author} {\bibfnamefont
+  {S.}~\bibnamefont {Vats}}, \bibinfo {author} {\bibfnamefont {F.}~\bibnamefont
+  {Johansson}}, \bibinfo {author} {\bibfnamefont {F.}~\bibnamefont
+  {Pedregosa}}, \bibinfo {author} {\bibfnamefont {M.~J.}\ \bibnamefont
+  {Curry}}, \bibinfo {author} {\bibfnamefont {A.~R.}\ \bibnamefont {Terrel}},
+  \bibinfo {author} {\bibfnamefont {{\v{S}}.}~\bibnamefont {Rou{\v{c}}ka}},
+  \bibinfo {author} {\bibfnamefont {A.}~\bibnamefont {Saboo}}, \bibinfo
+  {author} {\bibfnamefont {I.}~\bibnamefont {Fernando}}, \bibinfo {author}
+  {\bibfnamefont {S.}~\bibnamefont {Kulal}}, \bibinfo {author} {\bibfnamefont
+  {R.}~\bibnamefont {Cimrman}},\ and\ \bibinfo {author} {\bibfnamefont
+  {A.}~\bibnamefont {Scopatz}},\ }\bibfield  {title} {\bibinfo {title}
+  {{SymPy}: symbolic computing in {Python}},\ }\href
+  {https://doi.org/10.7717/peerj-cs.103} {\bibfield  {journal} {\bibinfo
+  {journal} {PeerJ Computer Science}\ }\textbf {\bibinfo {volume} {3}},\
+  \bibinfo {pages} {e103} (\bibinfo {year} {2017})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Byrd}\ \emph {et~al.}(1995)\citenamefont {Byrd},
+  \citenamefont {Lu}, \citenamefont {Nocedal},\ and\ \citenamefont
+  {Zhu}}]{byrd1995}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {R.~H.}\ \bibnamefont
+  {Byrd}}, \bibinfo {author} {\bibfnamefont {P.}~\bibnamefont {Lu}}, \bibinfo
+  {author} {\bibfnamefont {J.}~\bibnamefont {Nocedal}},\ and\ \bibinfo {author}
+  {\bibfnamefont {C.}~\bibnamefont {Zhu}},\ }\bibfield  {title} {\bibinfo
+  {title} {A limited memory algorithm for bound constrained optimization},\
+  }\href {https://doi.org/10.1137/0916069} {\bibfield  {journal} {\bibinfo
+  {journal} {SIAM Journal on Scientific Computing}\ }\textbf {\bibinfo {volume}
+  {16}},\ \bibinfo {pages} {1190} (\bibinfo {year} {1995})}\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Bradbury}\ \emph {et~al.}(2018)\citenamefont
+  {Bradbury}, \citenamefont {Frostig}, \citenamefont {Hawkins}, \citenamefont
+  {Johnson}, \citenamefont {Leary}, \citenamefont {Maclaurin}, \citenamefont
+  {Necula}, \citenamefont {Paszke}, \citenamefont {Vander{P}las}, \citenamefont
+  {Wanderman-{M}ilne},\ and\ \citenamefont {Zhang}}]{bradbury2018}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.}~\bibnamefont
+  {Bradbury}}, \bibinfo {author} {\bibfnamefont {R.}~\bibnamefont {Frostig}},
+  \bibinfo {author} {\bibfnamefont {P.}~\bibnamefont {Hawkins}}, \bibinfo
+  {author} {\bibfnamefont {M.~J.}\ \bibnamefont {Johnson}}, \bibinfo {author}
+  {\bibfnamefont {C.}~\bibnamefont {Leary}}, \bibinfo {author} {\bibfnamefont
+  {D.}~\bibnamefont {Maclaurin}}, \bibinfo {author} {\bibfnamefont
+  {G.}~\bibnamefont {Necula}}, \bibinfo {author} {\bibfnamefont
+  {A.}~\bibnamefont {Paszke}}, \bibinfo {author} {\bibfnamefont
+  {J.}~\bibnamefont {Vander{P}las}}, \bibinfo {author} {\bibfnamefont
+  {S.}~\bibnamefont {Wanderman-{M}ilne}},\ and\ \bibinfo {author}
+  {\bibfnamefont {Q.}~\bibnamefont {Zhang}},\ }\href@noop {} {\bibinfo {title}
+  {{JAX}: composable transformations of {Python}+{NumPy} programs}},\ \bibinfo
+  {howpublished} {\url{http://github.com/google/jax}} (\bibinfo {year}
+  {2018})\BibitemShut {NoStop}%
+\end{thebibliography}%

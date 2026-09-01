@@ -114,6 +114,14 @@ class CandidateResult:
         return self.verdict == "IDENTIFIABLE"
 
     @property
+    def is_candidate(self) -> bool:
+        return self.verdict == "CANDIDATE"
+
+    @property
+    def is_withheld(self) -> bool:
+        return self.verdict == "WITHHELD"
+
+    @property
     def expr(self) -> str:
         return self.expr_str
 

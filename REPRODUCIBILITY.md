@@ -163,3 +163,6 @@ paper/
   fig3_parity.pdf
   neurips_paper.pdf
 ```
+
+
+<!-- Epistemic Tiers: IDENTIFIABLE, CANDIDATE, WITHHELD -->

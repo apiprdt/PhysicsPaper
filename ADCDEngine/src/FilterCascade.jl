@@ -7,7 +7,7 @@ using ..ADCDDimensions
 using ..PrimitiveRegistry
 using ..CorrectionProposer
 using ..ConstantFitter
-using ..IdentifiabilityGate
+using ..IdentifiabilityGate: IdentVerdict, IDENTIFIABLE, CANDIDATE, WITHHELD
 
 export RunConfig, GateStats, ADCDResult
 export run_filter_cascade, run_cascade_on_proposals
@@ -19,10 +19,11 @@ mutable struct GateStats
     n_pass_gate_c::Int
     n_pass_gate_d::Int
     n_pass_gate_e::Int
+    n_candidate  ::Int
     n_withheld   ::Int
 end
 
-GateStats() = GateStats(0, 0, 0, 0, 0, 0, 0)
+GateStats() = GateStats(0, 0, 0, 0, 0, 0, 0, 0)
 
 struct RunConfig
     domain                   ::String
@@ -200,6 +201,8 @@ function run_filter_cascade(
 
     if verdict == IDENTIFIABLE
         stats.n_pass_gate_e = 1
+    elseif verdict == CANDIDATE
+        stats.n_candidate = 1
     else
         stats.n_withheld = 1
     end
@@ -234,6 +237,7 @@ function run_cascade_on_proposals(
         agg.n_pass_gate_c += stats.n_pass_gate_c
         agg.n_pass_gate_d += stats.n_pass_gate_d
         agg.n_pass_gate_e += stats.n_pass_gate_e
+        agg.n_candidate   += stats.n_candidate
         agg.n_withheld    += stats.n_withheld
 
         result === nothing && continue

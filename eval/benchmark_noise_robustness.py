@@ -138,13 +138,13 @@ def main():
             noise_runs = [r for r in sc_results if abs(r["noise"] - noise) < 1e-6]
             n_runs = len(noise_runs)
             id_count = sum(1 for r in noise_runs if r["tier"] == "IDENTIFIABLE")
-            unres_count = sum(1 for r in noise_runs if r["tier"] == "DETECTED_UNRESOLVED")
+            unres_count = sum(1 for r in noise_runs if r["tier"] == "CANDIDATE")
             withheld_count = sum(1 for r in noise_runs if r["tier"] == "WITHHELD")
             match_count = sum(1 for r in noise_runs if r["is_match"])
             summary_rows.append({
                 "noise": noise,
                 "identifiable_rate": id_count / n_runs if n_runs > 0 else 0.0,
-                "detected_unresolved_rate": unres_count / n_runs if n_runs > 0 else 0.0,
+                "candidate_rate": unres_count / n_runs if n_runs > 0 else 0.0,
                 "withheld_rate": withheld_count / n_runs if n_runs > 0 else 0.0,
                 "match_rate": match_count / n_runs if n_runs > 0 else 0.0,
             })
@@ -159,7 +159,7 @@ def main():
             print(
                 f"{r['noise']:<8.2f} | "
                 f"{r['identifiable_rate'] * 100:>11.0f}% | "
-                f"{r['detected_unresolved_rate'] * 100:>15.0f}% | "
+                f"{r['candidate_rate'] * 100:>15.0f}% | "
                 f"{r['withheld_rate'] * 100:>8.0f}% | "
                 f"{r['match_rate'] * 100:>10.0f}%"
             )

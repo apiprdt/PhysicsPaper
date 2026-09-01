@@ -456,3 +456,6 @@ For the full provenance chain — including a-priori AST budget justification an
 ```
 
 Released under the **MIT License** — see [LICENSE](LICENSE).
+
+
+<!-- Epistemic Tiers: IDENTIFIABLE, CANDIDATE, WITHHELD -->

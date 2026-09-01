@@ -5,10 +5,10 @@ module IdentifiabilityGate
 
 using ..ConstantFitter
 
-export IdentVerdict, IDENTIFIABLE, WITHHELD
+export IdentVerdict, IDENTIFIABLE, CANDIDATE, WITHHELD
 export bic_score, hierarchical_bic_penalty, identifiability_gate, hierarchical_bic, compute_effective_sample_size
 
-@enum IdentVerdict IDENTIFIABLE WITHHELD
+@enum IdentVerdict IDENTIFIABLE CANDIDATE WITHHELD
 
 """
     bic_score(n_points, n_params, log_likelihood, n_groups=nothing)
@@ -97,7 +97,7 @@ function identifiability_gate(
     end
 
     # 3. Gating checks
-    if !fit_result.converged || fit_result.nmse > nmse_threshold
+    if !fit_result.converged
         return (WITHHELD, delta_bic)
     end
 

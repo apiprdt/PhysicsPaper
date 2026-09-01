@@ -18,7 +18,7 @@ using JSON3
 using Statistics
 
 export run_adcd, RunConfig, ADCDResult, GateStats
-export IDENTIFIABLE, WITHHELD
+export IdentVerdict, IDENTIFIABLE, CANDIDATE, WITHHELD
 export ProposalConfig, propose_corrections
 export verify_dimension, list_primitives
 

@@ -326,6 +326,12 @@ end  # ConstantFitter testset
         @test verdict == WITHHELD
     end
 
+    @testset "Tri-Tier Verdict Coverage (IDENTIFIABLE, CANDIDATE, WITHHELD)" begin
+        @test Int(IDENTIFIABLE) == 0
+        @test Int(CANDIDATE) == 1
+        @test Int(WITHHELD) == 2
+    end
+
     @testset "hierarchical_bic penalizes more than standard BIC" begin
         # With fewer effective observations (groups), BIC should penalize more
         ll = -100.0; n_params = 2

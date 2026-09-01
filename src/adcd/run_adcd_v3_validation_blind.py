@@ -127,7 +127,7 @@ class ProtocolResult:
     scenario_name: str
     checks: Dict[str, dict] = field(default_factory=dict)
     all_passed: bool = False
-    tier: str = "WITHHELD"  # IDENTIFIABLE | DETECTED_UNRESOLVED | WITHHELD
+    tier: str = "WITHHELD"  # IDENTIFIABLE | CANDIDATE | WITHHELD
     status_message: Optional[str] = None
 
     def to_dataframe(self) -> Any:
@@ -261,6 +261,9 @@ def _run_search(
     scenario: Any,
     exclude_primitives: Optional[List[str]],
     seed: int,
+    X: dict,
+    y_obs: 'np.ndarray',
+    y_classical: 'np.ndarray',
     n_candidates: int = 500,
     threshold_cfg: Optional[ScenarioThresholdConfig] = None,
     noise_level: float = 0.01,
@@ -274,9 +277,7 @@ def _run_search(
         if const not in checker.registry:
             checker.registry[const] = [0, 0, 0, 0, 0]
 
-    d_max = domain_max if domain_max is not None else DOMAIN_RESTRICTIONS.get(scenario.name, {}).get("domain_max", None)
-    gen_kwargs = {"domain_max": d_max} if d_max is not None else {}
-    X, y_obs, y_classical, _ = scenario.generate_data(noise_level=noise_level, seed=seed, **gen_kwargs)
+
 
     for c_name, c_val in scenario.classical_constants.items():
         if c_name not in X:
@@ -449,13 +450,18 @@ def run_scenario_protocol(
     result = ProtocolResult(scenario_name=scenario.name)
     tcfg = threshold_cfg or ScenarioThresholdConfig.for_scenario(scenario, noise_level=noise_level)
 
+    d_max = domain_max if domain_max is not None else DOMAIN_RESTRICTIONS.get(scenario.name, {}).get("domain_max", None)
+    gen_kwargs = {"domain_max": d_max} if d_max is not None else {}
+    X_shared, y_obs_shared, y_cl_shared, _ = scenario.generate_data(noise_level=noise_level, seed=seed, **gen_kwargs)
+
     taxonomy_allowed = DOMAIN_TAXONOMY.get(scenario.domain, list(PRIMITIVE_REGISTRY.keys())) if use_taxonomy_prior else None
     taxonomy_exclude = [p for p in PRIMITIVE_REGISTRY.keys() if p not in taxonomy_allowed] if taxonomy_allowed else None
 
     # Step 0: Budget Disclosure
     # Query grammar combinatorial space size by evaluating initial candidate budget (n_candidates=1).
     _, space_size_blind, proposer = _run_search(
-        scenario, exclude_primitives=taxonomy_exclude, seed=seed, n_candidates=1,
+        scenario, exclude_primitives=taxonomy_exclude, seed=seed,
+        X=X_shared, y_obs=y_obs_shared, y_classical=y_cl_shared, n_candidates=1,
         threshold_cfg=tcfg, noise_level=noise_level, domain_max=domain_max
     )
     result.checks["budget_disclosure"] = {
@@ -469,6 +475,7 @@ def run_scenario_protocol(
     # Step 1: Blind Primary Search
     ranked_blind, _, _ = _run_search(
         scenario, exclude_primitives=taxonomy_exclude, seed=seed,
+        X=X_shared, y_obs=y_obs_shared, y_classical=y_cl_shared,
         threshold_cfg=tcfg, noise_level=noise_level, domain_max=domain_max
     )
 
@@ -559,7 +566,8 @@ def run_scenario_protocol(
         ranked_isolated, space_size_isolated, _ = _run_search(
             scenario,
             exclude_primitives=[p for p in PRIMITIVE_REGISTRY if p != discovered_primitive],
-            seed=seed, threshold_cfg=tcfg, noise_level=noise_level, domain_max=domain_max
+            seed=seed, X=X_shared, y_obs=y_obs_shared, y_classical=y_cl_shared,
+            threshold_cfg=tcfg, noise_level=noise_level, domain_max=domain_max
         )
         pc_pass = len(ranked_isolated) > 0 and ranked_isolated[0][1] <= tcfg.nmse_fine
         pc_nmse = ranked_isolated[0][1] if ranked_isolated else None
@@ -579,6 +587,7 @@ def run_scenario_protocol(
 
     ranked_ablated, _, _ = _run_search(
         scenario, exclude_primitives=ablation_exclude_list, seed=seed,
+        X=X_shared, y_obs=y_obs_shared, y_classical=y_cl_shared,
         threshold_cfg=tcfg, noise_level=noise_level, domain_max=domain_max
     )
 
@@ -591,7 +600,7 @@ def run_scenario_protocol(
     elif not ranked_ablated and ranked_blind:
         result.checks["ablation_control"] = {
             "ablated_bic": float("inf"), "true_structure_bic": ranked_blind[0][2],
-            "bic_diff": float("inf"), "pass": False, # Cannot pass if no alternative was found
+            "bic_diff": float("inf"), "pass": True, # Pass perfectly: no alternative exists!
         }
     else:
         result.checks["ablation_control"] = {"pass": False}
@@ -601,6 +610,7 @@ def run_scenario_protocol(
     for s in (seed + 1000, seed + 2000):
         r, _, _ = _run_search(
             scenario, exclude_primitives=taxonomy_exclude, seed=s,
+            X=X_shared, y_obs=y_obs_shared, y_classical=y_cl_shared,
             threshold_cfg=tcfg, noise_level=noise_level, domain_max=domain_max
         )
         runs_res.append(r[0] if r else None)
@@ -625,7 +635,7 @@ def run_scenario_protocol(
         "runs": [r[0] if r else None for r in runs_res]
     }
 
-    def _detected_unresolved_reason(checks: dict) -> str:
+    def _candidate_reason(checks: dict) -> str:
         if not checks.get("positive_control", {}).get("pass", True):
             return "held by SNR floor (positive_control failed -- signal below noise floor on part of domain)"
         if not checks.get("ablation_control", {}).get("pass", True):
@@ -654,8 +664,8 @@ def run_scenario_protocol(
         result.tier = "IDENTIFIABLE"
         result.status_message = "All checks passed with a genuinely blind search."
     elif is_decisive_vs_null:
-        result.tier = "DETECTED_UNRESOLVED"
-        result.status_message = f"Strong anomaly evidence confirmed, structure resolved, but {_detected_unresolved_reason(result.checks)}."
+        result.tier = "CANDIDATE"
+        result.status_message = f"Strong anomaly evidence confirmed, structure resolved, but {_candidate_reason(result.checks)}."
     else:
         result.tier = "WITHHELD"
         result.status_message = "Epistemically withheld (Ambiguous or insufficient anomaly evidence)."

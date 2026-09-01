@@ -169,7 +169,7 @@ class ADCDResult:
             " [SCIENTIFIC INTEGRITY & CITATION DISCLAIMER]",
             "   * Publication Standard : Only candidates certified as Tier [IDENTIFIABLE]",
             "     (passing all 4 verification gates) constitute statistically validated laws.",
-            "   * Exploratory Status   : Models marked [DETECTED_UNRESOLVED] or [WITHHELD]",
+            "   * Exploratory Status   : Models marked [CANDIDATE] or [WITHHELD]",
             "     represent unconfirmed hypotheses due to SNR limits or candidate competition.",
             "     They should be cited as exploratory candidates, not established physical laws.",
             "   * Dimensional Validity : Physical consistency is guaranteed algebraically within",

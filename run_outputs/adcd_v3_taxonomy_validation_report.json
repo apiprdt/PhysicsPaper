@@ -1,11 +1,250 @@
 {
-  "Entropy Expansion": {
+  "Time Dilation": {
     "tier": "DETECTED_UNRESOLVED",
-    "status_message": "Strong anomaly evidence confirmed, structure resolved, but held by structural ambiguity (ablation_control failed -- competing structure fits equally well).",
+    "status_message": "Strong anomaly evidence confirmed, structure resolved, but held by SNR floor (positive_control failed -- signal below noise floor on part of domain).",
     "all_passed": false,
     "checks": {
       "budget_disclosure": {
-        "search_space_size": 56,
+        "search_space_size": 28,
+        "primitives": [
+          "D_lor"
+        ],
+        "data_vars_detected": [
+          "v",
+          "t_0"
+        ],
+        "constants_detected": [
+          "c"
+        ],
+        "pass": true
+      },
+      "primary_search": {
+        "pass": true,
+        "top_candidate": "(theta_1 * (((theta_0 * ((v**2) * (c**-2)))) / (sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) * (1 + sqrt(1 - ((theta_0 * ((v**2) * (c**-2)))))))))",
+        "nmse": 0.41209911342002276,
+        "bic": -386.95486764912175,
+        "theta_fit": {
+          "theta_0": 0.9223552085009661,
+          "theta_1": 1.0778437074102747
+        },
+        "discovered_class": "rational",
+        "match_level": "class_only",
+        "true_structure_rank": 1,
+        "ground_truth_match_diagnostic_only": true,
+        "counts_toward_verdict": false,
+        "pareto_front": [
+          {
+            "expr_str": "(theta_1 * (((theta_0 * ((v**2) * (c**-2)))) / (sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) * (1 + sqrt(1 - ((theta_0 * ((v**2) * (c**-2)))))))))",
+            "latex": "\\frac{\\theta_{0} \\theta_{1} v^{2}}{c^{2} \\sqrt{1 - \\frac{\\theta_{0} v^{2}}{c^{2}}} \\left(\\sqrt{1 - \\frac{\\theta_{0} v^{2}}{c^{2}}} + 1\\right)}",
+            "nmse": 0.41209911342002276,
+            "bic": -386.95486764912175,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 0.9223552085009661,
+              "theta_1": 1.0778437074102747
+            }
+          },
+          {
+            "expr_str": "(theta_1 * (((theta_0 * (v * (c**-1)))) / (sqrt(1 - ((theta_0 * (v * (c**-1))))) * (1 + sqrt(1 - ((theta_0 * (v * (c**-1)))))))))",
+            "latex": "\\frac{\\theta_{0} \\theta_{1} v}{c \\sqrt{1 - \\frac{\\theta_{0} v}{c}} \\left(\\sqrt{1 - \\frac{\\theta_{0} v}{c}} + 1\\right)}",
+            "nmse": 0.41486238855576807,
+            "bic": -385.61827076346276,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 2.5652799064231724,
+              "theta_1": 0.04663131563238711
+            }
+          },
+          {
+            "expr_str": "(theta_1 * (((theta_0 * v)) / (sqrt(1 - ((theta_0 * v))) * (1 + sqrt(1 - ((theta_0 * v)))))))",
+            "latex": "\\frac{\\theta_{0} \\theta_{1} v}{\\sqrt{- \\theta_{0} v + 1} \\left(\\sqrt{- \\theta_{0} v + 1} + 1\\right)}",
+            "nmse": 0.41486238855576807,
+            "bic": -385.61827076346276,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 2.5652799064231724,
+              "theta_1": 0.04663131563238711
+            }
+          },
+          {
+            "expr_str": "(theta_1 * (((v / theta_0)) / (sqrt(1 - ((v / theta_0))) * (1 + sqrt(1 - ((v / theta_0)))))))",
+            "latex": "\\frac{\\theta_{1} v}{\\theta_{0} \\sqrt{1 - \\frac{v}{\\theta_{0}}} \\left(\\sqrt{1 - \\frac{v}{\\theta_{0}}} + 1\\right)}",
+            "nmse": 0.41486239015866583,
+            "bic": -385.6182699907256,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 0.38982505781623594,
+              "theta_1": 0.04663100122534433
+            }
+          },
+          {
+            "expr_str": "(theta_1 * (((sqrt((theta_0 * ((v**2) * (c**-2))))) / (sqrt(1 - (sqrt((theta_0 * ((v**2) * (c**-2)))))) * (1 + sqrt(1 - (sqrt((theta_0 * ((v**2) * (c**-2))))))))) / (1.0 + ((sqrt((theta_0 * ((v**2) * (c**-2))))) / (sqrt(1 - (sqrt((theta_0 * ((v**2) * (c**-2)))))) * (1 + sqrt(1 - (sqrt((theta_0 * ((v**2) * (c**-2))))))))))))",
+            "latex": "\\frac{\\theta_{1} \\sqrt{\\frac{\\theta_{0} v^{2}}{c^{2}}}}{\\sqrt{1 - \\sqrt{\\frac{\\theta_{0} v^{2}}{c^{2}}}} \\left(\\frac{\\sqrt{\\frac{\\theta_{0} v^{2}}{c^{2}}}}{\\sqrt{1 - \\sqrt{\\frac{\\theta_{0} v^{2}}{c^{2}}}} \\left(\\sqrt{1 - \\sqrt{\\frac{\\theta_{0} v^{2}}{c^{2}}}} + 1\\right)} + 1.0\\right) \\left(\\sqrt{1 - \\sqrt{\\frac{\\theta_{0} v^{2}}{c^{2}}}} + 1\\right)}",
+            "nmse": 0.4159809970828493,
+            "bic": -385.07972921770056,
+            "class": "rational",
+            "theta_fit": {
+              "theta_0": 13.376945065666629,
+              "theta_1": 0.0431653381280222
+            }
+          }
+        ],
+        "bayesian_best_weight": 0.30249943706600846,
+        "evidence_vs_null_label": "decisive",
+        "evidence_top2_label": "weak",
+        "posterior_entropy": 2.807966710529012,
+        "delta_bic_vs_null": 386.95486764912175
+      },
+      "positive_control": {
+        "search_space_size": 28,
+        "nmse": 0.41209911342002276,
+        "pass": false
+      },
+      "ablation_control": {
+        "ablated_bic": Infinity,
+        "true_structure_bic": -386.95486764912175,
+        "bic_diff": Infinity,
+        "pass": false
+      },
+      "determinism_check": {
+        "pass": false,
+        "runs": [
+          "(theta_1 * (((theta_0 * ((v**2) * (c**-2)))) / (sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) * (1 + sqrt(1 - ((theta_0 * ((v**2) * (c**-2)))))))))",
+          "(theta_1 * (((theta_0 * ((v**2) * (c**-2)))) / (sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) * (1 + sqrt(1 - ((theta_0 * ((v**2) * (c**-2)))))))))",
+          "(theta_1 * (((theta_0 * ((v**2) * (c**-2)))) / (sqrt(1 - ((theta_0 * ((v**2) * (c**-2))))) * (1 + sqrt(1 - ((theta_0 * ((v**2) * (c**-2)))))))))"
+        ]
+      }
+    }
+  },
+  "Screened Coulomb": {
+    "tier": "DETECTED_UNRESOLVED",
+    "status_message": "Strong anomaly evidence confirmed, structure resolved, but held by non-determinism (results vary across runs with identical seed).",
+    "all_passed": false,
+    "checks": {
+      "budget_disclosure": {
+        "search_space_size": 180,
+        "primitives": [
+          "D_exp",
+          "D_rat"
+        ],
+        "data_vars_detected": [
+          "q1",
+          "r",
+          "q2"
+        ],
+        "constants_detected": [
+          "k_e"
+        ],
+        "pass": true
+      },
+      "primary_search": {
+        "pass": true,
+        "top_candidate": "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
+        "nmse": 0.0002772155195392813,
+        "bic": -2073.4874468275843,
+        "theta_fit": {
+          "theta_0": 1.493300906422077,
+          "theta_1": -0.9987128880579966
+        },
+        "discovered_class": "exponential",
+        "match_level": "exact",
+        "true_structure_rank": 1,
+        "ground_truth_match_diagnostic_only": true,
+        "counts_toward_verdict": false,
+        "pareto_front": [
+          {
+            "expr_str": "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
+            "latex": "\\theta_{1} \\left(1 - e^{- \\left|{\\frac{r}{\\theta_{0}}}\\right|}\\right)",
+            "nmse": 0.0002772155195392813,
+            "bic": -2073.4874468275843,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": 1.493300906422077,
+              "theta_1": -0.9987128880579966
+            }
+          },
+          {
+            "expr_str": "(theta_1 * (1 - exp(-Abs((theta_0 * r)))))",
+            "latex": "\\theta_{1} \\left(1 - e^{- \\left|{r \\theta_{0}}\\right|}\\right)",
+            "nmse": 0.00027721555857847783,
+            "bic": -2073.487418662355,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": -0.6696562880022479,
+              "theta_1": -0.9987159218473367
+            }
+          },
+          {
+            "expr_str": "((theta_1 * (1 - exp(-Abs((r / theta_0))))) + (theta_2 * (((r / theta_0)) / (1 + ((r / theta_0))**2))))",
+            "latex": "\\frac{r \\theta_{2}}{\\theta_{0} \\left(\\frac{r^{2}}{\\theta_{0}^{2}} + 1\\right)} + \\theta_{1} \\left(1 - e^{- \\left|{\\frac{r}{\\theta_{0}}}\\right|}\\right)",
+            "nmse": 0.00027168776414560617,
+            "bic": -2072.2174837717157,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": 1.610916857353137,
+              "theta_1": -0.9895877683241683,
+              "theta_2": -0.06830930495594212
+            }
+          },
+          {
+            "expr_str": "((theta_1 * (1 - exp(-Abs((theta_0 * r))))) + (theta_2 * (((theta_0 * r)) / (1 + ((theta_0 * r))**2))))",
+            "latex": "\\frac{r \\theta_{0} \\theta_{2}}{r^{2} \\theta_{0}^{2} + 1} + \\theta_{1} \\left(1 - e^{- \\left|{r \\theta_{0}}\\right|}\\right)",
+            "nmse": 0.00027168815154920636,
+            "bic": -2072.2171985889618,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": -0.6203911076351585,
+              "theta_1": -0.98949680657605,
+              "theta_2": 0.06887275076564148
+            }
+          },
+          {
+            "expr_str": "((theta_1 * (((theta_0 * r)) / (1 + ((theta_0 * r))**2))) + (theta_2 * (1 - exp(-Abs((theta_0 * r))))))",
+            "latex": "\\frac{r \\theta_{0} \\theta_{1}}{r^{2} \\theta_{0}^{2} + 1} + \\theta_{2} \\left(1 - e^{- \\left|{r \\theta_{0}}\\right|}\\right)",
+            "nmse": 0.0002716882070467114,
+            "bic": -2072.2171577351382,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": 0.6211652796937818,
+              "theta_1": -0.06771198562488008,
+              "theta_2": -0.9896745235744939
+            }
+          }
+        ],
+        "bayesian_best_weight": 0.18435107763557693,
+        "evidence_vs_null_label": "decisive",
+        "evidence_top2_label": "weak",
+        "posterior_entropy": 3.7074624698751,
+        "delta_bic_vs_null": 2073.4874468275843
+      },
+      "positive_control": {
+        "search_space_size": 40,
+        "nmse": 0.0002772155195392813,
+        "pass": true
+      },
+      "ablation_control": {
+        "ablated_bic": -1316.6894646910682,
+        "true_structure_bic": -2073.4874468275843,
+        "bic_diff": 756.7979821365161,
+        "pass": true
+      },
+      "determinism_check": {
+        "pass": false,
+        "runs": [
+          "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
+          "(theta_1 * (1 - exp(-Abs((r / theta_0)))))",
+          "(theta_1 * (1 - exp(-Abs((r / theta_0)))))"
+        ]
+      }
+    }
+  },
+  "Entropy Expansion": {
+    "tier": "DETECTED_UNRESOLVED",
+    "status_message": "Strong anomaly evidence confirmed, structure resolved, but held by non-determinism (results vary across runs with identical seed).",
+    "all_passed": false,
+    "checks": {
+      "budget_disclosure": {
+        "search_space_size": 224,
         "primitives": [
           "D_exp",
           "D_log"
@@ -15,19 +254,19 @@
           "dV"
         ],
         "constants_detected": [
-          "nR",
-          "S_i"
+          "S_i",
+          "nR"
         ],
         "pass": true
       },
       "primary_search": {
         "pass": true,
-        "top_candidate": "theta_0 * log(1.0 + Abs((theta_1 * (dV/V_i))))",
-        "nmse": 0.015937351857693922,
-        "bic": -809.170612147476,
+        "top_candidate": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
+        "nmse": 0.005259081440873979,
+        "bic": -1406.756248085063,
         "theta_fit": {
-          "theta_0": 8.181976082152644,
-          "theta_1": -1.0191465925781276
+          "theta_0": 1.0081449629562826,
+          "theta_1": 8.265768554269126
         },
         "discovered_class": "logarithmic",
         "match_level": "class_only",
@@ -36,86 +275,89 @@
         "counts_toward_verdict": false,
         "pareto_front": [
           {
-            "expr_str": "theta_0 * log(1.0 + Abs((theta_1 * (dV/V_i))))",
-            "latex": "\\theta_{0} \\log{\\left(\\left|{\\frac{dV \\theta_{1}}{V_{i}}}\\right| + 1.0 \\right)}",
-            "nmse": 0.015937351857693922,
-            "bic": -809.170612147476,
+            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
+            "latex": "\\theta_{1} \\log{\\left(\\left|{\\frac{dV \\theta_{0}}{V_{i}}}\\right| + 1 \\right)}",
+            "nmse": 0.005259081440873979,
+            "bic": -1406.756248085063,
             "class": "logarithmic",
             "theta_fit": {
-              "theta_0": 8.181976082152644,
-              "theta_1": -1.0191465925781276
+              "theta_0": 1.0081449629562826,
+              "theta_1": 8.265768554269126
             }
           },
           {
-            "expr_str": "theta_0 * (1.0 - exp(-Abs(log(1.0 + Abs((theta_1 * (dV/V_i)))))))",
-            "latex": "\\theta_{0} \\left(1.0 - \\frac{1}{\\left|{\\frac{dV \\theta_{1}}{V_{i}}}\\right| + 1.0}\\right)",
-            "nmse": 0.016010897843244113,
-            "bic": -808.2497965640906,
-            "class": "rational",
-            "theta_fit": {
-              "theta_0": 19.16971217819385,
-              "theta_1": -0.4270251705421862
-            }
-          },
-          {
-            "expr_str": "theta_0 * log(1.0 + Abs((1.0 - exp(-Abs((theta_1 * (dV/V_i)))))))",
-            "latex": "\\theta_{0} \\log{\\left(\\left|{1.0 - e^{- \\left|{\\frac{dV \\theta_{1}}{V_{i}}}\\right|}}\\right| + 1.0 \\right)}",
-            "nmse": 0.016024150255561743,
-            "bic": -808.0843226365007,
+            "expr_str": "((theta_1 * (1 - exp(-Abs((theta_0 * ((V_i**-1) * dV)))))) + (theta_2 * log(1 + Abs((theta_0 * ((V_i**-1) * dV))))))",
+            "latex": "\\theta_{1} \\left(1 - e^{- \\left|{\\frac{dV \\theta_{0}}{V_{i}}}\\right|}\\right) + \\theta_{2} \\log{\\left(\\left|{\\frac{dV \\theta_{0}}{V_{i}}}\\right| + 1 \\right)}",
+            "nmse": 0.005229699264466516,
+            "bic": -1402.5784519340787,
             "class": "exponential",
             "theta_fit": {
-              "theta_0": 19.445572273323965,
-              "theta_1": -0.420005662481755
+              "theta_0": -1.240478449867996,
+              "theta_1": -1.185159369548719,
+              "theta_2": 8.178301359196954
             }
           },
           {
-            "expr_str": "theta_0 * (1.0 - exp(-Abs((theta_1 * (dV/V_i)))))",
-            "latex": "\\theta_{0} \\left(1.0 - e^{- \\left|{\\frac{dV \\theta_{1}}{V_{i}}}\\right|}\\right)",
-            "nmse": 0.01611606025085729,
-            "bic": -806.9404565026546,
+            "expr_str": "((theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV))))) + (theta_2 * (1 - exp(-Abs((theta_0 * ((V_i**-1) * dV)))))))",
+            "latex": "\\theta_{1} \\log{\\left(\\left|{\\frac{dV \\theta_{0}}{V_{i}}}\\right| + 1 \\right)} + \\theta_{2} \\left(1 - e^{- \\left|{\\frac{dV \\theta_{0}}{V_{i}}}\\right|}\\right)",
+            "nmse": 0.005229701080795045,
+            "bic": -1402.5783824720268,
             "class": "exponential",
             "theta_fit": {
-              "theta_0": 11.090694918157777,
-              "theta_1": -0.7257334903857504
+              "theta_0": 1.2406514907626771,
+              "theta_1": 8.176612115215914,
+              "theta_2": -1.1835089474102118
             }
           },
           {
-            "expr_str": "theta_0 * (1.0 - exp(-Abs((theta_1 * (dV**2/V_i**2))))) + theta_2 * log(1.0 + Abs((theta_3 * (dV**2/V_i**2))))",
-            "latex": "\\theta_{0} \\left(1.0 - e^{- \\left|{\\frac{dV^{2} \\theta_{1}}{V_{i}^{2}}}\\right|}\\right) + \\theta_{2} \\log{\\left(\\left|{\\frac{dV^{2} \\theta_{3}}{V_{i}^{2}}}\\right| + 1.0 \\right)}",
-            "nmse": 0.01568227825467126,
-            "bic": -801.8008227044188,
+            "expr_str": "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))) * (1.0 + (theta_2 * (1 - exp(-Abs((theta_0 * ((V_i**-1) * dV))))))))",
+            "latex": "\\theta_{1} \\left(\\theta_{2} \\left(1 - e^{- \\left|{\\frac{dV \\theta_{0}}{V_{i}}}\\right|}\\right) + 1.0\\right) \\log{\\left(\\left|{\\frac{dV \\theta_{0}}{V_{i}}}\\right| + 1 \\right)}",
+            "nmse": 0.005251935413884898,
+            "bic": -1401.7298750294722,
             "class": "exponential",
             "theta_fit": {
-              "theta_0": 1.0830350981587955,
-              "theta_1": 75.84922178028674,
-              "theta_2": 2.241811492046457,
-              "theta_3": 6.974652318116247
+              "theta_0": -0.9090781439834016,
+              "theta_1": 9.194795835814501,
+              "theta_2": -0.050922818080912376
+            }
+          },
+          {
+            "expr_str": "(theta_2 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))) * (1 - exp(-Abs((theta_1 * ((S_i**-2) * (nR**2)))))))",
+            "latex": "\\theta_{2} \\left(1 - e^{- \\left|{\\frac{nR^{2} \\theta_{1}}{S_{i}^{2}}}\\right|}\\right) \\log{\\left(\\left|{\\frac{dV \\theta_{0}}{V_{i}}}\\right| + 1 \\right)}",
+            "nmse": 0.00525908152598075,
+            "bic": -1401.4579274819507,
+            "class": "exponential",
+            "theta_fit": {
+              "theta_0": -1.0081098139644542,
+              "theta_1": -36.22513737764187,
+              "theta_2": 8.26609287039209
             }
           }
         ],
-        "bayesian_best_weight": 0.38288043086636475,
+        "bayesian_best_weight": 0.5278895394554138,
         "evidence_vs_null_label": "decisive",
-        "evidence_top2_label": "weak",
-        "posterior_entropy": 2.0699773538175523
+        "evidence_top2_label": "strong",
+        "posterior_entropy": 2.6120147464088666,
+        "delta_bic_vs_null": 1406.756248085063
       },
       "positive_control": {
-        "search_space_size": 8,
-        "nmse": 0.015937351857693922,
+        "search_space_size": 52,
+        "nmse": 0.005259081440873979,
         "pass": true
       },
       "ablation_control": {
-        "ablated_bic": -810.8322768007652,
-        "true_structure_bic": -809.170612147476,
-        "bic_diff": -1.6616646532891082,
-        "pass": false
+        "ablated_bic": -1392.5134750107738,
+        "true_structure_bic": -1406.756248085063,
+        "bic_diff": 14.242773074289062,
+        "pass": true
       },
       "determinism_check": {
+        "pass": false,
         "runs": [
-          "theta_0 * log(1.0 + Abs((theta_1 * (dV/V_i))))",
-          "theta_0 * log(1.0 + Abs((theta_1 * (dV/V_i))))",
-          "theta_0 * log(1.0 + Abs((theta_1 * (dV/V_i))))"
-        ],
-        "pass": true
+          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
+          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))",
+          "(theta_1 * log(1 + Abs((theta_0 * ((V_i**-1) * dV)))))"
+        ]
       }
     }
   }

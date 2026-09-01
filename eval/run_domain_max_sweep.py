@@ -21,6 +21,7 @@ def run_benchmark(engine):
     for dmax in DOMAIN_SWEEP:
         print(f"\n--- Testing Domain Max: {dmax} c ---")
         pass_count = 0
+        candidate_count = 0
         match_count = 0
         withheld_count = 0
         
@@ -35,6 +36,7 @@ def run_benchmark(engine):
             )
             
             identifiable = [c for c in ranked if c[3].get("verdict") == "IDENTIFIABLE"]
+            candidates = [c for c in ranked if c[3].get("verdict") == "CANDIDATE"]
             
             if len(identifiable) > 0:
                 best = identifiable[0]
@@ -43,13 +45,21 @@ def run_benchmark(engine):
                 if is_match:
                     match_count += 1
                 print(f"  Seed {seed}: IDENTIFIABLE -> {best[0]} (Match: {is_match})")
+            elif len(candidates) > 0:
+                best = candidates[0]
+                is_match = ("D_lor" in best[3].get("primitives", []))
+                candidate_count += 1
+                if is_match:
+                    match_count += 1
+                print(f"  Seed {seed}: CANDIDATE -> {best[0]} (Match: {is_match})")
             else:
                 withheld_count += 1
-                print(f"  Seed {seed}: WITHHELD (No identifiable candidates)")
+                print(f"  Seed {seed}: WITHHELD (No identifiable/candidate models)")
                 
         results.append({
             "domain_max": dmax,
             "identifiable_rate": pass_count / len(SEEDS),
+            "candidate_rate": candidate_count / len(SEEDS),
             "match_rate": match_count / len(SEEDS),
             "withheld_rate": withheld_count / len(SEEDS)
         })

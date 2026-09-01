@@ -117,13 +117,13 @@ ax.text(xi + verdict_w/2, verdict_y + verdict_h/2 + 0.07, "IDENTIFIABLE",
 ax.text(xi + verdict_w/2, verdict_y + verdict_h/2 - 0.14, "Formal 4-Step Pass",
         ha="center", va="center", fontsize=6.8, color="#2e7d32", zorder=4)
 
-# 2. DETECTED_UNRESOLVED
+# 2. CANDIDATE
 xu = cx_val - verdict_w/2
 box_u = FancyBboxPatch((xu, verdict_y), verdict_w, verdict_h,
                         boxstyle="round,pad=0.05",
                         facecolor=CLR_UNRES, edgecolor="#ef6c00", linewidth=1.4, zorder=3)
 ax.add_patch(box_u)
-ax.text(xu + verdict_w/2, verdict_y + verdict_h/2 + 0.07, "DETECTED_UNRESOLVED",
+ax.text(xu + verdict_w/2, verdict_y + verdict_h/2 + 0.07, "CANDIDATE",
         ha="center", va="center", fontsize=7.2, fontweight="bold",
         color="#e65100", zorder=4)
 ax.text(xu + verdict_w/2, verdict_y + verdict_h/2 - 0.14, "Ambiguous / ΔBIC < 10",
