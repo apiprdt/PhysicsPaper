@@ -631,7 +631,7 @@ def run_scenario_protocol(
         if not checks.get("ablation_control", {}).get("pass", True):
             return "held by structural ambiguity (ablation_control failed -- competing structure fits equally well)"
         if not checks.get("determinism_check", {}).get("pass", True):
-            return "held by non-determinism (results vary across runs with identical seed)"
+            return "held by cross-seed variance (parameter variation across independent noise draws exceeds threshold)"
         return "held by unspecified formal gate"
 
     # Three-Tier Epistemic Verdict
@@ -715,7 +715,7 @@ def _print_scenario_report(scenario_name: str, res: ProtocolResult, top_k: int =
 
     # Gate 4
     g4_mark = "PASS" if dc.get("pass") else "FAIL"
-    print(f" | [GATE 4] Determinism Check : {g4_mark:<4} | 3/3 multi-restart runs byte-identical   |")
+    print(f" | [GATE 4] Stability Check   : {g4_mark:<4} | Cross-seed stability across noise draws  |")
     print(" +-----------------------------------------------------------------------------+")
     print()
 
