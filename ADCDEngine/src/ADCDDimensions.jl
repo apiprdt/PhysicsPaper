@@ -28,10 +28,10 @@ is_dimensionless(d::PhysicalDimension) = d == zero(PhysicalDimension)
 
 # Physical dimension registry (5D SI: M=mass, L=length, T=time, Th=temperature, Q=charge)
 const DIMENSION_REGISTRY = Dict{Symbol,PhysicalDimension}(
-    # Konstanta Elektromagnetik Tambahan
+    # Electromagnetism Constants
     :k_e => PhysicalDimension(1, 3, -2, 0, -2), # Coulomb constant [N m^2 / C^2]
     
-    # Konstanta Termodinamika Tambahan
+    # Thermodynamics Constants
     :nR  => PhysicalDimension(1, 2, -2, -1, 0), # Moles * Gas constant [J / K]
 
     # Base SI

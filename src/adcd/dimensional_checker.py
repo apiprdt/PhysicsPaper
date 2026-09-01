@@ -124,10 +124,8 @@ class DimensionalChecker:
                 if _symbol_is_theta_scaled(expr, sym):
                     self.last_relaxed = True
                     return True
-                # else: fall through to full dimensional evaluation below --
-                # a bare unscaled physical symbol must genuinely be dimensionless
-                # (it never will be, but we let the real computation say so
-                # rather than assuming).
+                # Fall through to full dimensional evaluation: bare unscaled physical symbols
+                # must explicitly evaluate to dimensionless.
 
             candidate_dim = self._get_dim_vector(expr)
 

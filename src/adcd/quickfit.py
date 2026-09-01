@@ -294,7 +294,7 @@ def _generate_ratio_symbols(
                 seen.add(sym)
         theta_idx += 2
 
-    # Trim to max_ratios and report honestly
+    # Bound candidate ratio pool to max_ratios
     trimmed = symbols[:max_ratios]
     if len(symbols) > max_ratios:
         logger.info(
@@ -305,22 +305,22 @@ def _generate_ratio_symbols(
 
 
 # =====================================================================
-# MULTI-RATIO PROPOSER — ONE pipeline, ALL candidates, BIC-correct
+# MULTI-RATIO PROPOSER — Unified Search Space for Extended BIC
 # =====================================================================
 
 from adcd.context import BaseProposer
 
 class MultiRatioProposer(BaseProposer):
     """
-    A drop-in proposer that generates candidates for ALL ratio symbols at
-    once, then feeds them into a SINGLE pipeline run.
+    A drop-in proposer that generates candidates across all dimensionless ratio
+    symbols simultaneously within a single pipeline execution.
 
-    WHY THIS MATTERS (auditor finding #2):
-    Running a separate pipeline per ratio and picking best NMSE is equivalent
-    to multiple testing without correction. BIC's n_candidates term (the
-    extended_bic_score penalty 2*ln(n)*k) works correctly only when it sees
-    the FULL set of candidates that were tried. By aggregating all candidates
-    here, BIC naturally accounts for all ratios tested simultaneously.
+    Statistical justification:
+    Evaluating each ratio in isolated sub-pipelines and selecting by minimum NMSE
+    induces multiple-hypothesis testing bias. The Extended BIC complexity penalty
+    2*ln(|C|) requires knowledge of the full evaluated hypothesis space size |C|.
+    Aggregating all candidates ensures the complexity penalty strictly accounts
+    for all candidate forms evaluated simultaneously.
     """
 
     def __init__(

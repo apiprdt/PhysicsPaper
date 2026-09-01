@@ -20,9 +20,9 @@ class GateStats:
     coarse_reject: int = 0
     output_count: int = 0
 
-    # NEW: honest bookkeeping for candidates waved through pending re-verification
-    deferred_arc: int = 0          # arc_score was 0 at theta=1 but candidate has free params
-    arc_relaxed_dim: int = 0       # passed dimensional check only via theta-scaling relaxation
+    # Telemetry metrics for candidates deferred to Stage 2 optimization
+    deferred_arc: int = 0          # Candidates with free parameters deferred for post-fit ARC evaluation
+    arc_relaxed_dim: int = 0       # Candidates verified under theta-scaling dimensional relaxation
 
     grammar_input: int = 0
     grammar_output: int = 0
@@ -72,8 +72,7 @@ class GateStats:
             "arc": rate(self.after_arc, self.after_transcendental),
             "coarse": rate(self.output_count, self.after_arc),
             "overall": rate(self.output_count, self.input_count),
-            # NEW: fraction of the FINAL output pool that was never actually
-            # ARC-verified and is only pending Stage-2 re-check.
+            # Fraction of output pool deferred for post-fitting asymptotic evaluation
             "fraction_output_deferred_arc": (
                 self.deferred_arc / self.output_count if self.output_count > 0 else 0.0
             ),

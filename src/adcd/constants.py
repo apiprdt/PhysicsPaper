@@ -42,15 +42,11 @@ G_DAGGER = 1.2e-10
 KPC_TO_M = 3.085677581e19     # kiloparsec -> metre (1 kpc = 1000 * 3.085677581e16 m)
 KMS_TO_MS = 1000.0            # km/s -> m/s
 
-# ── Common aliases (match the names historically used in the codebase) ──────
-# These keep existing call sites readable while routing through this module.
-
-# Many legacy call sites use the lowercase single-letter name as the dict key
-# (e.g. ``classical_constants={"G": ..., "c": ..., "M": ...}``). Exposing both
-# the canonical upper-case and the legacy aliases avoids a confusing rename.
+# ── Common aliases for physical constants ─────────────────────────────────────
+# Standard naming aliases matching literature and pipeline conventions.
 c = C
-M = M_SUN          # legacy key "M" used in coarse_evaluator DEFAULT_CONSTANTS
-a_0 = G_DAGGER     # MOND literature convention
+M = M_SUN          # Solar mass alias
+a_0 = G_DAGGER     # MOND critical acceleration scale
 A0 = G_DAGGER
 
 

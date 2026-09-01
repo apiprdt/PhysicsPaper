@@ -24,9 +24,9 @@ println("ADCD Engine v2 Test Suite")
 println("=" ^ 60)
 
 # ============================================================
-# TEST GROUP 1: ADCDDimensions — Claim #2
+# TEST GROUP 1: ADCDDimensions — Dimensional Gating
 # ============================================================
-@testset "ADCDDimensions — Hard Dimensional Gate (Claim #2)" begin
+@testset "ADCDDimensions — Dimensional Consistency Gating" begin
 
     @testset "PhysicalDimension arithmetic" begin
         dim_v = PhysicalDimension(0,1,-1,0,0)  # velocity
@@ -107,11 +107,11 @@ println("=" ^ 60)
 end  # ADCDDimensions testset
 
 # ============================================================
-# TEST GROUP 2: PrimitiveRegistry — Claim #3
+# TEST GROUP 2: PrimitiveRegistry — Asymptotic Safety
 # ============================================================
-@testset "PrimitiveRegistry — Asymptotic Safety (Claim #3)" begin
+@testset "PrimitiveRegistry — Asymptotic Safety" begin
 
-    @testset "D(0)=0 for standard primitives (core patent requirement)" begin
+    @testset "D(0)=0 for standard primitives" begin
         for (name, prim) in PRIMITIVE_REGISTRY
             prim.divergent_safe && continue  # D_rar and other divergent-safe skip
             val = prim.func(0.0)
@@ -128,9 +128,9 @@ end  # ADCDDimensions testset
         @test prim.func(1e-6) > 100.0   # deep-MOND boost
         # Newtonian limit: D_rar(u=10) should be small
         @test prim.func(10.0) < 0.05
-        # Auditor's exact value: u=0.1 → Δ≈2.69
+        # Analytical reference value: u=0.1 → Δ≈2.69
         @test abs(prim.func(0.1) - 2.69) < 0.05
-        # Auditor's value: u=1.0 → Δ≈0.582
+        # Analytical reference value: u=1.0 → Δ≈0.582
         @test abs(prim.func(1.0) - 0.582) < 0.01
     end
 
@@ -297,9 +297,9 @@ end  # CorrectionProposer testset
 end  # ConstantFitter testset
 
 # ============================================================
-# TEST GROUP 5: IdentifiabilityGate - Claim #4
+# TEST GROUP 5: IdentifiabilityGate — Information-Theoretic Gating
 # ============================================================
-@testset "IdentifiabilityGate - BIC Verdict (Claim #4)" begin
+@testset "IdentifiabilityGate — Information-Theoretic Model Selection" begin
     using Statistics
 
     n = 100

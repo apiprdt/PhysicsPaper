@@ -100,7 +100,7 @@ class CandidateResult:
     converged: bool
     verdict: str
     delta_bic: float
-    theta_fit: dict = field(default_factory=dict)  # Default factory mencegah crash
+    theta_fit: dict = field(default_factory=dict)  # Parameter name-to-value mapping container
 
     @classmethod
     def from_dict(cls, d: dict) -> "CandidateResult":

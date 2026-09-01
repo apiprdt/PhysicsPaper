@@ -62,7 +62,7 @@ FORMAL_PROTOCOL_CHECKS = (
 DOMAIN_RESTRICTIONS: Dict[str, Dict[str, float]] = {
     "Time Dilation": {"domain_max": 0.3},       # v <= 0.3c (Historical window)
     "Screened Coulomb": {"domain_max": 4.0},    # r <= 4.0 m
-    "Entropy Expansion": {"domain_max": 3.0},   # dV/V_i <= 3.0 (Matches Table III domain claim)
+    "Entropy Expansion": {"domain_max": 3.0},   # dV/V_i <= 3.0 (Macroscopic thermodynamic observation window)
 }
 
 
@@ -453,7 +453,7 @@ def run_scenario_protocol(
     taxonomy_exclude = [p for p in PRIMITIVE_REGISTRY.keys() if p not in taxonomy_allowed] if taxonomy_allowed else None
 
     # Step 0: Budget Disclosure
-    # Fix n_candidates=0 returning 0 proposals. We pass n_candidates=1 to get the actual grammar combinatorial space size.
+    # Query grammar combinatorial space size by evaluating initial candidate budget (n_candidates=1).
     _, space_size_blind, proposer = _run_search(
         scenario, exclude_primitives=taxonomy_exclude, seed=seed, n_candidates=1,
         threshold_cfg=tcfg, noise_level=noise_level, domain_max=domain_max
@@ -639,16 +639,14 @@ def run_scenario_protocol(
     formal_pass = all(
         result.checks[name].get("pass", False) for name in FORMAL_PROTOCOL_CHECKS if name in result.checks
     )
-    has_ground_truth = bool(getattr(scenario, "correction_expr", None))
-    # EPISTEMIC HONESTY FIX: We no longer peek at match_ok to assign tiers.
-    # The system must assign DETECTED_UNRESOLVED autonomously if evidence vs null is strong,
-    # regardless of whether it accidentally latched onto a false positive structure.
+    # Autonomous Epistemic Tiering:
+    # Classification is evaluated strictly from formal gate outcomes and evidence vs. classical null,
+    # operating independently of ground-truth knowledge.
     
-    # Two-condition design (both equivalent to ΔBIC ≥ 10.0, redundant by design for robustness):
-    #   1. Numeric path:   d_null_val >= tcfg.bic_threshold (10.0) — primary, authoritative.
-    #   2. Label fallback: evn_label == "decisive" — BayesianReranker labels "decisive" at ≥ 10.0
-    #      (_kr_label in bayesian_ranker.py). Guards against None from missing key in older runs.
-    # For Julia engine: bic_null=0.0 → d_null_val = bic_null - EBIC_best mirrors Gate E's delta_bic.
+    # Authoritative verification requires decisive evidence vs. null baseline (ΔBIC ≥ 10.0):
+    #   1. Numeric path:   d_null_val >= tcfg.bic_threshold (10.0) — primary evaluation.
+    #   2. Label fallback: evn_label == "decisive" — Kass-Raftery decisive threshold (ΔBIC ≥ 10.0).
+    # For Julia engine: bic_null = 0.0 -> d_null_val = bic_null - EBIC_best mirrors Gate E's delta_bic.
     d_null_val = result.checks.get("primary_search", {}).get("delta_bic_vs_null")
     is_decisive_vs_null = (d_null_val is not None and d_null_val >= tcfg.bic_threshold) or evn_label in ("decisive",)
     

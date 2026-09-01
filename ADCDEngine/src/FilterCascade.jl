@@ -156,15 +156,15 @@ function run_filter_cascade(
     stats = GateStats()
     stats.n_input = 1
 
-    # Gate A: Uji Dimensi
+    # Gate A: Dimensional Consistency Gate
     gate_a_dimensional(proposal, config.target_dim) || return (nothing, stats)
     stats.n_pass_gate_a = 1
 
-    # Gate B: Uji Asimptotik
+    # Gate B: Asymptotic Boundary Gate
     gate_b_asymptotic(proposal, vars_data, config.known_constants, config.classical_limit_direction, config.classical_limit_variable) || return (nothing, stats)
     stats.n_pass_gate_b = 1
 
-    # Gate C: Saringan Kasar (Coarse Gate)
+    # Gate C: Coarse Screening Gate
     coarse = gate_c_coarse(
         proposal, y_classical, y_obs, vars_data, config.known_constants,
         config.nmse_coarse, config.correction_type, sigma_y
@@ -172,7 +172,7 @@ function run_filter_cascade(
     coarse === nothing && return (nothing, stats)
     stats.n_pass_gate_c = 1
 
-    # Gate D: Optimasi Presisi Halus (Fine Fit - Deterministic Seed)
+    # Gate D: Fine Parameter Optimization (Deterministic Hashing Seed)
     seed = deterministic_hash(proposal.description)
     fine = gate_d_fine(
         proposal, y_classical, y_obs, vars_data, config.known_constants,
@@ -181,7 +181,7 @@ function run_filter_cascade(
     fine === nothing && return (nothing, stats)
     stats.n_pass_gate_d = 1
 
-    # Gate E: Sertifikasi Identifiabilitas Bayesian
+    # Gate E: Bayesian Identifiability Certification
     abs_y = abs.(y_classical)
     pos_y = abs_y[abs_y .> 0.0]
     dr = isempty(pos_y) ? 0.0 : maximum(abs_y) / minimum(pos_y)

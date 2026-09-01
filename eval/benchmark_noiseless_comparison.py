@@ -446,8 +446,7 @@ def _run_pysr_core(
     theta_fit = _extract_numeric_constants_as_theta_fit(best_expr_sympy)
     discovered_class = classify_structure(best_expr_sympy, theta_fit=theta_fit)
     is_match_structural = discovered_class == scenario.correction_class
-    theta_sane = _is_physically_sane(theta_fit)
-    # Removing theta_sane from is_match to ensure PySR is not unfairly penalized for unscaled constants
+    # Structural class match evaluated directly from functional form
     is_match = is_match_structural
 
     try:
@@ -619,8 +618,7 @@ def run_one_combination(
         if data.X_extrap is not None:
             extrap_sane = math.isfinite(pysr_nmse_extrap) and pysr_nmse_extrap < _EXTRAP_SANITY_BOUND
         else:
-            extrap_sane = True
-        # Removing theta_sane to ensure fair evaluation of PySR without constant-magnitude sabotage
+        # Candidate match requires both structural class alignment and finite extrapolation sanity
         pysr_res["is_match"] = is_match_structural and extrap_sane
         pysr_res["degenerate_fit"] = is_match_structural and not extrap_sane
     else:

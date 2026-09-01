@@ -15,10 +15,9 @@ class CorrectionEvaluation:
     ast_edit_distance: int
     parameter_error: Dict[str, float]
     bic: float
-    # NEW: honesty flags for the parameter-error numbers above.
-    parameter_match_structural: bool = False   # True only if a symbolic-exact
-    # permutation was found
-    parameter_count_mismatch: bool = False     # True if #true_params != #fit_params
+    # Structural correspondence telemetry for parameter estimation:
+    parameter_match_structural: bool = False   # True if exact symbolic role mapping was resolved
+    parameter_count_mismatch: bool = False     # True if parameter cardinality differs from ground truth
 
 
 def classify_structure(expr: Union[str, sp.Expr], theta_fit: Optional[Dict[str, float]] = None) -> str:
