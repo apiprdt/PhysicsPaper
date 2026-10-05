@@ -159,6 +159,21 @@ def _resolve_limit_unsafe(candidate: sp.Expr, variable: sp.Symbol, limit_target:
     """Compute lim_{variable -> limit_target}(candidate), robust to undetermined-sign parameters
     and featuring a Laurent series fallback for singular/divergent expressions.
     """
+    res = None
+
+    # 0. Fast-path: direct substitution if limit_target is finite and function is well-defined
+    if limit_target not in (sp.oo, -sp.oo):
+        try:
+            unit_map = {s: 1.0 for s in candidate.free_symbols if s != variable}
+            unit_map[variable] = limit_target
+            val_direct = candidate.subs(unit_map)
+            if val_direct is not None and val_direct not in (sp.oo, -sp.oo, sp.zoo, sp.nan):
+                val_num = float(sp.sympify(val_direct).evalf())
+                if np.isfinite(val_num):
+                    return sp.Float(round(val_num, 6))
+        except Exception:
+            pass
+
     # 1. Evaluate limit assuming free parameters are substituted with 1.0 FIRST.
     # This prevents sympy's Gruntz limit algorithm from hanging infinitely on undetermined symbols.
     theta_syms = [s for s in candidate.free_symbols if str(s).startswith("theta_")]
@@ -174,13 +189,14 @@ def _resolve_limit_unsafe(candidate: sp.Expr, variable: sp.Symbol, limit_target:
         except Exception:
             pass
 
-    # 2. Try standard limit fallback
-    try:
-        res = sp.limit(candidate, variable, limit_target, dir='+')
-        if res is not None and res not in (sp.oo, -sp.oo, sp.zoo):
-            return res
-    except Exception:
-        res = None
+    # 2. Try standard limit fallback (ONLY if candidate has no uninstantiated free parameters)
+    if not theta_syms:
+        try:
+            res = sp.limit(candidate, variable, limit_target, dir='+')
+            if res is not None and res not in (sp.oo, -sp.oo, sp.zoo):
+                return res
+        except Exception:
+            res = None
 
     # 3. Laurent Series Fallback (G3-L)
     try:
@@ -204,7 +220,10 @@ def _resolve_limit_unsafe(candidate: sp.Expr, variable: sp.Symbol, limit_target:
         # Check pole order (observability/logging)
         denom_leading = sp.denom(leading)
         if eps in denom_leading.free_symbols:
-            pole_order = sp.degree(denom_leading, eps)
+            try:
+                pole_order = sp.degree(denom_leading, eps)
+            except Exception:
+                pole_order = "fractional"
             logger.debug(f"Laurent fallback active: detected divergent pole of order {pole_order} for {candidate}")
         
         # Evaluate limit of leading term as eps -> 0+
@@ -218,8 +237,8 @@ def _resolve_limit_unsafe(candidate: sp.Expr, variable: sp.Symbol, limit_target:
 
     # 4. High-Precision Numerical Fallback (for complex transcendental functions like atan/tanh/erf)
     try:
-        theta_map = {s: 1.0 for s in candidate.free_symbols if str(s).startswith("theta_")}
-        eval_expr = candidate.subs(theta_map)
+        sub_map = {s: 1.0 for s in candidate.free_symbols if s != variable}
+        eval_expr = candidate.subs(sub_map)
         
         if limit_target == sp.oo:
             val_near = float(eval_expr.subs(variable, 1e6).evalf())

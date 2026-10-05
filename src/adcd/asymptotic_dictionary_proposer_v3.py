@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import itertools
+import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Callable
 
@@ -176,9 +177,14 @@ def enumerate_candidates(
     candidates: List[str] = []
 
     def _assign_theta(s: str) -> str:
+        existing = {int(m.group(1)) for m in re.finditer(r"theta_(\d+)", s)}
         t = itertools.count(0)
         while "_NEXT_THETA_" in s:
-            s = s.replace("_NEXT_THETA_", f"theta_{next(t)}", 1)
+            idx = next(t)
+            while idx in existing:
+                idx = next(t)
+            s = s.replace("_NEXT_THETA_", f"theta_{idx}", 1)
+            existing.add(idx)
         return s
 
     def prim_expr(p: str) -> str:

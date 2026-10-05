@@ -131,14 +131,20 @@ class JAXOptimizer:
 
             test_theta = jnp.ones(len(theta_symbols), dtype=jnp.float64)
             if not self._is_finite(jax_fn, test_theta, X_jax, y_jax):
-                y_pred_debug = jax_fn(test_theta, X_jax)
-                logger.warning(
-                    f"[JAXOptimizer] Pre-flight _is_finite FAILED for '{expr_str}' "
-                    f"(loss_mode={effective_mode}): y_pred min={float(jnp.min(y_pred_debug))}, "
-                    f"max={float(jnp.max(y_pred_debug))}, "
-                    f"any_nan={bool(jnp.any(jnp.isnan(y_pred_debug)))}, "
-                    f"any_inf={bool(jnp.any(jnp.isinf(y_pred_debug)))}"
-                )
+                try:
+                    y_pred_debug = jax_fn(test_theta, X_jax)
+                    logger.warning(
+                        f"[JAXOptimizer] Pre-flight _is_finite FAILED for '{expr_str}' "
+                        f"(loss_mode={effective_mode}): y_pred min={float(jnp.min(y_pred_debug))}, "
+                        f"max={float(jnp.max(y_pred_debug))}, "
+                        f"any_nan={bool(jnp.any(jnp.isnan(y_pred_debug)))}, "
+                        f"any_inf={bool(jnp.any(jnp.isinf(y_pred_debug)))}"
+                    )
+                except Exception as dbg_err:
+                    logger.warning(
+                        f"[JAXOptimizer] Pre-flight _is_finite FAILED for '{expr_str}' "
+                        f"(loss_mode={effective_mode}, eval error: {dbg_err})"
+                    )
                 return self._fail_result(expr_str, len(theta_symbols), "Non-finite output at test theta")
 
             scale = 1.0
@@ -180,11 +186,11 @@ class JAXOptimizer:
 
         except Exception as e:
             logger.warning(f"Optimization failed with exception for '{expr_str}': {e}")
-            return self._fail_result(expr_str, len(theta_symbols) if 'theta_symbols' in dir() else 0, str(e))
+            return self._fail_result(expr_str, len(theta_symbols) if 'theta_symbols' in locals() else 0, str(e))
 
     def optimize_batch(
         self,
-        candidates     : List[Tuple[str, float, float, float]],
+        candidates     : List[Any],
         X              : Dict[str, np.ndarray],
         y_obs          : np.ndarray,
         data_vars      : List[str],
@@ -193,7 +199,13 @@ class JAXOptimizer:
         correction_type: str = 'additive',
     ) -> List[Tuple[str, float, float, float, OptimizationResult]]:
         results = []
-        for expr_str, _, _, arc_score in candidates:
+        for item in candidates:
+            if isinstance(item, (list, tuple)):
+                expr_str = item[0]
+                arc_score = item[3] if len(item) >= 4 else 1.0
+            else:
+                expr_str = str(item)
+                arc_score = 1.0
             opt_result = self.optimize(
                 expr_str, X, y_obs, data_vars,
                 loss_mode=loss_mode, y_classical=y_classical, correction_type=correction_type,
@@ -356,7 +368,8 @@ class JAXOptimizer:
                 u_init = np.where(is_log, np.log(np.maximum(np.abs(init), 1e-30)), init)
 
                 def scipy_obj_scaled(u_np, _signs=signs, _is_log=is_log):
-                    theta_np = np.where(_is_log, _signs * np.exp(u_np), u_np)
+                    u_clipped = np.clip(u_np, -_EXP_CLIP, _EXP_CLIP)
+                    theta_np = np.where(_is_log, _signs * np.exp(u_clipped), u_np)
                     v, g = val_and_grad_jit(jnp.array(theta_np))
                     v_np, g_np = np.array(v), np.array(g)
                     if not np.isfinite(v_np) or not np.all(np.isfinite(g_np)):
@@ -368,7 +381,8 @@ class JAXOptimizer:
                     scipy_obj_scaled, u_init, method="L-BFGS-B", jac=True,
                     options={"maxiter": self.maxiter, "ftol": 1e-7}
                 )
-                opt_theta = np.where(is_log, signs * np.exp(res.x), res.x)
+                res_x_clipped = np.clip(res.x, -_EXP_CLIP, _EXP_CLIP)
+                opt_theta = np.where(is_log, signs * np.exp(res_x_clipped), res.x)
             else:
                 init_scale = np.where(np.abs(init) > 1e-30, init, 1.0)
 
@@ -388,7 +402,7 @@ class JAXOptimizer:
                 )
                 opt_theta = res.x * init_scale
 
-            if res.fun < best_nmse and np.isfinite(res.fun):
+            if res.fun < 1e8 and res.fun < best_nmse and np.isfinite(res.fun):
                 best_nmse = float(res.fun)
                 best_theta = opt_theta
                 if best_nmse < CONVERGENCE_TOL:

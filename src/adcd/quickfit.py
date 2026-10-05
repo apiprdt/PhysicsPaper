@@ -243,7 +243,15 @@ def _generate_ratio_symbols(
     is_inf_limit = (limit_direction in ("oo", "inf", "+oo"))
     symbols: List[str] = []
     seen: set = set()
-    theta_idx = 0
+    theta_idx = 4
+
+    # Pass 0: Variables that are already dimensionless can be used directly as ratios
+    for var, dim in variables.items():
+        if not _is_nontrivial_dim(dim):
+            for sym in (var, f"{var}**2"):
+                if sym not in seen:
+                    symbols.append(sym)
+                    seen.add(sym)
 
     # Group by dimensional vector
     dim_groups: Dict[str, List[str]] = {}
@@ -253,8 +261,6 @@ def _generate_ratio_symbols(
 
     # Pass 1: Exact dimensionless ratios from same-dimension pairs
     for vec_key, group in dim_groups.items():
-        if vec_key == str([0, 0, 0, 0, 0]):
-            continue  # skip dimensionless vars — ratio of two dimensionless is trivial
         if len(group) < 2:
             continue
         for i in range(len(group)):
@@ -308,7 +314,7 @@ def _generate_ratio_symbols(
             f"[quickfit] Trimmed ratio candidates from {len(symbols)} to {max_ratios}. "
             f"Increase max_ratios to search more (may slow runtime)."
         )
-    return trimmed if trimmed else [f"{list(variables.keys())[0]}/theta_0"]
+    return trimmed if trimmed else [f"{list(variables.keys())[0]}/theta_4"]
 
 
 # =====================================================================
@@ -508,8 +514,10 @@ class BuckinghamPiEngine:
     def __init__(self) -> None:
         self.registry: Dict[str, np.ndarray] = {}
 
-    def register(self, name: str, dim_vector: List[int]) -> None:
-        """Register a variable with its dimension vector [M, L, T, ...]."""
+    def register(self, name: str, dim_vector: Union[List[int], str]) -> None:
+        """Register a variable with its dimension vector [M, L, T, ...] or dimension name."""
+        if isinstance(dim_vector, str):
+            dim_vector = _dim_vec(dim_vector)
         self.registry[name] = np.array(dim_vector, dtype=float)
 
     def register_from_scenario(self, scenario) -> None:
@@ -543,7 +551,8 @@ class BuckinghamPiEngine:
         dim_matrix = np.array([self.registry[n] for n in names]).T
         k, n = dim_matrix.shape
 
-        if k >= n:
+        rank = int(np.linalg.matrix_rank(dim_matrix))
+        if n <= rank:
             return self._simple_same_dimension_ratios(names)
 
         from sympy import Matrix
