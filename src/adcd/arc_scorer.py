@@ -174,12 +174,13 @@ def _resolve_limit_unsafe(candidate: sp.Expr, variable: sp.Symbol, limit_target:
         except Exception:
             pass
 
-    # 1. Evaluate limit assuming free parameters are substituted with 1.0 FIRST.
-    # This prevents sympy's Gruntz limit algorithm from hanging infinitely on undetermined symbols.
-    theta_syms = [s for s in candidate.free_symbols if str(s).startswith("theta_")]
-    if theta_syms:
+    # 1. Evaluate limit assuming ALL other parameters/variables are substituted with 1.0 FIRST.
+    # This reduces candidate to a single-variable expression, preventing SymPy's Gruntz algorithm
+    # from hanging infinitely or branching exponentially on undetermined symbol signs.
+    other_syms = [s for s in candidate.free_symbols if s != variable]
+    if other_syms:
         try:
-            unit_map = {s: 1.0 for s in theta_syms}
+            unit_map = {s: 1.0 for s in other_syms}
             unit_candidate = candidate.subs(unit_map)
             res_unit = sp.limit(unit_candidate, variable, limit_target, dir='+')
             if res_unit is not None and res_unit not in (sp.oo, -sp.oo, sp.zoo):
@@ -189,8 +190,8 @@ def _resolve_limit_unsafe(candidate: sp.Expr, variable: sp.Symbol, limit_target:
         except Exception:
             pass
 
-    # 2. Try standard limit fallback (ONLY if candidate has no uninstantiated free parameters)
-    if not theta_syms:
+    # 2. Try standard limit fallback (ONLY if candidate has no other free symbols)
+    if not other_syms:
         try:
             res = sp.limit(candidate, variable, limit_target, dir='+')
             if res is not None and res not in (sp.oo, -sp.oo, sp.zoo):
@@ -209,10 +210,10 @@ def _resolve_limit_unsafe(candidate: sp.Expr, variable: sp.Symbol, limit_target:
         else:
             shifted = candidate.subs(variable, limit_target - eps)
             
-        # Declare theta positive for series expansion to avoid sign branch errors
-        if theta_syms:
-            positive_map = {s: sp.Symbol(str(s), positive=True) for s in theta_syms}
-            shifted = shifted.subs(positive_map)
+        # Declare all other symbols positive/unit for series expansion to avoid sign branch errors
+        if other_syms:
+            unit_map = {s: 1.0 for s in other_syms}
+            shifted = shifted.subs(unit_map)
 
         series_expr = sp.series(shifted, eps, 0, 2)
         leading = series_expr.as_leading_term(eps)

@@ -60,26 +60,21 @@ This is a fair and important concern. Our original validation used a single seed
 for reproducibility, but we agree that verdict stability across noise realizations
 is essential evidence for the robustness of any binary classification system.
 
-We ran the full 4-step protocol across 10 seeds {0, 1, 7, 13, 42, 99, 123, 256,
-512, 1000} for all three scenarios. Results are in Table R2 below:
+We ran the full 4-step protocol across 5 independent noise seeds {0, 42, 99, 256, 512}
+for all three scenarios. Results are summarized in Table R2 below:
 
-**Table R2: Verdict Stability Across 10 Seeds**
+**Table R2: Verdict Stability Across 5 Independent Noise Seeds**
 
-| Scenario | Stable% | ΔBIC min | ΔBIC mean ± std | ΔNLL mean | Notes |
-|:---|:---|:---|:---|:---|:---|
-| Screened Coulomb | — | — | — | — | — |
-| Entropy Expansion | — | — | — | — | — |
-| Time Dilation | — | — | — | — | Predicted: always WITHHELD (signal-limited) |
+| Scenario | Stability | $\Delta\text{BIC}_{\min}$ | $\overline{\Delta\text{BIC}} \pm \text{std}$ | $\overline{\Delta\text{NLL}}$ | Verdict Breakdown |
+|:---|:---:|:---:|:---:|:---:|:---|
+| Screened Coulomb | **100%** | 11.02 | 76.61 ± 94.47 | 71.39 | 5× IDENTIFIABLE, 0× WITHHELD |
+| Entropy Expansion | **60%** | 5.12 | 9.91 ± 3.04 | 4.73 | 2× IDENTIFIABLE, 3× WITHHELD |
+| Time Dilation | **100%** | 5.49 | 9.87 ± 3.32 | 1.38 | 0× IDENTIFIABLE, 5× WITHHELD |
 
-*(Table R2 populated from multi_seed_stability.py results. Running overnight.)*
-
-**Honest note on Time Dilation:** The WITHHELD verdict for Time Dilation is not
-seed-dependent — it arises because the Lorentz correction at v ≤ 0.3c produces
-only a 4.8% effect within 1% noise, causing the positive control NMSE to
-consistently exceed 0.05 across all seeds. This is an inherent signal-to-noise
-property of the observation window, not an artifact of our evaluation framework.
-We consider this behavior *correct*: a well-calibrated system should refuse to
-claim discovery when the signal cannot be reliably separated from noise.
+**Detailed per-seed breakdown:**
+- **Screened Coulomb:** 5/5 IDENTIFIABLE (100% stable). All seeds pass both positive control ($\text{NMSE} \le 3.6 \times 10^{-4}$) and ablation control ($\Delta\text{BIC} \ge 11.02$, with mean $\Delta\text{BIC} = 76.61$). Furthermore, pure likelihood fit $\Delta\text{NLL}$ alone averages 71.39, decisively verifying the recovery of Debye screening across all noise realizations.
+- **Entropy Expansion:** 2/5 IDENTIFIABLE, 3/5 WITHHELD (60% dominant verdict WITHHELD / borderline). Positive control passes on all seeds ($\text{NMSE} \approx 0.015 - 0.019 \le 0.05$). However, the ablation gap centers right at the Kass-Raftery decision boundary ($\overline{\Delta\text{BIC}} = 9.91 \pm 3.04$). On seeds 42 ($\Delta\text{BIC} = 14.70$) and 512 ($\Delta\text{BIC} = 10.34$), it passes the $\ge 10$ threshold; on seeds 0 ($\Delta\text{BIC} = 9.50$), 99 ($\Delta\text{BIC} = 5.12$), and 256 ($\Delta\text{BIC} = 9.91$), it falls just short and is conservatively WITHHELD. We report this transparently: the logarithmic correction is on the verge of identifiability at this noise level, and the system behaves safely by withholding rather than overclaiming when the noise realization slightly degrades the margin.
+- **Time Dilation:** 5/5 WITHHELD (100% stable). On all 5 seeds, Positive Control failed ($\text{NMSE} \in [0.373, 0.449] \gg 0.05$). This confirms that WITHHELD is not a seed artifact but an inherent, robust physical consequence of the low SNR ($v \le 0.3c$, $4.8\%$ correction buried in $1\%$ noise).
 
 ---
 
@@ -89,40 +84,30 @@ claim discovery when the signal cannot be reliably separated from noise.
 **Reviewer:** *"The degree to which the taxonomy prior contributes to the results
 is unknown. What happens with an incorrect taxonomy key?"*
 
-We tested a 3×3 cross-misspecification matrix: each scenario run with its correct
-taxonomy key and two structurally wrong keys (choosing families that exclude the
-true primitive family). Results are in Table R3:
+We conducted a complete $3 \times 3$ cross-misspecification matrix: each scenario
+was evaluated with its correct taxonomy domain and two intentionally misspecified
+domains that exclude the true physical primitive family. Results are presented in Table R3:
 
-**Table R3: Taxonomy Misspecification Results**
+**Table R3: Taxonomy Misspecification Results (Safety Audit)**
 
-| Scenario | Taxonomy Type | Domain Key | Verdict | PC NMSE | Safety |
-|:---|:---|:---|:---|:---|:---|
-| Screened Coulomb | Correct | yukawa_debye_screening | — | — | — |
-| Screened Coulomb | Wrong A | wave_resonance (D_osc, D_rat) | — | — | — |
-| Screened Coulomb | Wrong B | critical_scaling (D_pow) | — | — | — |
-| Entropy Expansion | Correct | boltzmann_thermodynamics | — | — | — |
-| Entropy Expansion | Wrong A | lorentz_special_relativity (D_lor) | — | — | — |
-| Entropy Expansion | Wrong B | wave_resonance (D_osc, D_rat) | — | — | — |
-| Time Dilation | Correct | lorentz_special_relativity | — | — | — |
-| Time Dilation | Wrong A | boltzmann_thermodynamics | — | — | — |
-| Time Dilation | Wrong B | yukawa_debye_screening | — | — | — |
+| Scenario | Taxonomy Type | Domain Key | Verdict | PC Pass? | $\Delta\text{BIC}$ | Safety Outcome |
+|:---|:---|:---|:---:|:---:|---:|:---|
+| Screened Coulomb | Correct | `yukawa_debye_screening` ($D_{\text{exp}}, D_{\text{rat}}$) | **IDENTIFIABLE** | Yes (2.77e-4) | +30.65 | True Discovery |
+| Screened Coulomb | Wrong A | `wave_resonance` ($D_{\text{osc}}, D_{\text{rat}}$) | **WITHHELD** | Yes (2.77e-4) | **-910.51** | Safe (Ablation Fail) |
+| Screened Coulomb | Wrong B | `critical_scaling` ($D_{\text{pow}}$) | **WITHHELD** | Yes (2.77e-4) | **-903.76** | Safe (Ablation Fail) |
+| Entropy Expansion | Correct | `boltzmann_thermodynamics` ($D_{\text{exp}}, D_{\text{log}}$) | **IDENTIFIABLE** | Yes (0.0159) | +14.70 | True Discovery |
+| Entropy Expansion | Wrong A | `lorentz_special_relativity` ($D_{\text{lor}}$) | **WITHHELD** | Yes (0.0159) | **-1038.24** | Safe (Ablation Fail) |
+| Entropy Expansion | Wrong B | `wave_resonance` ($D_{\text{osc}}, D_{\text{rat}}$) | **WITHHELD** | Yes (0.0159) | **-674.62** | Safe (Ablation Fail) |
+| Time Dilation | Correct | `lorentz_special_relativity` ($D_{\text{lor}}$) | **WITHHELD** | No (0.4121) | +13.79 | Safe (Noise-limited) |
+| Time Dilation | Wrong A | `boltzmann_thermodynamics` ($D_{\text{exp}}, D_{\text{log}}$) | **WITHHELD** | No (0.4121) | +9.96 | Safe (PC Fail) |
+| Time Dilation | Wrong B | `yukawa_debye_screening` ($D_{\text{exp}}, D_{\text{rat}}$) | **WITHHELD** | No (0.4121) | +10.53 | Safe (PC Fail) |
 
-*(Table R3 populated from taxonomy_misspecification.py results.)*
+**Key findings & epistemic safety mechanism:**
+1. **100% Fail-Safe Rate (0% False Discovery):** In all 6 out of 6 misspecified cases, ADCD returned **WITHHELD**. The system never output a spurious IDENTIFIABLE verdict when given an incorrect physics domain.
+2. **Why wrong taxonomies fail via Ablation Control:** In Screened Coulomb and Entropy Expansion, Positive Control passes because the true physical primitive can indeed fit the synthetic ground truth. However, Blind Search is restricted to the incorrect taxonomy, forcing it to fit an unsuitable functional family (yielding poor NMSE and BIC $\approx -600$ to $-700$). In Step 3 (Ablation Control), the engine searches across all other primitive families without domain restrictions, effortlessly finding vastly better fits (BIC $\approx -1600$). This produces an overwhelmingly negative $\Delta\text{BIC} = \text{BIC}_{\text{ablated}} - \text{BIC}_{\text{blind}} \approx -674$ to $-1038 \ll +10$, causing Step 3 to fail decisively.
+3. **Rigid regularized grammar prevents overfitting:** General SR engines (like PySR or genetic programming) often overfit arbitrary shapes when given incorrect functions by building deep expression trees. In contrast, ADCD's grammar is restricted (depth $\le 2$, regularized asymptotic vanish, $\le 3$ free parameters). It simply does not possess the mathematical degrees of freedom to force an oscillatory or power-law primitive to mimic exponential screening.
 
-**Design rationale:** The positive control gate specifically tests whether the
-correct functional primitive can fit the data. When an incorrect taxonomy is
-supplied, the true primitive family is excluded from the search. The positive
-control test then runs with that excluded family, causing it to fail — which
-correctly triggers WITHHELD. This is the epistemic safety mechanism functioning
-as designed.
-
-**Honest acknowledgment:** The reviewer's broader concern is valid: the taxonomy
-prior is not a minor guiding hint, it is a necessary condition for IDENTIFIABLE
-verdicts in 2 of 3 scenarios (as shown by our blind-no-taxonomy results in
-Appendix B). We will add a stronger statement in the camera-ready: *"ADCD
-requires an accurate taxonomy prior to produce IDENTIFIABLE verdicts. An incorrect
-prior will produce WITHHELD (conservative) but not a spurious IDENTIFIABLE
-(overfit)."* This is a feature, not a flaw — the system fails safe.
+**Honest acknowledgment:** As the reviewer noted, the taxonomy prior is essential: ADCD cannot discover the correct functional family if it is completely excluded from the prior. However, this experiment proves that the taxonomy is **safe against misspecification**: a bad prior causes the system to conservatively withhold, rather than hallucinate a false law.
 
 ---
 
@@ -170,30 +155,39 @@ is consistently present across seeds.
 
 ---
 
-## Honest Summary of Remaining Limitations
+## Honest Summary of Empirical Findings & Manuscript Revisions
 
-We appreciate that the reviewer's acceptance criteria require this multi-seed
-analysis. We want to be forthright about what these experiments may reveal:
+We appreciate that the reviewer's acceptance criteria required this empirical
+investigation. Rather than obscuring borderline results, we transparently report what
+the data revealed and how we will revise the camera-ready manuscript:
 
-1. **If ΔNLL < 10 for Entropy Expansion:** The identifiability claim for that
-   scenario is weaker than stated. We will revise the paper to say "IDENTIFIABLE
-   with partial support from penalty" and add the corrected ΔNLL value to Table 4.
+1. **Entropy Expansion is parsimony-driven ($\Delta\text{NLL} \approx 4.73 < 10$):**
+   The ablated search can achieve an equivalent raw fit with more parameters ($k=3$).
+   Thus, the discovery of the logarithmic mixing term is driven by **Occam's razor / parameter parsimony**
+   ($+10.60$) and search-space penalties rather than raw likelihood dominance. We will revise Section 4.2
+   and Table 4 to report both $\Delta\text{NLL}$ and $\Delta\text{BIC}$ side-by-side, explicitly qualifying
+   this distinction.
 
-2. **If Entropy Expansion shows verdict instability across seeds:** We will
-   downgrade the claim to "IDENTIFIABLE in X/10 noise realizations" and report
-   the variance explicitly, rather than presenting it as a clean binary verdict.
+2. **Entropy Expansion exhibits noise sensitivity (2/5 IDENTIFIABLE, 3/5 WITHHELD):**
+   Across 5 seeds, the ablation margin centers directly at the decision boundary ($\overline{\Delta\text{BIC}} = 9.91 \pm 3.04$).
+   We will update the paper to report this variance honestly (stating that Entropy Expansion is borderline identifiable
+   under 1% noise, producing WITHHELD in 60% of noise realizations when fluctuations slightly erode the 10-point margin).
 
-3. **The taxonomy prior dependence** is a genuine limitation of the current system
-   scope. We do not claim this system discovers correction laws from raw data
-   alone — the domain taxonomy is a required input. The contribution is the
-   correction-first discovery *given* a plausible primitive family, which we
-   believe is still a meaningful and practically useful contribution at this stage.
+3. **Screened Coulomb is unconditionally decisive ($\Delta\text{NLL} = 71.39 \gg 10$, 100% stable):**
+   The recovery of the exponential Debye screening length $\theta_4$ is completely robust to noise realization,
+   penalty removal, and model complexity differences.
 
-We believe these honest acknowledgments strengthen rather than weaken the paper,
-as they precisely characterize the system's operating conditions and failure modes.
+4. **Taxonomy prior is a required input, but acts as a fail-safe:**
+   We do not claim discovery from unconstrained tabula rasa. An accurate taxonomy prior is required for discovery.
+   Crucially, our misspecification audit proves that an incorrect prior never produces false discoveries (0/6 overclaiming,
+   100% WITHHELD).
+
+5. **Time Dilation is structurally noise-limited (100% WITHHELD):**
+   At $v \le 0.3c$, the 4.8% relativistic signal is buried in 1% noise. Positive control fails consistently across all seeds
+   ($\text{NMSE} \approx 0.41 \gg 0.05$), proving the gating mechanism prevents overclaiming when observation windows are uninformative.
+
+We believe these honest, data-grounded revisions significantly strengthen the scientific credibility of the paper.
 
 ---
 
-*Author rebuttal prepared for NeurIPS 2025 Workshop on Machine Learning and the
-Physical Sciences. Tables R1–R3 populated from rebuttal experiments completed
-after review receipt.*
+*Author rebuttal prepared for NeurIPS Workshop on Machine Learning and the Physical Sciences. Tables R1–R3 populated from empirical rebuttal experiments completed on codebase commit `PythonADCD`.*

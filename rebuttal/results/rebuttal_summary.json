@@ -1,0 +1,62 @@
+{
+  "Screened Coulomb": {
+    "bic_decomp": {
+      "n_cand_domain": 60,
+      "n_cand_ablated": 814,
+      "delta_penalty": 5.215231607560879,
+      "delta_nll": 20.140952342664377,
+      "delta_bic": 30.65450131677335,
+      "nll_exceeds_threshold": true
+    },
+    "seed_stability": {
+      "n_seeds": 5,
+      "stability_pct": 100.0,
+      "dominant_verdict": "IDENTIFIABLE",
+      "delta_bic_min": 11.020855,
+      "delta_bic_mean": 76.607011,
+      "delta_nll_mean": 71.391779
+    }
+  },
+  "Entropy Expansion": {
+    "bic_decomp": {
+      "n_cand_domain": 40,
+      "n_cand_ablated": 534,
+      "delta_penalty": 5.183032769692518,
+      "delta_nll": -1.0758536904556877,
+      "delta_bic": 14.703813812332896,
+      "nll_exceeds_threshold": false
+    },
+    "seed_stability": {
+      "n_seeds": 5,
+      "stability_pct": 60.0,
+      "dominant_verdict": "WITHHELD",
+      "delta_bic_min": 5.117483,
+      "delta_bic_mean": 9.912801,
+      "delta_nll_mean": 4.729768
+    }
+  },
+  "Time Dilation": {
+    "bic_decomp": {
+      "n_cand_domain": 10,
+      "n_cand_ablated": 700,
+      "delta_penalty": 8.496990484098717,
+      "delta_nll": -0.004204780291388488,
+      "delta_bic": 13.791103070355348,
+      "nll_exceeds_threshold": false
+    },
+    "seed_stability": {
+      "n_seeds": 5,
+      "stability_pct": 100.0,
+      "dominant_verdict": "WITHHELD",
+      "delta_bic_min": 5.494939,
+      "delta_bic_mean": 9.87491,
+      "delta_nll_mean": 1.37792
+    }
+  },
+  "misspecification_safety": {
+    "n_wrong_tests": 6,
+    "n_withheld": 6,
+    "n_overfit": 0,
+    "all_safe": true
+  }
+}

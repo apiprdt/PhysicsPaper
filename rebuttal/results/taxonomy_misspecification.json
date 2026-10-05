@@ -1,0 +1,167 @@
+{
+  "Screened Coulomb": [
+    {
+      "label": "correct",
+      "domain": "yukawa_debye_screening",
+      "description": "Correct: D_exp + D_rat",
+      "verdict": "IDENTIFIABLE",
+      "all_passed": true,
+      "pc_pass": true,
+      "pc_nmse": 0.00027721519856638115,
+      "nmse_best": 0.00027721519856638115,
+      "ablation_pass": true,
+      "delta_bic": 30.65450131677335,
+      "top_expr": "theta_0 * (exp(-r/theta_4) - 1.0)",
+      "primitives": [
+        "D_rat",
+        "D_exp"
+      ],
+      "elapsed_s": 148.4
+    },
+    {
+      "label": "wrong_A",
+      "domain": "wave_resonance",
+      "description": "Wrong A: D_osc + D_rat (oscillatory)",
+      "verdict": "WITHHELD",
+      "all_passed": false,
+      "pc_pass": true,
+      "pc_nmse": 0.00027721519856638115,
+      "nmse_best": 0.029855959716168796,
+      "ablation_pass": false,
+      "delta_bic": -910.5129479856823,
+      "top_expr": "theta_0 * (r**2/theta_5 / (1.0 - r**2/theta_5)) * (1.0 + theta_1 * (1.0 - cos(r**2/theta_5)))",
+      "primitives": [
+        "D_rat",
+        "D_osc"
+      ],
+      "elapsed_s": 146.2
+    },
+    {
+      "label": "wrong_B",
+      "domain": "critical_scaling",
+      "description": "Wrong B: D_pow only (power law)",
+      "verdict": "WITHHELD",
+      "all_passed": false,
+      "pc_pass": true,
+      "pc_nmse": 0.00027721519856638115,
+      "nmse_best": 0.029332911921892173,
+      "ablation_pass": false,
+      "delta_bic": -903.7592089637383,
+      "top_expr": "theta_0 * (abs(r**2/theta_5) ** abs(theta_1))",
+      "primitives": [
+        "D_pow"
+      ],
+      "elapsed_s": 107.0
+    }
+  ],
+  "Entropy Expansion": [
+    {
+      "label": "correct",
+      "domain": "boltzmann_thermodynamics",
+      "description": "Correct: D_exp + D_log",
+      "verdict": "IDENTIFIABLE",
+      "all_passed": true,
+      "pc_pass": true,
+      "pc_nmse": 0.015942129281883224,
+      "nmse_best": 0.015942129281883224,
+      "ablation_pass": true,
+      "delta_bic": 14.703791179188556,
+      "top_expr": "theta_0 * log(1.0 + dV/V_i)",
+      "primitives": [
+        "D_exp",
+        "D_log"
+      ],
+      "elapsed_s": 101.7
+    },
+    {
+      "label": "wrong_A",
+      "domain": "lorentz_special_relativity",
+      "description": "Wrong A: D_lor only (Lorentz)",
+      "verdict": "WITHHELD",
+      "all_passed": false,
+      "pc_pass": true,
+      "pc_nmse": 0.015942129281883224,
+      "nmse_best": 3.1331310860325146,
+      "ablation_pass": false,
+      "delta_bic": -1038.2419099976023,
+      "top_expr": "theta_0 * (dV/V_i / (sqrt(1.0 - dV/V_i) * (1.0 + sqrt(1.0 - dV/V_i))))",
+      "primitives": [
+        "D_lor"
+      ],
+      "elapsed_s": 32.3
+    },
+    {
+      "label": "wrong_B",
+      "domain": "wave_resonance",
+      "description": "Wrong B: D_osc + D_rat (oscillatory)",
+      "verdict": "WITHHELD",
+      "all_passed": false,
+      "pc_pass": true,
+      "pc_nmse": 0.015942129281883224,
+      "nmse_best": 0.4874080722881308,
+      "ablation_pass": false,
+      "delta_bic": -674.621817688058,
+      "top_expr": "theta_0 * (1.0 - cos(dV/V_i)) * (1.0 + theta_1 * (dV/V_i / (1.0 - dV/V_i)))",
+      "primitives": [
+        "D_rat",
+        "D_osc"
+      ],
+      "elapsed_s": 95.7
+    }
+  ],
+  "Time Dilation": [
+    {
+      "label": "correct",
+      "domain": "lorentz_special_relativity",
+      "description": "Correct: D_lor only",
+      "verdict": "WITHHELD",
+      "all_passed": false,
+      "pc_pass": false,
+      "pc_nmse": 0.4121022732674186,
+      "nmse_best": 0.4121022732674186,
+      "ablation_pass": true,
+      "delta_bic": 13.791103070355348,
+      "top_expr": "theta_0 * (v**2/c**2 / (sqrt(1.0 - v**2/c**2) * (1.0 + sqrt(1.0 - v**2/c**2))))",
+      "primitives": [
+        "D_lor"
+      ],
+      "elapsed_s": 52.1
+    },
+    {
+      "label": "wrong_A",
+      "domain": "boltzmann_thermodynamics",
+      "description": "Wrong A: D_exp + D_log (thermal)",
+      "verdict": "WITHHELD",
+      "all_passed": false,
+      "pc_pass": false,
+      "pc_nmse": 0.4121022732674186,
+      "nmse_best": 0.4133626269971328,
+      "ablation_pass": false,
+      "delta_bic": 9.961490334101171,
+      "top_expr": "theta_0 * log(1.0 + v**2/c**2)",
+      "primitives": [
+        "D_exp",
+        "D_log"
+      ],
+      "elapsed_s": 111.1
+    },
+    {
+      "label": "wrong_B",
+      "domain": "yukawa_debye_screening",
+      "description": "Wrong B: D_exp + D_rat (screening)",
+      "verdict": "WITHHELD",
+      "all_passed": false,
+      "pc_pass": false,
+      "pc_nmse": 0.4121022732674186,
+      "nmse_best": 0.41219567590910866,
+      "ablation_pass": true,
+      "delta_bic": 10.526902545998098,
+      "top_expr": "theta_0 * (v**2/c**2 / (1.0 - v**2/c**2))",
+      "primitives": [
+        "D_rat",
+        "D_exp"
+      ],
+      "elapsed_s": 103.6
+    }
+  ]
+}

@@ -135,6 +135,9 @@ indo/
 release/
 results/
 outputs/
+!rebuttal/results/
+!rebuttal/results/**
+rebuttal/results/*checkpoint.json
 
 # Local outputs and logs
 adcd_validation_debug.log
