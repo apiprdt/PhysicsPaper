@@ -155,6 +155,15 @@ def main():
     )
     os.makedirs(os.path.dirname(checkpoint_path), exist_ok=True)
 
+    if os.path.exists(checkpoint_path):
+        try:
+            with open(checkpoint_path, "r", encoding="utf-8") as f_chk:
+                all_results = json.load(f_chk)
+            completed_count = sum(len(v) for v in all_results.values())
+            print(f"[Resume] Loaded checkpoint from {checkpoint_path} ({completed_count} tests already completed)", flush=True)
+        except Exception:
+            all_results = {}
+
     for scenario_name, tests in MISSPEC_MATRIX.items():
         sc = scenarios[scenario_name]
         print(f"\n{'─'*70}", flush=True)
@@ -164,6 +173,20 @@ def main():
         rows = []
         for label, domain_key, description in tests:
             test_counter += 1
+
+            # Check if this exact test is already completed in checkpoint
+            already_done = None
+            if scenario_name in all_results:
+                for r in all_results[scenario_name]:
+                    if r.get("label") == label and r.get("domain") == domain_key:
+                        already_done = r
+                        break
+            if already_done is not None:
+                v_sym = "✅ IDENTIFIABLE" if already_done.get("verdict") == "IDENTIFIABLE" else "❌ WITHHELD"
+                print(f"[{time.strftime('%H:%M:%S')}] >>> [Test {test_counter}/{total_tests}] {scenario_name} | [{label}] domain='{domain_key}' — ALREADY DONE: {v_sym} (skipping)", flush=True)
+                rows.append(already_done)
+                continue
+
             row = run_one_test(sc, domain_key, label, description, test_num=test_counter, total_tests=total_tests)
             rows.append(row)
             all_results[scenario_name] = rows

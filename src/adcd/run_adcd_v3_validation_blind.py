@@ -6,6 +6,7 @@ import argparse
 import logging
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
+import time
 
 import numpy as np
 import sympy as sp
@@ -172,13 +173,16 @@ def _run_search(
         print(f"      [Optimize] {len(top_k)} candidates shortlisted from {len(candidates)} proposed"
               f" — running {optimizer.n_restarts} L-BFGS restarts each...", flush=True)
     ranked = []
-    for expr_str, combined_score, mse, arc_score, deferred_arc in top_k:
+    for cand_idx, (expr_str, combined_score, mse, arc_score, deferred_arc) in enumerate(top_k):
+        t_cand = time.time()
         opt = optimizer.optimize(
             expr_str, X, residual, scenario.classical_variables,
             seed=seed, loss_mode="auto", y_classical=y_classical,
             correction_type=detected_mode,
         )
+        dt_cand = time.time() - t_cand
         if not np.isfinite(opt.nmse):
+            print(f"        [Cand {cand_idx+1:02d}/{len(top_k):02d}] {expr_str[:45]}... -> {dt_cand:.1f}s (NMSE=non-finite, skipped)", flush=True)
             continue
             
         # ---------------------------------------------------------------------
@@ -190,11 +194,13 @@ def _run_search(
             fitted_expr = sp.sympify(expr_str).subs(opt.theta)
             post_fit_arc_score = float(pipeline.scorer.score(fitted_expr, constants=scenario.classical_constants))
             if post_fit_arc_score <= 0.0:
+                print(f"        [Cand {cand_idx+1:02d}/{len(top_k):02d}] {expr_str[:45]}... -> {dt_cand:.1f}s (ARC rejected, skipped)", flush=True)
                 continue # Rejected by ARC limit
                 
         n_params = len([k for k in opt.theta if k.startswith("theta_")])
         b = extended_bic_score(opt.nmse, n_params, len(residual), n_candidates=len(candidates))
         ranked.append((expr_str, opt.nmse, b, opt.theta))
+        print(f"        [Cand {cand_idx+1:02d}/{len(top_k):02d}] {expr_str[:45]}... -> {dt_cand:.1f}s (NMSE={opt.nmse:.2e}, BIC={b:.1f})", flush=True)
 
     ranked.sort(key=lambda r: r[2])  # lower BIC = better
     return ranked, space_size, proposer
