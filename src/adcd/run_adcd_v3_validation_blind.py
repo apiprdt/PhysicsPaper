@@ -168,6 +168,9 @@ def _run_search(
 
     optimizer = JAXOptimizer(n_restarts=15)
     top_k = stage1_results[:30]
+    if len(top_k) > 0:
+        print(f"      [Optimize] {len(top_k)} candidates shortlisted from {len(candidates)} proposed"
+              f" — running {optimizer.n_restarts} L-BFGS restarts each...", flush=True)
     ranked = []
     for expr_str, combined_score, mse, arc_score, deferred_arc in top_k:
         opt = optimizer.optimize(
@@ -317,7 +320,11 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
     }
 
     # ---- Step 1: BLIND SEARCH (the actual rediscovery claim) ----
+    print(f"    [Step 1/4 | Blind Search        ] Starting — '{scenario.name}'", flush=True)
     ranked_blind, _, _ = _run_search(scenario, exclude_primitives=taxonomy_exclude, seed=seed)
+    top1_expr  = ranked_blind[0][0][:70] if ranked_blind else "None"
+    top1_nmse  = ranked_blind[0][1]       if ranked_blind else float("nan")
+    print(f"    [Step 1/4 | Blind Search        ] Done   — top candidate NMSE={top1_nmse:.3e}: {top1_expr}", flush=True)
     
     top_candidates = []
     if ranked_blind:
@@ -371,15 +378,18 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
     # Use dynamic exclusion from the live PRIMITIVE_REGISTRY so this stays
     # correct even when new primitives are added — avoids the stale-hardcode
     # regression documented in audit/fix_positive_control_isolation.py.
+    print(f"    [Step 2/4 | Positive Control    ] Starting — isolate '{true_primitive}' only", flush=True)
     ranked_isolated, space_size_isolated, _ = _run_search(
         scenario,
         exclude_primitives=[p for p in PRIMITIVE_REGISTRY if p != true_primitive],
         seed=seed,
     )
     pc_pass = len(ranked_isolated) > 0 and ranked_isolated[0][1] < NMSE_SUCCESS_THRESHOLD
+    pc_nmse_val = ranked_isolated[0][1] if ranked_isolated else None
+    print(f"    [Step 2/4: Positive Control] Done. Pass: {pc_pass} (NMSE={f'{pc_nmse_val:.3e}' if pc_nmse_val else 'N/A'})", flush=True)
     result.checks["positive_control"] = {
         "search_space_size": space_size_isolated,
-        "nmse": ranked_isolated[0][1] if ranked_isolated else None,
+        "nmse": pc_nmse_val,
         "pass": pc_pass,
     }
 
@@ -393,28 +403,35 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
     # producing an inverted delta when ground truth is not at Rank 1.
     # This matches exactly what the paper Table 4 reports:
     #   SC: blind Rank-1 BIC = -1617.66, ablated Rank-1 BIC = -1591.92 → ΔBIC = 25.74
+    print(f"    [Step 3/4: Ablation Control] Testing exclusion of '{true_primitive}'...", flush=True)
     ranked_ablated, _, _ = _run_search(scenario, exclude_primitives=[true_primitive], seed=seed)
     if ranked_ablated and ranked_blind:
         ablated_bic = ranked_ablated[0][2]
         blind_rank1_bic = ranked_blind[0][2]   # Rank-1 BIC from full blind search
         bic_diff = ablated_bic - blind_rank1_bic
+        abl_pass = bic_diff > BIC_SIGNIFICANCE_THRESHOLD
+        print(f"    [Step 3/4: Ablation Control] Done. Pass: {abl_pass} (ΔBIC={bic_diff:.2f})", flush=True)
         result.checks["ablation_control"] = {
             "ablated_bic": ablated_bic,
             "true_structure_bic": blind_rank1_bic,
             "true_structure_rank": true_structure_rank,
             "bic_diff": bic_diff,
-            "pass": bic_diff > BIC_SIGNIFICANCE_THRESHOLD,
+            "pass": abl_pass,
             "note": "Reference is Rank-1 BIC from blind search (best achievable with true primitive).",
         }
     else:
+        print(f"    [Step 3/4: Ablation Control] Failed to compute.", flush=True)
         result.checks["ablation_control"] = {"pass": False, "note": "Could not compute -- missing blind result or ablated result."}
 
     # ---- Step 4: Determinism check (blind search, 3 independent runs) ----
+    print(f"    [Step 4/4: Determinism Check] Running 3 independent repetitions...", flush=True)
     runs = []
-    for _ in range(3):
+    for run_i in range(3):
+        print(f"      - Determinism run {run_i + 1}/3...", flush=True)
         r, _, _ = _run_search(scenario, exclude_primitives=taxonomy_exclude, seed=seed)
         runs.append(r[0][:2] if r else None)  # (expr_str, nmse)
     determinism_pass = len(set(str(r) for r in runs)) == 1
+    print(f"    [Step 4/4: Determinism Check] Done. Identical across 3 runs: {determinism_pass}", flush=True)
     result.checks["determinism_check"] = {"runs": runs, "pass": determinism_pass}
 
     # AUDIT FIX (2026-08-13): aggregate over ONLY the four formally-published
