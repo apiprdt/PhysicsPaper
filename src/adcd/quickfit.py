@@ -243,7 +243,7 @@ def _generate_ratio_symbols(
     is_inf_limit = (limit_direction in ("oo", "inf", "+oo"))
     symbols: List[str] = []
     seen: set = set()
-    theta_idx = 4
+    theta_idx = 0
 
     # Pass 0: Variables that are already dimensionless can be used directly as ratios
     for var, dim in variables.items():
@@ -314,7 +314,7 @@ def _generate_ratio_symbols(
             f"[quickfit] Trimmed ratio candidates from {len(symbols)} to {max_ratios}. "
             f"Increase max_ratios to search more (may slow runtime)."
         )
-    return trimmed if trimmed else [f"{list(variables.keys())[0]}/theta_4"]
+    return trimmed if trimmed else [f"{list(variables.keys())[0]}/theta_0"]
 
 
 # =====================================================================

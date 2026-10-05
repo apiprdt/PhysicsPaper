@@ -6,7 +6,7 @@ jax.config.update("jax_enable_x64", True)
 
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import jax.numpy as jnp
 from jax import jit, value_and_grad
