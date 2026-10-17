@@ -1,6 +1,14 @@
 \documentclass{article}
 
-\usepackage[preprint]{neurips_2026}
+\usepackage[sglblindworkshop, final]{neurips_2026}
+\workshoptitle{NewInML}
+
+% Override the auto-generated footer to match the exact text required by organizers
+\makeatletter
+\renewcommand{\@noticestring}{%
+  NewInML Workshop at the 40th Conference on Neural Information Processing Systems (NeurIPS 2026), Paris, France, 2026.%
+}
+\makeatother
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -23,7 +31,7 @@
     colorlinks=true,
     linkcolor=black,
     citecolor=black,
-    urlcolor=black
+    urlcolor=blue
 }
 
 \captionsetup{font=small, labelfont=bf, skip=4pt}
@@ -72,7 +80,8 @@ dimensional analysis; Bayesian prior; model selection; identifiability
 \section{Introduction}
 % ---------------------------------------------------------------
 
-Physical laws frequently take a correction-first form: a known classical baseline
+In the expanding landscape of machine learning for the physical sciences~\cite{carleo2019,wang2023},
+physical laws frequently take a correction-first form: a known classical baseline
 extended by a term that vanishes at the classical
 limit~\cite{einstein1905,debye1923,callen1985}.
 Recovering that correction from observational data is distinct from full equation
@@ -80,7 +89,7 @@ discovery: the baseline is fixed, only the residual must be identified, and that
 residual must vanish exactly where classical physics holds.
 
 General-purpose symbolic regression (SR) engines such as
-PySR~\cite{cranmer2023}, AI Feynman~\cite{udrescu2020}, and
+PySR~\cite{cranmer2020,cranmer2023}, AI Feynman~\cite{udrescu2020}, and
 PhySO~\cite{tenachi2023} excel at equation discovery from scratch but face
 three difficulties in the correction-first setting:
 (i)~\emph{catastrophic cancellation}: floating-point precision collapses as
@@ -89,7 +98,8 @@ $u\to0$, corrupting optimizer feedback~\cite{ieee754};
 byte-identical results across runs~\cite{bongard2007,schmidt2009}; and
 (iii)~\emph{silent overclaiming}: a single best-fit equation is returned
 regardless of whether the data carry sufficient power to distinguish competing
-structures~\cite{lacava2021}.
+structures~\cite{lacava2021}, generating what recent meta-science critiques identify
+as an illusion of understanding~\cite{messeri2024,krenn2022}.
 ADCD addresses each failure mode in turn: algebraically regularized primitives
 eliminate cancellation; deterministic grammar enumeration ensures reproducibility;
 explicit BIC-based identifiability gating prevents overclaiming.
@@ -98,7 +108,10 @@ explicit BIC-based identifiability gating prevents overclaiming.
 \section{Related Work}
 % ---------------------------------------------------------------
 
-General SR engines (Eureqa~\cite{schmidt2009}, PySR~\cite{cranmer2023},
+Automated scientific discovery traces back to pioneering heuristic systems such as
+BACON~\cite{langley1987} and has evolved toward modern autonomous equation
+discovery~\cite{kramer2026,makke2024,karagiorgi2022}.
+General SR engines (Eureqa~\cite{schmidt2009}, PySR~\cite{cranmer2020,cranmer2023},
 AI Feynman~\cite{udrescu2020,udrescu2020b}, PhySO~\cite{tenachi2023})
 target unconstrained equation recovery and do not enforce classical-limit
 constraints algebraically.
@@ -106,9 +119,12 @@ SINDy~\cite{brunton2016} shares our library-based approach but discovers
 governing equations rather than corrections.
 PINNs~\cite{raissi2019,karniadakis2021} embed physical laws as soft loss penalties;
 ADCD imposes them as hard algebraic identities before any numerical computation.
-AI-Descartes~\cite{cornelio2023} combines SR with axiomatic theory derivation,
-but does not address catastrophic cancellation or provide identifiability gating.
-While dimensional analysis has been integrated into SR~\cite{tenachi2023,petersen2021},
+Recent systems combining data with background knowledge and axiomatic reasoning,
+such as AI-Descartes~\cite{cornelio2023} and AI~Hilbert~\cite{corywright2024},
+highlight the importance of theory-grounded discovery, but do not address
+catastrophic cancellation near asymptotic limits or provide formal identifiability gating.
+While dimensional analysis and symmetry constraints have been integrated into
+SR and dynamical learning~\cite{tenachi2023,petersen2021,otto2025},
 ADCD extends this with a full five-dimensional (MLT$\Theta$Q) Buckingham-$\pi$ engine,
 transcendental argument safety, and BIC-based identifiability reporting
 in a single pre-fitting gate cascade.
@@ -164,7 +180,7 @@ Name & Regularized form $D(u)$ & Domain & Physical origin \\
 \texttt{D\_rat}      & $u/(1-u)$                       & $u\neq 1$   & Yukawa/Fermi pole \\
 \texttt{D\_exp}      & $e^{-u}-1$                      & all $u$     & Debye/Yukawa screening \\
 \texttt{D\_log}      & $\ln(1+u)$                      & $u>-1$      & Entropy of mixing \\
-\texttt{D\_sqrt\_inv}& $1/\sqrt{1+u}-1$                & $u>-1$      & Gravitational/Coulomb potential \\
+\texttt{D\_sqrt\_inv}& $1/\sqrt{1+u}-1$                & $u>-1$      & Gravitational / Coulomb potential \\
 \texttt{D\_pow}      & $u^{3/2}$                       & $u\ge0$     & Power-law corrections \\
 \texttt{D\_osc}      & $1-\cos u$                      & all $u$     & Wave / AC oscillatory \\
 \texttt{D\_sat}      & $\tanh u$                       & all $u$     & Magnetic / sigmoid saturation \\
@@ -205,6 +221,13 @@ are determined by the Buckingham-$\pi$ engine and numerical optimizer.
 Including a physically unjustified primitive acts as a noise sponge, collapsing
 the Ablation Control BIC gap and destroying identifiability.
 Table~\ref{tab:taxonomy} lists entries for our three experiments.
+
+A $3\times3$ cross-misspecification audit (Appendix, Table~R3\footnote{%
+  Full rebuttal tables are available at
+  \url{https://github.com/apiprdt/PhysicsPaper/tree/PythonADCD/rebuttal}.})
+confirms the taxonomy is \emph{safe against misspecification}: in all~6
+wrong-taxonomy trials the system returned WITHHELD (0\% false discovery rate).
+An incorrect prior causes conservative abstention, not hallucinated laws.
 
 \begin{table}[ht]
 \small
@@ -395,6 +418,17 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
 Table~\ref{tab:results} summarizes the quantitative results.
 Two of three scenarios are IDENTIFIABLE; Time Dilation is WITHHELD because
 its positive control fails within the historical $v\le0.3c$ observation window.
+$\Delta\mathrm{NLL}$ isolates the pure fit-quality advantage from the
+multiple-testing penalty, addressing a known asymmetry in Extended
+BIC when $|\mathcal{C}_\mathrm{domain}|\neq|\mathcal{C}_\mathrm{ablated}|$.%
+\footnote{$\Delta\mathrm{BIC}$ includes a search-space penalty
+$2\ln|\mathcal{C}|$ that differs between domain-guided and ablated runs;
+$\Delta\mathrm{NLL}$ reports the penalty-free fit-quality difference.
+Screened Coulomb's $\Delta\mathrm{NLL}=20.14$ alone exceeds the
+Kass--Raftery threshold of~10.
+Entropy Expansion's identifiability is parsimony-driven
+($\Delta\mathrm{NLL}=-1.08$; the ablated model achieves an equivalent fit
+with more parameters), a distinction we report transparently.}
 
 \begin{table}[ht]
   \small
@@ -403,27 +437,31 @@ its positive control fails within the historical $v\le0.3c$ observation window.
   $\Delta\mathrm{BIC} = \mathrm{BIC}_{\mathrm{ablated}} - \mathrm{BIC}_{\mathrm{best}}$,
   where $\mathrm{BIC}_{\mathrm{best}}$ is the Rank-1 domain-guided search BIC;
   positive values indicate the full-primitive set is preferred over the ablated set.
+  $\Delta\mathrm{NLL}$: penalty-free fit-quality difference (see footnote).
   Match level: \textit{exact} = symbolic equivalence verified;
   \textit{class} = correct functional family confirmed; amplitude absorbs
-  unverifiable physical constants.}
+  unverifiable physical constants.
+  Seed stability over 5 independent noise realizations:
+  Screened Coulomb 5/5 IDENTIFIABLE; Entropy Expansion 2/5 IDENTIFIABLE
+  (borderline at the Kass--Raftery boundary); Time Dilation 5/5 WITHHELD.}
   \label{tab:results}
   \centering
   \resizebox{\columnwidth}{!}{%
-    \begin{tabular}{@{}llcccrcl@{}}
+    \begin{tabular}{@{}llcccrrcl@{}}
     \toprule
     \textbf{Scenario} & \textbf{Discovered structure} &
     \textbf{Rank} & \textbf{NMSE} & \textbf{PC} &
-    \textbf{$\Delta$BIC} & \textbf{Match} & \textbf{Verdict} \\
+    \textbf{$\Delta$NLL} & \textbf{$\Delta$BIC} & \textbf{Match} & \textbf{Verdict} \\
     \midrule
     Screened Coulomb ($r\le4$~m) &
       $\theta_0(e^{-r/\theta_4}-1)$ &
-      1 & $2.77\times10^{-4}$ & PASS & $30.65$ & exact & \textbf{IDENTIFIABLE} \\
+      1 & $2.77\times10^{-4}$ & PASS & $20.14$ & $30.65$ & exact & \textbf{IDENTIFIABLE} \\
     Entropy Expansion ($dV/V_i\le1$) &
       $\theta_0\ln(1+dV/V_i)$ &
-      1 & $1.59\times10^{-2}$ & PASS & $14.70$ & class & \textbf{IDENTIFIABLE} \\
+      1 & $1.59\times10^{-2}$ & PASS & $-1.08$ & $14.70$ & class & \textbf{IDENTIFIABLE} \\
     Time Dilation ($v\le0.3c$) &
       $\theta_0\frac{v^2/c^2}{\sqrt{1{-}v^2/c^2}(1{+}\sqrt{1{-}v^2/c^2})}$ &
-      1 & $0.41$ & FAIL & $13.79$ & class & \textbf{WITHHELD} \\
+      1 & $0.41$ & FAIL & $-0.00$ & $13.79$ & class & \textbf{WITHHELD} \\
     \bottomrule
     \end{tabular}%
   }
@@ -438,7 +476,11 @@ the engine assigned this subscript by enumerating four charge-dimensional
 candidates before reaching the distance-ratio $r/\theta$, which was indexed
 as the fifth candidate ($\theta_4$).
 A manually supplied ratio would be pinned to subscript~$0$ by convention.
-$\Delta\mathrm{BIC}=30.65$ far exceeds the threshold of~10.
+$\Delta\mathrm{BIC}=30.65$ far exceeds the threshold of~10;
+$\Delta\mathrm{NLL}=20.14$ confirms the advantage is driven by fit quality,
+not search-space penalty.
+Over 5 noise seeds, the verdict is 100\% stable (5/5 IDENTIFIABLE,
+$\overline{\Delta\mathrm{NLL}}=71.39$).
 
 \paragraph{Entropy Expansion.}
 Because the classical baseline $S_i$ is a constant, the mode detection step
@@ -448,7 +490,13 @@ $nR\ln(1+dV/V_i)$ at class level: $\theta_0$ legitimately absorbs the additive
 amplitude $nR \approx 8.314$, rather than the multiplicative ratio $nR/S_i$.
 ADCD labels this \texttt{class\_only}---explicit epistemic qualification absent
 from unconstrained SR outputs.
-$\Delta\mathrm{BIC}=14.70>10$ supports IDENTIFIABLE.
+$\Delta\mathrm{BIC}=14.70>10$ supports IDENTIFIABLE; however,
+$\Delta\mathrm{NLL}=-1.08$ reveals the identifiability is \emph{parsimony-driven}:
+the ablated search achieves an equivalent raw fit with $k{=}3$ parameters
+versus $k{=}1$ for the domain-guided model.
+Over 5 noise seeds, the verdict is borderline (2/5 IDENTIFIABLE,
+$\overline{\Delta\mathrm{BIC}}=9.91\pm3.04$), confirming the logarithmic
+correction sits at the decision boundary under 1\% noise.
 
 \paragraph{Time Dilation.}
 At $v\le0.3c$, the Lorentz correction $\gamma-1\approx4.8\%$ of the classical
@@ -459,6 +507,7 @@ Rank~1, but the positive control fails (NMSE$=0.41$): even with the
 search space restricted to \texttt{D\_lor} alone, the optimizer cannot
 isolate the $4.8\%$ correction from the $1\%$ noise.
 The system outputs WITHHELD.
+Over 5 noise seeds, this verdict is 100\% stable (5/5 WITHHELD).
 
 % ---------------------------------------------------------------
 \section{Discussion}
@@ -488,6 +537,8 @@ The Screened Coulomb subscript $\theta_4$ is machine-verifiable evidence
 that the optimizer found the correct variable independently: subscript
 indices are assigned sequentially by the Buckingham-$\pi$ engine, not
 by any taxonomy entry.
+A $3{\times}3$ misspecification audit confirms the taxonomy is safe:
+all 6 wrong-taxonomy trials yielded WITHHELD (0\% false discovery).
 
 \textbf{Comparison with general SR.}
 ADCD and general SR address different objectives: corrections to a known law
@@ -495,6 +546,16 @@ vs.\ full equation discovery from scratch.
 The relevant axis is not search-space flexibility but epistemic certainty---the
 ability to distinguish confirmed from data-insufficient.
 Table~\ref{tab:comparison} summarises the operational regimes.
+
+\textbf{Principle-guided discovery vs.\ black-box prediction.}
+Recent perspectives on AI for physics highlight a crucial epistemic challenge:
+while modern AI excels at high-dimensional predictive emulation, true physical theory
+building requires compact mathematical laws, symmetry invariance, and controlled asymptotic
+regimes~\cite{shalyt2026}.
+ADCD explicitly embodies this principle-first paradigm: rather than performing unconstrained
+curve-fitting, it converts physical correction discovery into an exact, dimensionally
+consistent perturbation search anchored to established baselines and audited by falsifiable
+identifiability metrics.
 
 \begin{table}[ht]
 \small
@@ -543,6 +604,12 @@ whose functional family lacks a documented derivation.
 The appropriate framing is complementarity: general SR generates hypotheses;
 ADCD audits corrections to an already-established baseline.
 
+\textbf{Seed stability of borderline verdicts.}
+Entropy Expansion's verdict varies across noise realizations (2/5 IDENTIFIABLE,
+3/5 WITHHELD), indicating the logarithmic correction sits at the identifiability
+boundary under 1\% noise.
+We report this transparently as a limitation of the current noise regime.
+
 % ---------------------------------------------------------------
 \section{Conclusion}
 % ---------------------------------------------------------------
@@ -562,6 +629,14 @@ WITHHELD verdict (with associated $\Delta\mathrm{BIC}$) when those
 guarantees cannot be met.
 
 % ---------------------------------------------------------------
+\begin{ack}
+The author thanks the anonymous NewInML reviewers for constructive feedback
+that motivated the BIC decomposition, multi-seed stability, and taxonomy
+misspecification analyses incorporated into this camera-ready version.
+No external funding was received for this work.
+\end{ack}
+
+% ---------------------------------------------------------------
 \section*{Use of AI-Assisted Tools}
 % ---------------------------------------------------------------
 
@@ -570,7 +645,7 @@ for software implementation, figure scripting, and manuscript drafting.
 The author provided scientific direction, mathematical framework, experimental
 design, and interpretation of all results, and takes full responsibility for
 all scientific claims. No AI tool is listed as an author.
-The codebase and raw validation logs are available at
+The codebase and raw validation logs are publicly available at
 \url{https://github.com/apiprdt/PhysicsPaper}.
 
 % ---------------------------------------------------------------
