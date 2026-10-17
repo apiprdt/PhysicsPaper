@@ -1,7 +1,10 @@
 # =============================================================================
 # ADCD — .gitignore
-# Keep the repository clean for public / anonymous workshop submission.
 # =============================================================================
+
+# ── Jupyter notebook checkpoints ─────────────────────────────────────────────
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
 
 # ── Python bytecode & caches ─────────────────────────────────────────────────
 __pycache__/
@@ -125,8 +128,6 @@ zenodo_v*.md
 release_v*.md
 RELEASE_NOTES*.md
 CHANGELOG.md
-CONTRIBUTING.md
-CODE_OF_CONDUCT.md
 
 # ── Translation / study files (local learning only) ──────────────────────────
 indo/

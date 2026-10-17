@@ -1,40 +1,56 @@
 # ADCD full reproduction script (Windows PowerShell)
 # Usage: .\reproduce_all.ps1
+#
+# Reproduces all three paper scenarios from scratch and verifies
+# byte-exact determinism across three independent runs.
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 
 Write-Host "=== ADCD Reproduction Pipeline ===" -ForegroundColor Cyan
+Write-Host ""
 
-pip install -e ".[dev]" | Out-Null
+# -- Install ---------------------------------------------------------------
+Write-Host "Installing dependencies..." -ForegroundColor DarkGray
+try {
+    pip install -e ".[dev]" | Out-Null
+} catch {
+    Write-Warning "pip install failed; attempting to continue with existing env."
+}
 
-Write-Host "`n[1/8] Unit tests..." -ForegroundColor Yellow
-py -3.11 -m pytest tests/ -q --tb=short
+# -- Unit tests ------------------------------------------------------------
+Write-Host ""
+Write-Host "[1/3] Running unit tests..." -ForegroundColor Yellow
+$env:PYTHONPATH = "src"
+python -m pytest tests/ -q --tb=short
 
-Write-Host "`n[2/8] Standard benchmark..." -ForegroundColor Yellow
-py -3.11 run_correction_discovery.py --proposer mock
+# -- Full three-scenario validation ----------------------------------------
+Write-Host ""
+Write-Host "[2/3] Running full ADCD validation (all three scenarios)..." -ForegroundColor Yellow
+python src\adcd\run_adcd_v3_validation_blind.py --top-k 5
 
-Write-Host "`n[3/8] Real-world benchmark..." -ForegroundColor Yellow
-py -3.11 run_real_data_benchmark.py
+# -- Determinism check (three independent runs) ----------------------------
+Write-Host ""
+Write-Host "[3/3] Determinism check (3 identical runs)..." -ForegroundColor Yellow
 
-Write-Host "`n[4/8] PySR baselines..." -ForegroundColor Yellow
-py -3.11 run_pysr_baseline.py --profile fast
-py -3.11 run_pysr_baseline.py --profile fair
+New-Item -ItemType Directory -Force -Path run_outputs | Out-Null
 
-Write-Host "`n[5/8] Ablation + oracle..." -ForegroundColor Yellow
-py -3.11 run_ablation.py
-py -3.11 run_oracle_ablation.py
+1..3 | ForEach-Object {
+    python src\adcd\run_adcd_v3_validation_blind.py --top-k 5 2>$null |
+        Out-File "run_outputs\determinism_run_$_.txt" -Encoding utf8
+}
 
-Write-Host "`n[6/8] Correction scaling..." -ForegroundColor Yellow
-py -3.11 run_correction_scaling.py
+$d12 = Compare-Object (Get-Content run_outputs\determinism_run_1.txt) `
+                      (Get-Content run_outputs\determinism_run_2.txt)
+$d13 = Compare-Object (Get-Content run_outputs\determinism_run_1.txt) `
+                      (Get-Content run_outputs\determinism_run_3.txt)
 
-Write-Host "`n[7/8] Reports + figures..." -ForegroundColor Yellow
-py -3.11 scripts/generate_experiment_report.py
-py -3.11 scripts/generate_efficiency_table.py
-py -3.11 scripts/validate_results.py
-py -3.11 generate_figures.py
+if ($d12.Count -eq 0 -and $d13.Count -eq 0) {
+    Write-Host "  PASS: all three runs are byte-exact identical." -ForegroundColor Green
+} else {
+    Write-Host "  FAIL: runs differ — determinism violated." -ForegroundColor Red
+    exit 1
+}
 
-Write-Host "`n[8/8] Mercury real-data smoke test..." -ForegroundColor Yellow
-py -3.11 -m pytest tests/test_real_data.py -k mercury -q --tb=short
-
-Write-Host "`n=== Reproduction complete ===" -ForegroundColor Green
+Write-Host ""
+Write-Host "=== Reproduction complete. Results in run_outputs/ ===" -ForegroundColor Green

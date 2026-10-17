@@ -5,13 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "adcd"
 version = "1.0.0"
-description = "Anomaly-Driven Correction Discovery: Physics-Constrained Symbolic Regression for Evolutionary Scientific Discovery"
+description = "ADCD: Asymptotic Dictionary Correction Discovery — a deterministic, identifiability-aware framework for recovering physical corrections from observational data."
 readme = "README.md"
 license = { text = "MIT" }
-# NOTE FOR REVIEWERS: author metadata is omitted for double-blind review.
-# It will be restored upon acceptance.
 authors = [
-    { name = "Anonymous Author", email = "anonymous@review.invalid" }
+    { name = "Muhammad Afif Erdita", email = "maeapip10@gmail.com" }
 ]
 keywords = ["symbolic regression", "physics", "machine learning", "scientific discovery", "JAX"]
 classifiers = [
@@ -51,10 +49,10 @@ benchmark = [
 ]
 all = ["adcd[dev,benchmark]"]
 
-# NOTE: URLs below are omitted for double-blind review and will be restored upon acceptance.
-# Homepage = "https://zenodo.org/records/XXXX"
-# Repository = "https://github.com/ANONYMOUS/ADCD"
-# DOI = "https://doi.org/10.5281/zenodo.XXXX"
+[project.urls]
+Homepage = "https://github.com/apiprdt/PhysicsPaper"
+Repository = "https://github.com/apiprdt/PhysicsPaper"
+"Bug Tracker" = "https://github.com/apiprdt/PhysicsPaper/issues"
 
 [project.scripts]
 adcd = "adcd.cli:main"
