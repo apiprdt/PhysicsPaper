@@ -4,7 +4,7 @@
 
 *A deterministic, identifiability-aware framework for recovering algebraic corrections to known physical laws from noisy observational data.*
 
-**[Paper (NewInML @ NeurIPS 2026)](paper/main.pdf)** · **[Quickstart Notebook](notebooks/01_quickstart.ipynb)**
+**[NeurIPS 2026 Presentation](https://neurips.cc/virtual/2026/loc/paris/180051)** · **[Paper (PDF)](paper/main.pdf)** · **[Quickstart Notebook](notebooks/01_quickstart.ipynb)**
 
 <p>
   <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
@@ -243,7 +243,8 @@ If you use ADCD in your research, please cite:
                Processing Systems (NeurIPS 2026)},
   year      = {2026},
   address   = {Paris, France},
-  url       = {https://github.com/apiprdt/PhysicsPaper},
+  url       = {https://neurips.cc/virtual/2026/loc/paris/180051},
+  note      = {NeurIPS 2026 NewInML Workshop, Paper \#180051},
 }
 ```
 
