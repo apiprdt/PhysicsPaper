@@ -455,12 +455,13 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
 def main():
     parser = argparse.ArgumentParser(description="ADCD Validation Protocol")
     parser.add_argument("--top-k", type=int, default=5, help="Number of Pareto Front candidates to display")
+    parser.add_argument("--scenario", type=str, default=None, help="Run a single scenario by name (default: all canonical scenarios)")
     parser.add_argument("--no-taxonomy", action="store_false", dest="taxonomy", help="Disable Domain Taxonomy Prior for Stage 1")
     parser.set_defaults(taxonomy=True)
     args = parser.parse_args()
     
     scenarios = {s.name: s for s in get_all_scenarios()}
-    locked = ["Time Dilation", "Screened Coulomb", "Entropy Expansion"]
+    locked = [args.scenario] if args.scenario else ["Time Dilation", "Screened Coulomb", "Entropy Expansion"]
     
     all_results = {}
     for name in locked:

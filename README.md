@@ -74,15 +74,32 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-Install dependencies:
+Install the package and dependencies:
 
 ```bash
-pip install -r requirements.txt
-# Or for an editable development install:
 pip install -e ".[dev]"
+# Or strictly pinned lockfile:
+pip install -r requirements.txt
 ```
 
-### 2. Reproduce all three paper scenarios
+### 2. Run via the `adcd` CLI
+
+Once installed with `pip install -e .`, the `adcd` CLI is available everywhere:
+
+```bash
+# Run all three canonical scenarios
+adcd validate --top-k 5
+
+# Or run a single scenario
+adcd validate --scenario "Screened Coulomb"
+
+# Inspect built-in scenarios, domain taxonomy priors, and regularized primitives
+adcd list-scenarios
+adcd list-taxonomy
+adcd list-primitives
+```
+
+*(Alternatively, without installing the package entrypoints, run directly via Python:)*
 
 ```bash
 # Linux / macOS
@@ -157,13 +174,10 @@ PhysicsPaper/
 You can run ADCD on a single scenario programmatically:
 
 ```python
-import sys
-sys.path.insert(0, 'src')
-
-from adcd.anomaly_scenarios import get_all_scenarios
+import adcd
 
 # Load the Screened Coulomb scenario
-scenarios = {s.name: s for s in get_all_scenarios()}
+scenarios = {s.name: s for s in adcd.get_all_scenarios()}
 scenario = scenarios["Screened Coulomb"]
 
 # Generate synthetic data (ground truth hidden from ADCD)
@@ -174,9 +188,10 @@ X, y_classical, y_obs, delta_true = scenario.generate_data(
     domain_max=4.0,    # historical window: r ≤ 4.0 m
 )
 
-print(f"Scenario: {scenario.name}")
-print(f"Domain:   {scenario.domain}")
-print(f"N points: {len(X['r'])}")
+print(f"ADCD version: {adcd.__version__}")
+print(f"Scenario:     {scenario.name}")
+print(f"Domain:       {scenario.domain}")
+print(f"N points:     {len(X['r'])}")
 ```
 
 See `notebooks/01_quickstart.ipynb` for the full pipeline including optimizer and verdict.
@@ -194,15 +209,17 @@ See `notebooks/01_quickstart.ipynb` for the full pipeline including optimizer an
 **Option B — CSV ingestion** (fastest for exploratory use):
 
 ```python
-from adcd.auto_scenario import load_scenario_from_csv
+from adcd.auto_scenario import build_scenario_from_csv
 
-scenario = load_scenario_from_csv(
-    path="my_data.csv",           # columns: variable names with [unit] headers
-    classical_col="y_classical",
-    observed_col="y_obs",
-    domain="yukawa_debye_screening",  # must match a key in DOMAIN_TAXONOMY
-    limit_variable="r",
-    limit_direction="0",
+scenario = build_scenario_from_csv(
+    csv_path="my_data.csv",          # columns: variable names with [unit] headers
+    scenario_name="My Experiment",
+    target_col="y_obs [V]",          # column name for the noisy observation
+    classical_expr="k_e * q1 * q2 / r",
+    domain="yukawa_debye_screening", # must match a key in DOMAIN_TAXONOMY
+    classical_constants={"k_e": 8.98755e9},
+    classical_limit_variable="r",
+    classical_limit_direction="0",
 )
 ```
 

@@ -509,3 +509,7 @@ def build_scenario_from_csv(
         strict_units=strict_units,
         trusted_bare_suffixes=trusted_bare_suffixes,
     )
+
+
+# Public convenience alias
+load_scenario_from_csv = build_scenario_from_csv

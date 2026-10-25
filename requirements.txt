@@ -15,6 +15,7 @@ jaxlib==0.10.1
 scikit-learn==1.9.0
 matplotlib==3.10.9
 pandas==3.0.3
+pint>=0.23
 
 # Development / testing (matched to the locked environment)
 pytest==9.0.3
@@ -22,6 +23,6 @@ pytest-cov==7.1.0
 flake8==7.3.0
 black==26.5.1
 
-# Primary comparison baseline (declared here, not in pyproject runtime deps,
-# because it pulls in a Julia runtime and is only needed for benchmarking).
-pysr==1.5.10
+# Optional comparison baseline (uncomment or run `pip install -e ".[benchmark]"`
+# if you want to run PySR baseline comparisons; requires a Julia runtime).
+# pysr==1.5.10
