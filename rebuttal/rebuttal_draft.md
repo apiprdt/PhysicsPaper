@@ -128,15 +128,18 @@ Confidence ranges from 0.5 (complete ambiguity) to 1.0 (unambiguous).
 Additive fallback triggers in three specific conditions:
 
 1. **Constant baseline:** std(y_classical) < 10⁻¹⁵ — when the classical value
-   is constant, multiplicative mode is mathematically undefined. This applies to
-   Entropy Expansion where S_i = 15.0 is fixed.
+   is constant, the rank-correlation scale-dependence test is undefined, so the
+   selector cannot discriminate between modes and falls back to additive. This
+   applies to Entropy Expansion where S_i = 15.0 is fixed.
 2. **Insufficient data:** fewer than 5 valid points survive the division residual
    computation.
 3. **Both modes uninformative:** total correlation sum < 10⁻⁹.
 
-In all three fallback cases, confidence is reported as 0.5, explicitly flagging
-the ambiguity to the user. The system does not silently choose a mode — it
-quantifies and reports its own uncertainty.
+In all three fallback cases, the confidence value returned by
+`detect_correction_mode` is 0.5. Note that this confidence is computed but is
+currently neither used to gate the choice nor written to the validation report;
+the camera-ready paper therefore describes the rule as a lowest-scale-dependence
+selector with additive fallbacks, not as a confidence-gated one.
 
 ---
 

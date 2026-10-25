@@ -147,9 +147,11 @@ prediction. The correction residual is:
     y_\mathrm{obs} - y_\mathrm{cl}   & \text{(additive)}
   \end{cases}
 \end{equation}
-The multiplicative form is selected when its residual shows lower Spearman rank
-correlation with $y_\mathrm{cl}$ than the additive residual, with a
-confidence-gated default to additive under high ambiguity.
+The mode with the lower scale dependence is selected, measured as the absolute
+Spearman correlation between $|y_\mathrm{cl}|$ and the residual magnitude (ties
+go to additive). There is no numeric ambiguity threshold: additive is used by
+construction when $\mathrm{std}(y_\mathrm{cl})<10^{-15}$, when fewer than 5
+valid points remain, or when both correlations vanish.
 ADCD searches for $\hat{\Delta}(\mathbf{x};\boldsymbol{\theta})$ such that
 $\hat{\Delta}\to0$ as the relevant dimensionless ratio $u\to0$.
 
@@ -226,7 +228,9 @@ A $3\times3$ cross-misspecification audit (Appendix, Table~R3\footnote{%
   Full rebuttal tables are available at
   \url{https://github.com/apiprdt/PhysicsPaper/tree/PythonADCD/rebuttal}.})
 confirms the taxonomy is \emph{safe against misspecification}: in all~6
-wrong-taxonomy trials the system returned WITHHELD (0\% false discovery rate).
+wrong-taxonomy trials the system returned WITHHELD (0\% false discovery rate;
+4 of the 6 are informative, since the 2 Time Dilation trials are WITHHELD even
+under the correct prior).
 An incorrect prior causes conservative abstention, not hallucinated laws.
 
 \begin{table}[ht]
@@ -310,7 +314,7 @@ The pipeline issues an IDENTIFIABLE verdict only when all four checks pass:
         an otherwise unrestricted search over the full eight-primitive
         registry, the BIC gap $\Delta\mathrm{BIC}>10$ (Kass--Raftery ``very
         strong evidence'') must hold between the domain-guided Rank-1
-        candidate (Step~1) and the best Rank-1 candidate found under ablation.
+        candidate from the blind search and the best Rank-1 candidate found under ablation.
   \item \textbf{Determinism.} Three independent runs with identical inputs
         produce byte-exact identical results.
 \end{enumerate}
@@ -385,7 +389,9 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
     the full-primitive Rank-1 candidate is preferred over the ablated best.
     Red dashed: Kass--Raftery ``very strong evidence'' threshold
     ($\Delta\mathrm{BIC}=10$)~\cite{kass1995}.
-    All three scenarios exceed this threshold, yet Time Dilation is WITHHELD
+    At seed~42 all three scenarios exceed this threshold (across 5 seeds,
+    $\Delta\mathrm{BIC}$ spans 11.0--263, 5.1--14.7, and 5.5--13.8 for Screened
+    Coulomb, Entropy Expansion, and Time Dilation), yet Time Dilation is WITHHELD
     because its positive control fails (Step~2, Positive Control, of the
     four-step protocol; see Table~\ref{tab:results}): a positive
     $\Delta\mathrm{BIC}$ is necessary but not sufficient for an IDENTIFIABLE
@@ -418,16 +424,18 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
 Table~\ref{tab:results} summarizes the quantitative results.
 Two of three scenarios are IDENTIFIABLE; Time Dilation is WITHHELD because
 its positive control fails within the historical $v\le0.3c$ observation window.
-$\Delta\mathrm{NLL}$ isolates the pure fit-quality advantage from the
+$\Delta D$, the change in deviance $D=-2\ln\hat L=N\ln\mathrm{NMSE}$, isolates the pure fit-quality advantage from the
 multiple-testing penalty, addressing a known asymmetry in Extended
 BIC when $|\mathcal{C}_\mathrm{domain}|\neq|\mathcal{C}_\mathrm{ablated}|$.%
 \footnote{$\Delta\mathrm{BIC}$ includes a search-space penalty
 $2\ln|\mathcal{C}|$ that differs between domain-guided and ablated runs;
-$\Delta\mathrm{NLL}$ reports the penalty-free fit-quality difference.
-Screened Coulomb's $\Delta\mathrm{NLL}=20.14$ alone exceeds the
+$\Delta D$ reports the penalty-free fit-quality difference.
+Here $|\mathcal{C}_\mathrm{ablated}|=814/534/700$ for Screened Coulomb, Entropy
+Expansion, and Time Dilation, versus $|\mathcal{C}_\mathrm{domain}|=60/40/10$.
+Screened Coulomb's $\Delta D=20.14$ alone exceeds the
 Kass--Raftery threshold of~10.
 Entropy Expansion's identifiability is parsimony-driven
-($\Delta\mathrm{NLL}=-1.08$; the ablated model achieves an equivalent fit
+($\Delta D=-1.08$; the ablated model achieves an equivalent fit
 with more parameters), a distinction we report transparently.}
 
 \begin{table}[ht]
@@ -437,7 +445,7 @@ with more parameters), a distinction we report transparently.}
   $\Delta\mathrm{BIC} = \mathrm{BIC}_{\mathrm{ablated}} - \mathrm{BIC}_{\mathrm{best}}$,
   where $\mathrm{BIC}_{\mathrm{best}}$ is the Rank-1 domain-guided search BIC;
   positive values indicate the full-primitive set is preferred over the ablated set.
-  $\Delta\mathrm{NLL}$: penalty-free fit-quality difference (see footnote).
+  $\Delta D$: penalty-free fit-quality difference (see footnote).
   Match level: \textit{exact} = symbolic equivalence verified;
   \textit{class} = correct functional family confirmed; amplitude absorbs
   unverifiable physical constants.
@@ -451,7 +459,7 @@ with more parameters), a distinction we report transparently.}
     \toprule
     \textbf{Scenario} & \textbf{Discovered structure} &
     \textbf{Rank} & \textbf{NMSE} & \textbf{PC} &
-    \textbf{$\Delta$NLL} & \textbf{$\Delta$BIC} & \textbf{Match} & \textbf{Verdict} \\
+    \textbf{$\Delta D$} & \textbf{$\Delta$BIC} & \textbf{Match} & \textbf{Verdict} \\
     \midrule
     Screened Coulomb ($r\le4$~m) &
       $\theta_0(e^{-r/\theta_4}-1)$ &
@@ -477,25 +485,25 @@ candidates before reaching the distance-ratio $r/\theta$, which was indexed
 as the fifth candidate ($\theta_4$).
 A manually supplied ratio would be pinned to subscript~$0$ by convention.
 $\Delta\mathrm{BIC}=30.65$ far exceeds the threshold of~10;
-$\Delta\mathrm{NLL}=20.14$ confirms the advantage is driven by fit quality,
+$\Delta D=20.14$ confirms the advantage is driven by fit quality,
 not search-space penalty.
 Over 5 noise seeds, the verdict is 100\% stable (5/5 IDENTIFIABLE,
-$\overline{\Delta\mathrm{NLL}}=71.39$).
+$\overline{\Delta D}=71.39$).
 
 \paragraph{Entropy Expansion.}
-Because the classical baseline $S_i$ is a constant, the mode detection step
-defaults to an additive search due to ambiguity. Thus, the recovered additive
+Because the classical baseline $S_i$ is constant, the scale-dependence test is
+uninformative and mode detection falls back to an additive search. Thus, the recovered additive
 correction $\theta_0\ln(1+dV/V_i)$ matches the additive ground truth
 $nR\ln(1+dV/V_i)$ at class level: $\theta_0$ legitimately absorbs the additive
 amplitude $nR \approx 8.314$, rather than the multiplicative ratio $nR/S_i$.
 ADCD labels this \texttt{class\_only}---explicit epistemic qualification absent
 from unconstrained SR outputs.
 $\Delta\mathrm{BIC}=14.70>10$ supports IDENTIFIABLE; however,
-$\Delta\mathrm{NLL}=-1.08$ reveals the identifiability is \emph{parsimony-driven}:
+$\Delta D=-1.08$ reveals the identifiability is \emph{parsimony-driven}:
 the ablated search achieves an equivalent raw fit with $k{=}3$ parameters
 versus $k{=}1$ for the domain-guided model.
 Over 5 noise seeds, the verdict is borderline (2/5 IDENTIFIABLE,
-$\overline{\Delta\mathrm{BIC}}=9.91\pm3.04$), confirming the logarithmic
+$\overline{\Delta\mathrm{BIC}}=9.91\pm3.40$, sample SD), confirming the logarithmic
 correction sits at the decision boundary under 1\% noise.
 
 \paragraph{Time Dilation.}
