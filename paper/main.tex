@@ -326,8 +326,8 @@ Failure of any check yields WITHHELD.
 Table~\ref{tab:scenarios} summarizes the three scenarios.
 All use 1\% Gaussian multiplicative noise, $N=200$ points, seed~42.
 Observation windows reflect historical low-signal regimes.
-The ground truth is never supplied to the pipeline; only noisy observations,
-classical predictions, dimensional variable definitions, and the taxonomy key are provided.
+The ground truth is never supplied to the blind discovery search (only noisy observations, classical
+predictions, dimensional definitions, and the taxonomy key are provided; the target family is referenced only in benchmark controls).
 
 \begin{table}[ht]
 \small
@@ -729,7 +729,7 @@ To verify that the phenomenon-specific taxonomy prior does not induce false disc
 \begin{table}[!ht]
   \vspace{-4pt}
   \small
-  \caption{$3\times3$ taxonomy cross-misspecification safety audit ($\text{seed}=42$). In all six wrong-taxonomy trials, ADCD abstains with a WITHHELD verdict ($0\%$ false positive rate).}
+  \caption{$3\times3$ taxonomy cross-misspecification safety audit ($\text{seed}=42$). PC Pass tests the scenario's target family ($\mathrm{NMSE}_{\mathrm{PC}}<0.05$), while $\mathrm{NMSE}_{\mathrm{best}}$ and $\Delta\mathrm{BIC}$ reflect the blind search under the supplied prior.}
   \label{tab:app_misspec}
   \centering
   \resizebox{\columnwidth}{!}{%

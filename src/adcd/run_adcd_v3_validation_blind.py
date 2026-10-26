@@ -384,7 +384,10 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
     # Use dynamic exclusion from the live PRIMITIVE_REGISTRY so this stays
     # correct even when new primitives are added — avoids the stale-hardcode
     # regression documented in audit/fix_positive_control_isolation.py.
-    true_primitive = _guess_true_primitive(ranked_blind[0][0]) if ranked_blind else _guess_true_primitive(getattr(scenario, "correction_expr", None))
+    true_primitive = (
+        _guess_true_primitive(getattr(scenario, "correction_expr", None))
+        or (_guess_true_primitive(ranked_blind[0][0]) if ranked_blind else None)
+    )
     print(f"    [Step 2/4 | Positive Control    ] Starting — isolate '{true_primitive}' only", flush=True)
     ranked_isolated, space_size_isolated, _ = _run_search(
         scenario,
