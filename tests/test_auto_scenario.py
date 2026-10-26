@@ -153,6 +153,6 @@ def test_mitigasi3_missing_pint_gives_actionable_message():
            "    if name == 'pint': raise ModuleNotFoundError('no pint')\n" \
            "    return real_import(name, *a, **k)\n" \
            "builtins.__import__ = fake_import\n" \
-           "import importlib, adcd.auto_scenario\n"
+           "import sys; sys.path.insert(0, 'src'); import importlib, adcd.auto_scenario\n"
     result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=".")
     assert "pip install pint" in result.stderr
