@@ -154,10 +154,12 @@ def compute_summary(per_seed_rows: list[dict]) -> dict:
                         max=float("nan"), cv_pct=float("nan"))
         arr = np.array(vals)
         m   = float(np.mean(arr))
-        s   = float(np.std(arr))
+        s        = float(np.std(arr))
+        s_sample = float(np.std(arr, ddof=1)) if len(arr) > 1 else 0.0
         return dict(
-            mean   = round(m, 6),
-            std    = round(s, 6),
+            mean       = round(m, 6),
+            std        = round(s, 6),
+            std_sample = round(s_sample, 6),
             min    = round(float(np.min(arr)), 6),
             max    = round(float(np.max(arr)), 6),
             cv_pct = round(s / abs(m) * 100 if m != 0 else float("nan"), 2),
