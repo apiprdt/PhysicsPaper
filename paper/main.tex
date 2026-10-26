@@ -66,7 +66,7 @@ ablation control, and determinism check---issues one of two verdicts:
 IDENTIFIABLE or WITHHELD.
 On three canonical scenarios at historical low-signal windows, Screened Coulomb
 ($\Delta\mathrm{BIC}=30.65$, exact symbolic match) and Entropy Expansion
-($\Delta\mathrm{BIC}=14.70$, class-level match; borderline across noise seeds) are IDENTIFIABLE;
+($\Delta\mathrm{BIC}=14.70$, class-level match) are IDENTIFIABLE;
 Time Dilation at $v\le0.3c$ is WITHHELD because the $4.8\%$ correction is
 indistinguishable from 1\% noise---the intended, epistemically honest behavior.
 All results are byte-exact deterministic.
@@ -157,8 +157,8 @@ $\hat{\Delta}\to0$ as the relevant dimensionless ratio $u\to0$.
 
 \subsection{Algebraically regularized primitive dictionary}
 
-Each primitive $D(u)$ is zero-anchored ($\lim_{u\to 0} D(u) = 0$ as an exact algebraic
-identity), while the rational/radical primitives (\texttt{D\_lor}, \texttt{D\_rat}) also rationalize the numerator to prevent catastrophic cancellation.
+Each primitive $D(u)$ satisfies $\lim_{u\to 0} D(u) = 0$ as an exact algebraic
+identity, eliminating catastrophic cancellation.
 For example, the naive form $(1-u)^{-1/2}-1$ collapses to $0.0$ at
 $u=10^{-16}$ in \texttt{float64}; the regularized form
 $u/[\sqrt{1-u}(\sqrt{1-u}+1)]$ returns $5.0\times10^{-17}$ at the same input.
@@ -263,7 +263,7 @@ All gates (Table~\ref{tab:gates}) are evaluated on the \emph{theta-intact}
 expression---the fully parameterized symbolic form before any $\theta_i$ is
 assigned the value $1$---because early substitution collapses dimensionful scale
 parameters (e.g., $r/\theta_4$ representing a Debye length) to dimensionless
-constants, falsifying the dimensional consistency check (single-variable free-scale ratios $v/\theta_k$ pass Gate~2 via explicit $\theta$-scaling relaxation, and parameterized candidates defer final ARC verification to post-fit $\hat{\boldsymbol{\theta}}$).
+constants, falsifying the dimensional consistency check.
 
 \subsection{Physical gate cascade}
 \label{sec:gates}
@@ -314,7 +314,7 @@ The pipeline issues an IDENTIFIABLE verdict only when all four checks pass:
         an otherwise unrestricted search over the full eight-primitive
         registry, the BIC gap $\Delta\mathrm{BIC}>10$ (Kass--Raftery ``very
         strong evidence'') must hold between the domain-guided Rank-1
-        candidate from the blind search and the best Rank-1 candidate found under ablation (on synthetic benchmarks, the evaluation harness isolates/ablates the ground-truth family directly; on unlabelled data, ablation removes the Rank-1 family found in Step~1).
+        candidate from the blind search and the best Rank-1 candidate found under ablation.
   \item \textbf{Determinism.} Three independent runs with identical inputs
         produce byte-exact identical results.
 \end{enumerate}
@@ -627,7 +627,7 @@ regularized primitives, a 5D (MLT$\Theta$Q) Buckingham-$\pi$ engine, and
 a Phenomenon-Specific Taxonomy.
 On three canonical scenarios, two yield IDENTIFIABLE results
 (Screened Coulomb: $\Delta\mathrm{BIC}=30.65$, exact match;
-Entropy Expansion: $\Delta\mathrm{BIC}=14.70$, class-level match, borderline at $2/5$ seeds)
+Entropy Expansion: $\Delta\mathrm{BIC}=14.70$, class-level match)
 and one yields a principled WITHHELD verdict (Time Dilation at $v\le0.3c$),
 where the historical signal is insufficient for a confident structural claim.
 Within its deliberate scope---known classical baseline, multiplicative

@@ -61,7 +61,7 @@ class DimensionalChecker:
     """
 
     def __init__(self, unit_registry: Dict[str, List[int]] = None):
-        self.registry = dict(unit_registry) if unit_registry is not None else dict(DIMENSIONS)
+        self.registry = {**DIMENSIONS, **(unit_registry or {})}
         self.locals = {s: sp.Symbol(s) for s in self.registry}
         # Telemetry: how many verify() calls were passed only via the
         # structural theta-scaling relaxation, never fully dimension-verified.

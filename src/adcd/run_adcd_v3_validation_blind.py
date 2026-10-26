@@ -31,7 +31,7 @@ from adcd.jax_optimizer import JAXOptimizer
 from adcd.mode_detection import detect_correction_mode
 from adcd.metrics import classify_structure, extended_bic_score
 from adcd.constants import NMSE_SUCCESS_THRESHOLD
-from adcd.quickfit import DOMAIN_TAXONOMY
+from adcd.quickfit import DOMAIN_TAXONOMY, _dim_vec
 
 
 
@@ -118,7 +118,7 @@ def _run_search(
     so Time Dilation silently used the default v<=0.99c and Entropy Expansion
     used dV/V_i<=100 -- both contradicting the paper's stated observation windows.
     """
-    checker = DimensionalChecker()
+    checker = DimensionalChecker({v: _dim_vec(u) for v, u in getattr(scenario, "variables_with_units", {}).items()})
     for var in scenario.classical_variables:
         if var not in checker.registry:
             checker.registry[var] = [0, 0, 0, 0, 0]
@@ -232,7 +232,7 @@ def _find_true_structure_in_pareto(ranked_blind, scenario):
         import numpy as np
         try:
             # Generate 5 random points in a safe domain
-            test_points = np.random.uniform(0.1, 0.9, 5)
+            test_points = np.linspace(0.1, 0.9, 5)
             # Find the main variable to substitute
             vars_cand = [str(s) for s in cand_expr.free_symbols if not str(s).startswith("theta_")]
             vars_true = [str(s) for s in true_expr.free_symbols if not str(s).startswith("theta_")]
@@ -304,7 +304,7 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
     
     # Dynamically extract true primitive from the ground truth functional form
     # instead of hardcoding by scenario name (Audit Fix #2)
-    true_primitive = _guess_true_primitive(scenario.correction_expr)
+    # Candidate primitive is deduced after Step 1 blind search from ranked_blind[0][0]
     
     # Restrict primitive search space to the scenario's taxonomy group if enabled.
     taxonomy_allowed = None
@@ -384,6 +384,7 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
     # Use dynamic exclusion from the live PRIMITIVE_REGISTRY so this stays
     # correct even when new primitives are added — avoids the stale-hardcode
     # regression documented in audit/fix_positive_control_isolation.py.
+    true_primitive = _guess_true_primitive(ranked_blind[0][0]) if ranked_blind else _guess_true_primitive(getattr(scenario, "correction_expr", None))
     print(f"    [Step 2/4 | Positive Control    ] Starting — isolate '{true_primitive}' only", flush=True)
     ranked_isolated, space_size_isolated, _ = _run_search(
         scenario,

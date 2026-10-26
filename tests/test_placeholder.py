@@ -23,7 +23,11 @@ def test_primitives_vanish_at_origin_and_d_lor_stability():
 
     u_tiny = np.array([1e-16], dtype=np.float64)
     d_lor_val = float(PRIMITIVE_REGISTRY["D_lor"].numpy_form(u_tiny)[0])
+    d_sqrt_val = float(PRIMITIVE_REGISTRY["D_sqrt_inv"].numpy_form(u_tiny)[0])
+    d_osc_val = float(PRIMITIVE_REGISTRY["D_osc"].numpy_form(np.array([1e-8], dtype=np.float64))[0])
     assert np.isclose(d_lor_val, 5.0e-17, rtol=1e-2)
+    assert np.isclose(d_sqrt_val, -5.0e-17, rtol=1e-2)
+    assert np.isclose(d_osc_val, 5.0e-17, rtol=1e-2)
 
 
 def test_ratio_enumeration_and_search_space_sizes():

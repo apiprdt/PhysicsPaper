@@ -111,7 +111,7 @@ PRIMITIVE_REGISTRY: Dict[str, Primitive] = {
     "D_sqrt_inv": Primitive(
         name="D_sqrt_inv",
         token_cost=5,
-        numpy_form=lambda u: 1.0 / np.sqrt(1.0 + np.clip(u, -0.999, None)) - 1.0,
+        numpy_form=lambda u: -np.clip(u, -0.999, None) / (np.sqrt(1.0 + np.clip(u, -0.999, None)) * (1.0 + np.sqrt(1.0 + np.clip(u, -0.999, None)))),
         string_template="(1.0/sqrt(1.0 + {u}) - 1.0)",
         domain_note="u > -1; MOND-like deep regime growth.",
     ),
@@ -125,7 +125,7 @@ PRIMITIVE_REGISTRY: Dict[str, Primitive] = {
     "D_osc": Primitive(
         name="D_osc",
         token_cost=5,
-        numpy_form=lambda u: 1.0 - np.cos(u),
+        numpy_form=lambda u: 2.0 * (np.sin(0.5 * u) ** 2),
         string_template="(1.0 - cos({u}))",
         domain_note="all u; oscillatory behaviors. 1 - cos(0) = 0.",
     ),
