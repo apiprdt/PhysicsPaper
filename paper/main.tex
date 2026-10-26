@@ -198,10 +198,10 @@ variable as $\mathbf{d}\in\mathbb{Z}^5$ over the SI base dimensions M, L, T,
 $\Theta$, and Q.
 Rather than computing the full rational nullspace, dimensionless arguments are generated via a two-pass domain heuristic: 
 first, it groups physical variables with identical dimensions into pairwise ratios (e.g., $q_1/q_2$); 
-second, any remaining unpaired variable is normalized by a free-scale parameter $\theta_k$ (e.g., $r/\theta_k$).
+second, each dimensional variable is normalized by linear and quadratic free-scale parameters ($v/\theta_{2k}, v^2/\theta_{2k+1}$; e.g., $r/\theta_4$).
 Extending from the conventional 3D MLT to 5D is essential for correctness:
 in a 3D engine charges $q_1,q_2$ are dimensionless scalars and incorrectly bypass the ratio generation;
-in the 5D engine, charge carries genuine Charge dimension (Q), ensuring $q_1/q_2$ is correctly grouped before distances are paired with length-scale parameters.
+in the 5D engine, charge carries genuine Charge dimension (Q), ensuring $q_1,q_2$ form pairwise ratios in Pass~1 and consume four free-scale parameters ($\theta_0\text{--}\theta_3$) in Pass~2 before distances are indexed.
 Because four charge-dimensional candidates are enumerated first, that ratio
 receives subscript $\theta_4$, not $\theta_0$.
 This subscript is machine-verifiable evidence of automated discovery:
