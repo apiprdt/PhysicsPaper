@@ -1,6 +1,6 @@
 <div align="center">
 
-# Asymptotic Dictionary Correction Discovery (ADCD)
+# ADCD: Asymptotic Dictionary Correction Discovery for Identifiable Symbolic Regression
 
 *A deterministic, identifiability-aware framework for recovering algebraic corrections to known physical laws from noisy observational data.*
 
@@ -252,9 +252,8 @@ If you use ADCD in your research, please cite:
 
 ```bibtex
 @inproceedings{erdita2026adcd,
-  title     = {Asymptotic Dictionary Correction Discovery: A Deterministic,
-               Identifiability-Aware Framework for Recovering Physical
-               Corrections from Observational Data},
+  title     = {ADCD: Asymptotic Dictionary Correction Discovery for
+               Identifiable Symbolic Regression},
   author    = {Erdita, Muhammad Afif},
   booktitle = {NewInML Workshop at the 40th Conference on Neural Information
                Processing Systems (NeurIPS 2026)},
