@@ -224,10 +224,10 @@ Including a physically unjustified primitive acts as a noise sponge, collapsing
 the Ablation Control BIC gap and destroying identifiability.
 Table~\ref{tab:taxonomy} lists entries for our three experiments.
 
-A $3\times3$ cross-misspecification audit (Appendix, Table~R3) confirms the taxonomy is \emph{safe against misspecification}: in all~6
+A $3\times3$ cross-misspecification audit (Appendix~\ref{app:misspec}, Table~\ref{tab:app_misspec}) confirms the taxonomy is \emph{safe against misspecification}: in all~6
 wrong-taxonomy trials the system returned WITHHELD (0\% false discovery rate;
 4 of the 6 are informative, since the 2 Time Dilation trials are WITHHELD even
-under the correct prior; e.g., applying the oscillatory \texttt{wave\_resonance} prior to Screened Coulomb yields WITHHELD with $\Delta\mathrm{BIC}=-910.5$).\footnote{Full rebuttal tables are available at \url{https://github.com/apiprdt/PhysicsPaper/tree/PythonADCD/rebuttal}.}
+under the correct prior; e.g., applying the oscillatory \texttt{wave\_resonance} prior to Screened Coulomb yields WITHHELD with $\Delta\mathrm{BIC}=-910.5$).\footnote{Full supplementary audit tables are provided in Appendix~\ref{app:audits} and at \url{https://github.com/apiprdt/PhysicsPaper/tree/PythonADCD/rebuttal}.}
 An incorrect prior causes conservative abstention, not hallucinated laws.
 
 \begin{table}[ht]
@@ -660,5 +660,97 @@ No proprietary or restricted datasets are used.
 % ---------------------------------------------------------------
 \bibliographystyle{unsrtnat}
 \bibliography{references}
+
+\newpage
+\appendix
+
+% ---------------------------------------------------------------
+\section{Supplementary Empirical Audits}
+\label{app:audits}
+% ---------------------------------------------------------------
+
+This appendix provides the complete numerical tables for the three empirical audits referenced in the main text: (1) the Extended BIC deviance and penalty decomposition (Section~\ref{app:bic}), (2) the five-seed noise realization stability analysis (Section~\ref{app:seeds}), and (3) the $3\times3$ phenomenon-taxonomy cross-misspecification safety audit (Section~\ref{app:misspec}).
+
+\subsection{Extended BIC Deviance and Penalty Decomposition}
+\label{app:bic}
+
+Under the Extended BIC formulation ($\mathrm{BIC} = k\ln N + N\ln\mathrm{NMSE} + 2\ln|\mathcal{C}|$), the ablation gap $\Delta\mathrm{BIC} = \mathrm{BIC}_{\mathrm{ablated}} - \mathrm{BIC}_{\mathrm{domain}}$ decomposes into pure fit quality ($\Delta D = N\ln(\mathrm{NMSE}_{\mathrm{ablated}}/\mathrm{NMSE}_{\mathrm{domain}})$), parameter parsimony ($\Delta k\ln N$), and search-space multiplicity ($2\ln(|\mathcal{C}_{\mathrm{ablated}}|/|\mathcal{C}_{\mathrm{domain}}|)$), as reported in Table~\ref{tab:app_bic} for $N=200$ ($\ln 200 \approx 5.30$, $\text{seed}=42$).
+
+\begin{table}[!ht]
+  \vspace{-4pt}
+  \small
+  \caption{Exact decomposition of $\Delta\mathrm{BIC}$ into pure data-fit deviance ($\Delta D$), parameter parsimony ($\Delta k\ln N$), and search-space multiplicity penalty ($2\ln(|\mathcal{C}_{\mathrm{abl}}|/|\mathcal{C}_{\mathrm{dom}}|)$) at $N=200$, $\text{seed}=42$.}
+  \label{tab:app_bic}
+  \centering
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{@{}lrrrrrrrl@{}}
+    \toprule
+    \textbf{Scenario} & $|\mathcal{C}_{\mathrm{dom}}|$ & $|\mathcal{C}_{\mathrm{abl}}|$ & $k_{\mathrm{dom}}\!\to\!k_{\mathrm{abl}}$ & $\Delta\text{Penalty}$ & $\Delta k\ln N$ & $\Delta D$ & $\Delta\mathrm{BIC}$ & \textbf{Primary Driver} \\
+    \midrule
+    Screened Coulomb  & 60 & 814 & $2\to3$ & $+5.22$ & $+5.30$  & $\mathbf{+20.14}$ & $30.65$ & Pure fit ($\Delta D > 10$) \\
+    Entropy Expansion & 40 & 534 & $1\to3$ & $+5.18$ & $+10.60$ & $-1.08$           & $14.70$ & Parameter parsimony \\
+    Time Dilation     & 10 & 700 & $1\to2$ & $+8.50$ & $+5.30$  & $-0.00$           & $13.79$ & Noise floor (WITHHELD) \\
+    \bottomrule
+  \end{tabular}%
+  }
+  \vspace{-6pt}
+\end{table}
+
+\subsection{Five-Seed Noise Realization Stability}
+\label{app:seeds}
+
+To evaluate sensitivity to random measurement fluctuations under $1\%$ Gaussian noise, the complete four-step validation protocol was executed across five independent noise seeds ($\text{seed}\in\{0, 42, 99, 256, 512\}$). Table~\ref{tab:app_seeds} summarizes the per-seed $\Delta\mathrm{BIC}$ trajectory, mean and sample standard deviation ($s$, $\mathrm{ddof}=1$), penalty-free fit advantage ($\overline{\Delta D + \Delta k\ln N}$), and verdict breakdown.
+
+\begin{table}[!ht]
+  \vspace{-4pt}
+  \small
+  \caption{Verdict and $\Delta\mathrm{BIC}$ stability across five independent $1\%$ Gaussian noise realizations ($\text{seed}\in\{0, 42, 99, 256, 512\}$). Standard deviations denote unbiased sample standard deviations ($s$, $\mathrm{ddof}=1$).}
+  \label{tab:app_seeds}
+  \centering
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{@{}lrrrrrrrc@{}}
+    \toprule
+    \textbf{Scenario} & \textbf{Seed 0} & \textbf{Seed 42} & \textbf{Seed 99} & \textbf{Seed 256} & \textbf{Seed 512} & $\overline{\Delta\mathrm{BIC}} \pm s$ & $\overline{\Delta D + \Delta k\ln N}$ & \textbf{Verdict Breakdown} \\
+    \midrule
+    Screened Coulomb  & $56.25$ & $30.65$ & $263.16$ & $11.02$ & $21.94$ & $76.61 \pm 105.62$ & $+71.39$ & \textbf{5/5 IDENTIFIABLE} \\
+    Entropy Expansion & $9.50$  & $14.70$ & $5.12$   & $9.91$  & $10.34$ & $9.91 \pm 3.40$    & $+4.73$  & 2/5 IDENT., 3/5 WITHHELD \\
+    Time Dilation     & $8.35$  & $13.79$ & $5.49$   & $8.01$  & $13.73$ & $9.87 \pm 3.72$    & $+1.38$  & \textbf{5/5 WITHHELD} \\
+    \bottomrule
+  \end{tabular}%
+  }
+  \vspace{-6pt}
+\end{table}
+
+\subsection{Taxonomy Cross-Misspecification Safety Audit}
+\label{app:misspec}
+
+To verify that the phenomenon-specific taxonomy prior does not induce false discoveries when misspecified, each scenario was evaluated under its true physical taxonomy key and two intentionally mismatched keys that exclude the ground-truth primitive family. As shown in Table~\ref{tab:app_misspec}, all six misspecified trials returned \textbf{WITHHELD} ($0\%$ false discovery rate): when the true primitive family is absent from the domain prior, the unrestricted ablation search outperforms the misspecified domain search ($\Delta\mathrm{BIC} \in [-1038.24, -674.62]$ on identifiable scenarios), triggering conservative abstention rather than overfitting.
+
+\begin{table}[!ht]
+  \vspace{-4pt}
+  \small
+  \caption{$3\times3$ taxonomy cross-misspecification safety audit ($\text{seed}=42$). In all six wrong-taxonomy trials, ADCD abstains with a WITHHELD verdict ($0\%$ false positive rate).}
+  \label{tab:app_misspec}
+  \centering
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{@{}llllcrrl@{}}
+    \toprule
+    \textbf{Scenario} & \textbf{Prior Type} & \textbf{Supplied Taxonomy Key} & \textbf{Permitted Primitives} & \textbf{PC Pass} & $\mathrm{NMSE}_{\mathrm{best}}$ & $\Delta\mathrm{BIC}$ & \textbf{Verdict} \\
+    \midrule
+    Screened Coulomb  & Correct & \texttt{yukawa\_debye\_screening}   & \texttt{D\_exp}, \texttt{D\_rat} & PASS & $2.77\times10^{-4}$ & $+30.65$   & \textbf{IDENTIFIABLE} \\
+    Screened Coulomb  & Wrong A & \texttt{wave\_resonance}            & \texttt{D\_osc}, \texttt{D\_rat} & PASS & $2.99\times10^{-2}$ & $-910.51$  & WITHHELD (Abl.\ fail) \\
+    Screened Coulomb  & Wrong B & \texttt{critical\_scaling}          & \texttt{D\_pow}                  & PASS & $2.93\times10^{-2}$ & $-903.76$  & WITHHELD (Abl.\ fail) \\
+    \midrule
+    Entropy Expansion & Correct & \texttt{boltzmann\_thermodynamics}  & \texttt{D\_exp}, \texttt{D\_log} & PASS & $1.59\times10^{-2}$ & $+14.70$   & \textbf{IDENTIFIABLE} \\
+    Entropy Expansion & Wrong A & \texttt{lorentz\_special\_relativity} & \texttt{D\_lor}                & PASS & $3.13\times10^{0}$  & $-1038.24$ & WITHHELD (Abl.\ fail) \\
+    Entropy Expansion & Wrong B & \texttt{wave\_resonance}            & \texttt{D\_osc}, \texttt{D\_rat} & PASS & $4.87\times10^{-1}$ & $-674.62$  & WITHHELD (Abl.\ fail) \\
+    \midrule
+    Time Dilation     & Correct & \texttt{lorentz\_special\_relativity} & \texttt{D\_lor}                & FAIL & $4.12\times10^{-1}$ & $+13.79$   & WITHHELD (PC fail) \\
+    Time Dilation     & Wrong A & \texttt{boltzmann\_thermodynamics}  & \texttt{D\_exp}, \texttt{D\_log} & FAIL & $4.13\times10^{-1}$ & $+9.96$    & WITHHELD (PC fail) \\
+    Time Dilation     & Wrong B & \texttt{yukawa\_debye\_screening}   & \texttt{D\_exp}, \texttt{D\_rat} & FAIL & $4.12\times10^{-1}$ & $+10.53$   & WITHHELD (PC fail) \\
+    \bottomrule
+  \end{tabular}%
+  }
+\end{table}
 
 \end{document}

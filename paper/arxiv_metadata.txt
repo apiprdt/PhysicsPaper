@@ -28,8 +28,8 @@ Cross-list: cs.AI (Artificial Intelligence), physics.comp-ph (Computational Phys
 
 Comments: Accepted at the NewInML Workshop at the 40th Conference on Neural
           Information Processing Systems (NeurIPS 2026), Paris, France.
-          10 pages, 3 figures, 5 tables. Code and reproducibility artifacts at
-          https://github.com/apiprdt/PhysicsPaper
+          11 pages (8-page main text + references + appendix), 3 figures, 9 tables.
+          Code and reproducibility artifacts at https://github.com/apiprdt/PhysicsPaper
 
 License: CC BY 4.0
 
