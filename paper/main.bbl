@@ -5,22 +5,25 @@
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
-\bibitem[Carleo et~al.(2019)Carleo, Cirac, Cranmer, Daudet, Schmied, Rossi,
-  Sala, and Zdeborov{\'a}]{carleo2019}
-Giuseppe Carleo, Ignacio Cirac, Kyle Cranmer, Laurent Daudet, Matteo Schmied,
-  Stefano Rossi, Giusi Sala, and Lenka Zdeborov{\'a}.
+\bibitem[Carleo et~al.(2019)Carleo, Cirac, Cranmer, Daudet, Schuld, Tishby,
+  Vogt-Maranto, and Zdeborov{\'a}]{carleo2019}
+Giuseppe Carleo, Ignacio Cirac, Kyle Cranmer, Laurent Daudet, Maria Schuld,
+  Naftali Tishby, Leslie Vogt-Maranto, and Lenka Zdeborov{\'a}.
 \newblock Machine learning and the physical sciences.
 \newblock \emph{Reviews of Modern Physics}, 91\penalty0 (4):\penalty0 045002,
   2019.
 \newblock \doi{10.1103/RevModPhys.91.045002}.
 
-\bibitem[Wang et~al.(2023)Wang, Fu, Du, Gao, Huang, Liu, Chandak, Roohani,
-  Abu-El-Haija, Wei, Gomez-Bombarelli, Leskovec, Coley, Sun, and
-  Zitnik]{wang2023}
+\bibitem[Wang et~al.(2023)Wang, Fu, Du, Gao, Huang, Liu, Chandak, Liu,
+  Van~Katwyk, Deac, Anandkumar, Bergen, Gomes, Ho, Kohli, Lasenby, Leskovec,
+  Liu, Manrai, Marks, Ramsundar, Song, Sun, Tang, Veli{\v{c}}kovi{\'c},
+  Welling, Zhang, Coley, Bengio, and Zitnik]{wang2023}
 Hanchen Wang, Tianfan Fu, Yuanqi Du, Wenhao Gao, Kexin Huang, Ziming Liu, Payal
-  Chandak, Shengchao Roohani, Sami Abu-El-Haija, Jeffrey Wei, Rafael
-  Gomez-Bombarelli, Jure Leskovec, Connor~W. Coley, Jian Sun, and Marinka
-  Zitnik.
+  Chandak, Shengchao Liu, Peter Van~Katwyk, Andreea Deac, Anima Anandkumar,
+  Karianne Bergen, Carla~P. Gomes, Shirley Ho, Pushmeet Kohli, Joan Lasenby,
+  Jure Leskovec, Tie-Yan Liu, Arjun Manrai, Debora Marks, Bharath Ramsundar,
+  Le~Song, Jimeng Sun, Jian Tang, Petar Veli{\v{c}}kovi{\'c}, Max Welling,
+  Linfeng Zhang, Connor~W. Coley, Yoshua Bengio, and Marinka Zitnik.
 \newblock Scientific discovery in the age of artificial intelligence.
 \newblock \emph{Nature}, 620\penalty0 (7972):\penalty0 47--60, 2023.
 \newblock \doi{10.1038/s41586-023-06221-2}.
@@ -108,10 +111,12 @@ Lisa Messeri and M.~J. Crockett.
 \newblock \emph{Nature}, 627\penalty0 (8002):\penalty0 49--58, 2024.
 \newblock \doi{10.1038/s41586-024-07146-0}.
 
-\bibitem[Krenn et~al.(2022)Krenn, Pollice, H{\"a}se, Friederich, and
+\bibitem[Krenn et~al.(2022)Krenn, Pollice, Guo, Aldeghi, Cervera-Lierta,
+  Friederich, dos Passos~Gomes, H{\"a}se, Jinich, Nigam, Yao, and
   Aspuru-Guzik]{krenn2022}
-Mario Krenn, Robert Pollice, Florian H{\"a}se, Pascal Friederich, and Al{\'a}n
-  Aspuru-Guzik.
+Mario Krenn, Robert Pollice, Si~Yue Guo, Matteo Aldeghi, Alba Cervera-Lierta,
+  Pascal Friederich, Gabriel dos Passos~Gomes, Florian H{\"a}se, Adrian Jinich,
+  AkshatKumar Nigam, Zhenpeng Yao, and Al{\'a}n Aspuru-Guzik.
 \newblock On scientific understanding with artificial intelligence.
 \newblock \emph{Nature Reviews Physics}, 4\penalty0 (12):\penalty0 761--769,
   2022.
@@ -191,9 +196,9 @@ Cristina Cornelio, Subhajit Dash, Vernon Austel, Tyler~R. Josephson, Joao
 \newblock \emph{Nature Communications}, 14\penalty0 (1):\penalty0 1777, 2023.
 \newblock \doi{10.1038/s41467-023-37236-y}.
 
-\bibitem[Cory-Wright et~al.(2024)Cory-Wright, Cornelio, Dash, Fardad, and
+\bibitem[Cory-Wright et~al.(2024)Cory-Wright, Cornelio, Dash, El~Khadir, and
   Horesh]{corywright2024}
-Ryan Cory-Wright, Cristina Cornelio, Sanjeeb Dash, Maryam Fardad, and Lior
+Ryan Cory-Wright, Cristina Cornelio, Sanjeeb Dash, Bachir El~Khadir, and Lior
   Horesh.
 \newblock Evolving scientific discovery by unifying data and background
   knowledge with {AI Hilbert}.
