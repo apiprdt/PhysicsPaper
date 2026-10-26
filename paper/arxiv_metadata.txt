@@ -1,4 +1,4 @@
-Title: ADCD: Asymptotic Dictionary Correction Discovery for Identifiable Symbolic Regression
+Title: Asymptotic Dictionary Correction Discovery: A Deterministic, Identifiability-Aware Framework for Recovering Physical Corrections from Observational Data
 
 Authors: Erdita, Muhammad Afif
          Independent Researcher, Indonesia

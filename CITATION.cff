@@ -25,7 +25,7 @@ preferred-citation:
       given-names: "Muhammad Afif"
       email: "maeapip10@gmail.com"
       affiliation: "Independent Researcher"
-  title: "ADCD: Asymptotic Dictionary Correction Discovery for Identifiable Symbolic Regression"
+  title: "Asymptotic Dictionary Correction Discovery: A Deterministic, Identifiability-Aware Framework for Recovering Physical Corrections from Observational Data"
   collection-title: "NewInML Workshop at the 40th Conference on Neural Information Processing Systems (NeurIPS 2026)"
   conference:
     name: "40th Conference on Neural Information Processing Systems (NeurIPS 2026)"

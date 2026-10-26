@@ -1,6 +1,6 @@
 # Author Rebuttal — NewInML Workshop at NeurIPS 2026
 
-**Paper:** ADCD: Asymptotic Dictionary Correction Discovery for Identifiable Symbolic Regression
+**Paper:** Asymptotic Dictionary Correction Discovery: A Deterministic, Identifiability-Aware Framework for Recovering Physical Corrections from Observational Data
 **Review Rating:** 7 (Accept), Confidence 4/5
 **Submission:** Author Rebuttal
 

@@ -252,8 +252,9 @@ If you use ADCD in your research, please cite:
 
 ```bibtex
 @inproceedings{erdita2026adcd,
-  title     = {ADCD: Asymptotic Dictionary Correction Discovery for
-               Identifiable Symbolic Regression},
+  title     = {Asymptotic Dictionary Correction Discovery: A Deterministic,
+               Identifiability-Aware Framework for Recovering Physical
+               Corrections from Observational Data},
   author    = {Erdita, Muhammad Afif},
   booktitle = {NewInML Workshop at the 40th Conference on Neural Information
                Processing Systems (NeurIPS 2026)},
