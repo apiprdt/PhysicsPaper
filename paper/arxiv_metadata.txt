@@ -1,44 +1,37 @@
-Title: Anomaly-Driven Correction Discovery (ADCD): Physics-Constrained Symbolic
-       Regression for Evolutionary Scientific Discovery
+Title: ADCD: Asymptotic Dictionary Correction Discovery for Identifiable Symbolic Regression
 
 Authors: Erdita, Muhammad Afif
          Independent Researcher, Indonesia
          maeapip10@gmail.com
 
 Abstract:
-Traditional symbolic regression algorithms attempt to discover mathematical
-laws from physical experimental data starting from a blank slate. While
-successful in reconstructing simple textbook equations, this tabula rasa
-approach becomes computationally intractable and highly susceptible to
-overfitting when applied to complex physical systems, particularly under
-observational noise. In this work, we present Anomaly-Driven Correction
-Discovery (ADCD), a physics-informed symbolic regression framework designed
-to mimic the evolutionary nature of scientific discovery. Rather than learning
-entire equations from scratch, ADCD takes a known classical physical law and
-seeks to discover the mathematical structure of the dimensionless correction
-term (Delta) that explains the discrepancy between classical predictions and
-anomalous experimental observations. By utilizing a cascaded pipeline of
-physical filters---including AST complexity limits, dimensional homogeneity,
-transcendental argument constraints, and asymptotic limits (ARC)---coupled
-with a JAX-traced L-BFGS-B parameter optimizer and Bayesian Information
-Criterion (BIC) reranking, ADCD strongly enforces physical plausibility on
-the candidate search space and demonstrates robustness to experimental error.
-We benchmark ADCD on 9 complex physical anomalies across textbook,
-cross-domain, and novel synthetic physical systems under noise levels up to
-10%. Across sixteen random seeds, ADCD achieves a mean structural recovery rate
-of 80.4% (+-7.4%), with peak performance of 94.4% (34/36) at the reference
-seed, outperforming PySR fair at 5% noise (88.9% vs. 11.1%). Beyond synthetic
-benchmarks, ADCD achieves structural class recovery on 4/4 established
-real-world scenarios (Mercury perihelion, Lamb shift, blackbody, muon g-2).
+We present ADCD (Asymptotic Dictionary Correction Discovery), a deterministic
+framework for recovering structured corrections to known physical laws from
+noisy data. Given a classical baseline, ADCD searches for the residual
+correction that vanishes exactly at the classical limit, using three
+interlocking mechanisms: algebraically regularized primitives that enforce
+asymptotic vanishing as an exact algebraic identity; a five-dimensional
+(MLT\Theta Q) Buckingham-\pi engine that auto-derives dimensionless ratio
+arguments without manual specification; and a Phenomenon-Specific Taxonomy
+encoding peer-reviewed functional priors for each physics domain. A four-step
+validation protocol---budget disclosure, positive control, BIC-based ablation
+control, and determinism check---issues one of two verdicts: IDENTIFIABLE or
+WITHHELD. On three canonical scenarios at historical low-signal windows,
+Screened Coulomb (\Delta BIC=30.65, exact symbolic match) and Entropy Expansion
+(\Delta BIC=14.70, class-level match) are IDENTIFIABLE; Time Dilation at
+v <= 0.3c is WITHHELD because the 4.8% correction is indistinguishable from 1%
+noise---the intended, epistemically honest behavior. All results are byte-exact
+deterministic.
 
-Primary Category: cs.AI (Artificial Intelligence)
-Cross-list: physics.comp-ph (Computational Physics), cs.LG (Machine Learning)
+Primary Category: cs.LG (Machine Learning)
+Cross-list: cs.AI (Artificial Intelligence), physics.comp-ph (Computational Physics)
 
-Comments: 38 pages, 9 figures, 23 tables. Code and data available at
-          https://zenodo.org/uploads/20534940
+Comments: Accepted at the NewInML Workshop at the 40th Conference on Neural
+          Information Processing Systems (NeurIPS 2026), Paris, France.
+          10 pages, 3 figures, 5 tables. Code and reproducibility artifacts at
+          https://github.com/apiprdt/PhysicsPaper
 
 License: CC BY 4.0
 
-Keywords: symbolic regression, physics-informed machine learning, automated
-          scientific discovery, anomaly detection, correction discovery,
-          asymptotic constraints, Bayesian model selection, JAX
+Keywords: symbolic regression, correction discovery, dimensional analysis,
+          Bayesian prior, model selection, identifiability

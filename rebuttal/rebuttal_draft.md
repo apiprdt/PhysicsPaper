@@ -1,6 +1,6 @@
-# Author Rebuttal — NeurIPS Workshop on Machine Learning and the Physical Sciences
+# Author Rebuttal — NewInML Workshop at NeurIPS 2026
 
-**Paper:** Anomaly-Driven Correction Discovery (ADCD): A Correction-First Paradigm
+**Paper:** ADCD: Asymptotic Dictionary Correction Discovery for Identifiable Symbolic Regression
 **Review Rating:** 7 (Accept), Confidence 4/5
 **Submission:** Author Rebuttal
 
@@ -193,4 +193,4 @@ We believe these honest, data-grounded revisions significantly strengthen the sc
 
 ---
 
-*Author rebuttal prepared for NeurIPS Workshop on Machine Learning and the Physical Sciences. Tables R1–R3 populated from empirical rebuttal experiments completed on codebase commit `PythonADCD`.*
+*Author rebuttal prepared for the NewInML Workshop at the 40th Conference on Neural Information Processing Systems (NeurIPS 2026). Tables R1–R3 populated from empirical rebuttal experiments completed on codebase branch `PythonADCD`.*

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "adcd"
 version = "1.0.0"
-description = "ADCD: Asymptotic Dictionary Correction Discovery — a deterministic, identifiability-aware framework for recovering physical corrections from observational data."
+description = "ADCD: Asymptotic Dictionary Correction Discovery for Identifiable Symbolic Regression"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [

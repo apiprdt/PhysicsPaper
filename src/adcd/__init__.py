@@ -1,5 +1,5 @@
 """
-ADCD: Asymptotic Dictionary Correction Discovery
+ADCD: Asymptotic Dictionary Correction Discovery for Identifiable Symbolic Regression
 
 A deterministic, identifiability-aware framework for recovering algebraic
 corrections to known physical laws from noisy observational data.

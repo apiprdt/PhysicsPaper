@@ -1,4 +1,4 @@
-"""Command-line interface for ADCD (Asymptotic Dictionary Correction Discovery)."""
+"""Command-line interface for ADCD: Asymptotic Dictionary Correction Discovery for Identifiable Symbolic Regression."""
 
 from __future__ import annotations
 
@@ -42,7 +42,7 @@ def _cmd_list_primitives() -> int:
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         prog="adcd",
-        description="ADCD: Asymptotic Dictionary Correction Discovery CLI",
+        description="ADCD: Asymptotic Dictionary Correction Discovery for Identifiable Symbolic Regression CLI",
     )
     parser.add_argument(
         "-V", "--version", action="version", version=f"adcd {__version__}"
