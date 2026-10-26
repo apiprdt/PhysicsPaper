@@ -230,7 +230,7 @@ A $3\times3$ cross-misspecification audit (Appendix, Table~R3\footnote{%
 confirms the taxonomy is \emph{safe against misspecification}: in all~6
 wrong-taxonomy trials the system returned WITHHELD (0\% false discovery rate;
 4 of the 6 are informative, since the 2 Time Dilation trials are WITHHELD even
-under the correct prior).
+under the correct prior; e.g., applying the oscillatory \texttt{wave\_resonance} prior to Screened Coulomb yields WITHHELD with $\Delta\mathrm{BIC}=-910.5$).
 An incorrect prior causes conservative abstention, not hallucinated laws.
 
 \begin{table}[ht]
@@ -424,7 +424,7 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
 Table~\ref{tab:results} summarizes the quantitative results.
 Two of three scenarios are IDENTIFIABLE; Time Dilation is WITHHELD because
 its positive control fails within the historical $v\le0.3c$ observation window.
-$\Delta D$, the change in deviance $D=-2\ln\hat L=N\ln\mathrm{NMSE}$, isolates the pure fit-quality advantage from the
+$\Delta D$, the change in deviance $D=-2\ln\hat L=N\ln\mathrm{NMSE}$ (twice the unpenalized NLL difference), isolates the pure fit-quality advantage from the
 multiple-testing penalty, addressing a known asymmetry in Extended
 BIC when $|\mathcal{C}_\mathrm{domain}|\neq|\mathcal{C}_\mathrm{ablated}|$.%
 \footnote{$\Delta\mathrm{BIC}$ includes a search-space penalty
