@@ -183,7 +183,7 @@ Name & Regularized form $D(u)$ & Domain & Physical origin \\
 \texttt{D\_exp}      & $e^{-u}-1$                      & all $u$     & Debye/Yukawa screening \\
 \texttt{D\_log}      & $\ln(1+u)$                      & $u>-1$      & Entropy of mixing \\
 \texttt{D\_sqrt\_inv}& $1/\sqrt{1+u}-1$                & $u>-1$      & Gravitational / Coulomb potential \\
-\texttt{D\_pow}      & $|u|^{|\theta|}$ (probe $u^{3/2}$) & $u\ge0$     & Power-law corrections \\
+\texttt{D\_pow}      & $|u|^{|\theta|}$                & $u\ge0$     & Power-law corrections \\
 \texttt{D\_osc}      & $1-\cos u$                      & all $u$     & Wave / AC oscillatory \\
 \texttt{D\_sat}      & $\tanh u$                       & all $u$     & Magnetic / sigmoid saturation \\
 \bottomrule
@@ -225,9 +225,6 @@ the Ablation Control BIC gap and destroying identifiability.
 Table~\ref{tab:taxonomy} lists entries for our three experiments.
 
 A $3\times3$ cross-misspecification audit (Appendix, Table~R3) confirms the taxonomy is \emph{safe against misspecification}: in all~6
-% (merged above)
-% (footnote moved to end of sentence to prevent Table R31 OCR artifact)
-% (merged above)
 wrong-taxonomy trials the system returned WITHHELD (0\% false discovery rate;
 4 of the 6 are informative, since the 2 Time Dilation trials are WITHHELD even
 under the correct prior; e.g., applying the oscillatory \texttt{wave\_resonance} prior to Screened Coulomb yields WITHHELD with $\Delta\mathrm{BIC}=-910.5$).\footnote{Full rebuttal tables are available at \url{https://github.com/apiprdt/PhysicsPaper/tree/PythonADCD/rebuttal}.}
@@ -291,7 +288,7 @@ Gate & Rejection criterion \\
 
 \subsection{Parameter optimization and model selection}
 
-The top-30 Stage-1 surviving candidates (ranked at probe $\boldsymbol{\theta}=\mathbf{1}$) are optimized via L-BFGS-B (JAX, \texttt{float64}).
+The top-ranked Stage-1 surviving candidates ($K=30$) are optimized via L-BFGS-B (JAX, \texttt{float64}).
 Parameters are log-reparameterized ($\theta_i{=}s_i e^{u_i}$,
 $s_i{\in}\{-1,+1\}$) for order-of-magnitude traversal; multiple restarts
 reduce sensitivity to local optima.
@@ -513,8 +510,6 @@ $1\%$ noise floor, which is insufficient for reliable isolation.
 The grammar recovers the Lorentz structure $D_\mathrm{lor}(v^2/c^2)$ at
 Rank~1 ($\hat{\theta}_0\approx1.01$), but the positive control fails (NMSE$=0.41$): over $v\le0.3c$ (RMS correction $\approx1.6\%$ vs.\ $1\%$ noise), even the exact ground-truth curve has an intrinsic observational noise floor of $\mathrm{NMSE}\approx\sigma_\mathrm{noise}^2/\mathrm{Var}(\Delta_\mathrm{obs})\approx0.41>0.05$.
 Because $>40\%$ of residual variance is measurement noise, the Positive Control gate correctly triggers WITHHELD.
-% (updated noise floor explanation above)
-The system outputs WITHHELD.
 Over 5 noise seeds, this verdict is 100\% stable (5/5 WITHHELD).
 
 % ---------------------------------------------------------------
@@ -529,8 +524,6 @@ is epistemically weaker than one that formally distinguishes
 ADCD's WITHHELD verdict on Time Dilation is the system correctly locating
 its own identifiability boundary---a boundary that is quantitative and
 testable: a wider velocity window ($v>0.3c$) or lower measurement noise ($\sigma<1\%$) would lower the observational noise floor below $0.05$, yielding IDENTIFIABLE.
-% (merged above)
-% (merged above)
 
 \textbf{Taxonomy as prior, not hint.}
 The taxonomy restricts \emph{which primitive family} is active;
