@@ -130,7 +130,7 @@ Pat Langley, Herbert~A. Simon, Gary~L. Bradshaw, and Jan~M. Zytkow.
 
 \bibitem[Kramer et~al.(2026)Kramer, Cerrato, Brugger, D{\v{z}}eroski, and
   King]{kramer2026}
-Stefan Kramer, Marco Cerrato, Jannis Brugger, Sa{\v{s}}o D{\v{z}}eroski, and
+Stefan Kramer, Mattia Cerrato, Jannis Brugger, Sa{\v{s}}o D{\v{z}}eroski, and
   Ross~D. King.
 \newblock Automated scientific discovery: From equation discovery to autonomous
   discovery systems.
@@ -139,9 +139,11 @@ Stefan Kramer, Marco Cerrato, Jannis Brugger, Sa{\v{s}}o D{\v{z}}eroski, and
 
 \bibitem[Makke and Chawla(2024)]{makke2024}
 Nour Makke and Sanjay Chawla.
-\newblock A perspective on symbolic machine learning in physical sciences.
-\newblock In \emph{NeurIPS 2024 Workshop on Machine Learning and the Physical
-  Sciences}, 2024.
+\newblock Interpretable scientific discovery with symbolic regression: A
+  review.
+\newblock \emph{Artificial Intelligence Review}, 57\penalty0 (1):\penalty0 2,
+  2024.
+\newblock \doi{10.1007/s10462-023-10622-0}.
 
 \bibitem[Karagiorgi et~al.(2022)Karagiorgi, Kasieczka, Kravitz, Nachman, and
   Shih]{karagiorgi2022}

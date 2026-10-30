@@ -16,12 +16,12 @@ arguments without manual specification; and a Phenomenon-Specific Taxonomy
 encoding peer-reviewed functional priors for each physics domain. A four-step
 validation protocol---budget disclosure, positive control, BIC-based ablation
 control, and determinism check---issues one of two verdicts: IDENTIFIABLE or
-WITHHELD. On three canonical scenarios at historical low-signal windows,
-Screened Coulomb (\Delta BIC=30.65, exact symbolic match) and Entropy Expansion
-(\Delta BIC=14.70, class-level match) are IDENTIFIABLE; Time Dilation at
-v <= 0.3c is WITHHELD because the 4.8% correction is indistinguishable from 1%
-noise---the intended, epistemically honest behavior. All results are byte-exact
-deterministic.
+WITHHELD. On three canonical scenarios at restricted low-signal windows,
+Screened Coulomb (\Delta BIC=30.65, exact match) and Entropy Expansion
+(\Delta BIC=14.70, class-level, parsimony-driven; 2/5 seeds) are IDENTIFIABLE;
+Time Dilation at v <= 0.3c is WITHHELD because its observational noise floor
+(NMSE approx 0.41) exceeds the positive-control threshold---the intended,
+epistemically honest behavior. All results are byte-exact deterministic.
 
 Primary Category: cs.LG (Machine Learning)
 Cross-list: cs.AI (Artificial Intelligence), physics.comp-ph (Computational Physics)
