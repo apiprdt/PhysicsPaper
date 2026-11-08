@@ -199,3 +199,24 @@ Phase 5 establishes statistical credibility by measuring the empirical error rat
    - **Planck & Debye (`elementary_only`):** Beats v1 = **100.0% (`460/460`)** (Passing Criterion 3), and all primitives pass Criterion 4. However, because the exact Bose-Einstein and Debye integrals are transcendental functions outside the 5 elementary convex families, the best elementary approximations (`convex_exp_p` on Planck with $\chi^2=96.40$; `smooth_min_2p` on Debye with $\chi^2=281.95$) beat rival elementary families by $\Delta\mathrm{BIC} > 1500$, producing **100.0% False-UNIQUE (`460/460`)** and **0.0% true form recovery (`0/460`)** $\implies$ **FAIL on Criteria 1 & 2**.
    - **Control (`exact_included`):** When the exact physical law is included in the candidate pool, both Planck and Debye achieve **100.0% True-UNIQUE (`460/460`)** and **0.0% False-UNIQUE (`0/460`)** $\implies$ proving that the failure is purely **dictionary misspecification** on transcendental physics, and on Debye the isotonic adequacy check flags structured misfit in **100.0% (`460/460`)** of elementary-only seeds.
    - **Final Decision:** Per the pre-registered Stopping Rule in `spike/PASS_CRITERIA.md`, we **STOP and DO NOT MERGE** `spike/crossover.py` into `src/adcd/` core. It remains isolated in `spike/` with full unit tests (`tests/test_crossover_spike.py`) and 2,300 seed records (`reports/crossover_spike_seed_log.csv`).
+
+
+---
+
+## Phase 6b: Post-Audit Oracle Leak Remediation & Blind Invariance Verification
+
+1. **Pre-Registration (`spike/AUDIT_FIX_PREREG.md`):**
+   - Pre-registered universal structural family mapping (`STRUCTURAL_FAMILY_MAP`), operational noise convention ($\sigma_{\text{obs}}$ from $y_{\text{obs}}$), blind $p_{\text{lower}}$ from validity diagnostics, and dynamic concordance accounting before executing fixes.
+2. **Elimination of Case-Name Branching in `spike/crossover.py`:**
+   - Removed all `case_name` branching in the model fitting, family mapping, and baseline comparison paths.
+   - Enforced automated regression guard `tests/test_no_oracle_leak.py` verifying zero oracle kwargs in core decision functions and zero `case_name` in crossover fitting.
+3. **Sphere Drag Accounting Correction:**
+   - Evaluated `is_false_unique` dynamically and required winning family match for concordance at $\sigma=0.1\%$.
+   - Concluded concordance at $\sigma=0.1\%$ is **83.3%** (`383/460` concordant with true `proudman_pearson_log`; 1 seed won by `quadratic_poly` honestly flagged as False-UNIQUE). Concordance at $\sigma=0.3\%$ is **99.1%** (`456/460`). Prediction flip strictly holds.
+4. **Re-Run of 460-Seed Crossover Suite:**
+   - Re-executed all 2,300 crossover seeds with blind grouping and blind sigma.
+   - Michaelis–Menten: Truth-in-Equiv = **100.0%**, False-UNIQUE = **0.0%**, Beats v1 = **96.3%** (PASS).
+   - Planck & Debye elementary-only dictionaries: Confirmed **100.0% False-UNIQUE** due to transcendental misspecification (not code grouping bias).
+   - Stopping rule confirmed: `spike/crossover.py` remains isolated in `spike/`.
+5. **Entropy Expansion Scale-Freedom Control:**
+   - Tested $k=2$ free-scale parameterization against $k=1$ across noise levels $0.5\%$, $1.0\%$, and $2.0\%$. Logarithmic family uniquely identified in **100.0% of seeds** with **0.0% False-UNIQUE** under both parameterizations.

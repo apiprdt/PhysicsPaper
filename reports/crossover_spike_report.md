@@ -65,7 +65,7 @@ We tested `evaluate_second_limit_hypothesis` by comparing the best locked two-li
 
 | Case | Dictionary Mode | Seeds | UNIQUE | EQUIV | WITHHELD | Truth in Equiv (C1 $\ge 80\%$) | False-UNIQUE [95% CI] (C2 $\le 5\%$) | Beats v1 (C3) | Adequacy Warn | Gate Status |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| `michaelis_menten` | `elementary_only` | 460 | 460 | 0 | 0 | 100.0% (460/460) | 0.0% [0.0%, 0.8%] | 95.9% | 0.0% | **PASS** |
+| `michaelis_menten` | `elementary_only` | 460 | 460 | 0 | 0 | 100.0% (460/460) | 0.0% [0.0%, 0.8%] | 96.3% | 0.0% | **PASS** |
 | `planck` | `elementary_only` | 460 | 460 | 0 | 0 | 0.0% (0/460) | 100.0% [99.2%, 100.0%] | 100.0% | 11.7% | **FAIL (C1 & C2)** |
 | `debye` | `elementary_only` | 460 | 460 | 0 | 0 | 0.0% (0/460) | 100.0% [99.2%, 100.0%] | 100.0% | 100.0% | **FAIL (C1 & C2)** |
 | `planck` | `exact_included` | 460 | 460 | 0 | 0 | 100.0% (460/460) | 0.0% [0.0%, 0.8%] | 100.0% | 0.0% | **PASS** |

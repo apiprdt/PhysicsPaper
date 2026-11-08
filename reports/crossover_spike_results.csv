@@ -1,6 +1,6 @@
 case,pool_mode,n_seeds,n_unique,n_equiv,n_withheld,n_truth_in_equiv,rate_truth_in_equiv,ci_truth_low,ci_truth_high,n_true_unique,rate_true_unique,n_false_unique,rate_false_unique,ci_false_unique_low,ci_false_unique_high,n_beats_v1,rate_beats_v1,n_adequacy_warn,rate_adequacy_warn,median_delta_bic_rival,dominant_winner,pass_c1_truth_recovery,pass_c2_false_unique_le_5pct,pass_c3_beats_v1
-michaelis_menten,elementary_only,460,460,0,0,460,1.0,0.9920127656699954,1.0,460,1.0,0,0.0,0.0,0.0079872343300046,441,0.9586956521739131,0,0.0,11138.647429705177,convex_rat(u/s),True,True,True
-planck,elementary_only,460,460,0,0,0,0.0,0.0,0.0079872343300046,0,0.0,460,1.0,0.9920127656699954,1.0,460,1.0,54,0.11739130434782609,1500.6148783177505,convex_exp_p(u/s),False,False,True
-debye,elementary_only,460,460,0,0,0,0.0,0.0,0.0079872343300046,0,0.0,460,1.0,0.9920127656699954,1.0,460,1.0,460,1.0,1836.6296835195383,smooth_min_2p(u),False,False,True
-planck,exact_included,460,460,0,0,460,1.0,0.9920127656699954,1.0,460,1.0,0,0.0,0.0,0.0079872343300046,460,1.0,0,0.0,99.29336280614541,exact_planck(u/s),True,True,True
-debye,exact_included,460,460,0,0,460,1.0,0.9920127656699954,1.0,460,1.0,0,0.0,0.0,0.0079872343300046,460,1.0,0,0.0,287.89666716729766,exact_debye(u/s),True,True,True
+michaelis_menten,elementary_only,460,460,0,0,460,1.0,0.9920127656699954,1.0,460,1.0,0,0.0,0.0,0.0079872343300046,443,0.9630434782608696,0,0.0,11153.351391833517,convex_rat(u/s),True,True,True
+planck,elementary_only,460,460,0,0,0,0.0,0.0,0.0079872343300046,0,0.0,460,1.0,0.9920127656699954,1.0,460,1.0,54,0.11739130434782609,1492.2387554754628,convex_exp_p(u/s),False,False,True
+debye,elementary_only,460,460,0,0,0,0.0,0.0,0.0079872343300046,0,0.0,460,1.0,0.9920127656699954,1.0,460,1.0,460,1.0,152666.3893440327,smooth_min_2p(u),False,False,True
+planck,exact_included,460,460,0,0,460,1.0,0.9920127656699954,1.0,460,1.0,0,0.0,0.0,0.0079872343300046,460,1.0,0,0.0,100.5170116977713,exact_planck(u/s),True,True,True
+debye,exact_included,460,460,0,0,460,1.0,0.9920127656699954,1.0,460,1.0,0,0.0,0.0,0.0079872343300046,460,1.0,0,0.0,289.598288646319,exact_debye(u/s),True,True,True

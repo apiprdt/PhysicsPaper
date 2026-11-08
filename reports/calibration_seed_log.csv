@@ -5979,3 +5979,1223 @@ timestamp,scenario,noise_level,seed,verdict,best_family,best_expr,delta_bic_riva
 2026-11-08T19:31:43.716678,Sphere Drag Flip,0.0010,459,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),38.38,479067.45,0
 2026-11-08T19:31:43.716678,Sphere Drag Flip,0.0010,458,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.57,477107.77,0
 2026-11-08T19:31:43.717683,Sphere Drag Flip,0.0010,457,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.44,479659.25,0
+2026-11-08T21:13:18.686046,Sphere Drag Flip,0.0030,0,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.22,53444.43,0
+2026-11-08T21:13:19.175805,Sphere Drag Flip,0.0030,1,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.02,54191.64,0
+2026-11-08T21:13:19.297589,Sphere Drag Flip,0.0030,5,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.63,53490.94,0
+2026-11-08T21:13:19.418608,Sphere Drag Flip,0.0030,6,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.15,53008.24,0
+2026-11-08T21:13:19.542468,Sphere Drag Flip,0.0030,2,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.92,53769.81,0
+2026-11-08T21:13:19.659981,Sphere Drag Flip,0.0030,4,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.28,53265.85,0
+2026-11-08T21:13:19.764026,Sphere Drag Flip,0.0030,3,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.71,52886.55,0
+2026-11-08T21:13:19.874756,Sphere Drag Flip,0.0030,7,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.72,53005.58,0
+2026-11-08T21:13:19.951833,Sphere Drag Flip,0.0030,8,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.02,53206.94,0
+2026-11-08T21:13:20.107522,Sphere Drag Flip,0.0030,9,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.87,53343.17,0
+2026-11-08T21:13:20.248278,Sphere Drag Flip,0.0030,10,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.04,53587.26,0
+2026-11-08T21:13:20.372113,Sphere Drag Flip,0.0030,11,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.62,53173.73,0
+2026-11-08T21:13:20.495526,Sphere Drag Flip,0.0030,12,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.22,51853.45,0
+2026-11-08T21:13:20.620801,Sphere Drag Flip,0.0030,13,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.76,52664.73,0
+2026-11-08T21:13:20.732823,Sphere Drag Flip,0.0030,14,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.64,51813.69,0
+2026-11-08T21:13:20.846345,Sphere Drag Flip,0.0030,15,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.46,52847.18,0
+2026-11-08T21:13:20.967454,Sphere Drag Flip,0.0030,16,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.05,54105.80,0
+2026-11-08T21:13:21.095792,Sphere Drag Flip,0.0030,17,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.11,53437.55,0
+2026-11-08T21:13:21.215760,Sphere Drag Flip,0.0030,18,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.85,53700.42,0
+2026-11-08T21:13:21.361870,Sphere Drag Flip,0.0030,19,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.28,52202.61,0
+2026-11-08T21:13:21.483634,Sphere Drag Flip,0.0030,20,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.24,53450.47,0
+2026-11-08T21:13:21.607165,Sphere Drag Flip,0.0030,21,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.47,53064.77,0
+2026-11-08T21:13:21.819414,Sphere Drag Flip,0.0030,22,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.97,54422.75,0
+2026-11-08T21:13:21.942342,Sphere Drag Flip,0.0030,23,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.20,53185.57,0
+2026-11-08T21:13:22.051194,Sphere Drag Flip,0.0030,24,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.43,53635.80,0
+2026-11-08T21:13:22.150735,Sphere Drag Flip,0.0030,25,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.12,52633.99,0
+2026-11-08T21:13:22.308820,Sphere Drag Flip,0.0030,26,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.20,53267.67,0
+2026-11-08T21:13:22.408816,Sphere Drag Flip,0.0030,27,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.91,53510.35,0
+2026-11-08T21:13:22.513189,Sphere Drag Flip,0.0030,28,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.36,53033.94,0
+2026-11-08T21:13:22.622482,Sphere Drag Flip,0.0030,29,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.01,53116.94,0
+2026-11-08T21:13:22.752708,Sphere Drag Flip,0.0030,30,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.19,53405.15,0
+2026-11-08T21:13:22.844668,Sphere Drag Flip,0.0030,31,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.39,52690.80,0
+2026-11-08T21:13:23.031365,Sphere Drag Flip,0.0030,32,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.21,53885.63,0
+2026-11-08T21:13:23.109324,Sphere Drag Flip,0.0030,33,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.98,52771.55,0
+2026-11-08T21:13:23.296474,Sphere Drag Flip,0.0030,34,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.11,53650.00,0
+2026-11-08T21:13:23.449596,Sphere Drag Flip,0.0030,35,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.12,53616.85,0
+2026-11-08T21:13:23.571838,Sphere Drag Flip,0.0030,36,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.74,53756.61,0
+2026-11-08T21:13:23.695256,Sphere Drag Flip,0.0030,37,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.90,53047.84,0
+2026-11-08T21:13:23.795539,Sphere Drag Flip,0.0030,38,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.22,54209.55,0
+2026-11-08T21:13:23.918583,Sphere Drag Flip,0.0030,39,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.68,53059.84,0
+2026-11-08T21:13:24.015418,Sphere Drag Flip,0.0030,40,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.95,53012.00,0
+2026-11-08T21:13:24.124814,Sphere Drag Flip,0.0030,41,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.18,53486.73,0
+2026-11-08T21:13:24.250882,Sphere Drag Flip,0.0030,42,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.14,53183.80,0
+2026-11-08T21:13:24.380530,Sphere Drag Flip,0.0030,43,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.11,53503.53,0
+2026-11-08T21:13:24.503098,Sphere Drag Flip,0.0030,44,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.79,52928.14,0
+2026-11-08T21:13:24.632941,Sphere Drag Flip,0.0030,45,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.12,53427.42,0
+2026-11-08T21:13:24.750077,Sphere Drag Flip,0.0030,46,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.29,53756.19,0
+2026-11-08T21:13:24.868190,Sphere Drag Flip,0.0030,47,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.64,53676.20,0
+2026-11-08T21:13:24.982301,Sphere Drag Flip,0.0030,48,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,0.53,52807.64,0
+2026-11-08T21:13:25.104103,Sphere Drag Flip,0.0030,49,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.24,53030.44,0
+2026-11-08T21:13:25.129562,Sphere Drag Flip,0.0030,50,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),6.44,52366.58,0
+2026-11-08T21:13:25.130128,Sphere Drag Flip,0.0030,51,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.26,53156.06,0
+2026-11-08T21:13:25.355804,Sphere Drag Flip,0.0030,52,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.50,52870.61,0
+2026-11-08T21:13:25.575386,Sphere Drag Flip,0.0030,53,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,2.53,53159.66,0
+2026-11-08T21:13:25.723286,Sphere Drag Flip,0.0030,54,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.70,53460.58,0
+2026-11-08T21:13:25.851318,Sphere Drag Flip,0.0030,55,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.21,53163.59,0
+2026-11-08T21:13:25.963698,Sphere Drag Flip,0.0030,56,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.39,53134.22,0
+2026-11-08T21:13:26.133936,Sphere Drag Flip,0.0030,59,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.70,53255.31,0
+2026-11-08T21:13:26.196894,Sphere Drag Flip,0.0030,58,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,0.57,53435.42,0
+2026-11-08T21:13:26.413336,Sphere Drag Flip,0.0030,57,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.55,52635.77,0
+2026-11-08T21:13:26.625470,Sphere Drag Flip,0.0030,60,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.97,52998.68,0
+2026-11-08T21:13:26.746668,Sphere Drag Flip,0.0030,61,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.40,52715.81,0
+2026-11-08T21:13:26.874057,Sphere Drag Flip,0.0030,62,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.99,53771.29,0
+2026-11-08T21:13:26.997662,Sphere Drag Flip,0.0030,63,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.06,53770.45,0
+2026-11-08T21:13:27.110907,Sphere Drag Flip,0.0030,64,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.65,51995.31,0
+2026-11-08T21:13:27.241558,Sphere Drag Flip,0.0030,65,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.74,52466.73,0
+2026-11-08T21:13:27.297779,Sphere Drag Flip,0.0030,66,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.40,54033.16,0
+2026-11-08T21:13:27.471611,Sphere Drag Flip,0.0030,67,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.24,53280.99,0
+2026-11-08T21:13:27.586314,Sphere Drag Flip,0.0030,68,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),9.83,53246.30,0
+2026-11-08T21:13:27.687940,Sphere Drag Flip,0.0030,69,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.30,53176.04,0
+2026-11-08T21:13:27.816020,Sphere Drag Flip,0.0030,70,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.87,53387.33,0
+2026-11-08T21:13:27.909002,Sphere Drag Flip,0.0030,71,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.09,53188.91,0
+2026-11-08T21:13:28.021347,Sphere Drag Flip,0.0030,72,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.01,53187.79,0
+2026-11-08T21:13:28.142530,Sphere Drag Flip,0.0030,73,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.07,52991.64,0
+2026-11-08T21:13:28.266585,Sphere Drag Flip,0.0030,74,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.98,53406.03,0
+2026-11-08T21:13:28.390251,Sphere Drag Flip,0.0030,75,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.20,53470.11,0
+2026-11-08T21:13:28.499454,Sphere Drag Flip,0.0030,76,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.26,53509.86,0
+2026-11-08T21:13:28.623750,Sphere Drag Flip,0.0030,77,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.52,53219.02,0
+2026-11-08T21:13:28.733848,Sphere Drag Flip,0.0030,78,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),6.09,53183.25,0
+2026-11-08T21:13:28.848898,Sphere Drag Flip,0.0030,79,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.32,53236.97,0
+2026-11-08T21:13:28.954552,Sphere Drag Flip,0.0030,80,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.18,53781.40,0
+2026-11-08T21:13:29.074654,Sphere Drag Flip,0.0030,81,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.67,52981.99,0
+2026-11-08T21:13:29.189204,Sphere Drag Flip,0.0030,82,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.84,53457.78,0
+2026-11-08T21:13:29.300265,Sphere Drag Flip,0.0030,83,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.63,53418.34,0
+2026-11-08T21:13:29.442338,Sphere Drag Flip,0.0030,84,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.06,52960.62,0
+2026-11-08T21:13:29.605594,Sphere Drag Flip,0.0030,85,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.15,52690.55,0
+2026-11-08T21:13:29.646211,Sphere Drag Flip,0.0030,86,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.89,53618.76,0
+2026-11-08T21:13:29.849302,Sphere Drag Flip,0.0030,87,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.56,53247.01,0
+2026-11-08T21:13:29.948832,Sphere Drag Flip,0.0030,88,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.81,52808.30,0
+2026-11-08T21:13:30.055588,Sphere Drag Flip,0.0030,89,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.76,53115.73,0
+2026-11-08T21:13:30.166878,Sphere Drag Flip,0.0030,90,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.54,53503.11,0
+2026-11-08T21:13:30.284139,Sphere Drag Flip,0.0030,91,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.39,53648.26,0
+2026-11-08T21:13:30.378008,Sphere Drag Flip,0.0030,92,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.67,53935.02,0
+2026-11-08T21:13:30.518650,Sphere Drag Flip,0.0030,94,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.34,52658.07,0
+2026-11-08T21:13:30.628345,Sphere Drag Flip,0.0030,93,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.39,52981.43,0
+2026-11-08T21:13:30.733463,Sphere Drag Flip,0.0030,95,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,6.02,52867.23,0
+2026-11-08T21:13:30.870701,Sphere Drag Flip,0.0030,96,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.07,53558.53,0
+2026-11-08T21:13:30.968686,Sphere Drag Flip,0.0030,97,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.75,52777.80,0
+2026-11-08T21:13:31.090599,Sphere Drag Flip,0.0030,98,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.22,52967.40,0
+2026-11-08T21:13:31.191464,Sphere Drag Flip,0.0030,99,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,4.60,53002.89,0
+2026-11-08T21:13:31.192420,Sphere Drag Flip,0.0030,100,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.13,52926.71,0
+2026-11-08T21:13:31.192996,Sphere Drag Flip,0.0030,101,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.58,52979.96,0
+2026-11-08T21:13:31.528933,Sphere Drag Flip,0.0030,102,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.39,53624.60,0
+2026-11-08T21:13:31.653345,Sphere Drag Flip,0.0030,103,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,0.11,52728.22,0
+2026-11-08T21:13:31.746572,Sphere Drag Flip,0.0030,104,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.01,53080.42,0
+2026-11-08T21:13:31.891464,Sphere Drag Flip,0.0030,105,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.62,53783.35,0
+2026-11-08T21:13:32.008160,Sphere Drag Flip,0.0030,106,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.20,53350.65,0
+2026-11-08T21:13:32.105368,Sphere Drag Flip,0.0030,109,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.02,54239.66,0
+2026-11-08T21:13:32.213723,Sphere Drag Flip,0.0030,108,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,1.49,53432.62,0
+2026-11-08T21:13:32.353027,Sphere Drag Flip,0.0030,107,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.85,53429.70,0
+2026-11-08T21:13:32.504243,Sphere Drag Flip,0.0030,110,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.22,53529.13,0
+2026-11-08T21:13:32.619875,Sphere Drag Flip,0.0030,111,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.52,53536.16,0
+2026-11-08T21:13:32.775639,Sphere Drag Flip,0.0030,112,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.90,52880.13,0
+2026-11-08T21:13:32.946588,Sphere Drag Flip,0.0030,113,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.28,54162.56,0
+2026-11-08T21:13:33.041632,Sphere Drag Flip,0.0030,114,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.68,53456.69,0
+2026-11-08T21:13:33.167931,Sphere Drag Flip,0.0030,115,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.41,53910.32,0
+2026-11-08T21:13:33.370775,Sphere Drag Flip,0.0030,116,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.20,53344.81,0
+2026-11-08T21:13:33.495936,Sphere Drag Flip,0.0030,117,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),9.93,53690.93,0
+2026-11-08T21:13:33.607109,Sphere Drag Flip,0.0030,118,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.39,53184.96,0
+2026-11-08T21:13:33.748096,Sphere Drag Flip,0.0030,119,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.78,53428.86,0
+2026-11-08T21:13:33.868252,Sphere Drag Flip,0.0030,120,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.56,53716.89,0
+2026-11-08T21:13:34.022790,Sphere Drag Flip,0.0030,121,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.14,53536.30,0
+2026-11-08T21:13:34.127199,Sphere Drag Flip,0.0030,122,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.94,52715.68,0
+2026-11-08T21:13:34.216955,Sphere Drag Flip,0.0030,123,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,0.14,53063.37,0
+2026-11-08T21:13:34.385106,Sphere Drag Flip,0.0030,124,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,0.21,53608.92,0
+2026-11-08T21:13:34.497211,Sphere Drag Flip,0.0030,125,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.91,53350.06,0
+2026-11-08T21:13:34.638718,Sphere Drag Flip,0.0030,126,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.10,52862.80,0
+2026-11-08T21:13:34.761001,Sphere Drag Flip,0.0030,127,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.13,53373.13,0
+2026-11-08T21:13:34.907742,Sphere Drag Flip,0.0030,128,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.18,53708.53,0
+2026-11-08T21:13:35.031492,Sphere Drag Flip,0.0030,129,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.27,52109.58,0
+2026-11-08T21:13:35.161809,Sphere Drag Flip,0.0030,130,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,0.88,53358.80,0
+2026-11-08T21:13:35.271163,Sphere Drag Flip,0.0030,131,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.01,53179.90,0
+2026-11-08T21:13:35.370554,Sphere Drag Flip,0.0030,132,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.00,54448.80,0
+2026-11-08T21:13:35.488371,Sphere Drag Flip,0.0030,133,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.75,53572.72,0
+2026-11-08T21:13:35.587366,Sphere Drag Flip,0.0030,134,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.46,53610.35,0
+2026-11-08T21:13:35.695816,Sphere Drag Flip,0.0030,135,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.65,53374.42,0
+2026-11-08T21:13:35.836176,Sphere Drag Flip,0.0030,136,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.47,52947.32,0
+2026-11-08T21:13:35.944861,Sphere Drag Flip,0.0030,137,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.06,53158.05,0
+2026-11-08T21:13:36.055877,Sphere Drag Flip,0.0030,138,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.70,53283.43,0
+2026-11-08T21:13:36.165286,Sphere Drag Flip,0.0030,139,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.61,54458.09,0
+2026-11-08T21:13:36.289351,Sphere Drag Flip,0.0030,140,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.49,54002.96,0
+2026-11-08T21:13:36.392513,Sphere Drag Flip,0.0030,141,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.94,53086.62,0
+2026-11-08T21:13:36.506512,Sphere Drag Flip,0.0030,142,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.02,53264.25,0
+2026-11-08T21:13:36.635181,Sphere Drag Flip,0.0030,143,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.21,53720.69,0
+2026-11-08T21:13:36.745384,Sphere Drag Flip,0.0030,144,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.90,53385.67,0
+2026-11-08T21:13:36.868956,Sphere Drag Flip,0.0030,145,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.63,52648.73,0
+2026-11-08T21:13:36.975617,Sphere Drag Flip,0.0030,146,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.51,53204.48,0
+2026-11-08T21:13:37.086904,Sphere Drag Flip,0.0030,147,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.05,52881.46,0
+2026-11-08T21:13:37.166031,Sphere Drag Flip,0.0030,148,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.04,53342.16,0
+2026-11-08T21:13:37.339475,Sphere Drag Flip,0.0030,149,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.71,53499.03,0
+2026-11-08T21:13:37.367916,Sphere Drag Flip,0.0030,150,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.61,53290.27,0
+2026-11-08T21:13:37.367916,Sphere Drag Flip,0.0030,151,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.48,53585.27,0
+2026-11-08T21:13:37.509795,Sphere Drag Flip,0.0030,152,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.21,52163.75,0
+2026-11-08T21:13:37.805934,Sphere Drag Flip,0.0030,153,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.72,53100.98,0
+2026-11-08T21:13:37.900055,Sphere Drag Flip,0.0030,154,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.18,53172.53,0
+2026-11-08T21:13:38.083282,Sphere Drag Flip,0.0030,155,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.43,53017.66,0
+2026-11-08T21:13:38.202959,Sphere Drag Flip,0.0030,156,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.32,52752.59,0
+2026-11-08T21:13:38.305482,Sphere Drag Flip,0.0030,157,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.25,54163.90,0
+2026-11-08T21:13:38.398661,Sphere Drag Flip,0.0030,159,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,5.16,52973.76,0
+2026-11-08T21:13:38.519778,Sphere Drag Flip,0.0030,158,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.42,53277.75,0
+2026-11-08T21:13:38.617533,Sphere Drag Flip,0.0030,160,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.18,53766.85,0
+2026-11-08T21:13:38.727920,Sphere Drag Flip,0.0030,161,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.33,53156.26,0
+2026-11-08T21:13:38.843096,Sphere Drag Flip,0.0030,162,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.45,53299.81,0
+2026-11-08T21:13:38.912858,Sphere Drag Flip,0.0030,163,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.84,52985.19,0
+2026-11-08T21:13:39.086984,Sphere Drag Flip,0.0030,164,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,2.63,53530.63,0
+2026-11-08T21:13:39.222198,Sphere Drag Flip,0.0030,165,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.16,53179.86,0
+2026-11-08T21:13:39.324350,Sphere Drag Flip,0.0030,166,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.26,53954.18,0
+2026-11-08T21:13:39.441658,Sphere Drag Flip,0.0030,167,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.76,53105.77,0
+2026-11-08T21:13:39.564785,Sphere Drag Flip,0.0030,168,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.44,53691.50,0
+2026-11-08T21:13:39.681652,Sphere Drag Flip,0.0030,169,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.64,53048.90,0
+2026-11-08T21:13:39.788096,Sphere Drag Flip,0.0030,170,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.18,52793.27,0
+2026-11-08T21:13:39.945549,Sphere Drag Flip,0.0030,171,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.60,52722.21,0
+2026-11-08T21:13:40.062973,Sphere Drag Flip,0.0030,172,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,0.37,53312.66,0
+2026-11-08T21:13:40.188293,Sphere Drag Flip,0.0030,173,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),6.72,53303.05,0
+2026-11-08T21:13:40.291605,Sphere Drag Flip,0.0030,174,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.21,52890.52,0
+2026-11-08T21:13:40.401270,Sphere Drag Flip,0.0030,175,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.24,53137.25,0
+2026-11-08T21:13:40.537958,Sphere Drag Flip,0.0030,176,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,0.12,53907.14,0
+2026-11-08T21:13:40.660708,Sphere Drag Flip,0.0030,177,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),6.90,52532.31,0
+2026-11-08T21:13:40.783825,Sphere Drag Flip,0.0030,178,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.91,54091.51,0
+2026-11-08T21:13:40.884446,Sphere Drag Flip,0.0030,179,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.73,53015.49,0
+2026-11-08T21:13:40.992450,Sphere Drag Flip,0.0030,180,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.09,53765.68,0
+2026-11-08T21:13:41.101752,Sphere Drag Flip,0.0030,181,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.89,52510.18,0
+2026-11-08T21:13:41.206591,Sphere Drag Flip,0.0030,182,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.76,53345.17,0
+2026-11-08T21:13:41.329999,Sphere Drag Flip,0.0030,183,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),6.72,52861.25,0
+2026-11-08T21:13:41.452942,Sphere Drag Flip,0.0030,184,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.53,53313.22,0
+2026-11-08T21:13:41.566995,Sphere Drag Flip,0.0030,185,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.69,54186.68,0
+2026-11-08T21:13:41.679454,Sphere Drag Flip,0.0030,186,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.71,53004.52,0
+2026-11-08T21:13:41.804791,Sphere Drag Flip,0.0030,187,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.79,52854.86,0
+2026-11-08T21:13:41.928356,Sphere Drag Flip,0.0030,188,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.05,53206.06,0
+2026-11-08T21:13:42.049331,Sphere Drag Flip,0.0030,189,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.20,52853.25,0
+2026-11-08T21:13:42.131506,Sphere Drag Flip,0.0030,190,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.70,54123.39,0
+2026-11-08T21:13:42.366567,Sphere Drag Flip,0.0030,191,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.68,52091.81,0
+2026-11-08T21:13:42.489711,Sphere Drag Flip,0.0030,192,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.66,52968.85,0
+2026-11-08T21:13:42.607334,Sphere Drag Flip,0.0030,193,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.67,53450.77,0
+2026-11-08T21:13:42.719483,Sphere Drag Flip,0.0030,194,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.30,53891.82,0
+2026-11-08T21:13:42.840567,Sphere Drag Flip,0.0030,195,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.67,53064.03,0
+2026-11-08T21:13:42.941841,Sphere Drag Flip,0.0030,196,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.35,52745.24,0
+2026-11-08T21:13:43.051723,Sphere Drag Flip,0.0030,197,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.24,53481.21,0
+2026-11-08T21:13:43.162910,Sphere Drag Flip,0.0030,198,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.18,52255.42,0
+2026-11-08T21:13:43.270103,Sphere Drag Flip,0.0030,199,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.37,53141.93,0
+2026-11-08T21:13:43.278398,Sphere Drag Flip,0.0030,200,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.81,53360.23,0
+2026-11-08T21:13:43.278906,Sphere Drag Flip,0.0030,201,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.74,52468.24,0
+2026-11-08T21:13:43.469684,Sphere Drag Flip,0.0030,202,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.00,52288.19,0
+2026-11-08T21:13:43.688453,Sphere Drag Flip,0.0030,203,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.30,53510.30,0
+2026-11-08T21:13:43.814132,Sphere Drag Flip,0.0030,204,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),9.20,54078.09,0
+2026-11-08T21:13:43.938196,Sphere Drag Flip,0.0030,205,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.17,53649.15,0
+2026-11-08T21:13:44.050101,Sphere Drag Flip,0.0030,206,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.90,53421.07,0
+2026-11-08T21:13:44.161927,Sphere Drag Flip,0.0030,208,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.25,53208.99,0
+2026-11-08T21:13:44.269453,Sphere Drag Flip,0.0030,209,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.43,53831.27,0
+2026-11-08T21:13:44.316402,Sphere Drag Flip,0.0030,210,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.48,53161.71,0
+2026-11-08T21:13:44.472526,Sphere Drag Flip,0.0030,207,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.15,53821.00,0
+2026-11-08T21:13:44.666074,Sphere Drag Flip,0.0030,211,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,3.00,53138.33,0
+2026-11-08T21:13:44.769004,Sphere Drag Flip,0.0030,212,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.83,53577.03,0
+2026-11-08T21:13:44.878139,Sphere Drag Flip,0.0030,213,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.92,52908.64,0
+2026-11-08T21:13:45.002858,Sphere Drag Flip,0.0030,214,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.56,52766.69,0
+2026-11-08T21:13:45.080607,Sphere Drag Flip,0.0030,215,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.54,52514.90,0
+2026-11-08T21:13:45.220505,Sphere Drag Flip,0.0030,216,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.33,53084.09,0
+2026-11-08T21:13:45.314446,Sphere Drag Flip,0.0030,217,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.96,53175.63,0
+2026-11-08T21:13:45.470860,Sphere Drag Flip,0.0030,218,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.86,53043.76,0
+2026-11-08T21:13:45.589261,Sphere Drag Flip,0.0030,219,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.50,53470.69,0
+2026-11-08T21:13:45.698649,Sphere Drag Flip,0.0030,220,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.02,53533.72,0
+2026-11-08T21:13:45.782474,Sphere Drag Flip,0.0030,221,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.46,53704.35,0
+2026-11-08T21:13:45.903452,Sphere Drag Flip,0.0030,222,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.12,53308.01,0
+2026-11-08T21:13:46.017011,Sphere Drag Flip,0.0030,223,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.21,52720.38,0
+2026-11-08T21:13:46.142358,Sphere Drag Flip,0.0030,224,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.50,54154.85,0
+2026-11-08T21:13:46.249253,Sphere Drag Flip,0.0030,225,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,2.60,52539.55,0
+2026-11-08T21:13:46.367340,Sphere Drag Flip,0.0030,226,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.20,52780.42,0
+2026-11-08T21:13:46.489982,Sphere Drag Flip,0.0030,227,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.87,53151.14,0
+2026-11-08T21:13:46.609379,Sphere Drag Flip,0.0030,228,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.66,53857.73,0
+2026-11-08T21:13:46.714052,Sphere Drag Flip,0.0030,229,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.17,53775.29,0
+2026-11-08T21:13:46.835978,Sphere Drag Flip,0.0030,230,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.11,52682.55,0
+2026-11-08T21:13:46.953246,Sphere Drag Flip,0.0030,231,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.46,51408.77,0
+2026-11-08T21:13:47.055403,Sphere Drag Flip,0.0030,232,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.54,52692.72,0
+2026-11-08T21:13:47.175426,Sphere Drag Flip,0.0030,233,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),9.58,52540.66,0
+2026-11-08T21:13:47.284864,Sphere Drag Flip,0.0030,234,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),6.22,53525.98,0
+2026-11-08T21:13:47.400598,Sphere Drag Flip,0.0030,235,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.23,53071.74,0
+2026-11-08T21:13:47.519766,Sphere Drag Flip,0.0030,236,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.18,52883.87,0
+2026-11-08T21:13:47.628989,Sphere Drag Flip,0.0030,237,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.51,52761.78,0
+2026-11-08T21:13:47.722638,Sphere Drag Flip,0.0030,238,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.71,53022.10,0
+2026-11-08T21:13:47.887942,Sphere Drag Flip,0.0030,239,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.04,52573.46,0
+2026-11-08T21:13:48.005090,Sphere Drag Flip,0.0030,240,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.50,53773.01,0
+2026-11-08T21:13:48.129724,Sphere Drag Flip,0.0030,241,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.14,53115.51,0
+2026-11-08T21:13:48.253918,Sphere Drag Flip,0.0030,242,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.73,52870.56,0
+2026-11-08T21:13:48.377543,Sphere Drag Flip,0.0030,243,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.89,53610.93,0
+2026-11-08T21:13:48.503887,Sphere Drag Flip,0.0030,244,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.44,52509.10,0
+2026-11-08T21:13:48.632695,Sphere Drag Flip,0.0030,245,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,2.04,51849.87,0
+2026-11-08T21:13:48.691524,Sphere Drag Flip,0.0030,246,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.43,53524.12,0
+2026-11-08T21:13:48.865207,Sphere Drag Flip,0.0030,247,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.42,52432.74,0
+2026-11-08T21:13:48.943450,Sphere Drag Flip,0.0030,248,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),6.53,53213.88,0
+2026-11-08T21:13:48.995556,Sphere Drag Flip,0.0030,249,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.20,53340.61,0
+2026-11-08T21:13:49.107240,Sphere Drag Flip,0.0030,250,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.59,52606.05,0
+2026-11-08T21:13:49.266381,Sphere Drag Flip,0.0030,251,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.24,53984.29,0
+2026-11-08T21:13:49.343486,Sphere Drag Flip,0.0030,252,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.98,54145.01,0
+2026-11-08T21:13:49.499838,Sphere Drag Flip,0.0030,253,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.50,53275.27,0
+2026-11-08T21:13:49.689725,Sphere Drag Flip,0.0030,254,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.10,53487.20,0
+2026-11-08T21:13:49.831431,Sphere Drag Flip,0.0030,255,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.90,53101.60,0
+2026-11-08T21:13:49.961062,Sphere Drag Flip,0.0030,256,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.41,51995.84,0
+2026-11-08T21:13:50.074252,Sphere Drag Flip,0.0030,257,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.72,53497.36,0
+2026-11-08T21:13:50.097947,Sphere Drag Flip,0.0030,258,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.12,52756.64,0
+2026-11-08T21:13:50.299536,Sphere Drag Flip,0.0030,259,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.74,53343.59,0
+2026-11-08T21:13:50.409717,Sphere Drag Flip,0.0030,260,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.85,53687.81,0
+2026-11-08T21:13:50.544142,Sphere Drag Flip,0.0030,261,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.13,53326.75,0
+2026-11-08T21:13:50.599677,Sphere Drag Flip,0.0030,262,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,4.42,52463.40,0
+2026-11-08T21:13:50.784935,Sphere Drag Flip,0.0030,263,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.28,53668.46,0
+2026-11-08T21:13:50.912331,Sphere Drag Flip,0.0030,264,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.89,53380.59,0
+2026-11-08T21:13:51.037439,Sphere Drag Flip,0.0030,265,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.26,53478.26,0
+2026-11-08T21:13:51.163644,Sphere Drag Flip,0.0030,266,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.27,53086.91,0
+2026-11-08T21:13:51.257045,Sphere Drag Flip,0.0030,267,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.18,52571.37,0
+2026-11-08T21:13:51.447304,Sphere Drag Flip,0.0030,268,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,1.53,52943.83,0
+2026-11-08T21:13:51.585772,Sphere Drag Flip,0.0030,269,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.78,53273.27,0
+2026-11-08T21:13:51.711404,Sphere Drag Flip,0.0030,270,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.15,53462.90,0
+2026-11-08T21:13:51.833034,Sphere Drag Flip,0.0030,271,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.11,53276.09,0
+2026-11-08T21:13:51.945528,Sphere Drag Flip,0.0030,272,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.60,54058.03,0
+2026-11-08T21:13:52.060940,Sphere Drag Flip,0.0030,273,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.73,53227.58,0
+2026-11-08T21:13:52.179877,Sphere Drag Flip,0.0030,274,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.99,52710.10,0
+2026-11-08T21:13:52.310133,Sphere Drag Flip,0.0030,275,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.38,53103.94,0
+2026-11-08T21:13:52.419005,Sphere Drag Flip,0.0030,276,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.92,53933.62,0
+2026-11-08T21:13:52.528444,Sphere Drag Flip,0.0030,277,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.03,53512.89,0
+2026-11-08T21:13:52.631624,Sphere Drag Flip,0.0030,278,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.38,53921.47,0
+2026-11-08T21:13:52.743520,Sphere Drag Flip,0.0030,279,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.59,53246.76,0
+2026-11-08T21:13:52.835502,Sphere Drag Flip,0.0030,280,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.26,54069.91,0
+2026-11-08T21:13:52.975740,Sphere Drag Flip,0.0030,281,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.24,52940.34,0
+2026-11-08T21:13:53.101894,Sphere Drag Flip,0.0030,282,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.57,52767.15,0
+2026-11-08T21:13:53.118894,Sphere Drag Flip,0.0030,283,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.34,52364.86,0
+2026-11-08T21:13:53.319469,Sphere Drag Flip,0.0030,284,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,3.18,53084.80,0
+2026-11-08T21:13:53.443618,Sphere Drag Flip,0.0030,285,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.79,52571.31,0
+2026-11-08T21:13:53.549912,Sphere Drag Flip,0.0030,286,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.49,52305.79,0
+2026-11-08T21:13:53.656884,Sphere Drag Flip,0.0030,287,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,5.42,52970.56,0
+2026-11-08T21:13:53.757149,Sphere Drag Flip,0.0030,288,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.96,52968.98,0
+2026-11-08T21:13:53.875383,Sphere Drag Flip,0.0030,289,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,1.52,52605.84,0
+2026-11-08T21:13:53.937915,Sphere Drag Flip,0.0030,290,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.36,52865.78,0
+2026-11-08T21:13:54.006099,Sphere Drag Flip,0.0030,291,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.62,52648.61,0
+2026-11-08T21:13:54.283762,Sphere Drag Flip,0.0030,292,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.87,52864.42,0
+2026-11-08T21:13:54.383442,Sphere Drag Flip,0.0030,293,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.84,52813.68,0
+2026-11-08T21:13:54.503490,Sphere Drag Flip,0.0030,294,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.57,52730.26,0
+2026-11-08T21:13:54.604327,Sphere Drag Flip,0.0030,295,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.52,53197.53,0
+2026-11-08T21:13:54.723150,Sphere Drag Flip,0.0030,296,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.87,52007.99,0
+2026-11-08T21:13:54.743384,Sphere Drag Flip,0.0030,298,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.07,52820.28,0
+2026-11-08T21:13:54.849685,Sphere Drag Flip,0.0030,297,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.19,52875.98,0
+2026-11-08T21:13:54.980006,Sphere Drag Flip,0.0030,299,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.58,53134.36,0
+2026-11-08T21:13:55.087412,Sphere Drag Flip,0.0030,300,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.30,53430.41,0
+2026-11-08T21:13:55.274814,Sphere Drag Flip,0.0030,301,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.08,52872.34,0
+2026-11-08T21:13:55.514716,Sphere Drag Flip,0.0030,302,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.81,52655.86,0
+2026-11-08T21:13:55.617958,Sphere Drag Flip,0.0030,303,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,2.55,52511.07,0
+2026-11-08T21:13:55.742525,Sphere Drag Flip,0.0030,304,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.76,53267.99,0
+2026-11-08T21:13:55.852121,Sphere Drag Flip,0.0030,305,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.48,53671.31,0
+2026-11-08T21:13:55.989490,Sphere Drag Flip,0.0030,306,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.01,52388.20,0
+2026-11-08T21:13:56.099346,Sphere Drag Flip,0.0030,308,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.85,53153.94,0
+2026-11-08T21:13:56.209670,Sphere Drag Flip,0.0030,309,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.18,52921.55,0
+2026-11-08T21:13:56.304009,Sphere Drag Flip,0.0030,307,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.81,53407.71,0
+2026-11-08T21:13:56.434537,Sphere Drag Flip,0.0030,310,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.31,53313.09,0
+2026-11-08T21:13:56.541211,Sphere Drag Flip,0.0030,311,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.99,52814.06,0
+2026-11-08T21:13:56.656364,Sphere Drag Flip,0.0030,312,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.41,54111.67,0
+2026-11-08T21:13:56.756319,Sphere Drag Flip,0.0030,313,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.40,53213.49,0
+2026-11-08T21:13:56.864927,Sphere Drag Flip,0.0030,314,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.04,53627.12,0
+2026-11-08T21:13:56.989544,Sphere Drag Flip,0.0030,315,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.54,53219.25,0
+2026-11-08T21:13:57.129722,Sphere Drag Flip,0.0030,316,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.10,52256.44,0
+2026-11-08T21:13:57.237309,Sphere Drag Flip,0.0030,317,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,6.43,52463.75,0
+2026-11-08T21:13:57.343834,Sphere Drag Flip,0.0030,318,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.69,52747.79,0
+2026-11-08T21:13:57.461906,Sphere Drag Flip,0.0030,319,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.19,53407.22,0
+2026-11-08T21:13:57.565215,Sphere Drag Flip,0.0030,320,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.55,53654.31,0
+2026-11-08T21:13:57.674900,Sphere Drag Flip,0.0030,321,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.01,53481.72,0
+2026-11-08T21:13:57.769856,Sphere Drag Flip,0.0030,322,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.35,52917.46,0
+2026-11-08T21:13:57.909156,Sphere Drag Flip,0.0030,323,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.68,53388.81,0
+2026-11-08T21:13:58.026472,Sphere Drag Flip,0.0030,324,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.23,53282.70,0
+2026-11-08T21:13:58.124543,Sphere Drag Flip,0.0030,325,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),6.69,53488.33,0
+2026-11-08T21:13:58.233242,Sphere Drag Flip,0.0030,326,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.16,53675.28,0
+2026-11-08T21:13:58.347908,Sphere Drag Flip,0.0030,327,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.67,53236.20,0
+2026-11-08T21:13:58.463295,Sphere Drag Flip,0.0030,328,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.76,54043.69,0
+2026-11-08T21:13:58.575751,Sphere Drag Flip,0.0030,329,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.94,53954.82,0
+2026-11-08T21:13:58.696501,Sphere Drag Flip,0.0030,330,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.10,52786.69,0
+2026-11-08T21:13:58.869575,Sphere Drag Flip,0.0030,331,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.79,53393.67,0
+2026-11-08T21:13:58.907834,Sphere Drag Flip,0.0030,332,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.14,53902.76,0
+2026-11-08T21:13:59.077197,Sphere Drag Flip,0.0030,333,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.20,53629.58,0
+2026-11-08T21:13:59.126158,Sphere Drag Flip,0.0030,334,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.03,53403.79,0
+2026-11-08T21:13:59.326317,Sphere Drag Flip,0.0030,335,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.61,52588.94,0
+2026-11-08T21:13:59.461857,Sphere Drag Flip,0.0030,336,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.59,52974.99,0
+2026-11-08T21:13:59.576709,Sphere Drag Flip,0.0030,337,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.69,53468.11,0
+2026-11-08T21:13:59.695714,Sphere Drag Flip,0.0030,338,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.65,53564.65,0
+2026-11-08T21:13:59.793810,Sphere Drag Flip,0.0030,339,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.87,52597.06,0
+2026-11-08T21:13:59.921173,Sphere Drag Flip,0.0030,340,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.16,52304.61,0
+2026-11-08T21:14:00.037789,Sphere Drag Flip,0.0030,341,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.97,52652.59,0
+2026-11-08T21:14:00.134738,Sphere Drag Flip,0.0030,342,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.48,53502.54,0
+2026-11-08T21:14:00.251209,Sphere Drag Flip,0.0030,343,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.99,53065.39,0
+2026-11-08T21:14:00.345082,Sphere Drag Flip,0.0030,344,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.80,53038.48,0
+2026-11-08T21:14:00.454245,Sphere Drag Flip,0.0030,345,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.95,53163.62,0
+2026-11-08T21:14:00.571395,Sphere Drag Flip,0.0030,346,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.16,53332.33,0
+2026-11-08T21:14:00.698015,Sphere Drag Flip,0.0030,347,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.74,53749.61,0
+2026-11-08T21:14:00.813108,Sphere Drag Flip,0.0030,348,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.28,53464.58,0
+2026-11-08T21:14:00.940360,Sphere Drag Flip,0.0030,349,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,2.16,53539.51,0
+2026-11-08T21:14:00.940884,Sphere Drag Flip,0.0030,350,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.88,53210.65,0
+2026-11-08T21:14:00.940884,Sphere Drag Flip,0.0030,351,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.36,53294.19,0
+2026-11-08T21:14:01.148690,Sphere Drag Flip,0.0030,352,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.39,53451.69,0
+2026-11-08T21:14:01.410150,Sphere Drag Flip,0.0030,353,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.27,54474.12,0
+2026-11-08T21:14:01.528314,Sphere Drag Flip,0.0030,354,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.34,53407.68,0
+2026-11-08T21:14:01.645220,Sphere Drag Flip,0.0030,355,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.59,53624.05,0
+2026-11-08T21:14:01.691225,Sphere Drag Flip,0.0030,356,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.29,53211.23,0
+2026-11-08T21:14:01.868772,Sphere Drag Flip,0.0030,358,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.60,53678.24,0
+2026-11-08T21:14:01.989916,Sphere Drag Flip,0.0030,357,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.20,53032.91,0
+2026-11-08T21:14:02.104069,Sphere Drag Flip,0.0030,359,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.06,53225.89,0
+2026-11-08T21:14:02.210953,Sphere Drag Flip,0.0030,360,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.29,52943.78,0
+2026-11-08T21:14:02.314009,Sphere Drag Flip,0.0030,361,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.02,52311.33,0
+2026-11-08T21:14:02.432916,Sphere Drag Flip,0.0030,362,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.58,53811.85,0
+2026-11-08T21:14:02.559974,Sphere Drag Flip,0.0030,363,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.07,54243.19,0
+2026-11-08T21:14:02.684439,Sphere Drag Flip,0.0030,364,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.87,53358.60,0
+2026-11-08T21:14:02.811727,Sphere Drag Flip,0.0030,365,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.63,53213.93,0
+2026-11-08T21:14:02.919991,Sphere Drag Flip,0.0030,366,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.68,53414.36,0
+2026-11-08T21:14:03.031444,Sphere Drag Flip,0.0030,367,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.28,53257.72,0
+2026-11-08T21:14:03.142710,Sphere Drag Flip,0.0030,368,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.01,53729.78,0
+2026-11-08T21:14:03.251519,Sphere Drag Flip,0.0030,369,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.38,53240.74,0
+2026-11-08T21:14:03.379482,Sphere Drag Flip,0.0030,370,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.30,52158.21,0
+2026-11-08T21:14:03.490483,Sphere Drag Flip,0.0030,371,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.86,52970.82,0
+2026-11-08T21:14:03.610095,Sphere Drag Flip,0.0030,372,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.69,52632.99,0
+2026-11-08T21:14:03.718679,Sphere Drag Flip,0.0030,373,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.19,52864.81,0
+2026-11-08T21:14:03.817211,Sphere Drag Flip,0.0030,374,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.17,52399.44,0
+2026-11-08T21:14:03.925497,Sphere Drag Flip,0.0030,375,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.51,53913.94,0
+2026-11-08T21:14:04.027814,Sphere Drag Flip,0.0030,376,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.06,52574.20,0
+2026-11-08T21:14:04.133064,Sphere Drag Flip,0.0030,377,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.40,52962.44,0
+2026-11-08T21:14:04.235009,Sphere Drag Flip,0.0030,378,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.20,53119.62,0
+2026-11-08T21:14:04.345767,Sphere Drag Flip,0.0030,379,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.16,52666.18,0
+2026-11-08T21:14:04.440410,Sphere Drag Flip,0.0030,380,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,1.88,52589.96,0
+2026-11-08T21:14:04.597020,Sphere Drag Flip,0.0030,381,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.25,52785.21,0
+2026-11-08T21:14:04.726865,Sphere Drag Flip,0.0030,382,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.64,53520.98,0
+2026-11-08T21:14:04.857226,Sphere Drag Flip,0.0030,383,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.04,53822.92,0
+2026-11-08T21:14:04.952573,Sphere Drag Flip,0.0030,384,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.22,52796.74,0
+2026-11-08T21:14:05.013889,Sphere Drag Flip,0.0030,385,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,0.06,52426.98,0
+2026-11-08T21:14:05.110945,Sphere Drag Flip,0.0030,386,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.82,52939.10,0
+2026-11-08T21:14:05.244427,Sphere Drag Flip,0.0030,387,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.25,51926.91,0
+2026-11-08T21:14:05.436750,Sphere Drag Flip,0.0030,388,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,1.03,54233.28,0
+2026-11-08T21:14:05.498997,Sphere Drag Flip,0.0030,389,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.03,53523.33,0
+2026-11-08T21:14:05.682198,Sphere Drag Flip,0.0030,390,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.91,53921.44,0
+2026-11-08T21:14:05.779972,Sphere Drag Flip,0.0030,391,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.01,53407.19,0
+2026-11-08T21:14:05.886605,Sphere Drag Flip,0.0030,392,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.62,53217.04,0
+2026-11-08T21:14:06.003559,Sphere Drag Flip,0.0030,393,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.11,52360.92,0
+2026-11-08T21:14:06.125422,Sphere Drag Flip,0.0030,394,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.06,53196.74,0
+2026-11-08T21:14:06.241638,Sphere Drag Flip,0.0030,395,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.75,52590.04,0
+2026-11-08T21:14:06.340676,Sphere Drag Flip,0.0030,396,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.64,53250.84,0
+2026-11-08T21:14:06.450880,Sphere Drag Flip,0.0030,397,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.77,53146.89,0
+2026-11-08T21:14:06.576018,Sphere Drag Flip,0.0030,398,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.24,53337.36,0
+2026-11-08T21:14:06.695244,Sphere Drag Flip,0.0030,399,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.26,53060.82,0
+2026-11-08T21:14:06.695938,Sphere Drag Flip,0.0030,400,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.05,52823.92,0
+2026-11-08T21:14:06.695938,Sphere Drag Flip,0.0030,401,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.04,52943.05,0
+2026-11-08T21:14:06.950188,Sphere Drag Flip,0.0030,402,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.13,53633.77,0
+2026-11-08T21:14:07.032470,Sphere Drag Flip,0.0030,403,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.92,52114.09,0
+2026-11-08T21:14:07.199721,Sphere Drag Flip,0.0030,404,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.27,53702.61,0
+2026-11-08T21:14:07.363570,Sphere Drag Flip,0.0030,405,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.60,53165.83,0
+2026-11-08T21:14:07.476026,Sphere Drag Flip,0.0030,406,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.35,52875.88,0
+2026-11-08T21:14:07.603887,Sphere Drag Flip,0.0030,407,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.03,53653.51,0
+2026-11-08T21:14:07.715145,Sphere Drag Flip,0.0030,408,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.20,52998.80,0
+2026-11-08T21:14:07.850679,Sphere Drag Flip,0.0030,409,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.46,52905.29,0
+2026-11-08T21:14:08.011791,Sphere Drag Flip,0.0030,410,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.46,52707.00,0
+2026-11-08T21:14:08.239251,Sphere Drag Flip,0.0030,411,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.15,53449.00,0
+2026-11-08T21:14:08.345143,Sphere Drag Flip,0.0030,412,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.09,52681.60,0
+2026-11-08T21:14:08.464503,Sphere Drag Flip,0.0030,413,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.33,52588.74,0
+2026-11-08T21:14:08.586279,Sphere Drag Flip,0.0030,414,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.07,52837.19,0
+2026-11-08T21:14:08.697096,Sphere Drag Flip,0.0030,415,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.97,52427.58,0
+2026-11-08T21:14:08.805417,Sphere Drag Flip,0.0030,416,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,2.72,54031.18,0
+2026-11-08T21:14:08.915382,Sphere Drag Flip,0.0030,417,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.32,53238.94,0
+2026-11-08T21:14:09.060218,Sphere Drag Flip,0.0030,418,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.99,52814.98,0
+2026-11-08T21:14:09.175518,Sphere Drag Flip,0.0030,419,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.98,53827.87,0
+2026-11-08T21:14:09.299542,Sphere Drag Flip,0.0030,420,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.06,53607.68,0
+2026-11-08T21:14:09.400537,Sphere Drag Flip,0.0030,421,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.44,53734.62,0
+2026-11-08T21:14:09.534278,Sphere Drag Flip,0.0030,422,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.17,52792.57,0
+2026-11-08T21:14:09.602660,Sphere Drag Flip,0.0030,423,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.44,53306.88,0
+2026-11-08T21:14:09.720563,Sphere Drag Flip,0.0030,424,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.76,53385.09,0
+2026-11-08T21:14:09.895755,Sphere Drag Flip,0.0030,425,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.58,52871.30,0
+2026-11-08T21:14:10.022650,Sphere Drag Flip,0.0030,426,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.17,53731.44,0
+2026-11-08T21:14:10.145857,Sphere Drag Flip,0.0030,427,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.05,54044.40,0
+2026-11-08T21:14:10.268775,Sphere Drag Flip,0.0030,428,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.00,52893.72,0
+2026-11-08T21:14:10.378532,Sphere Drag Flip,0.0030,429,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.98,53956.52,0
+2026-11-08T21:14:10.488375,Sphere Drag Flip,0.0030,430,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.62,53291.26,0
+2026-11-08T21:14:10.610112,Sphere Drag Flip,0.0030,431,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.72,53659.12,0
+2026-11-08T21:14:10.729409,Sphere Drag Flip,0.0030,432,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.95,53786.67,0
+2026-11-08T21:14:10.833386,Sphere Drag Flip,0.0030,433,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.12,52848.36,0
+2026-11-08T21:14:10.944370,Sphere Drag Flip,0.0030,434,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.07,53482.51,0
+2026-11-08T21:14:11.074194,Sphere Drag Flip,0.0030,435,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,3.39,52909.38,0
+2026-11-08T21:14:11.186463,Sphere Drag Flip,0.0030,436,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.21,53852.65,0
+2026-11-08T21:14:11.298421,Sphere Drag Flip,0.0030,437,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,1.20,52553.19,0
+2026-11-08T21:14:11.364182,Sphere Drag Flip,0.0030,438,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.23,53127.47,0
+2026-11-08T21:14:11.531794,Sphere Drag Flip,0.0030,439,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,5.21,53686.13,0
+2026-11-08T21:14:11.641314,Sphere Drag Flip,0.0030,440,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.97,53321.73,0
+2026-11-08T21:14:11.753359,Sphere Drag Flip,0.0030,441,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.28,53355.51,0
+2026-11-08T21:14:11.872721,Sphere Drag Flip,0.0030,442,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,1.72,52587.83,0
+2026-11-08T21:14:11.973904,Sphere Drag Flip,0.0030,443,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.19,52946.58,0
+2026-11-08T21:14:12.100172,Sphere Drag Flip,0.0030,444,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.54,53192.75,0
+2026-11-08T21:14:12.218875,Sphere Drag Flip,0.0030,445,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.17,52267.19,0
+2026-11-08T21:14:12.348501,Sphere Drag Flip,0.0030,446,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.37,52731.77,0
+2026-11-08T21:14:12.460166,Sphere Drag Flip,0.0030,447,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.08,53059.59,0
+2026-11-08T21:14:12.552896,Sphere Drag Flip,0.0030,448,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,0.57,52528.02,0
+2026-11-08T21:14:12.772177,Sphere Drag Flip,0.0030,449,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.52,52873.45,0
+2026-11-08T21:14:12.772765,Sphere Drag Flip,0.0030,450,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.56,53786.15,0
+2026-11-08T21:14:12.972491,Sphere Drag Flip,0.0030,451,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.21,52822.38,0
+2026-11-08T21:14:13.160712,Sphere Drag Flip,0.0030,452,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.19,52758.83,0
+2026-11-08T21:14:13.175697,Sphere Drag Flip,0.0030,453,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.20,53028.10,0
+2026-11-08T21:14:13.175697,Sphere Drag Flip,0.0030,454,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,0.52,52967.67,0
+2026-11-08T21:14:13.176698,Sphere Drag Flip,0.0030,455,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),0.74,53227.25,0
+2026-11-08T21:14:13.176698,Sphere Drag Flip,0.0030,456,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,0.90,52896.27,0
+2026-11-08T21:14:13.178698,Sphere Drag Flip,0.0030,458,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,4.23,52606.25,0
+2026-11-08T21:14:13.178698,Sphere Drag Flip,0.0030,457,EQUIVALENCE CLASS,oseen_linear,theta_0 * Re,2.92,53454.28,0
+2026-11-08T21:14:13.178698,Sphere Drag Flip,0.0030,459,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.74,53255.81,0
+2026-11-08T21:14:13.504895,Sphere Drag Flip,0.0010,0,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.70,479629.64,0
+2026-11-08T21:14:13.879780,Sphere Drag Flip,0.0010,1,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.50,481868.99,0
+2026-11-08T21:14:14.237809,Sphere Drag Flip,0.0010,2,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.08,480595.01,0
+2026-11-08T21:14:14.377546,Sphere Drag Flip,0.0010,4,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.02,479103.30,0
+2026-11-08T21:14:14.486107,Sphere Drag Flip,0.0010,3,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.72,477948.66,0
+2026-11-08T21:14:14.606872,Sphere Drag Flip,0.0010,5,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.19,479777.15,0
+2026-11-08T21:14:14.694061,Sphere Drag Flip,0.0010,8,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),24.77,478926.73,0
+2026-11-08T21:14:14.803477,Sphere Drag Flip,0.0010,6,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),32.52,478328.41,0
+2026-11-08T21:14:14.900479,Sphere Drag Flip,0.0010,7,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.71,478317.56,0
+2026-11-08T21:14:15.009657,Sphere Drag Flip,0.0010,9,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),9.35,479324.62,0
+2026-11-08T21:14:15.105434,Sphere Drag Flip,0.0010,10,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.30,480065.83,0
+2026-11-08T21:14:15.211390,Sphere Drag Flip,0.0010,11,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.03,478822.73,0
+2026-11-08T21:14:15.303485,Sphere Drag Flip,0.0010,12,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),6.63,474834.82,0
+2026-11-08T21:14:15.401285,Sphere Drag Flip,0.0010,13,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),35.93,477295.77,0
+2026-11-08T21:14:15.488259,Sphere Drag Flip,0.0010,14,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.83,474713.05,0
+2026-11-08T21:14:15.578146,Sphere Drag Flip,0.0010,15,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),20.19,477845.07,0
+2026-11-08T21:14:15.690628,Sphere Drag Flip,0.0010,16,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.34,481610.00,0
+2026-11-08T21:14:15.789618,Sphere Drag Flip,0.0010,17,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.93,479618.00,0
+2026-11-08T21:14:15.890658,Sphere Drag Flip,0.0010,18,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),30.07,480401.69,0
+2026-11-08T21:14:15.993752,Sphere Drag Flip,0.0010,19,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),30.34,475902.23,0
+2026-11-08T21:14:16.099745,Sphere Drag Flip,0.0010,20,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.73,479643.16,0
+2026-11-08T21:14:16.209639,Sphere Drag Flip,0.0010,21,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),30.60,478497.95,0
+2026-11-08T21:14:16.299555,Sphere Drag Flip,0.0010,22,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.71,482542.64,0
+2026-11-08T21:14:16.413168,Sphere Drag Flip,0.0010,23,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),31.02,478860.74,0
+2026-11-08T21:14:16.523368,Sphere Drag Flip,0.0010,24,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),32.40,480209.51,0
+2026-11-08T21:14:16.606052,Sphere Drag Flip,0.0010,25,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),24.65,477204.51,0
+2026-11-08T21:14:16.697181,Sphere Drag Flip,0.0010,26,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),27.17,479105.66,0
+2026-11-08T21:14:16.794289,Sphere Drag Flip,0.0010,27,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),28.34,479833.67,0
+2026-11-08T21:14:16.882004,Sphere Drag Flip,0.0010,28,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.61,478400.05,0
+2026-11-08T21:14:16.960532,Sphere Drag Flip,0.0010,29,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),27.23,478656.65,0
+2026-11-08T21:14:17.049929,Sphere Drag Flip,0.0010,30,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),9.84,479501.07,0
+2026-11-08T21:14:17.127931,Sphere Drag Flip,0.0010,31,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),23.63,477369.08,0
+2026-11-08T21:14:17.211820,Sphere Drag Flip,0.0010,32,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.25,480948.94,0
+2026-11-08T21:14:17.310836,Sphere Drag Flip,0.0010,33,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.52,477610.10,0
+2026-11-08T21:14:17.366002,Sphere Drag Flip,0.0010,34,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.67,480248.13,0
+2026-11-08T21:14:17.548942,Sphere Drag Flip,0.0010,35,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.53,480154.55,0
+2026-11-08T21:14:17.626648,Sphere Drag Flip,0.0010,36,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.48,480556.69,0
+2026-11-08T21:14:17.714280,Sphere Drag Flip,0.0010,37,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.17,478447.52,0
+2026-11-08T21:14:17.828356,Sphere Drag Flip,0.0010,38,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),28.98,481923.97,0
+2026-11-08T21:14:17.950052,Sphere Drag Flip,0.0010,39,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),27.21,478483.46,0
+2026-11-08T21:14:18.064066,Sphere Drag Flip,0.0010,40,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),24.98,478336.15,0
+2026-11-08T21:14:18.168223,Sphere Drag Flip,0.0010,41,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.71,479743.65,0
+2026-11-08T21:14:18.247308,Sphere Drag Flip,0.0010,42,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.74,478836.65,0
+2026-11-08T21:14:18.346883,Sphere Drag Flip,0.0010,43,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.82,479812.69,0
+2026-11-08T21:14:18.443017,Sphere Drag Flip,0.0010,44,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.70,478077.95,0
+2026-11-08T21:14:18.534610,Sphere Drag Flip,0.0010,45,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.15,479566.62,0
+2026-11-08T21:14:18.618897,Sphere Drag Flip,0.0010,46,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.97,480550.21,0
+2026-11-08T21:14:18.719149,Sphere Drag Flip,0.0010,47,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.09,480315.03,0
+2026-11-08T21:14:18.812690,Sphere Drag Flip,0.0010,48,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.95,477725.25,0
+2026-11-08T21:14:18.901393,Sphere Drag Flip,0.0010,49,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),39.18,478393.39,0
+2026-11-08T21:14:18.902008,Sphere Drag Flip,0.0010,50,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),38.44,476394.32,0
+2026-11-08T21:14:18.902514,Sphere Drag Flip,0.0010,51,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.30,478764.40,0
+2026-11-08T21:14:19.050352,Sphere Drag Flip,0.0010,52,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),33.17,477910.26,0
+2026-11-08T21:14:19.217795,Sphere Drag Flip,0.0010,53,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.44,478776.16,0
+2026-11-08T21:14:19.362701,Sphere Drag Flip,0.0010,54,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.58,479671.13,0
+2026-11-08T21:14:19.501892,Sphere Drag Flip,0.0010,55,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.68,478796.13,0
+2026-11-08T21:14:19.592495,Sphere Drag Flip,0.0010,56,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.29,478703.85,0
+2026-11-08T21:14:19.685696,Sphere Drag Flip,0.0010,59,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.60,479064.81,0
+2026-11-08T21:14:19.773979,Sphere Drag Flip,0.0010,58,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.62,479609.62,0
+2026-11-08T21:14:19.869993,Sphere Drag Flip,0.0010,57,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),29.59,477207.19,0
+2026-11-08T21:14:19.987194,Sphere Drag Flip,0.0010,60,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),28.50,478298.23,0
+2026-11-08T21:14:20.100381,Sphere Drag Flip,0.0010,62,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.56,480598.92,0
+2026-11-08T21:14:20.217640,Sphere Drag Flip,0.0010,61,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),9.77,477434.56,0
+2026-11-08T21:14:20.324623,Sphere Drag Flip,0.0010,63,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),21.31,480611.40,0
+2026-11-08T21:14:20.415520,Sphere Drag Flip,0.0010,64,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),20.09,475270.38,0
+2026-11-08T21:14:20.509742,Sphere Drag Flip,0.0010,65,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.55,476689.49,0
+2026-11-08T21:14:20.605075,Sphere Drag Flip,0.0010,66,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),27.11,481398.30,0
+2026-11-08T21:14:20.690459,Sphere Drag Flip,0.0010,67,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.56,479129.98,0
+2026-11-08T21:14:20.777044,Sphere Drag Flip,0.0010,68,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),37.71,479036.76,0
+2026-11-08T21:14:20.854750,Sphere Drag Flip,0.0010,69,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.82,478814.58,0
+2026-11-08T21:14:20.974977,Sphere Drag Flip,0.0010,70,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.76,479450.63,0
+2026-11-08T21:14:21.065974,Sphere Drag Flip,0.0010,71,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),22.98,478872.13,0
+2026-11-08T21:14:21.155168,Sphere Drag Flip,0.0010,72,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.79,478863.70,0
+2026-11-08T21:14:21.252539,Sphere Drag Flip,0.0010,73,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),30.58,478280.39,0
+2026-11-08T21:14:21.348657,Sphere Drag Flip,0.0010,74,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),21.28,479523.18,0
+2026-11-08T21:14:21.448955,Sphere Drag Flip,0.0010,75,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),27.86,479714.39,0
+2026-11-08T21:14:21.543439,Sphere Drag Flip,0.0010,76,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),33.57,479833.99,0
+2026-11-08T21:14:21.667685,Sphere Drag Flip,0.0010,77,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.56,478944.12,0
+2026-11-08T21:14:21.752821,Sphere Drag Flip,0.0010,78,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),35.30,478851.36,0
+2026-11-08T21:14:21.844824,Sphere Drag Flip,0.0010,79,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),41.00,479000.81,0
+2026-11-08T21:14:21.890770,Sphere Drag Flip,0.0010,80,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),29.99,480645.83,0
+2026-11-08T21:14:22.054687,Sphere Drag Flip,0.0010,81,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.65,478235.67,0
+2026-11-08T21:14:22.144791,Sphere Drag Flip,0.0010,82,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),23.37,479673.54,0
+2026-11-08T21:14:22.240136,Sphere Drag Flip,0.0010,83,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.94,479552.96,0
+2026-11-08T21:14:22.329318,Sphere Drag Flip,0.0010,84,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.21,478159.02,0
+2026-11-08T21:14:22.415280,Sphere Drag Flip,0.0010,85,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),24.36,477369.07,0
+2026-11-08T21:14:22.505338,Sphere Drag Flip,0.0010,86,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),25.55,480160.16,0
+2026-11-08T21:14:22.598615,Sphere Drag Flip,0.0010,87,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.94,479038.58,0
+2026-11-08T21:14:22.720276,Sphere Drag Flip,0.0010,88,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.35,477717.61,0
+2026-11-08T21:14:22.825511,Sphere Drag Flip,0.0010,89,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),25.55,478648.19,0
+2026-11-08T21:14:22.921028,Sphere Drag Flip,0.0010,90,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),23.47,479812.97,0
+2026-11-08T21:14:23.039364,Sphere Drag Flip,0.0010,91,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),22.14,480247.39,0
+2026-11-08T21:14:23.147773,Sphere Drag Flip,0.0010,92,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.03,481091.59,0
+2026-11-08T21:14:23.294184,Sphere Drag Flip,0.0010,93,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),24.23,478248.71,0
+2026-11-08T21:14:23.404804,Sphere Drag Flip,0.0010,94,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),21.27,477277.17,0
+2026-11-08T21:14:23.488571,Sphere Drag Flip,0.0010,95,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,9.68,477882.75,0
+2026-11-08T21:14:23.584486,Sphere Drag Flip,0.0010,96,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.94,479958.86,0
+2026-11-08T21:14:23.683529,Sphere Drag Flip,0.0010,97,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.87,477626.08,0
+2026-11-08T21:14:23.787433,Sphere Drag Flip,0.0010,98,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.88,478185.08,0
+2026-11-08T21:14:23.903433,Sphere Drag Flip,0.0010,99,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.33,478299.69,0
+2026-11-08T21:14:23.904908,Sphere Drag Flip,0.0010,100,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.61,478071.55,0
+2026-11-08T21:14:23.904908,Sphere Drag Flip,0.0010,101,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),29.46,478239.93,0
+2026-11-08T21:14:24.090309,Sphere Drag Flip,0.0010,102,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.48,480163.75,0
+2026-11-08T21:14:24.296249,Sphere Drag Flip,0.0010,103,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.75,477483.89,0
+2026-11-08T21:14:24.385339,Sphere Drag Flip,0.0010,104,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),24.16,478541.44,0
+2026-11-08T21:14:24.484520,Sphere Drag Flip,0.0010,105,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.40,480641.81,0
+2026-11-08T21:14:24.576511,Sphere Drag Flip,0.0010,106,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,3.03,479331.96,0
+2026-11-08T21:14:24.670834,Sphere Drag Flip,0.0010,107,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),22.15,479586.28,0
+2026-11-08T21:14:24.758139,Sphere Drag Flip,0.0010,109,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),28.72,482014.42,0
+2026-11-08T21:14:24.838790,Sphere Drag Flip,0.0010,108,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.85,479595.06,0
+2026-11-08T21:14:24.941521,Sphere Drag Flip,0.0010,110,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.88,479882.79,0
+2026-11-08T21:14:25.037181,Sphere Drag Flip,0.0010,111,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.26,479909.21,0
+2026-11-08T21:14:25.091815,Sphere Drag Flip,0.0010,112,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.28,477933.20,0
+2026-11-08T21:14:25.237662,Sphere Drag Flip,0.0010,113,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.90,481771.21,0
+2026-11-08T21:14:25.333929,Sphere Drag Flip,0.0010,114,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.15,479664.14,0
+2026-11-08T21:14:25.422955,Sphere Drag Flip,0.0010,115,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.73,481021.39,0
+2026-11-08T21:14:25.516242,Sphere Drag Flip,0.0010,116,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),22.30,479338.96,0
+2026-11-08T21:14:25.593529,Sphere Drag Flip,0.0010,117,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),39.66,480368.48,0
+2026-11-08T21:14:25.676822,Sphere Drag Flip,0.0010,118,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),20.63,478858.79,0
+2026-11-08T21:14:25.774839,Sphere Drag Flip,0.0010,119,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),24.24,479587.09,0
+2026-11-08T21:14:25.866846,Sphere Drag Flip,0.0010,120,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),21.73,480452.64,0
+2026-11-08T21:14:25.954260,Sphere Drag Flip,0.0010,121,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.98,479904.52,0
+2026-11-08T21:14:26.039078,Sphere Drag Flip,0.0010,122,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.73,477432.06,0
+2026-11-08T21:14:26.107673,Sphere Drag Flip,0.0010,123,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.65,478492.15,0
+2026-11-08T21:14:26.307014,Sphere Drag Flip,0.0010,124,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.88,480126.59,0
+2026-11-08T21:14:26.389376,Sphere Drag Flip,0.0010,125,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.19,479343.72,0
+2026-11-08T21:14:26.497669,Sphere Drag Flip,0.0010,126,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.77,477880.26,0
+2026-11-08T21:14:26.610330,Sphere Drag Flip,0.0010,127,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.62,479411.96,0
+2026-11-08T21:14:26.679918,Sphere Drag Flip,0.0010,128,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),24.69,480428.56,0
+2026-11-08T21:14:26.813161,Sphere Drag Flip,0.0010,129,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.20,475601.12,0
+2026-11-08T21:14:26.902164,Sphere Drag Flip,0.0010,130,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.81,479375.73,0
+2026-11-08T21:14:27.018966,Sphere Drag Flip,0.0010,131,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.52,478832.93,0
+2026-11-08T21:14:27.112082,Sphere Drag Flip,0.0010,132,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.40,482619.91,0
+2026-11-08T21:14:27.196307,Sphere Drag Flip,0.0010,133,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.16,480006.56,0
+2026-11-08T21:14:27.293480,Sphere Drag Flip,0.0010,134,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.35,480119.09,0
+2026-11-08T21:14:27.379798,Sphere Drag Flip,0.0010,135,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.94,479426.37,0
+2026-11-08T21:14:27.472450,Sphere Drag Flip,0.0010,136,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),21.90,478143.26,0
+2026-11-08T21:14:27.557481,Sphere Drag Flip,0.0010,137,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),28.74,478778.94,0
+2026-11-08T21:14:27.653745,Sphere Drag Flip,0.0010,138,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.66,479143.01,0
+2026-11-08T21:14:27.735456,Sphere Drag Flip,0.0010,139,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.12,482657.05,0
+2026-11-08T21:14:27.822879,Sphere Drag Flip,0.0010,140,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.76,481304.76,0
+2026-11-08T21:14:27.905520,Sphere Drag Flip,0.0010,141,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.97,478553.39,0
+2026-11-08T21:14:27.995829,Sphere Drag Flip,0.0010,142,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.46,479087.52,0
+2026-11-08T21:14:28.085992,Sphere Drag Flip,0.0010,143,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.70,480452.02,0
+2026-11-08T21:14:28.191306,Sphere Drag Flip,0.0010,144,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.12,479450.51,0
+2026-11-08T21:14:28.305436,Sphere Drag Flip,0.0010,145,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),21.88,477244.75,0
+2026-11-08T21:14:28.410895,Sphere Drag Flip,0.0010,146,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),38.09,478915.58,0
+2026-11-08T21:14:28.486156,Sphere Drag Flip,0.0010,147,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.64,477936.58,0
+2026-11-08T21:14:28.571623,Sphere Drag Flip,0.0010,148,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),29.68,479331.72,0
+2026-11-08T21:14:28.651521,Sphere Drag Flip,0.0010,149,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.10,479787.88,0
+2026-11-08T21:14:28.652458,Sphere Drag Flip,0.0010,150,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.28,479157.54,0
+2026-11-08T21:14:28.726853,Sphere Drag Flip,0.0010,151,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),24.72,480059.00,0
+2026-11-08T21:14:28.964293,Sphere Drag Flip,0.0010,152,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),9.12,475770.34,0
+2026-11-08T21:14:29.070153,Sphere Drag Flip,0.0010,153,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.62,478599.78,0
+2026-11-08T21:14:29.165214,Sphere Drag Flip,0.0010,154,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),24.72,478823.42,0
+2026-11-08T21:14:29.256295,Sphere Drag Flip,0.0010,155,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.89,478344.06,0
+2026-11-08T21:14:29.358619,Sphere Drag Flip,0.0010,156,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.66,477547.83,0
+2026-11-08T21:14:29.474750,Sphere Drag Flip,0.0010,157,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),6.61,481765.22,0
+2026-11-08T21:14:29.584307,Sphere Drag Flip,0.0010,158,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),21.59,479135.26,0
+2026-11-08T21:14:29.688985,Sphere Drag Flip,0.0010,159,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,2.45,478204.10,0
+2026-11-08T21:14:29.773328,Sphere Drag Flip,0.0010,160,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),23.89,480600.33,0
+2026-11-08T21:14:29.870554,Sphere Drag Flip,0.0010,161,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),32.65,478772.67,0
+2026-11-08T21:14:29.985589,Sphere Drag Flip,0.0010,162,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),21.18,479198.31,0
+2026-11-08T21:14:30.089557,Sphere Drag Flip,0.0010,163,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),23.16,478259.25,0
+2026-11-08T21:14:30.173553,Sphere Drag Flip,0.0010,164,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.04,479878.56,0
+2026-11-08T21:14:30.276911,Sphere Drag Flip,0.0010,165,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.20,478824.20,0
+2026-11-08T21:14:30.375716,Sphere Drag Flip,0.0010,166,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.98,481141.77,0
+2026-11-08T21:14:30.489344,Sphere Drag Flip,0.0010,167,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.77,478611.56,0
+2026-11-08T21:14:30.578897,Sphere Drag Flip,0.0010,168,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),23.72,480374.26,0
+2026-11-08T21:14:30.680120,Sphere Drag Flip,0.0010,169,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),6.94,478435.20,0
+2026-11-08T21:14:30.765773,Sphere Drag Flip,0.0010,170,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.12,477668.62,0
+2026-11-08T21:14:30.866370,Sphere Drag Flip,0.0010,171,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.55,477468.88,0
+2026-11-08T21:14:30.957700,Sphere Drag Flip,0.0010,172,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.17,479237.34,0
+2026-11-08T21:14:31.074971,Sphere Drag Flip,0.0010,173,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),40.93,479210.12,0
+2026-11-08T21:14:31.170526,Sphere Drag Flip,0.0010,174,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),9.82,477956.45,0
+2026-11-08T21:14:31.259073,Sphere Drag Flip,0.0010,175,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.20,478717.53,0
+2026-11-08T21:14:31.355847,Sphere Drag Flip,0.0010,176,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.87,481022.24,0
+2026-11-08T21:14:31.454338,Sphere Drag Flip,0.0010,177,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),32.10,476891.86,0
+2026-11-08T21:14:31.563147,Sphere Drag Flip,0.0010,178,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),22.62,481567.78,0
+2026-11-08T21:14:31.651194,Sphere Drag Flip,0.0010,179,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),35.86,478348.07,0
+2026-11-08T21:14:31.746402,Sphere Drag Flip,0.0010,180,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.20,480579.83,0
+2026-11-08T21:14:31.835656,Sphere Drag Flip,0.0010,181,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),32.63,476831.49,0
+2026-11-08T21:14:31.913876,Sphere Drag Flip,0.0010,182,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),29.55,479340.88,0
+2026-11-08T21:14:31.999136,Sphere Drag Flip,0.0010,183,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),33.14,477883.64,0
+2026-11-08T21:14:32.104387,Sphere Drag Flip,0.0010,184,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),34.80,479244.06,0
+2026-11-08T21:14:32.205247,Sphere Drag Flip,0.0010,185,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.34,481839.95,0
+2026-11-08T21:14:32.294607,Sphere Drag Flip,0.0010,186,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),33.36,478318.21,0
+2026-11-08T21:14:32.389392,Sphere Drag Flip,0.0010,187,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.73,477857.70,0
+2026-11-08T21:14:32.480958,Sphere Drag Flip,0.0010,188,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),28.13,478920.15,0
+2026-11-08T21:14:32.569798,Sphere Drag Flip,0.0010,189,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.63,477844.75,0
+2026-11-08T21:14:32.656423,Sphere Drag Flip,0.0010,190,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),20.43,481663.53,0
+2026-11-08T21:14:32.764516,Sphere Drag Flip,0.0010,191,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),9.62,475559.68,0
+2026-11-08T21:14:32.867370,Sphere Drag Flip,0.0010,192,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),23.83,478211.65,0
+2026-11-08T21:14:32.964465,Sphere Drag Flip,0.0010,193,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.99,479641.38,0
+2026-11-08T21:14:33.060477,Sphere Drag Flip,0.0010,194,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.25,480957.79,0
+2026-11-08T21:14:33.155618,Sphere Drag Flip,0.0010,195,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),38.84,478494.76,0
+2026-11-08T21:14:33.262749,Sphere Drag Flip,0.0010,196,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.49,477529.64,0
+2026-11-08T21:14:33.350755,Sphere Drag Flip,0.0010,197,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),35.27,479746.91,0
+2026-11-08T21:14:33.446952,Sphere Drag Flip,0.0010,198,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.88,476046.89,0
+2026-11-08T21:14:33.524963,Sphere Drag Flip,0.0010,199,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.21,478731.50,0
+2026-11-08T21:14:33.526054,Sphere Drag Flip,0.0010,200,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),29.34,479383.23,0
+2026-11-08T21:14:33.671692,Sphere Drag Flip,0.0010,201,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),35.77,476701.47,0
+2026-11-08T21:14:33.798830,Sphere Drag Flip,0.0010,202,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.03,476157.01,0
+2026-11-08T21:14:33.908708,Sphere Drag Flip,0.0010,203,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.62,479826.12,0
+2026-11-08T21:14:34.035574,Sphere Drag Flip,0.0010,204,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),47.43,481525.87,0
+2026-11-08T21:14:34.132364,Sphere Drag Flip,0.0010,205,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.13,480238.23,0
+2026-11-08T21:14:34.223925,Sphere Drag Flip,0.0010,206,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.86,479560.23,0
+2026-11-08T21:14:34.341725,Sphere Drag Flip,0.0010,208,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.70,478923.24,0
+2026-11-08T21:14:34.428436,Sphere Drag Flip,0.0010,207,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.11,480756.04,0
+2026-11-08T21:14:34.504030,Sphere Drag Flip,0.0010,209,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),23.53,480795.86,0
+2026-11-08T21:14:34.600319,Sphere Drag Flip,0.0010,210,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,0.34,478760.98,0
+2026-11-08T21:14:34.678926,Sphere Drag Flip,0.0010,211,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.68,478709.78,0
+2026-11-08T21:14:34.784405,Sphere Drag Flip,0.0010,212,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.82,480027.52,0
+2026-11-08T21:14:34.889686,Sphere Drag Flip,0.0010,213,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.23,478018.84,0
+2026-11-08T21:14:34.973068,Sphere Drag Flip,0.0010,214,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),9.76,477587.07,0
+2026-11-08T21:14:35.077050,Sphere Drag Flip,0.0010,215,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.61,476844.73,0
+2026-11-08T21:14:35.173025,Sphere Drag Flip,0.0010,216,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.33,478556.78,0
+2026-11-08T21:14:35.271227,Sphere Drag Flip,0.0010,217,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),32.83,478832.36,0
+2026-11-08T21:14:35.353493,Sphere Drag Flip,0.0010,218,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.45,478425.00,0
+2026-11-08T21:14:35.453496,Sphere Drag Flip,0.0010,219,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),25.05,479715.93,0
+2026-11-08T21:14:35.547731,Sphere Drag Flip,0.0010,220,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),6.14,479887.01,0
+2026-11-08T21:14:35.642647,Sphere Drag Flip,0.0010,221,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.44,480412.65,0
+2026-11-08T21:14:35.711689,Sphere Drag Flip,0.0010,222,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.71,479216.81,0
+2026-11-08T21:14:35.820255,Sphere Drag Flip,0.0010,223,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.40,477444.86,0
+2026-11-08T21:14:35.907211,Sphere Drag Flip,0.0010,224,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.83,481751.46,0
+2026-11-08T21:14:36.022482,Sphere Drag Flip,0.0010,225,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.92,476911.56,0
+2026-11-08T21:14:36.120787,Sphere Drag Flip,0.0010,226,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),33.91,477642.79,0
+2026-11-08T21:14:36.204675,Sphere Drag Flip,0.0010,227,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.12,478750.98,0
+2026-11-08T21:14:36.285691,Sphere Drag Flip,0.0010,228,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.69,480859.41,0
+2026-11-08T21:14:36.388376,Sphere Drag Flip,0.0010,229,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),27.13,480626.87,0
+2026-11-08T21:14:36.493290,Sphere Drag Flip,0.0010,230,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),20.68,477345.10,0
+2026-11-08T21:14:36.584607,Sphere Drag Flip,0.0010,231,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.75,473486.82,0
+2026-11-08T21:14:36.685137,Sphere Drag Flip,0.0010,232,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.76,477373.14,0
+2026-11-08T21:14:36.766866,Sphere Drag Flip,0.0010,233,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),37.24,476915.24,0
+2026-11-08T21:14:36.871226,Sphere Drag Flip,0.0010,234,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),30.85,479878.51,0
+2026-11-08T21:14:36.975890,Sphere Drag Flip,0.0010,235,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.66,478516.00,0
+2026-11-08T21:14:37.079753,Sphere Drag Flip,0.0010,236,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),30.25,477956.48,0
+2026-11-08T21:14:37.169960,Sphere Drag Flip,0.0010,237,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.03,477574.52,0
+2026-11-08T21:14:37.243940,Sphere Drag Flip,0.0010,238,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),22.62,478364.12,0
+2026-11-08T21:14:37.337469,Sphere Drag Flip,0.0010,239,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),43.12,477014.22,0
+2026-11-08T21:14:37.444887,Sphere Drag Flip,0.0010,240,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.24,480621.69,0
+2026-11-08T21:14:37.549036,Sphere Drag Flip,0.0010,241,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.32,478649.30,0
+2026-11-08T21:14:37.602251,Sphere Drag Flip,0.0010,242,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.70,477916.22,0
+2026-11-08T21:14:37.821844,Sphere Drag Flip,0.0010,243,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),20.60,480128.73,0
+2026-11-08T21:14:37.914170,Sphere Drag Flip,0.0010,244,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),20.05,476818.31,0
+2026-11-08T21:14:37.995163,Sphere Drag Flip,0.0010,245,UNIQUELY IDENTIFIABLE,quadratic_poly,theta_0 * Re + theta_1 * Re**2,11.30,474819.49,1
+2026-11-08T21:14:38.082473,Sphere Drag Flip,0.0010,246,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),35.59,479870.83,0
+2026-11-08T21:14:38.183337,Sphere Drag Flip,0.0010,247,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.04,476588.25,0
+2026-11-08T21:14:38.282377,Sphere Drag Flip,0.0010,248,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),41.64,478942.84,0
+2026-11-08T21:14:38.366382,Sphere Drag Flip,0.0010,249,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.78,479308.34,0
+2026-11-08T21:14:38.366882,Sphere Drag Flip,0.0010,250,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.05,477116.35,0
+2026-11-08T21:14:38.490698,Sphere Drag Flip,0.0010,251,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.80,481239.50,0
+2026-11-08T21:14:38.648710,Sphere Drag Flip,0.0010,252,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.68,481728.23,0
+2026-11-08T21:14:38.731707,Sphere Drag Flip,0.0010,253,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),29.03,479127.46,0
+2026-11-08T21:14:38.816829,Sphere Drag Flip,0.0010,254,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),21.91,479766.48,0
+2026-11-08T21:14:38.929674,Sphere Drag Flip,0.0010,255,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.67,478597.01,0
+2026-11-08T21:14:39.043097,Sphere Drag Flip,0.0010,256,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.34,475276.82,0
+2026-11-08T21:14:39.132006,Sphere Drag Flip,0.0010,257,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),22.58,479789.37,0
+2026-11-08T21:14:39.176016,Sphere Drag Flip,0.0010,258,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.42,477564.77,0
+2026-11-08T21:14:39.301880,Sphere Drag Flip,0.0010,259,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),20.22,479328.60,0
+2026-11-08T21:14:39.389077,Sphere Drag Flip,0.0010,260,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.34,480362.02,0
+2026-11-08T21:14:39.488081,Sphere Drag Flip,0.0010,261,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.50,479282.97,0
+2026-11-08T21:14:39.579123,Sphere Drag Flip,0.0010,262,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.06,476673.35,0
+2026-11-08T21:14:39.712603,Sphere Drag Flip,0.0010,263,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.36,480291.67,0
+2026-11-08T21:14:39.791173,Sphere Drag Flip,0.0010,264,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),27.12,479445.03,0
+2026-11-08T21:14:39.874600,Sphere Drag Flip,0.0010,265,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),21.34,479733.61,0
+2026-11-08T21:14:39.992140,Sphere Drag Flip,0.0010,266,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.11,478565.80,0
+2026-11-08T21:14:40.096201,Sphere Drag Flip,0.0010,267,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.97,477013.08,0
+2026-11-08T21:14:40.188124,Sphere Drag Flip,0.0010,268,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),9.11,478127.93,0
+2026-11-08T21:14:40.278929,Sphere Drag Flip,0.0010,269,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.77,479114.04,0
+2026-11-08T21:14:40.372643,Sphere Drag Flip,0.0010,270,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.91,479669.45,0
+2026-11-08T21:14:40.459928,Sphere Drag Flip,0.0010,271,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),22.09,479133.85,0
+2026-11-08T21:14:40.558108,Sphere Drag Flip,0.0010,272,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.39,481462.25,0
+2026-11-08T21:14:40.650586,Sphere Drag Flip,0.0010,273,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.56,478977.21,0
+2026-11-08T21:14:40.777184,Sphere Drag Flip,0.0010,274,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.59,477415.12,0
+2026-11-08T21:14:40.888738,Sphere Drag Flip,0.0010,275,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),24.15,478611.73,0
+2026-11-08T21:14:40.974779,Sphere Drag Flip,0.0010,276,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.76,481089.59,0
+2026-11-08T21:14:41.079008,Sphere Drag Flip,0.0010,277,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),22.25,479840.92,0
+2026-11-08T21:14:41.157958,Sphere Drag Flip,0.0010,278,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),33.14,481058.00,0
+2026-11-08T21:14:41.250157,Sphere Drag Flip,0.0010,279,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.48,479045.91,0
+2026-11-08T21:14:41.390294,Sphere Drag Flip,0.0010,280,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.89,481505.24,0
+2026-11-08T21:14:41.487442,Sphere Drag Flip,0.0010,281,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.71,478104.89,0
+2026-11-08T21:14:41.598250,Sphere Drag Flip,0.0010,282,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),30.72,477603.37,0
+2026-11-08T21:14:41.687717,Sphere Drag Flip,0.0010,283,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.33,476379.78,0
+2026-11-08T21:14:41.703678,Sphere Drag Flip,0.0010,284,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.94,478549.13,0
+2026-11-08T21:14:41.876296,Sphere Drag Flip,0.0010,285,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),28.29,477013.97,0
+2026-11-08T21:14:41.972324,Sphere Drag Flip,0.0010,286,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.91,476211.61,0
+2026-11-08T21:14:42.071891,Sphere Drag Flip,0.0010,287,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),9.37,478198.78,0
+2026-11-08T21:14:42.173510,Sphere Drag Flip,0.0010,288,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.32,478211.88,0
+2026-11-08T21:14:42.267182,Sphere Drag Flip,0.0010,289,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.73,477115.32,0
+2026-11-08T21:14:42.352175,Sphere Drag Flip,0.0010,290,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.81,477886.78,0
+2026-11-08T21:14:42.438404,Sphere Drag Flip,0.0010,291,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),31.16,477248.01,0
+2026-11-08T21:14:42.470359,Sphere Drag Flip,0.0010,292,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.51,477881.10,0
+2026-11-08T21:14:42.627314,Sphere Drag Flip,0.0010,293,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.35,477737.29,0
+2026-11-08T21:14:42.736276,Sphere Drag Flip,0.0010,294,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.17,477479.37,0
+2026-11-08T21:14:42.839247,Sphere Drag Flip,0.0010,295,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),1.94,478870.06,0
+2026-11-08T21:14:42.945874,Sphere Drag Flip,0.0010,296,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.19,475308.00,0
+2026-11-08T21:14:43.060581,Sphere Drag Flip,0.0010,297,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),39.91,477930.17,0
+2026-11-08T21:14:43.151012,Sphere Drag Flip,0.0010,298,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.29,477759.61,0
+2026-11-08T21:14:43.231782,Sphere Drag Flip,0.0010,299,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.92,478697.90,0
+2026-11-08T21:14:43.232480,Sphere Drag Flip,0.0010,300,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),32.83,479593.09,0
+2026-11-08T21:14:43.293619,Sphere Drag Flip,0.0010,301,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.22,477912.88,0
+2026-11-08T21:14:43.435919,Sphere Drag Flip,0.0010,302,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.16,477254.04,0
+2026-11-08T21:14:43.600776,Sphere Drag Flip,0.0010,303,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),9.73,476825.11,0
+2026-11-08T21:14:43.702522,Sphere Drag Flip,0.0010,304,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.75,479087.20,0
+2026-11-08T21:14:43.784516,Sphere Drag Flip,0.0010,305,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),45.85,480309.20,0
+2026-11-08T21:14:43.897704,Sphere Drag Flip,0.0010,306,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),23.69,476463.74,0
+2026-11-08T21:14:43.976704,Sphere Drag Flip,0.0010,307,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),33.76,479527.06,0
+2026-11-08T21:14:44.070691,Sphere Drag Flip,0.0010,308,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.49,478755.79,0
+2026-11-08T21:14:44.166262,Sphere Drag Flip,0.0010,309,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),20.40,478060.43,0
+2026-11-08T21:14:44.292528,Sphere Drag Flip,0.0010,310,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),29.58,479244.25,0
+2026-11-08T21:14:44.382642,Sphere Drag Flip,0.0010,311,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.06,477731.34,0
+2026-11-08T21:14:44.492438,Sphere Drag Flip,0.0010,312,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.10,481633.07,0
+2026-11-08T21:14:44.579439,Sphere Drag Flip,0.0010,313,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.79,478933.20,0
+2026-11-08T21:14:44.588416,Sphere Drag Flip,0.0010,314,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.06,480172.89,0
+2026-11-08T21:14:44.789017,Sphere Drag Flip,0.0010,315,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.34,478952.96,0
+2026-11-08T21:14:44.884007,Sphere Drag Flip,0.0010,316,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),28.36,476064.88,0
+2026-11-08T21:14:44.994008,Sphere Drag Flip,0.0010,317,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,3.26,476667.60,0
+2026-11-08T21:14:45.088973,Sphere Drag Flip,0.0010,318,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),20.25,477542.70,0
+2026-11-08T21:14:45.175019,Sphere Drag Flip,0.0010,319,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.37,479517.75,0
+2026-11-08T21:14:45.303201,Sphere Drag Flip,0.0010,320,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.66,480256.20,0
+2026-11-08T21:14:45.412000,Sphere Drag Flip,0.0010,321,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.56,479735.37,0
+2026-11-08T21:14:45.503350,Sphere Drag Flip,0.0010,322,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.34,478056.62,0
+2026-11-08T21:14:45.592894,Sphere Drag Flip,0.0010,323,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.90,479469.78,0
+2026-11-08T21:14:45.701467,Sphere Drag Flip,0.0010,324,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.31,479144.38,0
+2026-11-08T21:14:45.785505,Sphere Drag Flip,0.0010,325,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),31.60,479764.21,0
+2026-11-08T21:14:45.881968,Sphere Drag Flip,0.0010,326,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.17,480316.43,0
+2026-11-08T21:14:45.970656,Sphere Drag Flip,0.0010,327,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.78,478999.07,0
+2026-11-08T21:14:46.044290,Sphere Drag Flip,0.0010,328,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.16,481423.87,0
+2026-11-08T21:14:46.136841,Sphere Drag Flip,0.0010,329,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.92,481147.61,0
+2026-11-08T21:14:46.233888,Sphere Drag Flip,0.0010,330,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.40,477645.61,0
+2026-11-08T21:14:46.329992,Sphere Drag Flip,0.0010,331,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.49,479470.06,0
+2026-11-08T21:14:46.420340,Sphere Drag Flip,0.0010,332,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),30.77,481009.57,0
+2026-11-08T21:14:46.522413,Sphere Drag Flip,0.0010,333,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),20.95,480183.50,0
+2026-11-08T21:14:46.608644,Sphere Drag Flip,0.0010,334,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),27.28,479514.16,0
+2026-11-08T21:14:46.703026,Sphere Drag Flip,0.0010,335,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.98,477064.77,0
+2026-11-08T21:14:46.794294,Sphere Drag Flip,0.0010,336,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),20.79,478222.99,0
+2026-11-08T21:14:46.884357,Sphere Drag Flip,0.0010,337,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),35.27,479707.33,0
+2026-11-08T21:14:46.977540,Sphere Drag Flip,0.0010,338,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.92,479998.36,0
+2026-11-08T21:14:47.091712,Sphere Drag Flip,0.0010,339,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.41,477081.63,0
+2026-11-08T21:14:47.209225,Sphere Drag Flip,0.0010,340,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),21.07,476202.77,0
+2026-11-08T21:14:47.308261,Sphere Drag Flip,0.0010,341,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),23.42,477258.99,0
+2026-11-08T21:14:47.413562,Sphere Drag Flip,0.0010,342,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.01,479802.19,0
+2026-11-08T21:14:47.510396,Sphere Drag Flip,0.0010,343,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.21,478495.89,0
+2026-11-08T21:14:47.600496,Sphere Drag Flip,0.0010,344,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),35.78,478412.87,0
+2026-11-08T21:14:47.689277,Sphere Drag Flip,0.0010,345,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.67,478785.02,0
+2026-11-08T21:14:47.883395,Sphere Drag Flip,0.0010,346,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.69,479293.43,0
+2026-11-08T21:14:47.983562,Sphere Drag Flip,0.0010,347,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.28,480532.69,0
+2026-11-08T21:14:48.076271,Sphere Drag Flip,0.0010,348,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.76,479693.03,0
+2026-11-08T21:14:48.204432,Sphere Drag Flip,0.0010,349,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.58,479910.27,0
+2026-11-08T21:14:48.205433,Sphere Drag Flip,0.0010,350,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.43,478919.91,0
+2026-11-08T21:14:48.205433,Sphere Drag Flip,0.0010,351,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.03,479172.25,0
+2026-11-08T21:14:48.336692,Sphere Drag Flip,0.0010,352,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),28.87,479659.39,0
+2026-11-08T21:14:48.576245,Sphere Drag Flip,0.0010,353,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.66,482690.53,0
+2026-11-08T21:14:48.749801,Sphere Drag Flip,0.0010,354,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.41,479518.59,0
+2026-11-08T21:14:48.839062,Sphere Drag Flip,0.0010,355,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),21.78,480172.97,0
+2026-11-08T21:14:48.930082,Sphere Drag Flip,0.0010,356,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.66,478916.88,0
+2026-11-08T21:14:49.022450,Sphere Drag Flip,0.0010,358,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),22.96,480331.08,0
+2026-11-08T21:14:49.107188,Sphere Drag Flip,0.0010,359,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),33.76,478981.04,0
+2026-11-08T21:14:49.210460,Sphere Drag Flip,0.0010,357,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),30.39,478403.19,0
+2026-11-08T21:14:49.336528,Sphere Drag Flip,0.0010,360,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.75,478118.39,0
+2026-11-08T21:14:49.413539,Sphere Drag Flip,0.0010,361,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.33,476226.41,0
+2026-11-08T21:14:49.541793,Sphere Drag Flip,0.0010,362,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.07,480733.68,0
+2026-11-08T21:14:49.642251,Sphere Drag Flip,0.0010,363,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),29.85,482022.11,0
+2026-11-08T21:14:49.734471,Sphere Drag Flip,0.0010,364,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),23.42,479381.08,0
+2026-11-08T21:14:49.839077,Sphere Drag Flip,0.0010,365,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),12.22,478932.18,0
+2026-11-08T21:14:49.922352,Sphere Drag Flip,0.0010,366,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),32.86,479547.72,0
+2026-11-08T21:14:50.006355,Sphere Drag Flip,0.0010,367,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,0.43,479053.11,0
+2026-11-08T21:14:50.209203,Sphere Drag Flip,0.0010,368,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),21.71,480487.05,0
+2026-11-08T21:14:50.299074,Sphere Drag Flip,0.0010,369,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.36,479013.21,0
+2026-11-08T21:14:50.413548,Sphere Drag Flip,0.0010,370,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),35.51,475768.17,0
+2026-11-08T21:14:50.490628,Sphere Drag Flip,0.0010,371,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),22.10,478209.57,0
+2026-11-08T21:14:50.602099,Sphere Drag Flip,0.0010,372,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.78,477185.93,0
+2026-11-08T21:14:50.685379,Sphere Drag Flip,0.0010,373,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),39.06,477895.75,0
+2026-11-08T21:14:50.787541,Sphere Drag Flip,0.0010,374,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.96,476492.05,0
+2026-11-08T21:14:50.866183,Sphere Drag Flip,0.0010,375,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),28.03,481040.93,0
+2026-11-08T21:14:50.956574,Sphere Drag Flip,0.0010,376,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),22.48,477024.27,0
+2026-11-08T21:14:51.048494,Sphere Drag Flip,0.0010,377,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),28.79,478188.71,0
+2026-11-08T21:14:51.149657,Sphere Drag Flip,0.0010,378,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),32.64,478658.18,0
+2026-11-08T21:14:51.247368,Sphere Drag Flip,0.0010,379,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),32.57,477298.22,0
+2026-11-08T21:14:51.328893,Sphere Drag Flip,0.0010,380,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.67,477065.98,0
+2026-11-08T21:14:51.443876,Sphere Drag Flip,0.0010,381,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),28.35,477659.29,0
+2026-11-08T21:14:51.545750,Sphere Drag Flip,0.0010,382,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.29,479860.34,0
+2026-11-08T21:14:51.636075,Sphere Drag Flip,0.0010,383,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),38.97,480765.02,0
+2026-11-08T21:14:51.731604,Sphere Drag Flip,0.0010,384,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),24.10,477693.98,0
+2026-11-08T21:14:51.818992,Sphere Drag Flip,0.0010,385,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),6.90,476571.78,0
+2026-11-08T21:14:51.932155,Sphere Drag Flip,0.0010,386,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.65,478105.88,0
+2026-11-08T21:14:52.033444,Sphere Drag Flip,0.0010,387,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),35.46,475068.34,0
+2026-11-08T21:14:52.116895,Sphere Drag Flip,0.0010,388,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,0.91,481978.54,0
+2026-11-08T21:14:52.215997,Sphere Drag Flip,0.0010,389,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.64,479849.18,0
+2026-11-08T21:14:52.324822,Sphere Drag Flip,0.0010,390,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.18,481048.19,0
+2026-11-08T21:14:52.405777,Sphere Drag Flip,0.0010,391,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),24.80,479521.49,0
+2026-11-08T21:14:52.500315,Sphere Drag Flip,0.0010,392,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.90,478941.52,0
+2026-11-08T21:14:52.582704,Sphere Drag Flip,0.0010,393,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),4.33,476360.85,0
+2026-11-08T21:14:52.675656,Sphere Drag Flip,0.0010,394,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),38.35,478890.94,0
+2026-11-08T21:14:52.765670,Sphere Drag Flip,0.0010,395,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.57,477056.26,0
+2026-11-08T21:14:52.855784,Sphere Drag Flip,0.0010,396,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),23.14,479051.97,0
+2026-11-08T21:14:52.934116,Sphere Drag Flip,0.0010,397,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.48,478734.95,0
+2026-11-08T21:14:53.020146,Sphere Drag Flip,0.0010,398,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.64,479311.53,0
+2026-11-08T21:14:53.122288,Sphere Drag Flip,0.0010,399,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.92,478474.48,0
+2026-11-08T21:14:53.133167,Sphere Drag Flip,0.0010,400,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),28.24,477772.91,0
+2026-11-08T21:14:53.184867,Sphere Drag Flip,0.0010,401,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.38,478121.71,0
+2026-11-08T21:14:53.419911,Sphere Drag Flip,0.0010,402,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),30.74,480205.43,0
+2026-11-08T21:14:53.512122,Sphere Drag Flip,0.0010,403,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.29,475634.49,0
+2026-11-08T21:14:53.606615,Sphere Drag Flip,0.0010,404,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),30.62,480410.80,0
+2026-11-08T21:14:53.702543,Sphere Drag Flip,0.0010,405,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),19.11,478799.01,0
+2026-11-08T21:14:53.792856,Sphere Drag Flip,0.0010,406,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),24.20,477931.24,0
+2026-11-08T21:14:53.903802,Sphere Drag Flip,0.0010,408,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.97,478288.49,0
+2026-11-08T21:14:53.998212,Sphere Drag Flip,0.0010,407,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),50.51,480254.25,0
+2026-11-08T21:14:54.115469,Sphere Drag Flip,0.0010,409,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),2.30,477992.85,0
+2026-11-08T21:14:54.151543,Sphere Drag Flip,0.0010,410,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),22.14,477424.38,0
+2026-11-08T21:14:54.341843,Sphere Drag Flip,0.0010,411,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.65,479643.07,0
+2026-11-08T21:14:54.433003,Sphere Drag Flip,0.0010,412,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.99,477335.21,0
+2026-11-08T21:14:54.523744,Sphere Drag Flip,0.0010,413,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),34.87,477060.66,0
+2026-11-08T21:14:54.607098,Sphere Drag Flip,0.0010,414,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,1.99,477799.88,0
+2026-11-08T21:14:54.702186,Sphere Drag Flip,0.0010,415,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.12,476566.68,0
+2026-11-08T21:14:54.793348,Sphere Drag Flip,0.0010,416,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.30,481380.98,0
+2026-11-08T21:14:54.909899,Sphere Drag Flip,0.0010,417,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.93,479003.36,0
+2026-11-08T21:14:55.014420,Sphere Drag Flip,0.0010,418,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.79,477740.69,0
+2026-11-08T21:14:55.131051,Sphere Drag Flip,0.0010,419,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),28.48,480780.26,0
+2026-11-08T21:14:55.223018,Sphere Drag Flip,0.0010,420,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.99,480109.01,0
+2026-11-08T21:14:55.318339,Sphere Drag Flip,0.0010,421,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.50,480500.20,0
+2026-11-08T21:14:55.415393,Sphere Drag Flip,0.0010,422,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.91,477662.55,0
+2026-11-08T21:14:55.510568,Sphere Drag Flip,0.0010,423,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.48,479226.27,0
+2026-11-08T21:14:55.591365,Sphere Drag Flip,0.0010,424,EQUIVALENCE CLASS,quadratic_poly,theta_0 * Re + theta_1 * Re**2,3.54,479434.64,0
+2026-11-08T21:14:55.688458,Sphere Drag Flip,0.0010,425,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.73,477918.48,0
+2026-11-08T21:14:55.785999,Sphere Drag Flip,0.0010,426,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),5.66,480472.88,0
+2026-11-08T21:14:55.853000,Sphere Drag Flip,0.0010,427,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),30.53,481432.49,0
+2026-11-08T21:14:55.984776,Sphere Drag Flip,0.0010,428,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),27.20,477985.12,0
+2026-11-08T21:14:56.100423,Sphere Drag Flip,0.0010,429,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.90,481152.44,0
+2026-11-08T21:14:56.194941,Sphere Drag Flip,0.0010,430,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),30.44,479179.34,0
+2026-11-08T21:14:56.293943,Sphere Drag Flip,0.0010,431,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),11.40,480268.38,0
+2026-11-08T21:14:56.390600,Sphere Drag Flip,0.0010,432,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.33,480650.41,0
+2026-11-08T21:14:56.494846,Sphere Drag Flip,0.0010,433,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),30.71,477849.76,0
+2026-11-08T21:14:56.589143,Sphere Drag Flip,0.0010,434,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.58,479739.87,0
+2026-11-08T21:14:56.712721,Sphere Drag Flip,0.0010,435,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.88,478023.08,0
+2026-11-08T21:14:56.814533,Sphere Drag Flip,0.0010,436,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),6.79,480836.32,0
+2026-11-08T21:14:56.895242,Sphere Drag Flip,0.0010,437,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.50,476958.27,0
+2026-11-08T21:14:56.979238,Sphere Drag Flip,0.0010,438,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.85,478674.73,0
+2026-11-08T21:14:57.078879,Sphere Drag Flip,0.0010,439,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),10.44,480342.15,0
+2026-11-08T21:14:57.171834,Sphere Drag Flip,0.0010,440,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),8.94,479251.41,0
+2026-11-08T21:14:57.282054,Sphere Drag Flip,0.0010,441,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.99,479357.81,0
+2026-11-08T21:14:57.386587,Sphere Drag Flip,0.0010,442,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),3.47,477051.10,0
+2026-11-08T21:14:57.494283,Sphere Drag Flip,0.0010,443,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),14.18,478131.66,0
+2026-11-08T21:14:57.602868,Sphere Drag Flip,0.0010,444,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),17.33,478876.94,0
+2026-11-08T21:14:57.710962,Sphere Drag Flip,0.0010,445,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),26.96,476099.11,0
+2026-11-08T21:14:57.816610,Sphere Drag Flip,0.0010,446,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),18.14,477492.41,0
+2026-11-08T21:14:57.920470,Sphere Drag Flip,0.0010,447,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),27.36,478483.37,0
+2026-11-08T21:14:58.008280,Sphere Drag Flip,0.0010,448,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.16,476883.18,0
+2026-11-08T21:14:58.088034,Sphere Drag Flip,0.0010,449,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),32.88,477922.29,0
+2026-11-08T21:14:58.088034,Sphere Drag Flip,0.0010,450,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.25,480646.03,0
+2026-11-08T21:14:58.088034,Sphere Drag Flip,0.0010,451,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),15.92,477758.25,0
+2026-11-08T21:14:58.360113,Sphere Drag Flip,0.0010,452,EQUIVALENCE CLASS,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),7.99,477558.15,0
+2026-11-08T21:14:58.360113,Sphere Drag Flip,0.0010,453,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),37.08,478387.24,0
+2026-11-08T21:14:58.360113,Sphere Drag Flip,0.0010,454,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),29.02,478207.02,0
+2026-11-08T21:14:58.361132,Sphere Drag Flip,0.0010,455,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),23.86,478987.32,0
+2026-11-08T21:14:58.361132,Sphere Drag Flip,0.0010,456,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),16.72,477989.04,0
+2026-11-08T21:14:58.361132,Sphere Drag Flip,0.0010,458,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.57,477107.77,0
+2026-11-08T21:14:58.361132,Sphere Drag Flip,0.0010,457,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),13.44,479659.25,0
+2026-11-08T21:14:58.362111,Sphere Drag Flip,0.0010,459,UNIQUELY IDENTIFIABLE,proudman_pearson_log,theta_0 * Re + theta_1 * Re**2 * log(Re),38.38,479067.45,0
+2026-11-08T21:15:13.658443,Entropy Expansion,0.0050,2,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1017912.13,34462358.97,0
+2026-11-08T21:15:13.732405,Entropy Expansion,0.0050,0,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1092730.99,34384711.88,0
+2026-11-08T21:15:13.786250,Entropy Expansion,0.0050,1,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),899928.01,36489578.61,0
+2026-11-08T21:15:13.845290,Entropy Expansion,0.0050,5,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),945232.10,35493046.64,0
+2026-11-08T21:15:13.904568,Entropy Expansion,0.0050,3,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1022792.78,34050631.32,0
+2026-11-08T21:15:13.905456,Entropy Expansion,0.0050,6,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1044396.50,36255012.24,0
+2026-11-08T21:15:13.905967,Entropy Expansion,0.0050,7,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1081227.61,34992663.58,0
+2026-11-08T21:15:14.017352,Entropy Expansion,0.0050,4,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),983960.05,35699120.80,0
+2026-11-08T21:15:14.118121,Entropy Expansion,0.0050,8,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1031366.29,34420541.02,0
+2026-11-08T21:15:14.172179,Entropy Expansion,0.0050,9,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),990100.58,34692529.60,0
+2026-11-08T21:15:14.173182,Entropy Expansion,0.0050,10,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1156539.66,34360042.28,0
+2026-11-08T21:15:14.236409,Entropy Expansion,0.0050,11,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),986580.54,34994001.67,0
+2026-11-08T21:15:14.334349,Entropy Expansion,0.0050,12,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),981325.43,34436096.91,0
+2026-11-08T21:15:14.396349,Entropy Expansion,0.0050,13,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1110371.89,33776318.57,0
+2026-11-08T21:15:14.451349,Entropy Expansion,0.0050,14,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),908045.26,36470383.69,0
+2026-11-08T21:15:14.453418,Entropy Expansion,0.0050,15,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1022061.45,35809994.07,0
+2026-11-08T21:15:14.565405,Entropy Expansion,0.0050,16,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1138301.21,33488726.63,0
+2026-11-08T21:15:14.623172,Entropy Expansion,0.0050,17,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),901614.48,36119538.40,0
+2026-11-08T21:15:14.685881,Entropy Expansion,0.0050,18,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1103481.25,34092424.01,0
+2026-11-08T21:15:14.745058,Entropy Expansion,0.0050,19,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),981358.41,34534727.54,0
+2026-11-08T21:15:14.745545,Entropy Expansion,0.0050,20,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1172640.75,34369899.44,0
+2026-11-08T21:15:14.798336,Entropy Expansion,0.0050,21,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1136332.69,34700837.67,0
+2026-11-08T21:15:14.891310,Entropy Expansion,0.0050,23,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1123749.32,33409499.75,0
+2026-11-08T21:15:14.948363,Entropy Expansion,0.0050,22,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),992360.29,34888005.93,0
+2026-11-08T21:15:15.001298,Entropy Expansion,0.0050,24,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1230348.82,33361248.97,0
+2026-11-08T21:15:15.001298,Entropy Expansion,0.0050,25,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),919575.63,35531526.57,0
+2026-11-08T21:15:15.002740,Entropy Expansion,0.0050,26,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1035406.20,34889919.91,0
+2026-11-08T21:15:15.181791,Entropy Expansion,0.0050,28,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1164766.09,34736958.65,0
+2026-11-08T21:15:15.242909,Entropy Expansion,0.0050,27,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1021128.41,35181228.44,0
+2026-11-08T21:15:15.298123,Entropy Expansion,0.0050,29,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),970652.74,33968007.19,0
+2026-11-08T21:15:15.298604,Entropy Expansion,0.0050,30,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1172375.92,34184134.99,0
+2026-11-08T21:15:15.410607,Entropy Expansion,0.0050,31,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),932216.69,35451493.43,0
+2026-11-08T21:15:15.468541,Entropy Expansion,0.0050,32,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),967642.17,36204269.66,0
+2026-11-08T21:15:15.532658,Entropy Expansion,0.0050,34,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),977093.02,35436748.08,0
+2026-11-08T21:15:15.589764,Entropy Expansion,0.0050,33,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1027683.65,36035133.73,0
+2026-11-08T21:15:15.590723,Entropy Expansion,0.0050,35,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),958234.63,35358194.23,0
+2026-11-08T21:15:15.590723,Entropy Expansion,0.0050,36,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1027243.31,33571178.78,0
+2026-11-08T21:15:15.751800,Entropy Expansion,0.0050,38,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1024593.84,35002921.11,0
+2026-11-08T21:15:15.807800,Entropy Expansion,0.0050,37,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1042663.56,33224463.88,0
+2026-11-08T21:15:15.855452,Entropy Expansion,0.0050,39,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1024362.31,35826595.24,0
+2026-11-08T21:15:15.856454,Entropy Expansion,0.0050,40,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1026525.99,33347247.79,0
+2026-11-08T21:15:15.856454,Entropy Expansion,0.0050,41,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1096808.40,34383151.70,0
+2026-11-08T21:15:15.981189,Entropy Expansion,0.0050,43,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1134253.71,34284123.27,0
+2026-11-08T21:15:16.031125,Entropy Expansion,0.0050,42,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1143818.00,34810327.82,0
+2026-11-08T21:15:16.031125,Entropy Expansion,0.0050,44,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),969170.36,35848714.04,0
+2026-11-08T21:15:16.032121,Entropy Expansion,0.0050,45,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),946538.36,36670783.99,0
+2026-11-08T21:15:16.032639,Entropy Expansion,0.0050,46,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1174686.81,33476455.93,0
+2026-11-08T21:15:16.032639,Entropy Expansion,0.0050,48,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),985292.52,35001378.69,0
+2026-11-08T21:15:16.033193,Entropy Expansion,0.0050,49,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),1153255.72,34399449.49,0
+2026-11-08T21:15:16.033193,Entropy Expansion,0.0050,47,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),988787.79,36008540.90,0
+2026-11-08T21:15:16.371287,Entropy Expansion,0.0100,0,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),272861.22,8582756.06,0
+2026-11-08T21:15:16.525763,Entropy Expansion,0.0100,1,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),225276.89,9120231.80,0
+2026-11-08T21:15:16.772188,Entropy Expansion,0.0100,2,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),254183.91,8617662.36,0
+2026-11-08T21:15:16.864496,Entropy Expansion,0.0100,3,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),257690.10,8512810.87,0
+2026-11-08T21:15:16.923669,Entropy Expansion,0.0100,5,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),234767.80,8871551.52,0
+2026-11-08T21:15:16.923669,Entropy Expansion,0.0100,4,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),247177.80,8931446.49,0
+2026-11-08T21:15:17.039585,Entropy Expansion,0.0100,6,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),260773.05,9055150.16,0
+2026-11-08T21:15:17.095932,Entropy Expansion,0.0100,8,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),260970.75,8615724.29,0
+2026-11-08T21:15:17.148178,Entropy Expansion,0.0100,7,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),268798.51,8727459.23,0
+2026-11-08T21:15:17.198422,Entropy Expansion,0.0100,9,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),246167.24,8673510.81,0
+2026-11-08T21:15:17.199129,Entropy Expansion,0.0100,10,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),288085.70,8584067.85,0
+2026-11-08T21:15:17.305109,Entropy Expansion,0.0100,11,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),247308.88,8741183.49,0
+2026-11-08T21:15:17.357982,Entropy Expansion,0.0100,13,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),277414.63,8447484.29,0
+2026-11-08T21:15:17.413253,Entropy Expansion,0.0100,12,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),246560.29,8618808.57,0
+2026-11-08T21:15:17.481135,Entropy Expansion,0.0100,14,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),226938.74,9097690.92,0
+2026-11-08T21:15:17.481782,Entropy Expansion,0.0100,15,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),257735.96,8949493.79,0
+2026-11-08T21:15:17.532249,Entropy Expansion,0.0100,16,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),283086.15,8356700.23,0
+2026-11-08T21:15:17.652360,Entropy Expansion,0.0100,18,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),273737.24,8519848.70,0
+2026-11-08T21:15:17.706397,Entropy Expansion,0.0100,17,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),226269.01,9035452.98,0
+2026-11-08T21:15:17.765280,Entropy Expansion,0.0100,19,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),247059.20,8626932.39,0
+2026-11-08T21:15:17.765826,Entropy Expansion,0.0100,20,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),294065.03,8599197.34,0
+2026-11-08T21:15:17.766339,Entropy Expansion,0.0100,21,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),282976.94,8682619.74,0
+2026-11-08T21:15:17.941164,Entropy Expansion,0.0100,22,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),248305.91,8731544.03,0
+2026-11-08T21:15:18.006168,Entropy Expansion,0.0100,23,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),280638.71,8337312.65,0
+2026-11-08T21:15:18.064174,Entropy Expansion,0.0100,24,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),309461.16,8329804.12,0
+2026-11-08T21:15:18.064661,Entropy Expansion,0.0100,25,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),229318.59,8889902.93,0
+2026-11-08T21:15:18.065173,Entropy Expansion,0.0100,26,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),260811.90,8718809.00,0
+2026-11-08T21:15:18.237566,Entropy Expansion,0.0100,27,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),257722.06,8796727.51,0
+2026-11-08T21:15:18.285596,Entropy Expansion,0.0100,29,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),242345.79,8496286.35,0
+2026-11-08T21:15:18.342566,Entropy Expansion,0.0100,28,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),291844.86,8680231.24,0
+2026-11-08T21:15:18.343146,Entropy Expansion,0.0100,30,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),292214.42,8532179.16,0
+2026-11-08T21:15:18.466163,Entropy Expansion,0.0100,31,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),235449.15,8868232.37,0
+2026-11-08T21:15:18.523356,Entropy Expansion,0.0100,33,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),256464.32,9002484.58,0
+2026-11-08T21:15:18.573157,Entropy Expansion,0.0100,32,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),243305.71,9050936.32,0
+2026-11-08T21:15:18.623668,Entropy Expansion,0.0100,34,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),242608.83,8845960.89,0
+2026-11-08T21:15:18.624600,Entropy Expansion,0.0100,35,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),239472.02,8822897.82,0
+2026-11-08T21:15:18.624600,Entropy Expansion,0.0100,36,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),254821.28,8388512.86,0
+2026-11-08T21:15:18.789728,Entropy Expansion,0.0100,38,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),255587.38,8754714.14,0
+2026-11-08T21:15:18.842339,Entropy Expansion,0.0100,37,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),259686.13,8311727.73,0
+2026-11-08T21:15:18.899346,Entropy Expansion,0.0100,39,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),256223.49,8948617.10,0
+2026-11-08T21:15:18.899859,Entropy Expansion,0.0100,40,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),256144.90,8346812.98,0
+2026-11-08T21:15:18.900371,Entropy Expansion,0.0100,41,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),273648.73,8586321.80,0
+2026-11-08T21:15:18.977092,Entropy Expansion,0.0100,42,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),284630.81,8699174.91,0
+2026-11-08T21:15:19.062823,Entropy Expansion,0.0100,43,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),281472.26,8573314.48,0
+2026-11-08T21:15:19.062823,Entropy Expansion,0.0100,44,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),243507.49,8983392.46,0
+2026-11-08T21:15:19.063823,Entropy Expansion,0.0100,45,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),235260.02,9145139.45,0
+2026-11-08T21:15:19.063823,Entropy Expansion,0.0100,46,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),294272.46,8375587.61,0
+2026-11-08T21:15:19.064464,Entropy Expansion,0.0100,47,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),248069.02,9022738.25,0
+2026-11-08T21:15:19.064464,Entropy Expansion,0.0100,48,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),246146.14,8752818.59,0
+2026-11-08T21:15:19.065073,Entropy Expansion,0.0100,49,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),288829.75,8593014.82,0
+2026-11-08T21:15:19.310602,Entropy Expansion,0.0200,1,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),56466.60,2278973.91,0
+2026-11-08T21:15:19.532847,Entropy Expansion,0.0200,0,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),68054.67,2138983.11,0
+2026-11-08T21:15:19.623857,Entropy Expansion,0.0200,2,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),63398.85,2155449.27,0
+2026-11-08T21:15:19.674618,Entropy Expansion,0.0200,3,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),65418.33,2128276.43,0
+2026-11-08T21:15:19.733706,Entropy Expansion,0.0200,7,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),66447.51,2171527.05,0
+2026-11-08T21:15:19.734310,Entropy Expansion,0.0200,8,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),66809.66,2159227.66,0
+2026-11-08T21:15:19.745807,Entropy Expansion,0.0200,4,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),62388.92,2236193.83,0
+2026-11-08T21:15:19.902014,Entropy Expansion,0.0200,5,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),57921.96,2217030.12,0
+2026-11-08T21:15:19.958532,Entropy Expansion,0.0200,6,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),65030.37,2259486.34,0
+2026-11-08T21:15:20.024543,Entropy Expansion,0.0200,9,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),60862.73,2168564.10,0
+2026-11-08T21:15:20.025000,Entropy Expansion,0.0200,10,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),71497.27,2143044.33,0
+2026-11-08T21:15:20.025507,Entropy Expansion,0.0200,11,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),62158.58,2181636.89,0
+2026-11-08T21:15:20.191635,Entropy Expansion,0.0200,13,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),69264.41,2113571.10,0
+2026-11-08T21:15:20.243682,Entropy Expansion,0.0200,14,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),56698.10,2264483.72,0
+2026-11-08T21:15:20.302035,Entropy Expansion,0.0200,12,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),62255.43,2159595.68,0
+2026-11-08T21:15:20.303029,Entropy Expansion,0.0200,15,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),65543.49,2235868.65,0
+2026-11-08T21:15:20.303029,Entropy Expansion,0.0200,16,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),70028.62,2081442.27,0
+2026-11-08T21:15:20.440288,Entropy Expansion,0.0200,18,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),67368.18,2128331.18,0
+2026-11-08T21:15:20.525281,Entropy Expansion,0.0200,17,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),57000.29,2261645.91,0
+2026-11-08T21:15:20.585978,Entropy Expansion,0.0200,19,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),62623.37,2153357.52,0
+2026-11-08T21:15:20.587562,Entropy Expansion,0.0200,20,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),73969.12,2153159.74,0
+2026-11-08T21:15:20.697662,Entropy Expansion,0.0200,21,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),70190.25,2174359.66,0
+2026-11-08T21:15:20.763905,Entropy Expansion,0.0200,24,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),78300.07,2077199.12,0
+2026-11-08T21:15:20.830558,Entropy Expansion,0.0200,23,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),70010.43,2076804.39,0
+2026-11-08T21:15:20.884069,Entropy Expansion,0.0200,22,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),62184.46,2187658.39,0
+2026-11-08T21:15:20.954978,Entropy Expansion,0.0200,25,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),57041.57,2225985.65,0
+2026-11-08T21:15:20.955987,Entropy Expansion,0.0200,26,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),66182.32,2177864.53,0
+2026-11-08T21:15:21.154357,Entropy Expansion,0.0200,28,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),73287.61,2168051.48,0
+2026-11-08T21:15:21.222405,Entropy Expansion,0.0200,27,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),65650.53,2199889.36,0
+2026-11-08T21:15:21.279655,Entropy Expansion,0.0200,29,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),60427.60,2126211.86,0
+2026-11-08T21:15:21.280608,Entropy Expansion,0.0200,30,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),72614.59,2126123.11,0
+2026-11-08T21:15:21.281247,Entropy Expansion,0.0200,31,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),60060.61,2219736.00,0
+2026-11-08T21:15:21.438748,Entropy Expansion,0.0200,32,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),61523.92,2262665.72,0
+2026-11-08T21:15:21.495085,Entropy Expansion,0.0200,34,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),59821.58,2204881.75,0
+2026-11-08T21:15:21.580336,Entropy Expansion,0.0200,33,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),63887.97,2247470.56,0
+2026-11-08T21:15:21.581337,Entropy Expansion,0.0200,35,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),59824.48,2197408.04,0
+2026-11-08T21:15:21.598865,Entropy Expansion,0.0200,36,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),62711.12,2094985.30,0
+2026-11-08T21:15:21.780975,Entropy Expansion,0.0200,39,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),64122.15,2233138.31,0
+2026-11-08T21:15:21.831543,Entropy Expansion,0.0200,38,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),63616.07,2190668.34,0
+2026-11-08T21:15:21.879662,Entropy Expansion,0.0200,37,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),64431.05,2080736.43,0
+2026-11-08T21:15:21.880588,Entropy Expansion,0.0200,40,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),63792.32,2091705.45,0
+2026-11-08T21:15:21.881104,Entropy Expansion,0.0200,41,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),68135.82,2141848.48,0
+2026-11-08T21:15:22.013531,Entropy Expansion,0.0200,42,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),70496.16,2173087.90,0
+2026-11-08T21:15:22.035146,Entropy Expansion,0.0200,44,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),61485.95,2256471.10,0
+2026-11-08T21:15:22.036159,Entropy Expansion,0.0200,43,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),69321.84,2144467.87,0
+2026-11-08T21:15:22.036788,Entropy Expansion,0.0200,45,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),58129.70,2275024.60,0
+2026-11-08T21:15:22.037333,Entropy Expansion,0.0200,46,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),73868.77,2097132.79,0
+2026-11-08T21:15:22.037873,Entropy Expansion,0.0200,47,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),62454.30,2266000.94,0
+2026-11-08T21:15:22.037873,Entropy Expansion,0.0200,48,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),61447.99,2189439.06,0
+2026-11-08T21:15:22.037873,Entropy Expansion,0.0200,49,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u),72464.94,2144829.16,0
+2026-11-08T21:15:23.235590,Entropy Expansion (Free Scale k=2),0.0050,7,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),41143.68,34992661.16,0
+2026-11-08T21:15:23.561533,Entropy Expansion (Free Scale k=2),0.0050,3,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),40230.00,34050642.09,0
+2026-11-08T21:15:23.703562,Entropy Expansion (Free Scale k=2),0.0050,5,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),35920.34,35493051.00,0
+2026-11-08T21:15:23.828668,Entropy Expansion (Free Scale k=2),0.0050,6,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),39108.95,36255006.97,0
+2026-11-08T21:15:23.922762,Entropy Expansion (Free Scale k=2),0.0050,0,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),44965.28,34384706.62,0
+2026-11-08T21:15:24.018942,Entropy Expansion (Free Scale k=2),0.0050,4,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),40419.52,35699119.73,0
+2026-11-08T21:15:24.139519,Entropy Expansion (Free Scale k=2),0.0050,2,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),39449.99,34462354.18,0
+2026-11-08T21:15:24.373832,Entropy Expansion (Free Scale k=2),0.0050,1,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),36251.73,36489573.87,0
+2026-11-08T21:15:24.636391,Entropy Expansion (Free Scale k=2),0.0050,8,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),42717.81,34420567.72,0
+2026-11-08T21:15:24.813118,Entropy Expansion (Free Scale k=2),0.0050,9,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),42021.39,34692532.06,0
+2026-11-08T21:15:24.814120,Entropy Expansion (Free Scale k=2),0.0050,10,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),41606.62,34360039.55,0
+2026-11-08T21:15:24.814724,Entropy Expansion (Free Scale k=2),0.0050,11,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),34175.54,34993999.53,0
+2026-11-08T21:15:25.132508,Entropy Expansion (Free Scale k=2),0.0050,12,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),35554.42,34436095.42,0
+2026-11-08T21:15:25.351403,Entropy Expansion (Free Scale k=2),0.0050,13,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),42588.50,33776313.58,0
+2026-11-08T21:15:25.603097,Entropy Expansion (Free Scale k=2),0.0050,14,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),33606.73,36470379.20,0
+2026-11-08T21:15:25.638565,Entropy Expansion (Free Scale k=2),0.0050,15,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),43508.31,35810010.47,0
+2026-11-08T21:15:25.649428,Entropy Expansion (Free Scale k=2),0.0050,16,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),40753.61,33488724.69,0
+2026-11-08T21:15:25.867825,Entropy Expansion (Free Scale k=2),0.0050,17,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),32870.72,36119535.51,0
+2026-11-08T21:15:26.111965,Entropy Expansion (Free Scale k=2),0.0050,18,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),47755.24,34092434.00,0
+2026-11-08T21:15:26.378055,Entropy Expansion (Free Scale k=2),0.0050,19,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),31356.02,34534737.69,0
+2026-11-08T21:15:26.434663,Entropy Expansion (Free Scale k=2),0.0050,20,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),47122.84,34369895.76,0
+2026-11-08T21:15:26.613735,Entropy Expansion (Free Scale k=2),0.0050,21,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),48604.29,34700838.96,0
+2026-11-08T21:15:26.848671,Entropy Expansion (Free Scale k=2),0.0050,23,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),44253.65,33409494.62,0
+2026-11-08T21:15:26.942475,Entropy Expansion (Free Scale k=2),0.0050,24,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),53221.13,33361261.10,0
+2026-11-08T21:15:27.113572,Entropy Expansion (Free Scale k=2),0.0050,22,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),35620.87,34888000.64,0
+2026-11-08T21:15:27.191529,Entropy Expansion (Free Scale k=2),0.0050,26,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),38616.80,34889931.82,0
+2026-11-08T21:15:27.206977,Entropy Expansion (Free Scale k=2),0.0050,25,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),38241.35,35531523.83,0
+2026-11-08T21:15:27.628546,Entropy Expansion (Free Scale k=2),0.0050,27,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),41972.05,35181246.61,0
+2026-11-08T21:15:27.753788,Entropy Expansion (Free Scale k=2),0.0050,28,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),47919.27,34736955.57,0
+2026-11-08T21:15:27.925025,Entropy Expansion (Free Scale k=2),0.0050,29,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),35857.07,33968002.71,0
+2026-11-08T21:15:27.926021,Entropy Expansion (Free Scale k=2),0.0050,30,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),44712.54,34184130.27,0
+2026-11-08T21:15:28.081391,Entropy Expansion (Free Scale k=2),0.0050,31,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),34226.12,35451510.75,0
+2026-11-08T21:15:28.256629,Entropy Expansion (Free Scale k=2),0.0050,33,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),44185.64,36035128.74,0
+2026-11-08T21:15:28.477420,Entropy Expansion (Free Scale k=2),0.0050,32,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),41668.77,36204272.74,0
+2026-11-08T21:15:28.653567,Entropy Expansion (Free Scale k=2),0.0050,34,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),37525.47,35436749.85,0
+2026-11-08T21:15:28.738870,Entropy Expansion (Free Scale k=2),0.0050,35,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),38624.69,35358189.50,0
+2026-11-08T21:15:28.739876,Entropy Expansion (Free Scale k=2),0.0050,36,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),33038.14,33571187.22,0
+2026-11-08T21:15:29.103093,Entropy Expansion (Free Scale k=2),0.0050,37,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),41951.35,33224463.86,0
+2026-11-08T21:15:29.260328,Entropy Expansion (Free Scale k=2),0.0050,38,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),38863.72,35002917.65,0
+2026-11-08T21:15:29.531368,Entropy Expansion (Free Scale k=2),0.0050,39,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),36358.15,35826590.48,0
+2026-11-08T21:15:29.531721,Entropy Expansion (Free Scale k=2),0.0050,40,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),40051.15,33347245.03,0
+2026-11-08T21:15:29.532228,Entropy Expansion (Free Scale k=2),0.0050,41,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),42153.60,34383146.64,0
+2026-11-08T21:15:29.839794,Entropy Expansion (Free Scale k=2),0.0050,43,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),43529.34,34284134.93,0
+2026-11-08T21:15:30.002922,Entropy Expansion (Free Scale k=2),0.0050,44,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),35423.92,35848710.49,0
+2026-11-08T21:15:30.003922,Entropy Expansion (Free Scale k=2),0.0050,42,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),45699.35,34810327.80,0
+2026-11-08T21:15:30.003922,Entropy Expansion (Free Scale k=2),0.0050,45,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),39671.56,36670781.40,0
+2026-11-08T21:15:30.004694,Entropy Expansion (Free Scale k=2),0.0050,46,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),44500.41,33476451.12,0
+2026-11-08T21:15:30.004694,Entropy Expansion (Free Scale k=2),0.0050,47,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),37185.68,36008535.99,0
+2026-11-08T21:15:30.005236,Entropy Expansion (Free Scale k=2),0.0050,48,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),41936.72,35001373.64,0
+2026-11-08T21:15:30.005236,Entropy Expansion (Free Scale k=2),0.0050,49,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),44787.12,34399446.19,0
+2026-11-08T21:15:30.729609,Entropy Expansion (Free Scale k=2),0.0100,0,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),11373.24,8582750.80,0
+2026-11-08T21:15:31.198592,Entropy Expansion (Free Scale k=2),0.0100,1,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),8913.26,9120227.06,0
+2026-11-08T21:15:31.457941,Entropy Expansion (Free Scale k=2),0.0100,3,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10373.48,8512821.67,0
+2026-11-08T21:15:31.721330,Entropy Expansion (Free Scale k=2),0.0100,2,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10322.19,8617657.57,0
+2026-11-08T21:15:31.803519,Entropy Expansion (Free Scale k=2),0.0100,4,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10256.93,8931445.42,0
+2026-11-08T21:15:32.038841,Entropy Expansion (Free Scale k=2),0.0100,6,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10147.13,9055144.88,0
+2026-11-08T21:15:32.194523,Entropy Expansion (Free Scale k=2),0.0100,5,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),8624.34,8871555.87,0
+2026-11-08T21:15:32.446426,Entropy Expansion (Free Scale k=2),0.0100,8,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),11031.15,8615751.02,0
+2026-11-08T21:15:32.556474,Entropy Expansion (Free Scale k=2),0.0100,7,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10586.53,8727456.81,0
+2026-11-08T21:15:32.696397,Entropy Expansion (Free Scale k=2),0.0100,9,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10695.46,8673513.26,0
+2026-11-08T21:15:32.755218,Entropy Expansion (Free Scale k=2),0.0100,10,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),9846.72,8584065.12,0
+2026-11-08T21:15:32.821517,Entropy Expansion (Free Scale k=2),0.0100,12,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),8987.34,8618807.09,0
+2026-11-08T21:15:33.006294,Entropy Expansion (Free Scale k=2),0.0100,11,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),7817.26,8741181.35,0
+2026-11-08T21:15:33.118578,Entropy Expansion (Free Scale k=2),0.0100,13,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10807.76,8447479.31,0
+2026-11-08T21:15:33.261413,Entropy Expansion (Free Scale k=2),0.0100,14,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),8363.28,9097686.43,0
+2026-11-08T21:15:33.433651,Entropy Expansion (Free Scale k=2),0.0100,15,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),11470.72,8949510.26,0
+2026-11-08T21:15:33.590537,Entropy Expansion (Free Scale k=2),0.0100,16,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10249.79,8356698.29,0
+2026-11-08T21:15:33.808014,Entropy Expansion (Free Scale k=2),0.0100,17,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),8047.02,9035450.08,0
+2026-11-08T21:15:34.061556,Entropy Expansion (Free Scale k=2),0.0100,18,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),11953.48,8519858.70,0
+2026-11-08T21:15:34.188164,Entropy Expansion (Free Scale k=2),0.0100,19,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),8244.13,8626942.55,0
+2026-11-08T21:15:34.245165,Entropy Expansion (Free Scale k=2),0.0100,21,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),12313.00,8682621.04,0
+2026-11-08T21:15:34.245165,Entropy Expansion (Free Scale k=2),0.0100,20,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),11886.56,8599193.66,0
+2026-11-08T21:15:34.514150,Entropy Expansion (Free Scale k=2),0.0100,22,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),9190.25,8731538.74,0
+2026-11-08T21:15:34.796334,Entropy Expansion (Free Scale k=2),0.0100,23,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10651.76,8337307.51,0
+2026-11-08T21:15:34.949547,Entropy Expansion (Free Scale k=2),0.0100,24,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),13640.00,8329816.29,0
+2026-11-08T21:15:35.050077,Entropy Expansion (Free Scale k=2),0.0100,25,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),9814.90,8889900.18,0
+2026-11-08T21:15:35.291327,Entropy Expansion (Free Scale k=2),0.0100,26,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),9751.04,8718820.93,0
+2026-11-08T21:15:35.494352,Entropy Expansion (Free Scale k=2),0.0100,27,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10837.90,8796745.71,0
+2026-11-08T21:15:35.619480,Entropy Expansion (Free Scale k=2),0.0100,29,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),8778.10,8496281.87,0
+2026-11-08T21:15:35.759034,Entropy Expansion (Free Scale k=2),0.0100,28,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),12226.54,8680228.15,0
+2026-11-08T21:15:35.804439,Entropy Expansion (Free Scale k=2),0.0100,30,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),11582.83,8532174.44,0
+2026-11-08T21:15:35.805453,Entropy Expansion (Free Scale k=2),0.0100,31,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),8613.74,8868249.70,0
+2026-11-08T21:15:36.132619,Entropy Expansion (Free Scale k=2),0.0100,33,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10939.55,9002479.59,0
+2026-11-08T21:15:36.304735,Entropy Expansion (Free Scale k=2),0.0100,32,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10588.66,9050939.42,0
+2026-11-08T21:15:36.597639,Entropy Expansion (Free Scale k=2),0.0100,34,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),8904.08,8845962.66,0
+2026-11-08T21:15:36.598649,Entropy Expansion (Free Scale k=2),0.0100,35,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),9953.66,8822893.10,0
+2026-11-08T21:15:36.893736,Entropy Expansion (Free Scale k=2),0.0100,36,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),7878.59,8388521.25,0
+2026-11-08T21:15:37.003950,Entropy Expansion (Free Scale k=2),0.0100,37,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10676.20,8311727.72,0
+2026-11-08T21:15:37.096926,Entropy Expansion (Free Scale k=2),0.0100,38,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),9481.00,8754710.68,0
+2026-11-08T21:15:37.316901,Entropy Expansion (Free Scale k=2),0.0100,39,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),8956.84,8948612.33,0
+2026-11-08T21:15:37.363025,Entropy Expansion (Free Scale k=2),0.0100,40,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),9924.62,8346810.21,0
+2026-11-08T21:15:37.567438,Entropy Expansion (Free Scale k=2),0.0100,41,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10478.84,8586316.74,0
+2026-11-08T21:15:37.800058,Entropy Expansion (Free Scale k=2),0.0100,43,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10627.88,8573326.11,0
+2026-11-08T21:15:37.823106,Entropy Expansion (Free Scale k=2),0.0100,42,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),11625.72,8699174.90,0
+2026-11-08T21:15:37.823106,Entropy Expansion (Free Scale k=2),0.0100,44,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),8449.80,8983388.91,0
+2026-11-08T21:15:37.824064,Entropy Expansion (Free Scale k=2),0.0100,45,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),9667.45,9145136.86,0
+2026-11-08T21:15:37.824827,Entropy Expansion (Free Scale k=2),0.0100,46,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),11130.42,8375582.81,0
+2026-11-08T21:15:37.824827,Entropy Expansion (Free Scale k=2),0.0100,47,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),9478.65,9022733.34,0
+2026-11-08T21:15:37.825424,Entropy Expansion (Free Scale k=2),0.0100,48,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),10310.56,8752813.54,0
+2026-11-08T21:15:37.826013,Entropy Expansion (Free Scale k=2),0.0100,49,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),11150.39,8593011.52,0
+2026-11-08T21:15:38.424603,Entropy Expansion (Free Scale k=2),0.0200,0,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2909.10,2138977.85,0
+2026-11-08T21:15:39.005560,Entropy Expansion (Free Scale k=2),0.0200,1,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2152.92,2278969.16,0
+2026-11-08T21:15:39.240224,Entropy Expansion (Free Scale k=2),0.0200,2,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2810.66,2155444.49,0
+2026-11-08T21:15:39.397323,Entropy Expansion (Free Scale k=2),0.0200,3,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2750.38,2128287.27,0
+2026-11-08T21:15:39.570989,Entropy Expansion (Free Scale k=2),0.0200,4,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2640.27,2236192.77,0
+2026-11-08T21:15:39.580938,Entropy Expansion (Free Scale k=2),0.0200,6,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2721.42,2259481.06,0
+2026-11-08T21:15:39.581534,Entropy Expansion (Free Scale k=2),0.0200,5,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),1978.48,2217034.46,0
+2026-11-08T21:15:39.821102,Entropy Expansion (Free Scale k=2),0.0200,7,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2796.79,2171524.64,0
+2026-11-08T21:15:40.067371,Entropy Expansion (Free Scale k=2),0.0200,8,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2931.79,2159254.47,0
+2026-11-08T21:15:40.307773,Entropy Expansion (Free Scale k=2),0.0200,9,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2768.38,2168566.57,0
+2026-11-08T21:15:40.361442,Entropy Expansion (Free Scale k=2),0.0200,10,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2183.88,2143041.59,0
+2026-11-08T21:15:40.361952,Entropy Expansion (Free Scale k=2),0.0200,11,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),1592.01,2181634.74,0
+2026-11-08T21:15:40.651122,Entropy Expansion (Free Scale k=2),0.0200,13,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2782.09,2113566.12,0
+2026-11-08T21:15:40.968354,Entropy Expansion (Free Scale k=2),0.0200,12,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2295.23,2159594.20,0
+2026-11-08T21:15:41.107488,Entropy Expansion (Free Scale k=2),0.0200,14,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2071.91,2264479.23,0
+2026-11-08T21:15:41.108359,Entropy Expansion (Free Scale k=2),0.0200,15,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),3158.97,2235885.27,0
+2026-11-08T21:15:41.290551,Entropy Expansion (Free Scale k=2),0.0200,16,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2591.48,2081440.33,0
+2026-11-08T21:15:41.366954,Entropy Expansion (Free Scale k=2),0.0200,18,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2995.41,2128341.18,0
+2026-11-08T21:15:41.699952,Entropy Expansion (Free Scale k=2),0.0200,19,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2263.27,2153367.69,0
+2026-11-08T21:15:41.807158,Entropy Expansion (Free Scale k=2),0.0200,17,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),1925.87,2261643.02,0
+2026-11-08T21:15:41.842350,Entropy Expansion (Free Scale k=2),0.0200,20,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),3024.56,2153156.06,0
+2026-11-08T21:15:41.842861,Entropy Expansion (Free Scale k=2),0.0200,21,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),3159.12,2174360.96,0
+2026-11-08T21:15:42.071483,Entropy Expansion (Free Scale k=2),0.0200,22,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2440.30,2187653.10,0
+2026-11-08T21:15:42.382489,Entropy Expansion (Free Scale k=2),0.0200,23,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2457.71,2076799.25,0
+2026-11-08T21:15:42.595623,Entropy Expansion (Free Scale k=2),0.0200,24,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),3573.46,2077211.38,0
+2026-11-08T21:15:42.647155,Entropy Expansion (Free Scale k=2),0.0200,25,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2581.17,2225982.90,0
+2026-11-08T21:15:42.695119,Entropy Expansion (Free Scale k=2),0.0200,26,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2484.27,2177876.50,0
+2026-11-08T21:15:43.094455,Entropy Expansion (Free Scale k=2),0.0200,27,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2879.37,2199907.62,0
+2026-11-08T21:15:43.227584,Entropy Expansion (Free Scale k=2),0.0200,29,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2101.09,2126207.38,0
+2026-11-08T21:15:43.354408,Entropy Expansion (Free Scale k=2),0.0200,28,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),3180.04,2168048.39,0
+2026-11-08T21:15:43.422565,Entropy Expansion (Free Scale k=2),0.0200,30,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),3097.62,2126118.39,0
+2026-11-08T21:15:43.618560,Entropy Expansion (Free Scale k=2),0.0200,31,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2181.21,2219753.36,0
+2026-11-08T21:15:43.758662,Entropy Expansion (Free Scale k=2),0.0200,33,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2681.62,2247465.57,0
+2026-11-08T21:15:44.020011,Entropy Expansion (Free Scale k=2),0.0200,34,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),1987.94,2204883.52,0
+2026-11-08T21:15:44.168161,Entropy Expansion (Free Scale k=2),0.0200,32,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2728.76,2262668.87,0
+2026-11-08T21:15:44.169162,Entropy Expansion (Free Scale k=2),0.0200,35,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2636.54,2197403.32,0
+2026-11-08T21:15:44.169681,Entropy Expansion (Free Scale k=2),0.0200,36,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),1776.56,2094993.61,0
+2026-11-08T21:15:44.570111,Entropy Expansion (Free Scale k=2),0.0200,38,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2252.13,2190664.88,0
+2026-11-08T21:15:44.741428,Entropy Expansion (Free Scale k=2),0.0200,37,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2763.94,2080736.42,0
+2026-11-08T21:15:44.851593,Entropy Expansion (Free Scale k=2),0.0200,39,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2172.80,2233133.54,0
+2026-11-08T21:15:44.975964,Entropy Expansion (Free Scale k=2),0.0200,40,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2436.94,2091702.68,0
+2026-11-08T21:15:45.021961,Entropy Expansion (Free Scale k=2),0.0200,41,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2589.99,2141843.42,0
+2026-11-08T21:15:45.098460,Entropy Expansion (Free Scale k=2),0.0200,43,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2525.54,2144479.43,0
+2026-11-08T21:15:45.382492,Entropy Expansion (Free Scale k=2),0.0200,42,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),3006.02,2173087.88,0
+2026-11-08T21:15:45.489645,Entropy Expansion (Free Scale k=2),0.0200,44,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),1908.68,2256467.54,0
+2026-11-08T21:15:45.495654,Entropy Expansion (Free Scale k=2),0.0200,45,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2291.02,2275022.00,0
+2026-11-08T21:15:45.496209,Entropy Expansion (Free Scale k=2),0.0200,46,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2785.29,2097127.98,0
+2026-11-08T21:15:45.496751,Entropy Expansion (Free Scale k=2),0.0200,47,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2460.97,2265996.03,0
+2026-11-08T21:15:45.496751,Entropy Expansion (Free Scale k=2),0.0200,48,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2490.31,2189434.01,0
+2026-11-08T21:15:45.497302,Entropy Expansion (Free Scale k=2),0.0200,49,UNIQUELY IDENTIFIABLE,logarithmic,theta_0 * log(1.0 + u / theta_1),2764.26,2144825.86,0

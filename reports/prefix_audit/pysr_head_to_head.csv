@@ -1,0 +1,2 @@
+n_seeds,pysr_non_zero_claims,pysr_false_claim_rate,adcd_non_zero_claims,adcd_false_claim_rate,pysr_formulas_audited_by_adcd,pysr_formulas_withheld_by_adcd,adcd_withhold_rate_on_pysr
+50,49,0.98,0,0.0,50,50,1.0

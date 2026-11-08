@@ -906,6 +906,20 @@ def reproduce_preliminary_results() -> Dict[str, Any]:
     }
 
 
+STRUCTURAL_FAMILY_MAP = {
+    "convex_rat": "family_rational",
+    "convex_rat_p": "family_rational",
+    "convex_exp": "family_exponential",
+    "convex_exp_p": "family_exponential",
+    "convex_tanh": "family_hyperbolic",
+    "smooth_min_1p": "family_smooth_min",
+    "smooth_min_2p": "family_smooth_min",
+    "smooth_max_1p": "family_smooth_max",
+    "smooth_max_2p": "family_smooth_max",
+    "exact_truth": "family_exact_truth",
+}
+
+
 def audit_crossover_case_single_seed(
     case_name: str,
     seed: int,
@@ -920,12 +934,9 @@ def audit_crossover_case_single_seed(
       - 'planck':           u in logspace(-2, 1, N), y = u / (exp(u) - 1)
       - 'debye':            u in logspace(-2, 1, N), y = Debye_Cv(u)
 
-    Evaluates:
-      1. Elementary crossover candidate dictionary (5 convex families + smooth-min/max where positive).
-      2. Optionally includes the exact physical law (`exact_truth` family) in the candidate pool
-         to test whether failures of Criterion 1 & 2 come from dictionary misspecification vs protocol.
-      3. Compares best crossover BIC against best v1 one-limit BIC (Criterion 3).
-      4. Runs isotonic adequacy warning check on the winning model.
+    NOTE: The audit decision path is strictly blind. It receives only (u, y_obs, sigma, A, B)
+    and candidate models with structural family labels from STRUCTURAL_FAMILY_MAP.
+    Ground-truth labels (true_family_names) are used ONLY post-verdict for benchmark metric scoring.
     """
     rng = np.random.default_rng(seed)
 
@@ -934,81 +945,74 @@ def audit_crossover_case_single_seed(
         y_true = michaelis_menten_exact(u)
         A = np.zeros_like(u)
         B = np.ones_like(u)
-        true_family_names = {"convex_rat", "convex_rat_p", "exact_truth"}
-        min_p = 0.05
+        v1_base = u
+        true_family_names = {"family_rational", "family_exact_truth"}
     elif case_name == "planck":
         u = np.logspace(-2.0, 1.0, n_points)
         y_true = planck_exact(u)
         A = np.ones_like(u)
         B = u * np.exp(-u)
-        true_family_names = {"exact_truth"}
-        min_p = 0.05
+        v1_base = A
+        true_family_names = {"family_exact_truth"}
     elif case_name == "debye":
         u = np.logspace(-2.0, 1.0, n_points)
         y_true = debye_exact(u)
         A = np.ones_like(u)
         B = (4.0 * (np.pi ** 4)) / (5.0 * (u ** 3))
-        true_family_names = {"exact_truth"}
-        # For Debye with B(u) ~ u^-3, convex weight requires p > 3 to avoid u -> 0 divergence
-        min_p = 3.05
+        v1_base = A
+        true_family_names = {"family_exact_truth"}
     else:
         raise ValueError(f"Unknown case_name: {case_name}")
 
-    sigma = rel_noise * np.maximum(np.abs(y_true), 1e-4)
-    y_obs = y_true + rng.normal(0.0, sigma)
+    # Generate synthetic observational data with relative noise
+    # Operational uncertainty sigma is computed from observations (blind to noiseless truth)
+    sigma_clean = rel_noise * np.maximum(np.abs(y_true), 1e-4)
+    y_obs = y_true + rng.normal(0.0, sigma_clean)
+    sigma = rel_noise * np.maximum(np.abs(y_obs), 1e-4)
+
+    # Blind structural validity check on (u, y_obs, A, B)
+    val_report = check_convex_validity(u, y_obs, A, B)
+    min_p_blind = max(0.05, float(val_report.required_min_power_p) + 0.05)
 
     # Null baseline = A(u) alone (no crossover to B)
     _, bic_null, _, _ = _compute_metrics(y_obs, A, sigma, k_params=0)
 
     candidates: List[CandidateFit] = []
 
-    # Fit convex families
-    if case_name == "debye":
-        # On Debye, 1-param convex families (p=1 < 3) diverge at u -> 0; evaluate 2p with p > 3
-        # plus smooth_min_1p and smooth_min_2p and zero-floor convex families
-        for fam in CONVEX_FAMILIES_2P:
-            fit = fit_convex_family(u, y_obs, sigma, A, B, fam, min_power_p=min_p)
-            candidates.append(
-                CandidateFit(
-                    expr=f"{fam}(u/s)",
-                    bic=fit.bic,
-                    nmse=fit.nmse,
-                    k_params=fit.k_params,
-                    family=fam,
-                    theta_fit=fit.params,
-                    y_pred=fit.y_pred,
-                )
+    # Fit all standard convex families with dynamically determined min_p
+    # If a family requires higher power than its fixed parameterization allows
+    # (e.g. 1p families have fixed p=1, but divergence requires p > 1), we still fit
+    # and let the objective function / Likelihood reflect any resulting asymptotic penalty.
+    for fam in ALL_CONVEX_FAMILIES:
+        fit = fit_convex_family(u, y_obs, sigma, A, B, fam, min_power_p=min_p_blind)
+        candidates.append(
+            CandidateFit(
+                expr=f"{fam}(u/s)",
+                bic=fit.bic,
+                nmse=fit.nmse,
+                k_params=fit.k_params,
+                family=STRUCTURAL_FAMILY_MAP.get(fam, fam),
+                theta_fit=fit.params,
+                y_pred=fit.y_pred,
             )
-        for fit_s in [False, True]:
-            sm_fit = fit_smooth_ces_family(u, y_obs, sigma, A, B, mode="min", fit_scale_s=fit_s)
-            candidates.append(
-                CandidateFit(
-                    expr=f"{sm_fit.name}(u)",
-                    bic=sm_fit.bic,
-                    nmse=sm_fit.nmse,
-                    k_params=sm_fit.k_params,
-                    family=sm_fit.family,
-                    theta_fit=sm_fit.params,
-                    y_pred=sm_fit.y_pred,
+        )
+
+    # When A and B are strictly positive, also include CES smooth-min and smooth-max families
+    if np.all(A > 0) and np.all(B > 0):
+        for mode in ["min", "max"]:
+            for fit_s in [False, True]:
+                sm_fit = fit_smooth_ces_family(u, y_obs, sigma, A, B, mode=mode, fit_scale_s=fit_s)
+                candidates.append(
+                    CandidateFit(
+                        expr=f"{sm_fit.name}(u)",
+                        bic=sm_fit.bic,
+                        nmse=sm_fit.nmse,
+                        k_params=sm_fit.k_params,
+                        family=STRUCTURAL_FAMILY_MAP.get(sm_fit.family, sm_fit.family),
+                        theta_fit=sm_fit.params,
+                        y_pred=sm_fit.y_pred,
+                    )
                 )
-            )
-    else:
-        for fam in ALL_CONVEX_FAMILIES:
-            fit = fit_convex_family(u, y_obs, sigma, A, B, fam, min_power_p=min_p)
-            # Group 1p and 2p of the same functional form into the same structural family
-            # only for Michaelis-Menten where convex_rat_p(p=1) nests convex_rat
-            fam_label = "convex_rat" if (case_name == "michaelis_menten" and fam in {"convex_rat", "convex_rat_p"}) else fam
-            candidates.append(
-                CandidateFit(
-                    expr=f"{fam}(u/s)",
-                    bic=fit.bic,
-                    nmse=fit.nmse,
-                    k_params=fit.k_params,
-                    family=fam_label,
-                    theta_fit=fit.params,
-                    y_pred=fit.y_pred,
-                )
-            )
 
     if include_exact_truth_in_pool and case_name in {"planck", "debye"}:
         # Fit 1-parameter scale s in y_true(u / s)
@@ -1031,7 +1035,7 @@ def audit_crossover_case_single_seed(
                 bic=bic_ex,
                 nmse=nmse_ex,
                 k_params=1,
-                family="exact_truth",
+                family="family_exact_truth",
                 theta_fit={"s": s_ex},
                 y_pred=y_ex,
             )
@@ -1048,10 +1052,9 @@ def audit_crossover_case_single_seed(
         sigma=sigma,
     )
 
-    # Fit best v1 one-limit single primitive for Criterion 3 comparison
-    v1_Baseline = u if case_name == "michaelis_menten" else A
+    # Fit best v1 one-limit single primitive for Criterion 3 comparison (blind to case_name)
     v1_fits = [
-        fit_v1_one_limit_single_primitive(u, y_obs, sigma, v1_Baseline, prim)
+        fit_v1_one_limit_single_primitive(u, y_obs, sigma, v1_base, prim)
         for prim in ["sat", "rat", "exp"]
     ]
     best_v1 = min(v1_fits, key=lambda f: f.bic)

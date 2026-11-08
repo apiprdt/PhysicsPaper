@@ -57,8 +57,15 @@ def log_live(msg: str, to_console: bool = True) -> None:
     t_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     formatted = f"[{t_str}] {msg}"
     if to_console:
-        print(formatted, flush=True)
-        sys.stdout.flush()
+        try:
+            print(formatted, flush=True)
+        except UnicodeEncodeError:
+            safe_msg = formatted.encode("ascii", errors="replace").decode("ascii")
+            print(safe_msg, flush=True)
+        try:
+            sys.stdout.flush()
+        except Exception:
+            pass
 
     os.makedirs("reports", exist_ok=True)
     with _log_lock:
@@ -470,6 +477,50 @@ def run_entropy_expansion_calibration(n_seeds: int = 460, max_workers: int = 8) 
     )
 
 
+def run_entropy_expansion_free_scale_calibration(n_seeds: int = 460, max_workers: int = 8) -> List[ScenarioCalibrationResult]:
+    """
+    Scenario 3 Control: Entropy Expansion with Free-Scale Candidates (k=2).
+    Evaluates whether candidate scale freedom theta_1 affects asymptotic discernibility.
+    """
+    sc = next(s for s in get_all_scenarios() if s.name == "Entropy Expansion")
+    cands = [
+        "theta_0 * log(1.0 + u / theta_1)",
+        "theta_0 * (exp(-u / theta_1) - 1.0)",
+        "theta_0 * (u / theta_1 / (1.0 + u / theta_1))",
+    ]
+    card = ClaimCard(
+        name="Entropy Expansion (Free Scale k=2)",
+        variables={"u": "dimensionless"},
+        baseline_expr="15.0",
+        limit_variable="u",
+        limit_direction="0",
+        candidate_expressions=cands,
+        candidate_families={
+            cands[0]: "logarithmic",
+            cands[1]: "exponential",
+            cands[2]: "rational",
+        },
+        seed=42,
+    )
+
+    def gen_data(seed: int, noise_level: float) -> Dict[str, np.ndarray]:
+        X, y_obs, y_cl, _ = sc.generate_data(n_points=200, noise_level=noise_level, seed=seed)
+        u = X["dV"] / X["V_i"]
+        return {"u": u, "y_obs": y_obs, "y_cl": y_cl}
+
+    noise_levels = [0.005, 0.01, 0.02]
+    return calibrate_scenario(
+        scenario_name="Entropy Expansion (Free Scale k=2)",
+        true_family="logarithmic",
+        card_template=card,
+        generate_data_fn=gen_data,
+        noise_levels=noise_levels,
+        n_seeds=n_seeds,
+        max_workers=max_workers,
+        progress_interval=50 if n_seeds > 50 else 5,
+    )
+
+
 def run_sphere_drag_flip_test(n_seeds: int = 460, max_workers: int = 8) -> List[SphereDragFlipResult]:
     """
     Task 4: Prediction-flip test on Sphere Drag (Re <= 0.5, N=200).
@@ -524,6 +575,7 @@ def run_sphere_drag_flip_test(n_seeds: int = 460, max_workers: int = 8) -> List[
         log_live(f"--> Testing Sphere Drag at σ={noise*100:.1f}% (Expected: `{expected}`) across {n_seeds} seeds...")
 
         verdicts: List[str] = [None] * n_seeds  # type: ignore[list-item]
+        best_fams: List[str] = [None] * n_seeds  # type: ignore[list-item]
         completed = 0
         prog_lock = threading.Lock()
 
@@ -532,6 +584,10 @@ def run_sphere_drag_flip_test(n_seeds: int = 460, max_workers: int = 8) -> List[
             d = gen_data(seed, noise)
             res = run_single_audit_seed(card, d)
             verdicts[seed] = res["verdict"]
+            best_fams[seed] = res["best_family"]
+
+            # Dynamic check: false-unique occurs if UNIQUELY IDENTIFIABLE is awarded to rival
+            is_fu = (res["verdict"] == "UNIQUELY IDENTIFIABLE" and res["best_family"] != "proudman_pearson_log")
 
             record_seed_result(
                 scenario="Sphere Drag Flip",
@@ -542,7 +598,7 @@ def run_sphere_drag_flip_test(n_seeds: int = 460, max_workers: int = 8) -> List[
                 best_expr=res["best_expr"],
                 delta_bic=res["delta_bic"],
                 delta_bic_null=res["delta_bic_null"],
-                is_false_unique=False,
+                is_false_unique=is_fu,
             )
 
             with prog_lock:
@@ -562,7 +618,16 @@ def run_sphere_drag_flip_test(n_seeds: int = 460, max_workers: int = 8) -> List[
         actual_maj = "EQUIVALENCE CLASS" if n_equiv >= max(n_unique, n_withheld) else (
             "UNIQUELY IDENTIFIABLE" if n_unique >= n_withheld else "WITHHELD"
         )
-        concordant = sum(1 for v in verdicts if v == expected)
+
+        # Honest concordance: at sigma=0.1%, require UNIQUE AND true family match
+        if expected == "UNIQUELY IDENTIFIABLE":
+            concordant = sum(
+                1 for s in range(n_seeds)
+                if verdicts[s] == "UNIQUELY IDENTIFIABLE" and best_fams[s] == "proudman_pearson_log"
+            )
+        else:
+            concordant = sum(1 for v in verdicts if v == expected)
+
         conc_rate = concordant / n_seeds
         conc_ci = clopper_pearson(concordant, n_seeds)
 
