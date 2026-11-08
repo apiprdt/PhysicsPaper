@@ -89,8 +89,8 @@ def verify_classical_limit(
     try:
         if sym_expr is not None:
             # Substitute free parameters with 1.0 for numerical boundary check
-            num_sub = {s: 1.0 for s in sym_expr.free_symbols if s.name != limit_var}
-            fn_num = sp.lambdify(sym_var, sym_expr.subs(subs_dict).subs(num_sub), "numpy")
+            num_sub = {s: 1.0 for s in expr_sub.free_symbols if s != sym_var}
+            fn_num = sp.lambdify(sym_var, expr_sub.subs(num_sub), modules=["numpy"])
         elif callable(expr_str):
             fn_num = expr_str
         else:

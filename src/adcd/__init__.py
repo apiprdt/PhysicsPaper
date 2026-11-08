@@ -24,6 +24,7 @@ from adcd.audit import audit, audit_custom_expressions, verify_classical_limit, 
 from adcd.joint_fit import fit_joint_baseline_correction, JointFitResult
 from adcd.scale_invariant_screening import ScaleInvariantScreener
 from adcd.likelihood import HeteroscedasticLikelihood
+from adcd.validation_v2 import ProtocolVerdict, CandidateFit, ThreeTierProtocolResult, run_three_tier_audit
 
 try:
     from adcd.auto_scenario import AutoCSVScenario, build_scenario_from_csv, load_scenario_from_csv
@@ -65,4 +66,8 @@ __all__ = [
     "JointFitResult",
     "ScaleInvariantScreener",
     "HeteroscedasticLikelihood",
+    "ProtocolVerdict",
+    "CandidateFit",
+    "ThreeTierProtocolResult",
+    "run_three_tier_audit",
 ]
