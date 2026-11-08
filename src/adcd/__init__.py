@@ -25,6 +25,14 @@ from adcd.joint_fit import fit_joint_baseline_correction, JointFitResult
 from adcd.scale_invariant_screening import ScaleInvariantScreener
 from adcd.likelihood import HeteroscedasticLikelihood
 from adcd.validation_v2 import ProtocolVerdict, CandidateFit, ThreeTierProtocolResult, run_three_tier_audit
+from adcd.asimov_designer import (
+    CandidateModel,
+    AsimovDesignResult,
+    MonteCarloResult,
+    design,
+    monte_carlo_delta_bic,
+    get_sphere_drag_models,
+)
 
 try:
     from adcd.auto_scenario import AutoCSVScenario, build_scenario_from_csv, load_scenario_from_csv
@@ -70,4 +78,10 @@ __all__ = [
     "CandidateFit",
     "ThreeTierProtocolResult",
     "run_three_tier_audit",
+    "CandidateModel",
+    "AsimovDesignResult",
+    "MonteCarloResult",
+    "design",
+    "monte_carlo_delta_bic",
+    "get_sphere_drag_models",
 ]
