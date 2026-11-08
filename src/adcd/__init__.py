@@ -23,6 +23,7 @@ from adcd.claim_card import ClaimCard, NoiseSpec
 from adcd.audit import audit, audit_custom_expressions, verify_classical_limit, AuditReport
 from adcd.joint_fit import fit_joint_baseline_correction, JointFitResult
 from adcd.scale_invariant_screening import ScaleInvariantScreener
+from adcd.likelihood import HeteroscedasticLikelihood
 
 try:
     from adcd.auto_scenario import AutoCSVScenario, build_scenario_from_csv, load_scenario_from_csv
@@ -63,4 +64,5 @@ __all__ = [
     "fit_joint_baseline_correction",
     "JointFitResult",
     "ScaleInvariantScreener",
+    "HeteroscedasticLikelihood",
 ]
