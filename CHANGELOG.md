@@ -16,8 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Interactive end-to-end quickstart tutorial notebook.
 
 ## [1.1.0-dev] - 2026-11-08 (Branch ExploreSmth)
+### Added
+- Phase 1 `ClaimCard` schema (`src/adcd/claim_card.py`) with Pydantic v2 validation, noise specifications, and canonical SHA-256 hashing.
+- Phase 1 Audit API (`src/adcd/audit.py`): `audit()`, `audit_custom_expressions()`, and dual symbolic/numerical `verify_classical_limit()`.
+- Phase 1 deterministic `AuditReport` with plain-language verdict semantics.
+- Smoke testing suite for quantum known-answer cases (`scripts/smoke_quantum.py`, `reports/smoke_quantum.md`).
+- Comprehensive regression tests `tests/test_regression_v1.py` covering single-seed and 5-seed reference tables.
+- Unit tests for ClaimCard, canonical hashing, and limit verification (`tests/test_claim_card.py`).
+- Added `REPO_MAP.md`, `DECISIONS.md`, and `AGENTS.md` project rules for Phase 0 baseline pinning.
 ### Changed
 - Fixed undefined `Union` type annotation import in `quickfit.py`.
 - Fixed unused imports and string formatting issues identified by `flake8`.
-- Added comprehensive regression tests `tests/test_regression_v1.py` covering single-seed and 5-seed reference tables.
-- Added `REPO_MAP.md`, `DECISIONS.md`, and `AGENTS.md` project rules for Phase 0 baseline pinning.

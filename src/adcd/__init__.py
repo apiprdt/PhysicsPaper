@@ -19,6 +19,8 @@ from adcd.metrics import classify_structure, extended_bic_score
 from adcd.mode_detection import detect_correction_mode
 from adcd.pipeline import GateStats, Stage1Pipeline
 from adcd.quickfit import DOMAIN_TAXONOMY
+from adcd.claim_card import ClaimCard, NoiseSpec
+from adcd.audit import audit, audit_custom_expressions, verify_classical_limit, AuditReport
 
 try:
     from adcd.auto_scenario import AutoCSVScenario, build_scenario_from_csv, load_scenario_from_csv
@@ -50,4 +52,10 @@ __all__ = [
     "detect_correction_mode",
     "classify_structure",
     "extended_bic_score",
+    "ClaimCard",
+    "NoiseSpec",
+    "audit",
+    "audit_custom_expressions",
+    "verify_classical_limit",
+    "AuditReport",
 ]

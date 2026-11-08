@@ -40,3 +40,20 @@ Phase 0b evaluates how ADCD v1 performs on quantum-statistical transitions (Plan
 2. **Custom Arguments:** ADCD v1 has no explicit API to supply a custom algebraic argument (e.g., $u = \hbar\omega / k_B T$). Users must precompute the ratio as a data column.
 3. **Rigid NMSE Threshold:** The hardcoded gate $\text{NMSE} < 0.05$ fails when measurement noise floors exceed $0.05$ (e.g. at small deviations where correction is $< 1\%$) or when positive control tests only single primitives instead of discovered composite forms. This confirms the need for the Phase 2 & 3 likelihood-based auditor architecture.
 
+---
+
+## 2026-11-08: Phase 1 ClaimCard Contract & Audit API Design
+
+### Context
+Phase 1 establishes a standardized input contract allowing external researchers to audit arbitrary custom physical formulas (from PySR, literature, or AI) alongside observational data and classical baselines.
+
+### Decisions
+1. **Pydantic Schema:** Implemented `ClaimCard` using Pydantic v2 for automatic type coercion, JSON schema validation, and structured error reporting.
+2. **Canonical Hashing:** Defined `canonical_hash()` via SHA-256 over key-sorted, compact JSON serialization. Two cards with identical physical meaning produce byte-identical hashes regardless of dict key insertion order.
+3. **Dual Asymptotic Verification:** Imported formulas must pass both:
+   - **Symbolic verification:** via `sp.limit(expr, var, target)` asserting that $\Delta \to 0$ as $u \to u_{\text{classical}}$.
+   - **Numerical boundary verification:** at micro-perturbations $u \in [10^{-4}, 10^{-6}, 10^{-10}, 10^{-15}]$.
+   - If verified, the auditor explicitly notes: *"limit verified, not enforced by construction"*. If violated, the candidate is immediately rejected before fitting.
+4. **Deterministic Audit Report:** `AuditReport` contains `card_hash`, `report_hash`, pinned library versions, candidate rankings, and plain-language statements detailing what the verdict means and what it does *not* mean.
+
+
