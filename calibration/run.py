@@ -22,7 +22,6 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import csv
-import io
 import json
 import logging
 import os
@@ -32,10 +31,6 @@ import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
-
-# Force line-unbuffered standard output and UTF-8 encoding
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace", write_through=True)
-sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace", write_through=True)
 
 import numpy as np
 import scipy.stats
@@ -875,6 +870,10 @@ def save_calibration_artifacts(
 
 
 def main() -> None:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace", write_through=True)
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace", write_through=True)
     parser = argparse.ArgumentParser(description="ADCD Phase 5 Calibration and Credibility Gate Runner")
     parser.add_argument("--seeds", type=int, default=460, help="Number of seeds for calibration (default: 460)")
     parser.add_argument("--pysr-seeds", type=int, default=50, help="Number of seeds for PySR head-to-head (default: 50)")

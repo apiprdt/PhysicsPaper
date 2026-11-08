@@ -162,3 +162,40 @@ Phase 5 establishes statistical credibility by measuring the empirical error rat
 5. **Real-Time Transparency Architecture:**
    - Implemented unbuffered live streaming to console (flush=True), dedicated live file logging (reports/calibration_live.log), and per-seed CSV audit tracing (reports/calibration_seed_log.csv).
 
+
+---
+
+## Phase 6: Two-Limit Crossover Spike (`spike/`) & Pre-Registered Stopping Rule Decision
+
+1. **Pre-Registration Before Coding (`spike/PASS_CRITERIA.md`):**
+   - Pre-registered four quantitative pass criteria before running any Phase 6 benchmark code:
+     - **Criterion 1:** True crossover family in equivalence class on $\ge 80\%$ of 460 seeds across solved test cases (Planck, Debye heat capacity, Michaelis-Menten).
+     - **Criterion 2:** False-UNIQUE rate $\le 5\%$ (95% Clopper-Pearson upper bound $\le 5\%$) across 460 seeds.
+     - **Criterion 3:** Two-limit crossover beats v1 one-limit single-primitive grammar on BIC.
+     - **Criterion 4:** Every crossover primitive numerically verifies both asymptotic limits ($u \to 0$ down to $10^{-16}$ and $u \to \infty$).
+     - **Stopping Rule:** If any criterion fails, stop, document the failure report (`reports/crossover_spike_report.md`), and **do not merge** into `src/adcd/` core.
+
+2. **Exact Reproduction of Brief's Preliminary Numbers:**
+   - **Planck ($x = \mathrm{logspace}(-2, 1, 200)$, $1\%$ relative noise, $A=1, B=x e^{-x}$):**
+     - `convex_exp_p` ($s=0.9454, p=1.3767$): $\chi^2 = 96.40$ (brief: `96.4`).
+     - `v1_one_limit_sat` ($\theta_0=-1.0005, \theta_1=2.2484$): $\chi^2 = 1399.25$ (brief: `1399`).
+     - `convex_tanh` ($s=1.2425$): $\chi^2 = 1605.17$ (brief: `1605`).
+     - `convex_exp` ($s=0.8302$): $\chi^2 = 8770.07$ (brief: `8770`).
+     - `convex_rat` ($s=0.00869$): $\chi^2 = 772,493.57$ (brief: `772,494`).
+   - **RAR ($x = \mathrm{logspace}(-2, 1, 2693)$, $A=1, B=x^{-1/2}$):**
+     - Structural validity checker `check_convex_validity` detects a **simple crossing pole at $x_c = 1.0000$** ($A(1)=B(1)=1$ while $y_{\mathrm{RAR}}(1)=1.582$), forcing empirical weight $w_{\mathrm{req}} \in [-1360.2, +681.0]$ outside $[0, 1]$.
+     - 2-parameter Smooth-Max (`smooth_max_2p`, $n=1.6985, s=1.0755$) is pole-free and achieves **$\mathrm{RMS} = 0.00995\text{ dex}$** (brief: `0.0099 dex`).
+   - **Debye Heat Capacity ($u = \mathrm{logspace}(-2, 1, 200)$, $A=1, B=\frac{4\pi^4}{5 u^3}$):**
+     - `check_convex_validity` detects **both** a crossing pole at $u_c = (4\pi^4/5)^{1/3} \approx 4.2739$ ($w_{\mathrm{req}} \in [-9.96, +10.66]$) and a small-$u$ divergence exponent $\alpha = 3.00$ ($B(u)/A(u) \sim u^{-3}$, so any convex weight with $p \le 3$ diverges as $u^{p-3} \to \infty$ at $u \to 0$).
+     - 2-parameter Smooth-Min (`smooth_min_2p`, $n=0.776, s=1.2485$) avoids both pathologies and achieves $\chi^2 = 281.95$ vs v1 `sat` $\chi^2 = 8499.10$.
+
+3. **Question 3 Resolution (Locked vs Free Second Limit):**
+   - Implemented `evaluate_second_limit_hypothesis` comparing locked two-limit crossover against free one-limit baseline+correction via $\Delta\mathrm{BIC} = \mathrm{BIC}_{\mathrm{free}} - \mathrm{BIC}_{\mathrm{locked}}$.
+   - Confirmed true second limits (`+1302.85` on Planck $B=x e^{-x}$, `+7691.89` on Debye $B_0=0$) and decisively rejected misspecified second limits (`-2.74e10` on Planck $B=0.5$, `-1.46e6` on Debye $B=0.5$, `-2.03e5` on Michaelis-Menten $B=2.0$).
+   - **Decision:** A second limit must always be treated as a **testable hypothesis** gated by $\Delta\mathrm{BIC}_{\mathrm{free} - \mathrm{locked}} > 10$, never a blindly locked assumption.
+
+4. **460-Seed Benchmark Results & Stopping Rule Enforcement (NO-MERGE INTO CORE):**
+   - **Michaelis-Menten (`elementary_only`):** Truth in equivalence class = **100.0% (`460/460`)**, False-UNIQUE = **0.0% (`0/460`, 95% CI `[0.0%, 0.8%]`)**, Beats v1 = **95.9% (`441/460`)** $\implies$ **PASS**.
+   - **Planck & Debye (`elementary_only`):** Beats v1 = **100.0% (`460/460`)** (Passing Criterion 3), and all primitives pass Criterion 4. However, because the exact Bose-Einstein and Debye integrals are transcendental functions outside the 5 elementary convex families, the best elementary approximations (`convex_exp_p` on Planck with $\chi^2=96.40$; `smooth_min_2p` on Debye with $\chi^2=281.95$) beat rival elementary families by $\Delta\mathrm{BIC} > 1500$, producing **100.0% False-UNIQUE (`460/460`)** and **0.0% true form recovery (`0/460`)** $\implies$ **FAIL on Criteria 1 & 2**.
+   - **Control (`exact_included`):** When the exact physical law is included in the candidate pool, both Planck and Debye achieve **100.0% True-UNIQUE (`460/460`)** and **0.0% False-UNIQUE (`0/460`)** $\implies$ proving that the failure is purely **dictionary misspecification** on transcendental physics, and on Debye the isotonic adequacy check flags structured misfit in **100.0% (`460/460`)** of elementary-only seeds.
+   - **Final Decision:** Per the pre-registered Stopping Rule in `spike/PASS_CRITERIA.md`, we **STOP and DO NOT MERGE** `spike/crossover.py` into `src/adcd/` core. It remains isolated in `spike/` with full unit tests (`tests/test_crossover_spike.py`) and 2,300 seed records (`reports/crossover_spike_seed_log.csv`).
