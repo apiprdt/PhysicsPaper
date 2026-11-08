@@ -27,3 +27,16 @@ The following regression test tolerances are established:
 Multi-seed benchmark runs across all 5 seeds take ~15-20 minutes when re-optimizing all ablated spaces from scratch. `rebuttal/results/multi_seed_stability.json` serves as the golden reference dataset. The regression suite `tests/test_regression_v1.py` checks both:
 1. A fast check validating that the golden multi-seed results match the paper's Table exactly.
 2. An online execution check on seed 42 to ensure the active pipeline reproduces the exact reference metrics.
+
+---
+
+## 2026-11-08: Phase 0b Quantum Smoke Test & Architecture Findings
+
+### Context
+Phase 0b evaluates how ADCD v1 performs on quantum-statistical transitions (Planck blackbody radiation and Einstein heat capacity) under blind search without code rewrite.
+
+### Key Architectural Findings
+1. **Argument Construction:** The engine builds arguments automatically through `_generate_ratio_symbols` in `quickfit.py`. For dimensionless inputs `x`, it auto-generates linear (`x`) and quadratic (`x**2`) ratios.
+2. **Custom Arguments:** ADCD v1 has no explicit API to supply a custom algebraic argument (e.g., $u = \hbar\omega / k_B T$). Users must precompute the ratio as a data column.
+3. **Rigid NMSE Threshold:** The hardcoded gate $\text{NMSE} < 0.05$ fails when measurement noise floors exceed $0.05$ (e.g. at small deviations where correction is $< 1\%$) or when positive control tests only single primitives instead of discovered composite forms. This confirms the need for the Phase 2 & 3 likelihood-based auditor architecture.
+
