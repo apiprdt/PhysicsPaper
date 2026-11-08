@@ -56,4 +56,26 @@ Phase 1 establishes a standardized input contract allowing external researchers 
    - If verified, the auditor explicitly notes: *"limit verified, not enforced by construction"*. If violated, the candidate is immediately rejected before fitting.
 4. **Deterministic Audit Report:** `AuditReport` contains `card_hash`, `report_hash`, pinned library versions, candidate rankings, and plain-language statements detailing what the verdict means and what it does *not* mean.
 
+---
+
+## 2026-11-08: Phase 2 Core Statistics Architecture
+
+### Context
+Phase 2 implements three foundational statistical engines: joint baseline-correction parameter fitting with Hessian degeneracy detection, scale-invariant candidate screening via discrete log sweeps and WLS, and full heteroscedastic Gaussian likelihood with intrinsic scatter.
+
+### Decisions
+1. **Joint Fit & Degeneracy Threshold:**
+   - Baseline constants $\phi$ are fitted jointly with asymptotic correction parameters $\theta$ under Gaussian priors $\phi \sim \mathcal{N}(\mu, \sigma^2)$.
+   - Hessian $H = \nabla^2 \mathcal{L}(\phi, \theta)$ condition number $\kappa(H) > 10^6$ triggers an explicit degeneracy flag (`is_degenerate = True`).
+   - Known bias injection tests confirm that when $\phi$ and $\theta$ share collinear functional forms, the prior prevents silent absorption and flags the degeneracy.
+2. **Scale-Invariant Screening:**
+   - Variables are normalized by their median $\tilde{x} = \text{median}(|x|)$, rendering dimensionless ratios byte-exact invariant to unit rescaling.
+   - Discrete log grid $s \in [10^{-2}, 10^2]$ sweeps scales without assuming $\theta_1 = 1$.
+   - Amplitude $\theta_0$ is solved in closed form via Weighted Least Squares (WLS).
+   - Benchmark timing measured: 268.62 ms for 100 candidates on $N=500$ (2.69 ms/candidate on CPU).
+3. **Heteroscedastic Likelihood & Intrinsic Scatter:**
+   - Discarded the brittle $\chi^2_\nu \le 1 + 3\sqrt{2/(N-k)}$ gate which falsely rejects real data at large $N$ (e.g. $N=3300$).
+   - Implemented full Gaussian log-likelihood $\ln \mathcal{L} = -0.5 \sum [\text{res}^2 / (\sigma_y^2 + \sigma_{\text{int}}^2) + \ln(2\pi(\sigma_y^2 + \sigma_{\text{int}}^2))]$.
+   - Intrinsic scatter $\sigma_{\text{int}} \ge 0$ is estimated by bounded penalized likelihood optimization and penalized in BIC via $k_{\text{eff}} \ln N$.
+
 
