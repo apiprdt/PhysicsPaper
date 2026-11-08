@@ -287,6 +287,7 @@ def _resolve_sigma_array(
 def audit_custom_expressions(
     card: ClaimCard,
     data: Dict[str, np.ndarray],
+    verbose: bool = True,
 ) -> AuditReport:
     """
     Audit an imported set of custom candidate formulas (from PySR, literature, or AI).
@@ -310,7 +311,8 @@ def audit_custom_expressions(
             raise ValueError(
                 f"Candidate '{cand}' rejected during limit verification: {v_res['message']}"
             )
-        print(f"[{cand}] {v_res['message']}")
+        if verbose:
+            print(f"[{cand}] {v_res['message']}")
 
     y_obs = np.asarray(data["y_obs"], dtype=np.float64)
 
@@ -647,12 +649,13 @@ def audit_custom_expressions(
 def audit(
     card: ClaimCard,
     data: Dict[str, np.ndarray],
+    verbose: bool = True,
 ) -> AuditReport:
     """
     High-level entry point for auditing a ClaimCard on observational data.
     """
     if card.candidate_expressions:
-        return audit_custom_expressions(card, data)
+        return audit_custom_expressions(card, data, verbose=verbose)
 
     # If no candidate expressions are supplied, invoke ADCD dictionary pipeline
     from adcd.anomaly_scenarios import AnomalyScenario

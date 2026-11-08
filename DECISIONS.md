@@ -136,3 +136,29 @@ Experimentalists require actionable answers to: "What measurement precision $\si
    - Brute-force Monte Carlo (100 seeds each) confirmed that Asimov $\Delta\mathrm{BIC}$ reproduces empirical means within tolerance on both Sphere Drag and Screened Coulomb.
 
 
+---
+
+## 2026-11-08: Phase 5 Multi-Seed Calibration, Prediction-Flip & PySR Head-to-Head
+
+### Context
+Phase 5 establishes statistical credibility by measuring the empirical error rates of the ADCD Identifiability Auditor across 460 independent seeds per scenario/noise condition (n approx 1.96^2 * 0.05 * 0.95 / 0.02^2 approx 456), validating the Asimov prediction-flip on Sphere Drag, and benchmarking head-to-head against PySR on insufficient/pure-noise data.
+
+### Decisions & Empirical Verification
+1. **Credibility Gate Passed Without Threshold Tuning:**
+   - The default threshold Delta-BIC > 10.0 achieved a **0.00% observed False-UNIQUE rate** across all benchmarks (Screened Coulomb, Null baseline, and Entropy Expansion).
+   - Under exact Clopper-Pearson 95% confidence intervals with N=460, the upper bound is **0.80%**, safely satisfying the <= 5.0% gate requirement. No threshold adjustment is needed or justified.
+2. **Exact Clopper-Pearson Invariance:**
+   - Evaluated exact two-sided binomial confidence intervals using Beta quantiles (scipy.stats.beta.ppf) to guarantee conservative, non-asymptotic coverage across all reported metrics.
+3. **Sphere Drag Prediction-Flip Confirmed:**
+   - On Sphere Drag (Re <= 0.5, N=200), the Asimov designer in Phase 4 calculated sigma* = 0.137% approx 0.14%.
+   - At sigma = 0.3% (> sigma*), empirical calibration across 460 seeds yielded **99.1% EQUIVALENCE CLASS** (456/460 seeds concordant, 95% CI: [97.8%, 99.8%]).
+   - At sigma = 0.1% (< sigma*), empirical calibration across 460 seeds flipped to **83.5% UNIQUELY IDENTIFIABLE** (384/460 seeds concordant, 95% CI: [79.8%, 86.8%]).
+   - The prediction-flip test passed decisively.
+4. **PySR Head-to-Head Benchmarking (50 Seeds):**
+   - On pure Gaussian noise (N=50, unperturbed Coulomb baseline y = 1/r, true Delta = 0):
+     - **PySR (Standard SR)** produced non-zero algebraic candidate formulas in **98.0% of runs** (49/50), demonstrating the structural lack of an abstention/identifiability mechanism in standard symbolic regression.
+     - **ADCD Identifiability Auditor** produced non-zero claims in **0.0% of runs** (0/50, 100% WITHHELD).
+     - When PySR's discovered formulas were imported into ADCD via audit_custom_expressions, ADCD's asymptotic gates correctly identified lack of signal and issued WITHHELD in **100.0% of cases** (50/50).
+5. **Real-Time Transparency Architecture:**
+   - Implemented unbuffered live streaming to console (flush=True), dedicated live file logging (reports/calibration_live.log), and per-seed CSV audit tracing (reports/calibration_seed_log.csv).
+
