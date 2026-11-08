@@ -33,7 +33,7 @@ def test_intrinsic_scatter_recovery():
     N = 1000
     x = np.linspace(0.1, 5.0, N)
     y_true = 2.0 * np.exp(-x)
-    
+
     # Heteroscedastic measurement noise: 1% to 3%
     sigma_meas = (0.01 + 0.02 * (x / 5.0)) * y_true
     # True intrinsic physical scatter: 0.03

@@ -11,7 +11,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from typing import Any, Dict, List, Literal, Optional, Tuple
+import numpy as np
 from pydantic import BaseModel, Field
 
 
@@ -20,6 +22,7 @@ class NoiseSpec(BaseModel):
     type: Literal["relative", "absolute", "column"] = "relative"
     value: Optional[float] = 0.01
     sigma_col: Optional[str] = None
+    fit_intrinsic_scatter: bool = False
 
 
 class ClaimCard(BaseModel):
@@ -40,19 +43,19 @@ class ClaimCard(BaseModel):
     )
     baseline_constants: Dict[str, float] = Field(
         default_factory=dict,
-        description="Fixed physical constants or scale factors in the baseline",
+        description="Fixed physical constants or initial baseline parameter values",
     )
     parameter_priors: Optional[Dict[str, Tuple[float, float]]] = Field(
         default=None,
-        description="Gaussian priors for baseline parameters: {param_name: (mean, std)}",
+        description="Gaussian priors for baseline nuisance parameters phi: {param_name: (mean, std)}",
     )
     limit_variable: str = Field(
         ...,
-        description="The variable along which the classical limit is taken",
+        description="The variable or dimensionless argument along which the classical limit is taken",
     )
     limit_direction: str = Field(
         default="0",
-        description="Direction of the asymptotic limit ('0', 'oo', 'inf', '+oo')",
+        description="Direction of the asymptotic limit ('0', '+0', '-0', 'oo', 'inf', '+oo')",
     )
     window: Optional[Dict[str, Tuple[float, float]]] = Field(
         default=None,
@@ -66,6 +69,10 @@ class ClaimCard(BaseModel):
         default=None,
         description="Optional list of custom imported candidate formulas (from PySR, literature, or AI)",
     )
+    candidate_families: Optional[Dict[str, str]] = Field(
+        default=None,
+        description="Optional mapping {candidate_expr: family_name} for self-ablation grouping",
+    )
     custom_argument: Optional[str] = Field(
         default=None,
         description="Optional explicit composite dimensionless argument u, e.g. 'hbar * omega / (k_B * T)'",
@@ -78,6 +85,10 @@ class ClaimCard(BaseModel):
         default_factory=NoiseSpec,
         description="Observational noise model",
     )
+    check_adequacy: bool = Field(
+        default=False,
+        description="Whether to run non-parametric monotone adequacy check (diagnostic warning only)",
+    )
     seed: int = Field(
         default=42,
         description="Random seed for deterministic tie-breaking and optimization restarts",
@@ -88,16 +99,23 @@ class ClaimCard(BaseModel):
         return self.model_dump()
 
     def canonical_json(self) -> str:
-        """Produce deterministic, canonical JSON with sorted keys and compact separators."""
-        def _sort_obj(obj: Any) -> Any:
+        """Produce deterministic, canonical JSON with sorted keys and normalized finite floats."""
+        def _normalize_obj(obj: Any) -> Any:
             if isinstance(obj, dict):
-                return {k: _sort_obj(v) for k, v in sorted(obj.items())}
+                return {str(k): _normalize_obj(v) for k, v in sorted(obj.items())}
             elif isinstance(obj, (list, tuple)):
-                return [_sort_obj(x) for x in obj]
+                return [_normalize_obj(x) for x in obj]
+            elif isinstance(obj, (float, np.floating)):
+                fval = float(obj)
+                if not math.isfinite(fval):
+                    raise ValueError(f"Non-finite float ({fval}) is not permitted in canonical ClaimCard JSON.")
+                return 0.0 if fval == 0.0 else float(f"{fval:.15g}")
+            elif isinstance(obj, np.integer):
+                return int(obj)
             return obj
 
-        sorted_dict = _sort_obj(self.canonical_dict())
-        return json.dumps(sorted_dict, sort_keys=True, separators=(",", ":"))
+        sorted_dict = _normalize_obj(self.canonical_dict())
+        return json.dumps(sorted_dict, sort_keys=True, separators=(",", ":"), allow_nan=False)
 
     def canonical_hash(self) -> str:
         """SHA-256 hash of the canonical JSON representation."""

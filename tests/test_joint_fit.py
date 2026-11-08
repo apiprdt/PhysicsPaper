@@ -140,3 +140,44 @@ def test_joint_fit_biased_phi_prior_degrades_verdict_not_silent_absorption():
     assert res_biased.total_loss > res_unbiased.total_loss + 50.0
     # Prior penalty must reflect the bias
     assert res_biased.prior_penalty > 50.0
+
+
+def test_joint_fit_unit_invariance_of_normalized_hessian():
+    """
+    Rescaling a physical parameter by 10^6 changes the unnormalized Hessian condition number
+    by ~10^12, but the scale-normalized Hessian condition number remains invariant and well-conditioned.
+    """
+    rng = np.random.RandomState(42)
+    r = np.linspace(0.5, 5.0, 100)
+    y_true = (2.0 / r) * (1.0 + 0.5 * (np.exp(-r) - 1.0))
+    sigma_y = 0.01 * y_true
+    y_obs = y_true + rng.normal(0, sigma_y)
+
+    # Unit system 1: A ~ O(1)
+    res_unit1 = fit_joint_baseline_correction(
+        baseline_fn=lambda phi, X: phi["A"] / X["r"],
+        corr_fn=lambda theta, X: theta["theta_0"] * (np.exp(-X["r"]) - 1.0),
+        X={"r": r},
+        y_obs=y_obs,
+        sigma_y=sigma_y,
+        phi_priors={"A": (2.0, 0.2)},
+        init_phi={"A": 2.0},
+        init_theta={"theta_0": 0.5},
+    )
+
+    # Unit system 2: A_micro = 1e6 * A ~ O(1e6)
+    res_unit2 = fit_joint_baseline_correction(
+        baseline_fn=lambda phi, X: (1e-6 * phi["A_micro"]) / X["r"],
+        corr_fn=lambda theta, X: theta["theta_0"] * (np.exp(-X["r"]) - 1.0),
+        X={"r": r},
+        y_obs=y_obs,
+        sigma_y=sigma_y,
+        phi_priors={"A_micro": (2.0e6, 0.2e6)},
+        init_phi={"A_micro": 2.0e6},
+        init_theta={"theta_0": 0.5},
+    )
+
+    assert res_unit1.is_degenerate is False
+    assert res_unit2.is_degenerate is False
+    assert res_unit2.raw_condition_number > 1e10
+    assert np.isclose(res_unit1.condition_number, res_unit2.condition_number, rtol=1e-2)

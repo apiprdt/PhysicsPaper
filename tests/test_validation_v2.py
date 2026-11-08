@@ -177,3 +177,42 @@ def test_three_tier_custom_unlabeled_candidates_fallback():
     assert res.delta_bic_vs_rival == 2.0
     assert res.verdict == ProtocolVerdict.EQUIVALENCE_CLASS
     assert res.rival_candidate.expr == cands[1].expr
+
+
+def test_degenerate_rank1_skipped_for_valid_rank2():
+    """
+    If rank-#1 candidate has is_degenerate=True, run_three_tier_audit filters it out
+    before selecting M1 and M2 so a valid rank-#2 candidate can still be identified.
+    """
+    cands = [
+        CandidateFit(
+            expr="degenerate_collinear_model",
+            bic=-1700.0,
+            nmse=1e-4,
+            k_params=2,
+            family="degenerate_fam",
+            is_degenerate=True,
+        ),
+        CandidateFit(
+            expr="theta_0 * (exp(-r/theta_1) - 1.0)",
+            bic=-1600.0,
+            nmse=2e-4,
+            k_params=2,
+            family="exponential",
+            is_degenerate=False,
+        ),
+        CandidateFit(
+            expr="theta_0 * log(1.0 + r/theta_1)",
+            bic=-1570.0,
+            nmse=4e-3,
+            k_params=2,
+            family="logarithmic",
+            is_degenerate=False,
+        ),
+    ]
+    null_fit = {"bic": -100.0, "nmse": 1.0}
+    res = run_three_tier_audit(candidates=cands, null_fit=null_fit, search_space_size=30)
+
+    assert res.verdict == ProtocolVerdict.UNIQUELY_IDENTIFIABLE
+    assert res.best_candidate.expr == "theta_0 * (exp(-r/theta_1) - 1.0)"
+    assert res.delta_bic_vs_rival == 30.0

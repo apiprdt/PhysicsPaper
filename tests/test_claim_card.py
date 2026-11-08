@@ -160,3 +160,62 @@ def test_plain_language_report_semantics():
     assert "WHAT THIS VERDICT MEANS:" in summary
     assert "WHAT THIS VERDICT DOES NOT MEAN:" in summary
     assert "claim card" in summary.lower() or "card hash" in summary.lower()
+
+
+def test_canonical_json_rejects_nan_and_normalizes_neg_zero():
+    """canonical_json normalizes -0.0 to 0.0 and rejects NaN/Inf values."""
+    c_pos = ClaimCard(
+        name="Zero Test",
+        baseline_expr="1.0 / r",
+        baseline_constants={"c": 0.0},
+        limit_variable="r",
+    )
+    c_neg = ClaimCard(
+        name="Zero Test",
+        baseline_expr="1.0 / r",
+        baseline_constants={"c": -0.0},
+        limit_variable="r",
+    )
+    assert c_pos.canonical_hash() == c_neg.canonical_hash()
+
+    c_nan = ClaimCard(
+        name="NaN Test",
+        baseline_expr="1.0 / r",
+        baseline_constants={"c": float("nan")},
+        limit_variable="r",
+    )
+    with pytest.raises(ValueError, match="Non-finite float"):
+        c_nan.canonical_json()
+
+
+def test_audit_custom_expressions_fair_null_model_with_priors():
+    """
+    When parameter_priors is supplied and initial baseline_constants is slightly offset
+    from the true baseline parameter, null data (no correction) must still yield WITHHELD
+    because both the Null model and Candidate models optimize phi under the same prior.
+    """
+    rng = np.random.default_rng(42)
+    r = np.linspace(0.5, 4.0, 80)
+    true_k = 2.05  # True baseline parameter
+    y_true = true_k / r
+    sigma = 0.01 * y_true
+    y_obs = y_true + rng.normal(0.0, sigma)
+
+    card = ClaimCard(
+        name="Fair Null With Priors",
+        variables={"r": "m"},
+        baseline_expr="k_e / r",
+        baseline_constants={"k_e": 1.95},  # Slightly offset initial constant
+        parameter_priors={"k_e": (2.0, 0.2)},
+        limit_variable="r",
+        limit_direction="0",
+        mode="multiplicative",
+        candidate_expressions=[
+            "theta_0 * (exp(-r) - 1.0)",
+            "theta_0 * log(1.0 + r)",
+        ],
+        noise_spec=NoiseSpec(type="column", sigma_col="sigma"),
+        seed=42,
+    )
+    rep = audit_custom_expressions(card, {"r": r, "y_obs": y_obs, "sigma": sigma})
+    assert rep.verdict == "WITHHELD"
