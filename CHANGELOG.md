@@ -26,6 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unit tests for all Phase 2 modules (`tests/test_joint_fit.py`, `tests/test_scale_invariant_screening.py`, `tests/test_likelihood.py`).
 - Smoke testing suite for quantum known-answer cases (`scripts/smoke_quantum.py`, `reports/smoke_quantum.md`).
 - Comprehensive regression tests `tests/test_regression_v1.py` covering single-seed and 5-seed reference tables.
+- Phase 3 Blind Three-Tier Protocol & Equal-Pool Self-Ablation (`src/adcd/validation_v2.py`) issuing `UNIQUELY IDENTIFIABLE`, `EQUIVALENCE CLASS`, or `WITHHELD` with zero ground-truth references.
+- Equal-pool self-ablation cancelling the $+5.18$ search-space penalty bias, shifting Entropy Expansion to honest `EQUIVALENCE CLASS`.
+- Shared low-order Taylor series analysis explaining mathematical indistinguishability within equivalence classes.
+- Flexible cubic spline check for residual model misspecification.
+- Unit tests for Three-Tier Protocol and zero-ground-truth verification (`tests/test_validation_v2.py`).
+- Phase 3 rerun evaluation script (`scripts/run_phase3_rerun.py`), results (`reports/phase3_rerun_results.json`), and verdict change table (`reports/verdict_change_table.md`).
 - Unit tests for ClaimCard, canonical hashing, and limit verification (`tests/test_claim_card.py`).
 - Added `REPO_MAP.md`, `DECISIONS.md`, and `AGENTS.md` project rules for Phase 0 baseline pinning.
 ### Changed

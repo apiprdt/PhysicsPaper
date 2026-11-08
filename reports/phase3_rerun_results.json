@@ -1,0 +1,47 @@
+{
+  "Screened Coulomb": {
+    "space_size": 60,
+    "null_bic": -140.5241315307166,
+    "m1": "theta_0 * (exp(-r/theta_4) - 1.0)",
+    "m1_family": "exponential",
+    "m1_bic": -1619.3579687961649,
+    "m2": "theta_0 * (r/theta_4 / (1.0 - r/theta_4))",
+    "m2_family": "rational",
+    "m2_bic": -1176.5377383130474,
+    "delta_bic_null": 1478.8338372654482,
+    "delta_bic_rival": 442.8202304831175,
+    "verdict": "UNIQUELY IDENTIFIABLE",
+    "equiv_class_size": 1,
+    "shared_series": ""
+  },
+  "Entropy Expansion": {
+    "space_size": 40,
+    "null_bic": -528.9315771246121,
+    "m1": "theta_0 * log(1.0 + dV/V_i)",
+    "m1_family": "logarithmic",
+    "m1_bic": -815.081930424143,
+    "m2": "theta_0 * log(1.0 + dV/V_i) * (1.0 + theta_1 * (exp(-dV/V_i) - 1.0))",
+    "m2_family": "exponential",
+    "m2_bic": -809.8369046924976,
+    "delta_bic_null": 286.15035329953093,
+    "delta_bic_rival": 5.245025731645455,
+    "verdict": "EQUIVALENCE CLASS",
+    "equiv_class_size": 3,
+    "shared_series": "Asymptotic Series Explanation:\nThe 3 candidates in this equivalence class agree at leading orders:\n  \u2022 theta_0 * log(1.0 + dV/V_i)              \u2248 5.75506046488859\n  \u2022 theta_0 * log(1.0 + dV/V_i) * (1.0 + the \u2248 0.045460276034791*exp(-1) + 5.73256405049457\n  \u2022 theta_0 * (exp(-dV/V_i) - 1.0) + theta_1 \u2248 5.75506048613829 - 1.24818773091335e-16*exp(-1)"
+  },
+  "Time Dilation": {
+    "space_size": 10,
+    "null_bic": -679.3094543083964,
+    "m1": "theta_0 * (v**2/c**2 / (sqrt(1.0 - v**2/c**2) * (1.0 + sqrt(1.0 - v**2/c**2))))",
+    "m1_family": "rational",
+    "m1_bic": -167.39325731788833,
+    "m2": null,
+    "m2_family": null,
+    "m2_bic": null,
+    "delta_bic_null": -511.91619699050807,
+    "delta_bic_rival": 0.0,
+    "verdict": "WITHHELD",
+    "equiv_class_size": 0,
+    "shared_series": ""
+  }
+}
