@@ -1,4 +1,4 @@
-# Phase 7 Final Synthesis Report: Asymptotic Discovery & Crossover Identification (ADCD)
+﻿# Phase 7 Final Synthesis Report: Asymptotic Discovery & Crossover Identification (ADCD)
 
 **Branch:** `Exploring`  
 **Date:** 2026-11-08  
@@ -40,7 +40,7 @@ Across seven distinct development and verification phases, the ADCD pipeline was
 To establish the statistical sensitivity of the decision protocol, ADCD was subjected to multi-seed Monte Carlo benchmarks across varying noise regimes ($\sigma \in [0.01\%, 10\%]$).
 
 ### The Sphere Drag Asymptotic Flip
-A benchmark was conducted on sphere drag coefficients $C_d(\mathrm{Re})$ comparing the leading Stokes law ($24/\mathrm{Re}$), the linear Oseen expansion, and the logarithmic Proudman–Pearson series ($C_d \sim \frac{24}{\mathrm{Re}}(1 + \frac{3}{16}\mathrm{Re} + \frac{9}{160}\mathrm{Re}^2 \ln(\mathrm{Re}/2))$:
+A benchmark was conducted on sphere drag coefficients $C_d(\mathrm{Re})$ comparing the leading Stokes law ($24/\mathrm{Re}$), the linear Oseen expansion, and the logarithmic Proudman–Pearson series (low-Re series with a logarithmic term, as specified in the Phase 4 brief):
 
 * **High Noise Regime ($\sigma = 0.3\%$):**  
   * Outcome: **99.1% Equivalence Class** (456 of 460 seeds).  
@@ -84,11 +84,11 @@ ADCD was deployed on genuine astrophysical measurements from the SPARC database,
 
 | Rank | Model / Law | Type | Parameters ($k$) | $\mathrm{BIC}$ | $\Delta\mathrm{BIC}$ vs Best | Verdict |
 | :---: | :--- | :--- | :---: | :---: | :---: | :---: |
-| **#1** | **McGaugh RAR Law (2016)** | Empirical Astrophysical Law | 1 ($g_\dagger = 1.18 \times 10^{-10}\,\mathrm{m/s}^2$) | **7304.8** | **0.0** | **UNIQUELY IDENTIFIABLE** |
-| **#2** | **Bekenstein–Milgrom Simple MOND** | Modified Gravity Interpolator | 1 ($a_0 = 1.25 \times 10^{-10}\,\mathrm{m/s}^2$) | **7366.0** | $+61.2$ | Refuted ($\Delta\mathrm{BIC} > 10$) |
+| **#1** | **McGaugh RAR Law (2016)** | Empirical Astrophysical Law | 1 ($x_0 = 0.651$, normalized units) | **7304.8** | **0.0** | **UNIQUELY IDENTIFIABLE** |
+| **#2** | **Bekenstein–Milgrom Simple MOND** | Modified Gravity Interpolator | 1 ($x_0 = 0.635$) | **7366.0** | $+61.2$ | Refuted ($\Delta\mathrm{BIC} > 10$) |
 | **#3** | **$L_n$-Crossover (Churchill–Usagi)** | Asymptotic Bridge Candidate | 2 ($n = 1.85, s = 0.90$) | **7390.3** | $+85.5$ | Refuted ($\Delta\mathrm{BIC} > 10$) |
-| **#4** | **Standard MOND $\mu$-Function** | Classical MOND Interpolator | 1 ($a_0 = 1.09 \times 10^{-10}\,\mathrm{m/s}^2$) | **7460.0** | $+155.2$ | Refuted ($\Delta\mathrm{BIC} > 10$) |
-| **#5** | **Convex Exponential Crossover** | Linear Convex Blending | 1 ($\lambda = 0.44$) | **9965.2** | $+2660.4$ | Severe Failure (Pole) |
+| **#4** | **Standard MOND $\mu$-Function** | Classical MOND Interpolator | 1 ($x_0 = 0.902$) | **7460.0** | $+155.2$ | Refuted ($\Delta\mathrm{BIC} > 10$) |
+| **#5** | **Convex Exponential Crossover** | Linear Convex Blending | 1 ($\lambda = 0.050$) | **9965.2** | $+2660.4$ | Severe Failure (Pole) |
 | **#6** | **Newtonian Dynamics (Null Model)** | Standard Gravity Baseline | 0 (No Free Parameters) | **19126.1** | $+11821.3$ | Decisively Rejected ($>100\sigma$) |
 
 ---
@@ -108,3 +108,10 @@ ADCD was deployed on genuine astrophysical measurements from the SPARC database,
    The $L_n$-crossover formulation is a phenomenological asymptotic bridge, not a fundamental field theory. It solves a well-defined mathematical pathology in crossover fitting, but must not be represented as a new law of nature without a derived Lagrangian.
 2. **Next-Phase Recommendation (Post-Phase 7):**
    Future development should focus on expanding ADCD into a standardized **Multi-Domain Benchmark Suite** across classical physics (enzymatic, fluid, gravitational, and condensed matter systems) to measure cross-domain false-positive discovery rates.
+
+---
+
+## 9. Data Provenance Note
+
+All SPARC parameters and BIC values in Section 6 are taken from eports/real_world_sparc_fits.csv. Fitted scales are in the normalized acceleration units of that script, not SI. The L_n-crossover is the same model labelled Smooth-Max CES in the CSV.
+
