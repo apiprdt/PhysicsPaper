@@ -155,7 +155,8 @@ def _check_flexible_adequacy(
             if chi2_best > chi2_spline + 50.0:
                 return (
                     f"Adequacy Warning: Parametric model ({best_candidate.expr[:35]}) "
-                    f"shows structured misfit relative to flexible reference (Delta-chi2 = {chi2_best - chi2_spline:.1f})."
+                    f"shows structured misfit relative to flexible reference "
+                    f"(Delta-chi2 = {chi2_best - chi2_spline:.1f})."
                 )
     except Exception as e:
         logger.debug(f"Adequacy check skipped due to error: {e}")
@@ -210,9 +211,14 @@ def run_three_tier_audit(
         )
 
     # Step 3: Blind self-ablation from EQUAL POOL
-    # Rival must come from a DIFFERENT primitive family
+    # Rival must come from a DIFFERENT primitive family if family labels exist
     rival_cands = [c for c in sorted_cands if c.family != m1.family]
-    m2 = rival_cands[0] if rival_cands else None
+    if not rival_cands and len(sorted_cands) > 1:
+        # Fallback when candidates lack distinct family labels (e.g. custom or PySR imports with family="unknown")
+        # Select the best distinct alternative candidate
+        m2 = next((c for c in sorted_cands[1:] if c.expr != m1.expr), sorted_cands[1])
+    else:
+        m2 = rival_cands[0] if rival_cands else None
 
     if m2 is not None:
         delta_bic_rival = float(m2.bic - m1.bic)

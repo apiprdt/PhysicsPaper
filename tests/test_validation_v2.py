@@ -17,9 +17,18 @@ def test_three_tier_uniquely_identifiable():
     """When best candidate beats all alternative families by Delta-BIC > 10, verdict is UNIQUELY IDENTIFIABLE."""
     # M1 is exponential, M2 is rational with Delta-BIC = 25.0
     cands = [
-        CandidateFit(expr="theta_0 * (exp(-r/theta_1) - 1.0)", bic=-1600.0, nmse=2e-4, k_params=2, family="exponential"),
-        CandidateFit(expr="theta_0 * (r/theta_1 / (1.0 - r/theta_1))", bic=-1575.0, nmse=3e-3, k_params=2, family="rational"),
-        CandidateFit(expr="theta_0 * log(1.0 + r/theta_1)", bic=-1570.0, nmse=4e-3, k_params=2, family="logarithmic"),
+        CandidateFit(
+            expr="theta_0 * (exp(-r/theta_1) - 1.0)",
+            bic=-1600.0, nmse=2e-4, k_params=2, family="exponential"
+        ),
+        CandidateFit(
+            expr="theta_0 * (r/theta_1 / (1.0 - r/theta_1))",
+            bic=-1575.0, nmse=3e-3, k_params=2, family="rational"
+        ),
+        CandidateFit(
+            expr="theta_0 * log(1.0 + r/theta_1)",
+            bic=-1570.0, nmse=4e-3, k_params=2, family="logarithmic"
+        ),
     ]
     null_fit = {"bic": -100.0, "nmse": 1.0}
 
@@ -153,3 +162,18 @@ def test_optional_adequacy_spline_warning():
     assert "Adequacy Warning" in verdict_res.adequacy_warning
     # Crucially, adequacy warning does not veto the verdict
     assert verdict_res.verdict in [ProtocolVerdict.UNIQUELY_IDENTIFIABLE, ProtocolVerdict.EQUIVALENCE_CLASS]
+
+
+def test_three_tier_custom_unlabeled_candidates_fallback():
+    """Verify that imported candidates with family='unknown' (e.g. from PySR) don't falsely yield delta_bic = inf."""
+    cands = [
+        CandidateFit(expr="0.187 * x", bic=-500.0, nmse=0.01, k_params=1, family="unknown"),
+        CandidateFit(expr="0.185 * x + 0.05 * x**2", bic=-498.0, nmse=0.01, k_params=2, family="unknown"),
+    ]
+    null_fit = {"bic": 0.0, "nmse": 1.0}
+
+    res = run_three_tier_audit(candidates=cands, null_fit=null_fit, search_space_size=2)
+    # delta_bic_vs_rival should be 2.0 (not inf!), leading to EQUIVALENCE CLASS
+    assert res.delta_bic_vs_rival == 2.0
+    assert res.verdict == ProtocolVerdict.EQUIVALENCE_CLASS
+    assert res.rival_candidate.expr == cands[1].expr
