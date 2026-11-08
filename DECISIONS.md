@@ -220,3 +220,20 @@ Phase 5 establishes statistical credibility by measuring the empirical error rat
    - Stopping rule confirmed: `spike/crossover.py` remains isolated in `spike/`.
 5. **Entropy Expansion Scale-Freedom Control:**
    - Tested $k=2$ free-scale parameterization against $k=1$ across noise levels $0.5\%$, $1.0\%$, and $2.0\%$. Logarithmic family uniquely identified in **100.0% of seeds** with **0.0% False-UNIQUE** under both parameterizations.
+
+
+---
+
+## Real-World Benchmark: SPARC 175 Disk Galaxies (2,693 Astronomical Observations)
+
+1. **Dataset Integration (`data/RAR.mrt`):**
+   - Ingested raw observational data from Spitzer Photometry & Accurate Rotation Curves (SPARC, Lelli, McGaugh, & Schombert 2016, PRL 117, 201101), containing $N=2,693$ galaxy rotation points with orthogonal scatter $\sigma \approx 0.136\text{ dex}$.
+2. **Empirical Confirmation of Crossing-Pole Pathology:**
+   - Evaluated `check_convex_validity` on raw galactic coordinates $(g_{\text{bar}}, g_{\text{obs}})$. Empirically proved that convex interpolation between Newtonian gravity ($A=1$) and deep-MOND ($B=x^{-1/2}$) blows up to $w_{\text{req}} \in [-1056.3, +114.1]$, confirming the Phase 6 theoretical discovery on real universe data.
+3. **Certified Audit Verdict:**
+   - Evaluated competing dark matter / modified gravity formulations under the blind Three-Tier Protocol:
+     - Null Newtonian gravity ($y=1$): Refuted at $\Delta\mathrm{BIC} = +11,821.3 \gg 10$.
+     - Winner (M1): McGaugh RAR law $y = 1 / (1 - \exp(-\sqrt{x/0.651}))$ with $\mathrm{BIC} = 7,304.8$.
+     - Rival (M2): Bekenstein-Milgrom Simple MOND $y = (1 + \sqrt{1 + 4/(x/0.635)}) / 2$ with $\mathrm{BIC} = 7,366.0$.
+     - Self-ablation margin: $\Delta\mathrm{BIC}(M_2 \to M_1) = 61.18 > 10.0 \implies$ **`UNIQUELY IDENTIFIABLE`**.
+   - Verified that large-sample astronomical data ($N=2,693$) possesses sufficient statistical power to break asymptotic equivalence between exponential and rational MOND functions.
