@@ -20,14 +20,12 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="repla
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace", write_through=True)
 
 import numpy as np
-import sympy as sp
 
 # Ensure src is on path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from adcd.anomaly_scenarios import AnomalyScenario
 from adcd.run_adcd_v3_validation_blind import run_scenario_protocol, _run_search
-from adcd.asymptotic_dictionary_proposer_v3 import PRIMITIVE_REGISTRY
 
 
 class QuantumScenario(AnomalyScenario):
@@ -130,7 +128,7 @@ def run_all_smoke_tests():
         # Run blind search with all primitives
         ranked_blind, space_size, _ = _run_search(sc, exclude_primitives=[], seed=42)
         print(f"Blind Search Space Size: {space_size}")
-        print(f"Top 5 candidates from v1 Stage 2 optimizer:")
+        print("Top 5 candidates from v1 Stage 2 optimizer:")
         for idx, (expr, nmse, bic, theta) in enumerate(ranked_blind[:5]):
             print(f"  [{idx+1}] NMSE={nmse:.3e} | BIC={bic:.2f} | {expr}")
 
