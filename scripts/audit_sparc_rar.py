@@ -151,6 +151,9 @@ def evaluate_all_galaxy_models(data: Dict[str, np.ndarray]) -> List[CandidateFit
             family="family_null_newton",
             theta_fit={},
             y_pred=pred_null,
+            origin_type="literature",
+            citation="Newtonian baryonic baseline (y=1)",
+            is_novel_claim=False,
         )
     )
 
@@ -176,6 +179,9 @@ def evaluate_all_galaxy_models(data: Dict[str, np.ndarray]) -> List[CandidateFit
             family="family_mcgaugh_rar",
             theta_fit={"s": s_mc, "a0": s_mc * A0_STANDARD},
             y_pred=pred_mc,
+            origin_type="literature",
+            citation="McGaugh et al. (2016), PRL 117, 201101",
+            is_novel_claim=False,
         )
     )
 
@@ -198,6 +204,9 @@ def evaluate_all_galaxy_models(data: Dict[str, np.ndarray]) -> List[CandidateFit
             family="family_simple_mond",
             theta_fit={"s": s_sm, "a0": s_sm * A0_STANDARD},
             y_pred=pred_sm,
+            origin_type="literature",
+            citation="Famaey & Binney (2005), MNRAS 363, 603",
+            is_novel_claim=False,
         )
     )
 
@@ -220,6 +229,9 @@ def evaluate_all_galaxy_models(data: Dict[str, np.ndarray]) -> List[CandidateFit
             family="family_standard_mond",
             theta_fit={"s": s_std, "a0": s_std * A0_STANDARD},
             y_pred=pred_std,
+            origin_type="literature",
+            citation="Milgrom (1983), ApJ 270, 365",
+            is_novel_claim=False,
         )
     )
 
@@ -259,6 +271,9 @@ def evaluate_all_galaxy_models(data: Dict[str, np.ndarray]) -> List[CandidateFit
             family="family_smooth_max_ces",
             theta_fit={"n": n_ces, "s": s_ces},
             y_pred=pred_ces,
+            origin_type="literature",
+            citation="Churchill & Usagi (1972), AIChE J. 18(6), 1121",
+            is_novel_claim=False,
         )
     )
 
@@ -284,6 +299,9 @@ def evaluate_all_galaxy_models(data: Dict[str, np.ndarray]) -> List[CandidateFit
             family="family_convex_exp",
             theta_fit={"s": s_ce},
             y_pred=pred_ce,
+            origin_type="dictionary_primitive",
+            citation="Standard exponential convex weight baseline",
+            is_novel_claim=False,
         )
     )
 
@@ -360,15 +378,37 @@ def save_real_world_report(
     audit_res: ThreeTierProtocolResult,
     null_fit: CandidateFit,
 ) -> None:
-    """Write reports/real_world_sparc_audit.md and CSV."""
+    """Write reports/real_world_sparc_audit.md and CSV with full provenance tracking."""
     os.makedirs(os.path.dirname(CSV_PATH), exist_ok=True)
     with open(CSV_PATH, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["model_expr", "family", "k_params", "chi2", "bic", "nmse", "delta_bic_vs_null", "delta_bic_vs_best"])
+        writer.writerow([
+            "model_expr",
+            "family",
+            "origin_type",
+            "citation",
+            "is_novel_claim",
+            "k_params",
+            "bic",
+            "nmse",
+            "delta_bic_vs_null",
+            "delta_bic_vs_best",
+        ])
         for fit in sorted(fits, key=lambda f: f.bic):
             dbic_null = null_fit.bic - fit.bic
             dbic_best = fit.bic - audit_res.best_candidate.bic
-            writer.writerow([fit.expr, fit.family, fit.k_params, f"{fit.bic:.2f}", f"{fit.nmse:.6f}", f"{dbic_null:.2f}", f"{dbic_best:.2f}"])
+            writer.writerow([
+                fit.expr,
+                fit.family,
+                fit.origin_type,
+                fit.citation,
+                fit.is_novel_claim,
+                fit.k_params,
+                f"{fit.bic:.2f}",
+                f"{fit.nmse:.6f}",
+                f"{dbic_null:.2f}",
+                f"{dbic_best:.2f}",
+            ])
 
     md_lines = [
         "# Real-World ADCD Audit: SPARC 175 Disk Galaxies (2,693 Observations)",
@@ -388,8 +428,8 @@ def save_real_world_report(
         "",
         "## 2. Competing Models Leaderboard on Real Astronomical Data",
         "",
-        "| Rank | Model Formulation | Physical Category | Free Params k | BIC | Delta-BIC vs Null | Delta-BIC vs Best | Status |",
-        "| :---: | :--- | :--- | :---: | :---: | :---: | :---: | :--- |",
+        "| Rank | Model Formulation | Origin / Citation | Family | Free Params k | BIC | Delta-BIC vs Null | Delta-BIC vs Best | Status |",
+        "| :---: | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :--- |",
     ]
 
     sorted_fits = sorted(fits, key=lambda f: f.bic)
@@ -404,7 +444,7 @@ def save_real_world_report(
         else:
             status = f"REJECTED (Delta-BIC = +{dbic_best:.1f})"
         md_lines.append(
-            f"| {rank} | `{f.expr}` | `{f.family}` | {f.k_params} | `{f.bic:.1f}` | `+{dbic_null:.1f}` | `+{dbic_best:.1f}` | {status} |"
+            f"| {rank} | `{f.expr}` | {f.citation} | `{f.family}` | {f.k_params} | `{f.bic:.1f}` | `+{dbic_null:.1f}` | `+{dbic_best:.1f}` | {status} |"
         )
 
     md_lines.extend([

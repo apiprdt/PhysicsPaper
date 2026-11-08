@@ -237,3 +237,30 @@ Phase 5 establishes statistical credibility by measuring the empirical error rat
      - Rival (M2): Bekenstein-Milgrom Simple MOND $y = (1 + \sqrt{1 + 4/(x/0.635)}) / 2$ with $\mathrm{BIC} = 7,366.0$.
      - Self-ablation margin: $\Delta\mathrm{BIC}(M_2 \to M_1) = 61.18 > 10.0 \implies$ **`UNIQUELY IDENTIFIABLE`**.
    - Verified that large-sample astronomical data ($N=2,693$) possesses sufficient statistical power to break asymptotic equivalence between exponential and rational MOND functions.
+
+
+---
+
+## 2026-11-08: Phase 7 Epistemic Honesty, Candidate Provenance, and Agent Integrity Guards
+
+### Context
+Following user audit regarding model origin attribution (specifically clarifying that the $L_n$-crossover / Smooth-Max formulation is a re-wrapping of the classical Churchill & Usagi 1972 asymptotic bridge rather than a novel fundamental law invented by the project), formal procedural rules and automated code guards were required to prevent future AI agents from:
+1. Hallucinating novelty claims for formulas recalled from pre-training weights.
+2. Quoting numbers in reports from memory rather than verified CSV/JSON execution artifacts.
+3. Violating core module isolation or modifying mainline branch tracking files.
+
+### Decisions
+1. **Candidate Provenance Schema (`src/adcd/claim_card.py`):**
+   - Added `CandidateProvenance` model enforcing `origin_type` (`literature`, `dictionary_primitive`, `symbolic_regression`, `postulate_derivation`), `citation_or_source`, and `is_novel_claim`.
+   - Enforced Pydantic validator rejecting `is_novel_claim=True` when `origin_type="literature"`.
+2. **Provenance Metadata in SPARC Catalog (`reports/real_world_sparc_fits.csv`):**
+   - Explicitly attributed McGaugh RAR (McGaugh et al. 2016), Simple MOND (Famaey & Binney 2005), Standard MOND (Milgrom 1983), and Smooth-Max CES (Churchill & Usagi 1972).
+   - Set `is_novel_claim=False` for all evaluated candidate functions.
+3. **Automated Agent Integrity Test Suite (`tests/test_agent_integrity_guards.py`):**
+   - Programmatically verifies:
+     - All candidates in SPARC have non-empty citations and zero false novelty claims.
+     - Numbers in `reports/phase7_final_synthesis.md` and `reports/real_world_sparc_audit.md` match `reports/real_world_sparc_fits.csv` within strict decimal tolerances.
+     - `src/adcd/` never imports from `spike/`.
+     - `README.md` remains untouched on branch `Exploring`.
+4. **Constitution Update (`AGENTS.md`):**
+   - Codified the Epistemic Honesty & Provenance Protocol as mandatory repo rules.

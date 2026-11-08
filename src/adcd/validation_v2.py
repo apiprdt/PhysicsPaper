@@ -55,6 +55,9 @@ class CandidateFit:
     theta_fit: Dict[str, float] = field(default_factory=dict)
     y_pred: Optional[np.ndarray] = None
     is_degenerate: bool = False
+    origin_type: str = "literature"
+    citation: str = ""
+    is_novel_claim: bool = False
 
 
 @dataclass

@@ -1,7 +1,7 @@
-model_expr,family,k_params,chi2,bic,nmse,delta_bic_vs_null,delta_bic_vs_best
-y = 1 / (1 - exp(-sqrt(x/0.651))) [McGaugh RAR],family_mcgaugh_rar,1,7304.79,0.432091,11821.27,0.00
-y = (1 + sqrt(1 + 4/(x/0.635))) / 2 [Simple MOND],family_simple_mond,1,7365.97,0.437334,11760.09,61.18
-y = (1^1.85 + (0.90*x^-0.5)^1.85)^(1/1.85) [Smooth-Max CES],family_smooth_max_ces,2,7390.29,0.422079,11735.77,85.50
-y = sqrt((1 + sqrt(1 + 4/(x/0.902)^2)) / 2) [Standard MOND],family_standard_mond,1,7460.01,0.408303,11666.05,155.21
-y = 1 + (1 - exp(-x/0.050))*(x^-0.5 - 1) [Convex Exp],family_convex_exp,1,9965.21,0.907072,9160.85,2660.41
-"y = 1.0 (Pure Newtonian, No Dark Matter/MOND)",family_null_newton,0,19126.06,1.917257,0.00,11821.27
+model_expr,family,origin_type,citation,is_novel_claim,k_params,bic,nmse,delta_bic_vs_null,delta_bic_vs_best
+y = 1 / (1 - exp(-sqrt(x/0.651))) [McGaugh RAR],family_mcgaugh_rar,literature,"McGaugh et al. (2016), PRL 117, 201101",False,1,7304.79,0.432091,11821.27,0.00
+y = (1 + sqrt(1 + 4/(x/0.635))) / 2 [Simple MOND],family_simple_mond,literature,"Famaey & Binney (2005), MNRAS 363, 603",False,1,7365.97,0.437334,11760.09,61.18
+y = (1^1.85 + (0.90*x^-0.5)^1.85)^(1/1.85) [Smooth-Max CES],family_smooth_max_ces,literature,"Churchill & Usagi (1972), AIChE J. 18(6), 1121",False,2,7390.29,0.422079,11735.77,85.50
+y = sqrt((1 + sqrt(1 + 4/(x/0.902)^2)) / 2) [Standard MOND],family_standard_mond,literature,"Milgrom (1983), ApJ 270, 365",False,1,7460.01,0.408303,11666.05,155.21
+y = 1 + (1 - exp(-x/0.050))*(x^-0.5 - 1) [Convex Exp],family_convex_exp,dictionary_primitive,Standard exponential convex weight baseline,False,1,9965.21,0.907072,9160.85,2660.41
+"y = 1.0 (Pure Newtonian, No Dark Matter/MOND)",family_null_newton,literature,Newtonian baryonic baseline (y=1),False,0,19126.06,1.917257,0.00,11821.27

@@ -14,7 +14,43 @@ import json
 import math
 from typing import Any, Dict, List, Literal, Optional, Tuple
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+
+class CandidateProvenance(BaseModel):
+    """
+    Provenance record preventing unverified novelty claims by AI agents.
+    Enforces tracking of the historical and mathematical origin of every candidate formula.
+    """
+    expression: str
+    family_name: str
+    origin_type: Literal[
+        "literature",
+        "dictionary_primitive",
+        "symbolic_regression",
+        "postulate_derivation",
+    ]
+    citation_or_source: str = Field(
+        ...,
+        description="Explicit citation (e.g. 'Churchill & Usagi 1972') or formal derivation reference",
+    )
+    is_novel_claim: bool = Field(
+        default=False,
+        description="Must be False unless backed by a human-verified postulate derivation",
+    )
+
+    @model_validator(mode="after")
+    def validate_novelty_integrity(self) -> CandidateProvenance:
+        if self.origin_type == "literature" and self.is_novel_claim:
+            raise ValueError(
+                f"Integrity error: Candidate '{self.expression}' has origin_type='literature' "
+                f"with citation '{self.citation_or_source}', so is_novel_claim cannot be True."
+            )
+        if not self.citation_or_source.strip():
+            raise ValueError(
+                f"Integrity error: Candidate '{self.expression}' must have a non-empty citation_or_source."
+            )
+        return self
 
 
 class NoiseSpec(BaseModel):
@@ -72,6 +108,10 @@ class ClaimCard(BaseModel):
     candidate_families: Optional[Dict[str, str]] = Field(
         default=None,
         description="Optional mapping {candidate_expr: family_name} for self-ablation grouping",
+    )
+    provenance: Optional[List[CandidateProvenance]] = Field(
+        default=None,
+        description="Optional provenance records tracking the literature source of each candidate",
     )
     custom_argument: Optional[str] = Field(
         default=None,

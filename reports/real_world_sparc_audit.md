@@ -15,14 +15,14 @@
 
 ## 2. Competing Models Leaderboard on Real Astronomical Data
 
-| Rank | Model Formulation | Physical Category | Free Params k | BIC | Delta-BIC vs Null | Delta-BIC vs Best | Status |
-| :---: | :--- | :--- | :---: | :---: | :---: | :---: | :--- |
-| 1 | `y = 1 / (1 - exp(-sqrt(x/0.651))) [McGaugh RAR]` | `family_mcgaugh_rar` | 1 | `7304.8` | `+11821.3` | `+0.0` | **UNIQUELY IDENTIFIED WINNER** |
-| 2 | `y = (1 + sqrt(1 + 4/(x/0.635))) / 2 [Simple MOND]` | `family_simple_mond` | 1 | `7366.0` | `+11760.1` | `+61.2` | REJECTED (Delta-BIC = +61.2) |
-| 3 | `y = (1^1.85 + (0.90*x^-0.5)^1.85)^(1/1.85) [Smooth-Max CES]` | `family_smooth_max_ces` | 2 | `7390.3` | `+11735.8` | `+85.5` | REJECTED (Delta-BIC = +85.5) |
-| 4 | `y = sqrt((1 + sqrt(1 + 4/(x/0.902)^2)) / 2) [Standard MOND]` | `family_standard_mond` | 1 | `7460.0` | `+11666.1` | `+155.2` | REJECTED (Delta-BIC = +155.2) |
-| 5 | `y = 1 + (1 - exp(-x/0.050))*(x^-0.5 - 1) [Convex Exp]` | `family_convex_exp` | 1 | `9965.2` | `+9160.9` | `+2660.4` | REJECTED (Delta-BIC = +2660.4) |
-| 6 | `y = 1.0 (Pure Newtonian, No Dark Matter/MOND)` | `family_null_newton` | 0 | `19126.1` | `+0.0` | `+11821.3` | REFUTED (Baseline) |
+| Rank | Model Formulation | Origin / Citation | Family | Free Params k | BIC | Delta-BIC vs Null | Delta-BIC vs Best | Status |
+| :---: | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :--- |
+| 1 | `y = 1 / (1 - exp(-sqrt(x/0.651))) [McGaugh RAR]` | McGaugh et al. (2016), PRL 117, 201101 | `family_mcgaugh_rar` | 1 | `7304.8` | `+11821.3` | `+0.0` | **UNIQUELY IDENTIFIED WINNER** |
+| 2 | `y = (1 + sqrt(1 + 4/(x/0.635))) / 2 [Simple MOND]` | Famaey & Binney (2005), MNRAS 363, 603 | `family_simple_mond` | 1 | `7366.0` | `+11760.1` | `+61.2` | REJECTED (Delta-BIC = +61.2) |
+| 3 | `y = (1^1.85 + (0.90*x^-0.5)^1.85)^(1/1.85) [Smooth-Max CES]` | Churchill & Usagi (1972), AIChE J. 18(6), 1121 | `family_smooth_max_ces` | 2 | `7390.3` | `+11735.8` | `+85.5` | REJECTED (Delta-BIC = +85.5) |
+| 4 | `y = sqrt((1 + sqrt(1 + 4/(x/0.902)^2)) / 2) [Standard MOND]` | Milgrom (1983), ApJ 270, 365 | `family_standard_mond` | 1 | `7460.0` | `+11666.1` | `+155.2` | REJECTED (Delta-BIC = +155.2) |
+| 5 | `y = 1 + (1 - exp(-x/0.050))*(x^-0.5 - 1) [Convex Exp]` | Standard exponential convex weight baseline | `family_convex_exp` | 1 | `9965.2` | `+9160.9` | `+2660.4` | REJECTED (Delta-BIC = +2660.4) |
+| 6 | `y = 1.0 (Pure Newtonian, No Dark Matter/MOND)` | Newtonian baryonic baseline (y=1) | `family_null_newton` | 0 | `19126.1` | `+0.0` | `+11821.3` | REFUTED (Baseline) |
 
 ---
 

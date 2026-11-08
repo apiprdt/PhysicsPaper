@@ -61,3 +61,25 @@ Stage-0 information funnel, log-LASSO, 50-variable support, four new primitives 
 4. Surprises and deviations from PREDICTIONS.
 5. Decisions made (also in DECISIONS.md).
 6. Open questions for the user.
+
+## Epistemic Honesty & Provenance Protocol (Mandatory)
+Every AI agent operating in this repository MUST strictly follow these rules:
+
+1. **No False Novelty Claims:**
+   - Any formula that matches or re-wraps existing literature (e.g. Churchill–Usagi 1972, CES, Milgrom, McGaugh) MUST be explicitly labeled as `origin_type="literature"` with its primary citation.
+   - An agent must NEVER present an algebraic form retrieved from LLM pre-training weights as a "new discovery made by this project".
+   - `is_novel_claim` may only be `True` if accompanied by an explicit, human-reviewed, first-principles derivation starting from stated physical postulates.
+
+2. **Zero-Memory Quantitative Reporting:**
+   - All numbers, BIC values, ΔBICs, and parameter values quoted in markdown reports MUST be read directly from the generated CSV/JSON artifacts.
+   - Never quote parameters from memory, never change units on-the-fly without running the conversion script, and never fabricate table entries.
+   - `tests/test_agent_integrity_guards.py` validates that markdown reports match CSV artifacts within strict numerical tolerances.
+
+3. **Core Module Freeze & Architecture Isolation:**
+   - The production library `src/adcd/` is locked and frozen. No experimental spikes from `spike/` may be imported into `src/adcd/`.
+   - On exploratory branches (such as `Exploring`), `README.md` MUST remain untouched to prevent conflicts with mainline production branches (`PythonADCD`, `JuliaADCD`). All exploratory documentation must live in `reports/`.
+
+4. **Oracle Leak Prevention:**
+   - The auditor must evaluate candidate expressions strictly blind: inputs are only `(x, y_obs, sigma_y)`.
+   - Under no circumstances may `y_true`, noiseless residuals, or branch conditionals based on `scenario_name` or `case_name` be used to alter parameter bounds, likelihood weighting, or structural family labels.
+   - Programmatic guards in `tests/test_no_oracle_leak.py` enforce this automatically.
