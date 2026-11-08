@@ -329,7 +329,7 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
     print(f"    [Step 1/4 | Blind Search        ] Starting — '{scenario.name}'", flush=True)
     ranked_blind, _, _ = _run_search(scenario, exclude_primitives=taxonomy_exclude, seed=seed)
     top1_expr  = ranked_blind[0][0][:70] if ranked_blind else "None"
-    top1_nmse  = ranked_blind[0][1]       if ranked_blind else float("nan")
+    top1_nmse  = ranked_blind[0][1] if ranked_blind else float("nan")
     print(f"    [Step 1/4 | Blind Search        ] Done   — top candidate NMSE={top1_nmse:.3e}: {top1_expr}", flush=True)
     
     top_candidates = []
@@ -428,11 +428,11 @@ def run_scenario_protocol(scenario, seed: int = 42, top_k_val: int = 5, use_taxo
             "note": "Reference is Rank-1 BIC from blind search (best achievable with true primitive).",
         }
     else:
-        print(f"    [Step 3/4: Ablation Control] Failed to compute.", flush=True)
+        print("    [Step 3/4: Ablation Control] Failed to compute.", flush=True)
         result.checks["ablation_control"] = {"pass": False, "note": "Could not compute -- missing blind result or ablated result."}
 
     # ---- Step 4: Determinism check (blind search, 3 independent runs) ----
-    print(f"    [Step 4/4: Determinism Check] Running 3 independent repetitions...", flush=True)
+    print("    [Step 4/4: Determinism Check] Running 3 independent repetitions...", flush=True)
     runs = []
     for run_i in range(3):
         print(f"      - Determinism run {run_i + 1}/3...", flush=True)

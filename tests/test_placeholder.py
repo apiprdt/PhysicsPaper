@@ -1,7 +1,6 @@
 """Core unit tests for ADCD primitives, ratio enumeration, physical gates, and determinism."""
 
 import numpy as np
-import sympy as sp
 
 from adcd.anomaly_scenarios import get_all_scenarios
 from adcd.arc_scorer import ARCScorer, build_arc_regimes
