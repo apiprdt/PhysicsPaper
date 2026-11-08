@@ -4,7 +4,6 @@ Verifies reference metrics for seed 42 and across 5 independent seeds (0, 42, 99
 """
 
 import json
-import math
 import os
 import numpy as np
 import pytest
