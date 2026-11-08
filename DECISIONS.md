@@ -104,4 +104,35 @@ In ADCD v1, validation compared candidate search against an "ablation" pool gene
 4. **Model Misspecification Spline Check:**
    - Residuals of $m_1$ are fitted with a flexible cubic spline. If the spline residual reduction exceeds $\Delta\text{BIC} > 10$, the auditor issues an adequacy warning indicating unmodeled systematic variation.
 
+---
+
+## 2026-11-08: Phase 4 Asimov Design Calculator & Sphere Drag Verification
+
+### Context
+Experimentalists require actionable answers to: "What measurement precision $\sigma^*$, sample size $N^*$, or domain window extension is required to separate candidate theory $M_2$ from $M_1$ before gathering expensive new data?"
+
+### Decisions
+1. **Asimov Dataset & $\Delta\mathrm{BIC}$ Approximation:**
+   - Noise-free data is generated from $M_1$ at its nominal parameters $\theta^*_1$.
+   - $M_2$ is fitted by minimizing the scale-free weighted sum of squares $s_0 = \sum_{i=1}^N ((y_{1, i} - y_{2, i}(\theta_2)) / w_i)^2$, where $w_i = |y_{1, i}|$ for relative noise and $1.0$ for additive noise.
+   - Expected $\Delta\mathrm{BIC} \approx \chi^2_{\min} + (k_2 - k_1)\ln N = \frac{s_0}{\sigma^2} + (k_2 - k_1)\ln N$.
+   - Added support for the expectation correction $(k_2 - k_1)(\ln N - 1)$, to be evaluated in Phase 5 calibration.
+2. **Analytic & Root-Finding Solvers:**
+   - **Noise Precision $\sigma^*$:** Because $s_0$ is independent of $\sigma$, $\sigma^* = \sqrt{s_0 / [10.0 - (k_2 - k_1)\ln N]}$ is solved in closed form.
+   - **Sample Size $N^*$:** Solved via 1D root-finding (Brent's method) exploiting the monotonic scaling $\chi^2_{\min} \propto N$.
+   - **Domain Window Extension:** Solved via bounded root-finding on $x_{\max}^* \in [x_{\max}, 10 x_{\max}]$.
+3. **Primary Literature Grounding for Sphere Drag (Re < 1.0):**
+   - Stokes (1851): $C_{D,0} = 24 / \mathrm{Re}$ (creeping flow).
+   - Oseen (1910): $C_D = (24 / \mathrm{Re})(1 + \frac{3}{16}\mathrm{Re})$ ($k=1$).
+   - Proudman & Pearson (1957) (*JFM* 2(3), 237–262) & Chester & Breach (1969) (*JFM* 37(4), 751–760):
+     - Matched asymptotic expansion with diameter-based Reynolds number $\mathrm{Re} = 2aU/\nu$:
+       $$\frac{C_D}{C_{D,0}} = 1 + \frac{3}{16}\mathrm{Re} + \frac{9}{160}\mathrm{Re}^2 \ln\left(\frac{\mathrm{Re}}{2}\right) + O(\mathrm{Re}^2)$$
+     - **Log Argument Verification:** Primary sources specify $\ln(\mathrm{Re}/2)$ because the matched inner/outer radius scale is $a = d/2$. The brief's stand-in formula used $\ln(\mathrm{Re})$. Because $\ln(\mathrm{Re}/2) = \ln \mathrm{Re} - \ln 2$, the shift changes the effective $O(\mathrm{Re}^2)$ polynomial curvature.
+     - **Stokes Limit & Sign Verification:** As $\mathrm{Re} \to 0$, $C_D \to 24/\mathrm{Re}$. The log term $+9/160 \mathrm{Re}^2 \ln(\mathrm{Re})$ is strictly negative for $\mathrm{Re} < 1$, reducing drag relative to Oseen.
+4. **Reproduction of Predictions & Monte Carlo Validation:**
+   - Stand-in truth at $\mathrm{Re} \le 0.5$ (linear rival): predicted $\sigma^* = 0.137\% \approx 0.14\%$.
+   - Stand-in truth at $\mathrm{Re} \le 1.0$ (quad rival, log grid): predicted $\sigma^* = 0.463\% \approx 0.47\%$.
+   - Verified Chester & Breach series: $\sigma^* = 0.477\%$ for $\mathrm{Re} \le 0.5$ (linear rival) and $0.531\%$ for $\mathrm{Re} \le 1.0$ (quad rival).
+   - Brute-force Monte Carlo (100 seeds each) confirmed that Asimov $\Delta\mathrm{BIC}$ reproduces empirical means within tolerance on both Sphere Drag and Screened Coulomb.
+
 

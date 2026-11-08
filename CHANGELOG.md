@@ -32,6 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Flexible cubic spline check for residual model misspecification.
 - Unit tests for Three-Tier Protocol and zero-ground-truth verification (`tests/test_validation_v2.py`).
 - Phase 3 rerun evaluation script (`scripts/run_phase3_rerun.py`), results (`reports/phase3_rerun_results.json`), and verdict change table (`reports/verdict_change_table.md`).
+- Phase 4 Asimov Design Calculator (`src/adcd/asimov_designer.py`) solving for required noise precision $\sigma^*$, sample size $N^*$, or window extension to separate competing hypotheses.
+- Support for expectation correction $(k_2 - k_1)(\ln N - 1)$ in $\Delta\mathrm{BIC}$ predictions.
+- Primary literature verification of sphere drag series (Proudman & Pearson 1957, Chester & Breach 1969) confirming Stokes limit and $\ln(\mathrm{Re}/2)$ vs stand-in $\ln(\mathrm{Re})$ scaling.
+- Comprehensive unit tests and Monte Carlo validation across two scenarios (`tests/test_asimov_designer.py`).
+- Phase 4 benchmark script (`scripts/run_asimov_benchmark.py`), results (`reports/asimov_results.json`), and markdown report (`reports/asimov_design_report.md`).
 - Unit tests for ClaimCard, canonical hashing, and limit verification (`tests/test_claim_card.py`).
 - Added `REPO_MAP.md`, `DECISIONS.md`, and `AGENTS.md` project rules for Phase 0 baseline pinning.
 ### Changed
