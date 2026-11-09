@@ -264,3 +264,22 @@ Following user audit regarding model origin attribution (specifically clarifying
      - `README.md` remains untouched on branch `Exploring`.
 4. **Constitution Update (`AGENTS.md`):**
    - Codified the Epistemic Honesty & Provenance Protocol as mandatory repo rules.
+
+
+---
+
+## 2026-11-09: Lagrangian Field Theory Verifier and SPARC Dual-Audit Framework
+
+### Context
+To address the risk of "fragile cocoklogi" (models fitting data well via curve-fitting but violating foundational field-theoretic principles), a formal Lagrangian verifier was integrated into ADCD. The verifier uses symbolic calculus (SymPy) and dense numerical grid scans to evaluate theoretical consistency before declaring a model physically valid.
+
+### Decisions
+1. **Four Fundamental Field Consistency Checks (`src/adcd/lagrangian_auditor.py`):**
+   - **No-Ghost:** $\mu > 0$ and $y > 0$ across all $x \in (0, \infty)$ (positive kinetic energy).
+   - **Gradient Ellipticity:** $d g_{\text{obs}} / d g_{\text{bar}} > 0$ (convex action, preventing tachyonic gradient collapse).
+   - **Perturbation Sound Speed:** $c_r^2 = 1 / (1 + d\ln y / d\ln x) > 0$. Confirmed that all Deep-MOND models approach $c_r^2 = 2.0$ in scalar sector, recovering the Bekenstein-Milgrom theorem.
+   - **Action Integrability:** Differentiates between AQUAL closed forms ($\mu(z)$ formulation) and QUMOND auxiliary potential integrations ($\nu(x)$ formulation).
+2. **Dual Verification Pipeline (`scripts/audit_lagrangian_sparc.py`):**
+   - Couplings theoretical status directly to SPARC $N=2,693$ galaxy fit results (`reports/lagrangian_sparc_coupling.csv` and `reports/lagrangian_field_theory_audit.md`).
+3. **Regression Tests (`tests/test_lagrangian_auditor.py`):**
+   - Added 5 unit tests verifying ghost detection, ellipticity breakdown, Deep-MOND sound speed limit, UV asymptotics, and CSV artifact schema.
