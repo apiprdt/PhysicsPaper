@@ -280,10 +280,17 @@ def _save_dual_reports(results: List[Dict[str, Any]], best_bic: float, null_bic:
         "$$c_r^2 = \\frac{1}{1 + \\frac{d\\ln y}{d\\ln x}} \\to \\frac{1}{1 - 1/2} = 2.0$$",
         "This confirms the classical Bekenstein-Milgrom theorem: non-relativistic AQUAL scalar perturbations are inherently superluminal ($c_r = \\sqrt{2} c$) in the deep-MOND regime, requiring a QUMOND or relativistic vector/tensor completion.",
         "",
-        "### B. Action Reconstructibility",
-        "- **Simple MOND:** Possesses an exact elementary AQUAL Lagrangian: $F(z^2) = z^2/2 - z + \\ln(1 + z)$.",
-        "- **McGaugh RAR:** Possesses an exact QUMOND action potential integrable via Bose-Einstein Polylogarithms ($\\mathrm{Li}_4$).",
-        "- **Gaussian Screen:** While achieving an exceptional empirical BIC, its Lagrangian action requires incomplete gamma functions and lacks a fundamental local gauge symmetry.",
+        "### B. Action Reconstructibility (Computed via SymPy)",
+    ])
+    for r in results:
+        if r["k_params"] > 0:
+            theo_r: LagrangianAuditReport = r["theo"]
+            lines.append(
+                f"- **{r['name']}:** QUMOND $\\to$ `{theo_r.qumond_action_form}` | "
+                f"AQUAL $\\to$ `{theo_r.aqual_action_form}`"
+            )
+
+    lines.extend([
         "",
         "---",
         f"Artifacts generated: `{REPORT_PATH}` and `{CSV_PATH}`.",

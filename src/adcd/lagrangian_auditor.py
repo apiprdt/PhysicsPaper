@@ -187,7 +187,7 @@ class LagrangianFieldAuditor:
         """
         Genuinely attempt symbolic QUMOND integration H(x) = int x * y(x) dx
         and AQUAL algebraic inversion z = x * y(x), mu(z) = 1 / y(x) using SymPy.
-        No model-name string matching.
+        No model-name string matching or fake parameter substitution.
         """
         x_sym = sp.Symbol("x", positive=True, real=True)
         s_sym = sp.Symbol("s", positive=True, real=True)
@@ -205,34 +205,47 @@ class LagrangianFieldAuditor:
         except Exception as exc:
             return f"Unparseable ({exc})", "Unparseable"
 
-        # 1. QUMOND Potential Density: H(x) = integrate(x * y(x), x) on normalized scale s=1
-        y_unit = y_sym.subs({s_sym: 1, n_sym: 2})
+        # Normalize scale s=1 (dimensionless units a0=1), but NEVER hardcode shape exponent n!
+        y_unit = y_sym.subs(s_sym, 1)
 
-        # Floating-point exponents/coefficients represent empirical fits whose
-        # algebraic inversion into closed-form radicals is transcendental by definition.
-        if y_unit.has(sp.Float):
+        # If expression contains general symbolic exponent n or non-simple irrational floats,
+        # closed-form radical inversion does not exist in general.
+        if y_unit.has(n_sym):
             return (
-                f"Transcendental Integral: int x*({sp.sstr(y_unit)}) dx",
-                f"Implicit Transcendental: ({sp.sstr(y_unit.subs(x_sym, z_sym * mu_sym))})*mu = 1",
+                f"Symbolic-Exponent Integral: int x*({sp.sstr(y_unit)}) dx (Closed-form only at rational n)",
+                f"Implicit Symbolic-Exponent Relation: ({sp.sstr(y_unit.subs(x_sym, z_sym * mu_sym))})*mu = 1",
             )
 
+        # Convert simple exact decimals (like 0.5 -> 1/2) to rationals so SymPy can integrate them
+        y_rat = sp.nsimplify(y_unit, tolerance=1e-5, rational=True)
+
+        # 1. QUMOND Potential Density: H(x) = integrate(x * y(x), x)
         try:
-            H_int = sp.integrate(x_sym * y_unit, x_sym)
+            H_int = sp.integrate(x_sym * y_rat, x_sym)
             if isinstance(H_int, sp.Integral) or H_int.has(sp.Integral):
-                qumond_form = f"Transcendental Integral: int x*({sp.sstr(y_unit)}) dx"
+                qumond_form = f"Transcendental Integral: int x*({sp.sstr(y_rat)}) dx"
             else:
                 H_simp = sp.simplify(H_int)
                 qumond_form = f"Exact Closed-Form: H(x) = {sp.sstr(H_simp)}"
         except Exception:
             qumond_form = "Transcendental / Non-elementary"
 
-        # 2. AQUAL Lagrangian: Solve x = z * mu and y(x) = 1 / mu for mu(z)
+        # 2. AQUAL Lagrangian: Solve x = z * mu and y(x) = 1 / mu for positive branch mu(z) > 0
         try:
-            inv_eq = sp.simplify(y_unit.subs(x_sym, z_sym * mu_sym) - 1 / mu_sym)
+            inv_eq = sp.simplify(y_rat.subs(x_sym, z_sym * mu_sym) - 1 / mu_sym)
             sol_mu = sp.solve(inv_eq, mu_sym)
-            pos_sols = [sol for sol in sol_mu if not sol.has(sp.I)]
+            pos_sols = []
+            for sol in sol_mu:
+                if not sol.has(sp.I):
+                    try:
+                        val_at_1 = float(sol.subs(z_sym, 1.0).evalf())
+                        if val_at_1 > 0.0:
+                            pos_sols.append(sol)
+                    except Exception:
+                        pass
+
             if pos_sols:
-                mu_z = sp.simplify(pos_sols[-1])
+                mu_z = sp.simplify(pos_sols[0])
                 F_int = sp.integrate(z_sym * mu_z, z_sym)
                 if not F_int.has(sp.Integral):
                     aqual_form = (
@@ -242,8 +255,8 @@ class LagrangianFieldAuditor:
                 else:
                     aqual_form = f"Explicit mu(z) = {sp.sstr(mu_z)} (Transcendental integral)"
             else:
-                aqual_form = "Implicit Transcendental: y(z*mu)*mu = 1"
+                aqual_form = f"Implicit Transcendental: ({sp.sstr(y_rat.subs(x_sym, z_sym * mu_sym))})*mu = 1"
         except Exception:
-            aqual_form = f"Implicit Transcendental: ({sp.sstr(y_unit.subs(x_sym, z_sym * mu_sym))})*mu = 1"
+            aqual_form = f"Implicit Transcendental: ({sp.sstr(y_rat.subs(x_sym, z_sym * mu_sym))})*mu = 1"
 
         return qumond_form, aqual_form
