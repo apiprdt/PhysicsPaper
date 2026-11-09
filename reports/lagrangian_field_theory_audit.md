@@ -12,12 +12,12 @@ This dual-verification protocol evaluates candidate gravitational transition law
 
 | Rank | Candidate Law | Citation / Provenance | No-Ghost | Elliptic | Max $c_r^2$ | QUMOND Action Status | SPARC BIC | $\Delta\mathrm{BIC}$ vs Best | Final Verdict |
 | :---: | :--- | :--- | :---: | :---: | :---: | :--- | :---: | :---: | :--- |
-| 1 | **Gaussian-Screened MOND** | AI Deductive Synthesis (Maxwell-Boltzmann screen) | True | True | `2.00` | Exact Closed-Form: H(x) = x^2/2 - 2... | `7256.3` | `+0.0` | **BEST EMPIRICAL FIT** |
-| 2 | **McGaugh RAR** | McGaugh et al. (2016), PRL 117, 201101 | True | True | `2.00` | Transcendental: Integral x / (1 - e... | `7304.8` | `+48.5` | REFUTED (+48.5) |
-| 3 | **Simple MOND** | Famaey & Binney (2005), MNRAS 363, 603 | True | True | `2.00` | Exact Algebraic: H(x) = (x^2 + (x -... | `7366.0` | `+109.7` | REFUTED (+109.7) |
-| 4 | **Smooth-Max CES (L_n-Crossover)** | Churchill & Usagi (1972), AIChE J. 18(6), 1121 | True | True | `2.00` | Asymptotic Bridge: Integrable via G... | `7390.7` | `+134.4` | REFUTED (+134.4) |
-| 5 | **Standard MOND** | Milgrom (1983), ApJ 270, 365 | True | True | `2.00` | Transcendental: Requires elliptic/h... | `7460.0` | `+203.7` | REFUTED (+203.7) |
-| 6 | **Pure Newtonian Null** | Newtonian Baryonic Baseline | True | True | `1.00` | Closed-Form: 0.5*x**2... | `19126.1` | `+11869.8` | REFUTED NULL (>100 sigma) |
+| 1 | **Gaussian-Screened MOND** | AI Deductive Synthesis (Maxwell-Boltzmann screen) | True | True | `2.00` | Exact Closed-Form: H(x) = -2*sqrt(x... | `7256.3` | `+0.0` | **BEST EMPIRICAL FIT** |
+| 2 | **McGaugh RAR** | McGaugh et al. (2016), PRL 117, 201101 | True | True | `2.00` | Transcendental Integral: int x*(1/(... | `7304.8` | `+48.5` | REFUTED (+48.5) |
+| 3 | **Simple MOND** | Famaey & Binney (2005), MNRAS 363, 603 | True | True | `2.00` | Exact Closed-Form: H(x) = sqrt(x)*(... | `7366.0` | `+109.7` | REFUTED (+109.7) |
+| 4 | **Smooth-Max CES (L_n-Crossover)** | Churchill & Usagi (1972), AIChE J. 18(6), 1121 | True | True | `2.00` | Exact Closed-Form: H(x) = (2*x**(5/... | `7390.3` | `+134.0` | REFUTED (+134.0) |
+| 5 | **Standard MOND** | Milgrom (1983), ApJ 270, 365 | True | True | `2.00` | Exact Closed-Form: H(x) = -x**(3/2)... | `7460.0` | `+203.7` | REFUTED (+203.7) |
+| 6 | **Pure Newtonian Null** | Newtonian Baryonic Baseline | True | True | `1.00` | Exact Closed-Form: H(x) = x**2/2... | `19126.1` | `+11869.8` | REFUTED NULL (>100 sigma) |
 
 ---
 

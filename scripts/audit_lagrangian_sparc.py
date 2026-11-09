@@ -72,9 +72,13 @@ def run_full_lagrangian_sparc_pipeline() -> None:
             "name": "Smooth-Max CES (L_n-Crossover)",
             "citation": "Churchill & Usagi (1972), AIChE J. 18(6), 1121",
             "origin_type": "literature",
-            "expr": "y = (1^1.85 + (0.90*x^-0.5)^1.85)^(1/1.85)",
+            "expr": "y = (1 + (s/sqrt(x))^n)^(1/n)",
             "k_params": 2,
-            "eval_fn": lambda x_arr, s: (1.0 ** 1.85 + (0.90 * (x_arr ** -0.5)) ** 1.85) ** (1.0 / 1.85),
+            "eval_fn": lambda x_arr, params: (
+                1.0 + (float(params[0]) / np.sqrt(np.maximum(x_arr, 1e-30))) ** float(params[1])
+            ) ** (1.0 / float(params[1]))
+            if isinstance(params, (tuple, list, np.ndarray))
+            else (1.0 + (float(params) / np.sqrt(np.maximum(x_arr, 1e-30))) ** 1.85) ** (1.0 / 1.85),
         },
         {
             "name": "Gaussian-Screened MOND",
@@ -88,7 +92,7 @@ def run_full_lagrangian_sparc_pipeline() -> None:
             "name": "Pure Newtonian Null",
             "citation": "Newtonian Baryonic Baseline",
             "origin_type": "literature",
-            "expr": "y = 1.0",
+            "expr": "y = 1",
             "k_params": 0,
             "eval_fn": lambda x_arr, s: np.ones_like(x_arr),
         },
@@ -117,24 +121,43 @@ def run_full_lagrangian_sparc_pipeline() -> None:
             y_pred = fn(x, s_best)
             chi2, bic, nmse, rms = compute_metrics(y, y_pred, sigma_y, k_params=1)
         else:
-            # 2 params (Smooth-Max CES fixed at n=1.85, s=0.90)
-            s_best = 0.90
-            y_pred = fn(x, s_best)
+            # Genuinely optimize both (s, n) on SPARC data via L-BFGS-B!
+            def _loss_2p(theta: np.ndarray) -> float:
+                s_val, n_val = float(np.exp(theta[0])), float(theta[1])
+                y_hat = (1.0 + (s_val / np.sqrt(np.maximum(x, 1e-30))) ** n_val) ** (1.0 / n_val)
+                return float(np.sum(((y - y_hat) / sigma_y) ** 2))
+
+            res_opt2 = scipy.optimize.minimize(
+                _loss_2p,
+                x0=np.array([np.log(0.90), 1.85], dtype=np.float64),
+                bounds=[(-3.0, 3.0), (0.5, 10.0)],
+                method="L-BFGS-B",
+            )
+            s_best = float(np.exp(res_opt2.x[0]))
+            n_best = float(res_opt2.x[1])
+            y_pred = fn(x, (s_best, n_best))
             chi2, bic, nmse, rms = compute_metrics(y, y_pred, sigma_y, k_params=2)
 
         # B. Run Lagrangian Field Theory Audit
+        scale_param = (s_best, n_best) if k == 2 else s_best
         theo_report: LagrangianAuditReport = auditor.audit_model(
             name=name,
             expr_str=m["expr"],
             eval_fn=fn,
-            scale_param=s_best,
+            scale_param=scale_param,
+        )
+
+        display_expr = (
+            f"y = (1 + ({s_best:.4f}/sqrt(x))^{n_best:.4f})^(1/{n_best:.4f})"
+            if k == 2
+            else m["expr"]
         )
 
         results.append({
             "name": name,
             "citation": m["citation"],
             "origin_type": m["origin_type"],
-            "expr": m["expr"],
+            "expr": display_expr,
             "k_params": k,
             "s_best": s_best,
             "chi2": chi2,
