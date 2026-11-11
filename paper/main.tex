@@ -102,7 +102,7 @@ unconstrained search encounters three practical hurdles:
 (i)~\emph{numerical cancellation}: near the classical limit $u\to0$, standard representations
 suffer loss of floating-point significance~\cite{ieee754};
 (ii)~\emph{run-to-run variability}: stochastic optimization may return different Pareto candidates across random seeds~\cite{bongard2007,schmidt2009}; and
-(iii)~\emph{uncalibrated confidence}: returning a single best-fit expression without quantifying whether the residual signal exceeds the noise floor risks presenting an unverified expression as a physical law~\cite{lacava2021,messeri2024,krenn2022}.
+(iii)~\emph{uncalibrated confidence}: returning a best-fit expression without quantifying whether the residual signal exceeds the noise floor risks presenting an unverified expression as a physical law~\cite{lacava2021,messeri2024,krenn2022}.
 ADCD is designed specifically for this correction-first regime: algebraically regularized primitives
 eliminate numerical cancellation; deterministic grammar enumeration provides reproducible candidate evaluation;
 and explicit identifiability gating reports when data cannot discriminate between candidate structures.
@@ -589,7 +589,8 @@ Target & Corrections to known laws & Full equations from scratch \\
 Prior & Phenomenon-specific taxonomy & None (tabula rasa) \\
 Dimensional engine & 5D MLT$\Theta$Q & Varies (often 3D or none) \\
 Classical limit & Algebraic guarantee & Soft loss penalty \\
-Identifiability & Explicit; WITHHELD if insufficient & Best-fit Pareto frontier \\
+Output & Ranked top-$K$ + verdict & Pareto frontier \\
+Identifiability & Explicit (WITHHELD if insufficient) & None built in \\
 Reproducibility & Deterministic (fixed seed/env) & Stochastic (seedable) \\
 \bottomrule
 \end{tabular}
