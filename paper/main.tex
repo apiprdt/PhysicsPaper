@@ -95,21 +95,17 @@ to the true Debye length (1.50~m).
 Just as important, when the data are too noisy to support any conclusion, ADCD says so
 instead of returning its best guess.
 
-Existing symbolic regression tools can discover formulas from data, but they face three difficulties in this correction-first setting:
-PySR~\cite{cranmer2020,cranmer2023}, AI Feynman~\cite{udrescu2020}, and
-PhySO~\cite{tenachi2023} excel at equation discovery from scratch but face
-three difficulties in the correction-first setting:
-(i)~\emph{catastrophic cancellation}: floating-point precision collapses as
-$u\to0$, corrupting optimizer feedback~\cite{ieee754};
-(ii)~\emph{stochastic irreproducibility}: default evolutionary search does not guarantee
-byte-identical results across runs without serial execution~\cite{bongard2007,schmidt2009}; and
-(iii)~\emph{silent overclaiming}: a single best-fit equation is returned
-regardless of whether the data carry sufficient power to distinguish competing
-structures~\cite{lacava2021}, generating what recent meta-science critiques identify
-as an illusion of understanding~\cite{messeri2024,krenn2022}.
-ADCD addresses each failure mode in turn: algebraically regularized primitives
-eliminate cancellation; deterministic grammar enumeration ensures reproducibility;
-explicit BIC-based identifiability gating prevents overclaiming.
+General-purpose symbolic regression engines such as PySR~\cite{cranmer2020,cranmer2023},
+AI Feynman~\cite{udrescu2020}, and PhySO~\cite{tenachi2023} excel at open-ended equation discovery from scratch.
+However, when repurposed directly to find small asymptotic corrections to an established law,
+unconstrained search encounters three practical hurdles:
+(i)~\emph{numerical cancellation}: near the classical limit $u\to0$, standard representations
+suffer loss of floating-point significance~\cite{ieee754};
+(ii)~\emph{run-to-run variability}: stochastic optimization may return different Pareto candidates across random seeds~\cite{bongard2007,schmidt2009}; and
+(iii)~\emph{uncalibrated confidence}: returning a single best-fit expression without quantifying whether the residual signal exceeds the noise floor risks presenting an unverified expression as a physical law~\cite{lacava2021,messeri2024,krenn2022}.
+ADCD is designed specifically for this correction-first regime: algebraically regularized primitives
+eliminate numerical cancellation; deterministic grammar enumeration provides reproducible candidate evaluation;
+and explicit identifiability gating reports when data cannot discriminate between candidate structures.
 
 \paragraph{Contributions.}
 \begin{itemize}[noitemsep,leftmargin=*]
@@ -574,12 +570,11 @@ In the $3{\times}3$ misspecification audit, none of the 6 wrong-taxonomy trials 
 false IDENTIFIABLE verdict.
 
 \textbf{Comparison with general SR.}
-ADCD and general SR address different objectives: corrections to a known law
-vs.\ full equation discovery from scratch.
-The relevant distinction is whether a discovered correction is reliably supported by the data:
-unconstrained SR targets open-ended discovery, whereas ADCD formally identifies when the data
-warrant a structural claim versus when they do not.
-Table~\ref{tab:comparison} summarises the operational regimes.
+ADCD and general SR address complementary objectives: discovering small corrections to an established baseline
+vs.\ discovering full governing equations from scratch.
+Unconstrained SR explores broad hypothesis spaces and constructs a Pareto frontier of complexity versus accuracy.
+In contrast, ADCD formally tests whether observational data warrant a specific structural correction to a mature classical baseline.
+Table~\ref{tab:comparison} summarises these complementary operational regimes.
 
 \textbf{Principle-guided discovery.}
 Recent perspectives on AI for physics stress that theory building needs compact laws,
@@ -589,7 +584,7 @@ baseline and reports how strongly the data support it.
 
 \begin{table}[ht]
 \small
-\caption{Operational comparison: ADCD vs.\ unconstrained symbolic regression.}
+\caption{Complementary roles of ADCD and general-purpose symbolic regression.}
 \label{tab:comparison}
 \centering
 \begin{tabular}{@{}p{2.8cm}p{3.5cm}p{4.2cm}@{}}
@@ -600,7 +595,7 @@ Target & Corrections to known laws & Full equations from scratch \\
 Prior & Phenomenon-specific taxonomy & None (tabula rasa) \\
 Dimensional engine & 5D MLT$\Theta$Q & Varies (often 3D or none) \\
 Classical limit & Algebraic guarantee & Soft loss penalty \\
-Identifiability & Explicit; WITHHELD if insufficient & Absent or post-hoc \\
+Identifiability & Explicit; WITHHELD if insufficient & Best-fit Pareto frontier \\
 Reproducibility & Deterministic (fixed seed/env) & Stochastic by default \\
 \bottomrule
 \end{tabular}
@@ -630,10 +625,10 @@ deliberate constraint preventing unchecked hypothesis-space expansion.
 ADCD constrains its hypothesis space relative to general-purpose SR: candidates
 failing dimensional consistency or outside the phenomenon-specific primitive set
 are rejected before fitting.
-This prevents noise-sponge overfitting but means ADCD cannot discover corrections
+This prevents fitting spurious mathematical complexity to observational noise, but means ADCD cannot discover corrections
 whose functional family lacks a documented derivation.
-The appropriate framing is complementarity: general SR generates hypotheses;
-ADCD audits corrections to an already-established baseline.
+The appropriate framing is complementarity: general SR explores broad hypothesis spaces from scratch;
+ADCD audits targeted corrections to an already-established baseline.
 
 \textbf{Seed stability of borderline verdicts.}
 Entropy Expansion's verdict varies across noise realizations (2/5 IDENTIFIABLE,
@@ -654,9 +649,11 @@ Entropy Expansion: $\Delta\mathrm{BIC}=14.70$, class-level, parsimony-driven; 2/
 and one yields a principled WITHHELD verdict (Time Dilation at $v\le0.3c$),
 where the historical signal is insufficient for a confident structural claim.
 Within its deliberate scope---known classical baseline, additive or multiplicative
-correction, Gaussian noise---ADCD provides explicit reproducibility and
-identifiability diagnostics absent from unconstrained SR, and returns an explicit
-WITHHELD verdict (with its $\Delta\mathrm{BIC}$) when the data are insufficient.
+correction, Gaussian noise---ADCD provides deterministic reproducibility and
+explicit identifiability diagnostics, returning a principled WITHHELD verdict
+(with its $\Delta\mathrm{BIC}$) when observational data cannot discriminate candidate structures.
+We hope this work encourages broader adoption of explicit identifiability checks
+and abstention mechanisms in scientific machine learning.
 
 % ---------------------------------------------------------------
 \begin{ack}
