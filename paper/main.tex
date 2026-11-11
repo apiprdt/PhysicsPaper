@@ -312,7 +312,7 @@ The pipeline issues an IDENTIFIABLE verdict only when all four checks pass:
   \item \textbf{Determinism.} Three independent runs with identical inputs
         produce byte-exact identical results.
 \end{enumerate}
-Failure of any check yields WITHHELD.
+Failure of any check yields WITHHELD (in benchmark audits, Steps 2--3 evaluate against the known synthetic target family; in empirical deployment, Step~3 ablates the discovered candidate's family).
 
 % ---------------------------------------------------------------
 \section{Experiments}
@@ -490,8 +490,9 @@ $\overline{\Delta\mathrm{BIC}}=76.61$, penalty-free $\overline{\Delta D + \Delta
 Because the classical baseline $S_i$ is constant, the scale-dependence test is
 uninformative and mode detection falls back to an additive search. Thus, the recovered additive
 correction $\theta_0\ln(1+dV/V_i)$ matches the additive ground truth
-$nR\ln(1+dV/V_i)$ at class level: $\theta_0$ legitimately absorbs the additive
-amplitude $nR \approx 8.314$, rather than the multiplicative ratio $nR/S_i$.
+$nR\ln(1+dV/V_i)$ at class level: the fitted amplitude $\hat{\theta}_0 \approx 8.30\text{ J/K}$
+legitimately absorbs the additive gas constant $nR = 8.314\text{ J/K}$, rather than the
+multiplicative ratio $nR/S_i$.
 ADCD labels this \texttt{class\_only}---explicit epistemic qualification absent
 from unconstrained SR outputs.
 $\Delta\mathrm{BIC}=14.70>10$ supports IDENTIFIABLE; however,
@@ -616,7 +617,7 @@ regularized primitives, a 5D (MLT$\Theta$Q) Buckingham-$\pi$ engine, and
 a Phenomenon-Specific Taxonomy.
 On three canonical scenarios, two yield IDENTIFIABLE results
 (Screened Coulomb: $\Delta\mathrm{BIC}=30.65$, exact match;
-Entropy Expansion: $\Delta\mathrm{BIC}=14.70$, class-level match)
+Entropy Expansion: $\Delta\mathrm{BIC}=14.70$, class-level, parsimony-driven; 2/5 seeds)
 and one yields a principled WITHHELD verdict (Time Dilation at $v\le0.3c$),
 where the historical signal is insufficient for a confident structural claim.
 Within its deliberate scope---known classical baseline, additive or multiplicative
