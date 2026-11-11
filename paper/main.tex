@@ -354,10 +354,12 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
   \includegraphics[width=\textwidth]{fig1_recovery.pdf}
   \caption{%
     Correction recovery for the three scenarios.
-    \textit{Gray dots}: observed residual $\Delta$ at 1\% Gaussian noise.
+    \textit{Gray dots}: observed residual $\Delta$ at 1\% Gaussian noise
+    (relative residual $\Delta S / S_i$ for Entropy Expansion).
     \textit{Blue solid}: ground truth.
     \textit{Red dashed} (``ADCD Recovery''): the exact symbolic expression
-    discovered by ADCD, evaluated with the fitted parameters $\boldsymbol{\theta}$;
+    discovered by ADCD, evaluated with fitted parameters $\boldsymbol{\theta}$
+    (normalized by $S_i$ for Entropy Expansion to match the relative scale);
     see Table~\ref{tab:results} for exact NMSE values.
     Screened Coulomb (IDENTIFIABLE): exact symbolic match,
     $\mathrm{NMSE}=2.77\times10^{-4}$.
