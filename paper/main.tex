@@ -63,14 +63,12 @@ classical limit, which avoids floating-point error;
 ADCD then returns one of two verdicts: IDENTIFIABLE (the data support the discovered
 structure) or WITHHELD (they do not).
 On three synthetic tests with 1\% noise, ADCD recovers the Screened Coulomb correction
-exactly (Bayesian Information Criterion, $\Delta\mathrm{BIC}=30.65$), recovers the Entropy Expansion correction at the
+with an exact symbolic match ($\Delta\mathrm{BIC}=30.65$; BIC = Bayesian Information Criterion), recovers the Entropy Expansion correction at the
 level of its function family ($\Delta\mathrm{BIC}=14.70$; borderline, 2 of 5 noise seeds),
 and withholds judgment on Time Dilation at $v\le0.3c$, where measurement noise alone
 already accounts for a normalized mean squared error of $\mathrm{NMSE}\approx0.41$, far above our 0.05 acceptance threshold.
-Results are reproducible given the same software and random seed.
-
-\vspace{0.3em}
-\noindent\textbf{Keywords:} symbolic regression; correction discovery;
+Results are reproducible given the same software and random seed.\\[0.3em]
+\textbf{Keywords:} symbolic regression; correction discovery;
 dimensional analysis; structural prior; model selection; identifiability
 \end{abstract}
 
@@ -126,7 +124,7 @@ BACON~\cite{langley1987} and has evolved toward modern autonomous equation
 discovery~\cite{kramer2026,makke2024,karagiorgi2022}.
 General SR engines (Eureqa~\cite{schmidt2009}, PySR~\cite{cranmer2020,cranmer2023},
 AI Feynman~\cite{udrescu2020,udrescu2020b}, PhySO~\cite{tenachi2023})
-target unconstrained equation recovery and do not enforce classical-limit
+target unconstrained equation recovery and typically do not enforce classical-limit
 constraints algebraically.
 SINDy~\cite{brunton2016} shares our library-based approach but discovers
 governing equations rather than corrections.
@@ -134,11 +132,11 @@ PINNs~\cite{raissi2019,karniadakis2021} embed physical laws as soft loss penalti
 ADCD imposes them as hard algebraic identities before any numerical computation.
 Recent systems combining data with background knowledge and axiomatic reasoning,
 such as AI-Descartes~\cite{cornelio2023} and AI~Hilbert~\cite{corywright2024},
-highlight the importance of theory-grounded discovery, but do not address
+highlight the importance of theory-grounded discovery, but, to our knowledge, do not address
 catastrophic cancellation near asymptotic limits or provide formal identifiability gating.
 While dimensional analysis and symmetry constraints have been integrated into
 SR and dynamical learning~\cite{tenachi2023,petersen2021,otto2025},
-ADCD extends this with a five-dimensional (MLT$\Theta$Q) dimensional grouping heuristic,
+ADCD adds a lightweight five-dimensional (MLT$\Theta$Q) dimensional grouping heuristic,
 transcendental argument safety, and BIC-based identifiability reporting
 in a single pre-fitting gate cascade.
 By combining deterministic grammar enumeration, algebraic classical-limit enforcement,
@@ -183,7 +181,7 @@ Table~\ref{tab:primitives} lists all eight primitives.
 \begin{table}[ht]
 \small
 \caption{The eight algebraically regularized primitives, each satisfying
-$\lim_{u\to0}D(u)=0$ as an exact algebraic identity.
+$\lim_{u\to0}D(u)=0$ as an exact algebraic identity (for $\theta\neq0$ in \texttt{D\_pow}).
 The first five are the core physics-motivated basis; the remaining three extend
 coverage to oscillatory, saturation, and power-law regimes.
 Column ``Physical origin'' cites the fundamental equation that produces this
@@ -214,7 +212,7 @@ over mass (M), length (L), time (T), temperature ($\Theta$), and electric charge
 (note: uppercase $\Theta$ denotes temperature dimension, distinct from lowercase model parameters $\theta_k$).
 Instead of solving the full dimensional-analysis problem, it uses a simple two-step
 heuristic: first, it groups variables with identical dimensions into pairwise ratios
-(e.g., $q_1/q_2$); second, for each dimensional variable $v_k$ ($k{=}0,1,\dots$), it generates two single-parameter free-scale ratios---linear $v_k/\theta_{2k}$ and quadratic $v_k^2/\theta_{2k+1}$.
+(e.g., $q_1/q_2$); second, for each dimensional variable $x_k$ ($k{=}0,1,\dots$), it generates two single-parameter free-scale ratios---linear $x_k/\theta_{2k}$ and quadratic $x_k^2/\theta_{2k+1}$.
 Charge is tracked separately so that two charges can form a dimensionless ratio; a
 three-dimensional (MLT) engine would treat them as dimensionless scalars and skip this step.
 In Screened Coulomb, $q_1$ and $q_2$ consume $\theta_0$--$\theta_3$, so the distance
@@ -243,7 +241,7 @@ Table~\ref{tab:app_misspec}) tests what happens when the wrong taxonomy is suppl
 In all 6 wrong-taxonomy trials the system returned WITHHELD, so there were no false
 IDENTIFIABLE verdicts (the two Time Dilation trials fail the positive control under any prior; e.g., applying the oscillatory
 \texttt{wave\_resonance} prior to Screened Coulomb yields WITHHELD with
-$\Delta\mathrm{BIC}=-910.5$).\footnote{Full supplementary audit tables are provided in Appendix~\ref{app:audits} and at \url{https://github.com/apiprdt/PhysicsPaper/tree/PythonADCD/rebuttal}.}
+$\Delta\mathrm{BIC}=-910.5$).
 In these tests, a wrong prior led to abstention rather than an invented law.
 
 \begin{table}[ht]
@@ -292,7 +290,7 @@ Gates~1--3 inspect the symbolic theta-intact expression; Gates~4--5 probe at $\b
 Gate & Rejection criterion \\
 \midrule
 1. AST complexity & Post-expansion SymPy AST depth $>12$ or node count $>50$ (beyond grammar budget). \\
-2. Dimensional consistency & Physical dimensions mismatch target (allowing free-scale $v/\theta_k$). \\
+2. Dimensional consistency & Physical dimensions mismatch target (allowing free-scale $x/\theta_k$). \\
 3. Transcendental safety & Arguments to $\exp$, $\ln$, $\sqrt{\cdot}$ not dimensionless or $\theta_k$-scaled. \\
 4. Asymptotic check (ARC) & Classical limit at $\boldsymbol{\theta}=\mathbf{1}$ (and post-fit $\hat{\boldsymbol{\theta}}$) does not vanish. \\
 5. Coarse numerical fitness & Evaluation at $\boldsymbol{\theta}=\mathbf{1}$ produces \texttt{NaN}/\texttt{Inf}. \\
@@ -490,7 +488,7 @@ Reporting all three shows what drives each verdict.
       $1.59\times10^{-2}$ & PASS & $-1.08$ & $14.70$ & class & \textbf{IDENTIFIABLE} (2/5 seeds) \\
     Time Dilation ($v\le0.3c$) &
       $\theta_0\frac{v^2/c^2}{\sqrt{1{-}v^2/c^2}(1{+}\sqrt{1{-}v^2/c^2})}$ &
-      $0.41$ & FAIL & $-0.00$ & $13.79$ & class & \textbf{WITHHELD} \\
+      $0.41$ & FAIL & $0.00$ & $13.79$ & class & \textbf{WITHHELD} \\
     \bottomrule
     \end{tabular}%
   }
@@ -580,7 +578,7 @@ Property & ADCD & General SR \\
 \midrule
 Target & Corrections to known laws & Full equations from scratch \\
 Prior & Phenomenon-specific taxonomy & None (tabula rasa) \\
-Dimensional engine & 5D MLT$\Theta$Q & Varies (often 3D or none) \\
+Dimensional engine & 5D MLT$\Theta$Q & Varies (none to full unit constraints, e.g., PhySO) \\
 Classical limit & Algebraic guarantee & Soft loss penalty \\
 Output & Ranked top-$K$ + verdict & Pareto frontier \\
 Identifiability & Explicit (WITHHELD if insufficient) & None built in \\
@@ -633,7 +631,7 @@ regularized primitives, 5D (MLT$\Theta$Q) dimensional grouping, and
 a Phenomenon-Specific Taxonomy.
 On three canonical scenarios, two yield IDENTIFIABLE results
 (Screened Coulomb: $\Delta\mathrm{BIC}=30.65$, exact match;
-Entropy Expansion: $\Delta\mathrm{BIC}=14.70$, class-level, parsimony-driven)
+Entropy Expansion: $\Delta\mathrm{BIC}=14.70$, class-level, parsimony-driven; seed~42, 2/5 seeds IDENTIFIABLE)
 and one yields a principled WITHHELD verdict (Time Dilation at $v\le0.3c$),
 where the historical signal is insufficient for a confident structural claim.
 Within its deliberate scope---known classical baseline, additive or multiplicative
@@ -694,7 +692,7 @@ Under the Extended BIC formulation ($\mathrm{BIC} = k\ln N + N\ln\mathrm{NMSE} +
 \begin{table}[!ht]
   \vspace{-4pt}
   \small
-  \caption{Exact decomposition of $\Delta\mathrm{BIC}$ into pure data-fit deviance ($\Delta D$), parameter parsimony ($\Delta k\ln N$), and search-space multiplicity penalty ($2\ln(|\mathcal{C}_{\mathrm{abl}}|/|\mathcal{C}_{\mathrm{dom}}|)$) at $N=200$, $\text{seed}=42$.}
+  \caption{Exact decomposition of $\Delta\mathrm{BIC}$ into pure data-fit deviance ($\Delta D$), parameter parsimony ($\Delta k\ln N$), and search-space multiplicity penalty ($2\ln(|\mathcal{C}_{\mathrm{abl}}|/|\mathcal{C}_{\mathrm{dom}}|)$) at $N=200$, $\text{seed}=42$ (components may differ from totals by $0.01$ due to rounding).}
   \label{tab:app_bic}
   \centering
   \resizebox{\columnwidth}{!}{%
@@ -704,7 +702,7 @@ Under the Extended BIC formulation ($\mathrm{BIC} = k\ln N + N\ln\mathrm{NMSE} +
     \midrule
     Screened Coulomb  & 60 & 814 & $2\to3$ & $+5.22$ & $+5.30$  & $\mathbf{+20.14}$ & $30.65$ & Pure fit ($\Delta D > 10$) \\
     Entropy Expansion & 40 & 534 & $1\to3$ & $+5.18$ & $+10.60$ & $-1.08$           & $14.70$ & Parameter parsimony \\
-    Time Dilation     & 10 & 700 & $1\to2$ & $+8.50$ & $+5.30$  & $-0.00$           & $13.79$ & Penalty + parsimony (WITHHELD) \\
+    Time Dilation     & 10 & 700 & $1\to2$ & $+8.50$ & $+5.30$  & $0.00$            & $13.79$ & Penalty + parsimony (WITHHELD) \\
     \bottomrule
   \end{tabular}%
   }
@@ -719,7 +717,7 @@ To evaluate sensitivity to random measurement fluctuations under $1\%$ Gaussian 
 \begin{table}[!ht]
   \vspace{-4pt}
   \small
-  \caption{Verdict and $\Delta\mathrm{BIC}$ stability across five independent $1\%$ Gaussian noise realizations ($\text{seed}\in\{0, 42, 99, 256, 512\}$). Standard deviations denote unbiased sample standard deviations ($s$, $\mathrm{ddof}=1$; Screened Coulomb median $\Delta\mathrm{BIC}=30.65$, skewed upward by the seed-99 outlier).}
+  \caption{Verdict and $\Delta\mathrm{BIC}$ stability across five independent $1\%$ Gaussian noise realizations ($\text{seed}\in\{0, 42, 99, 256, 512\}$). Standard deviations denote unbiased sample standard deviations ($s$, $\mathrm{ddof}=1$; Screened Coulomb: median $\Delta\mathrm{BIC}=30.65$, while the mean is pulled upward by the seed-99 outlier).}
   \label{tab:app_seeds}
   \centering
   \resizebox{\columnwidth}{!}{%
