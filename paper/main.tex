@@ -63,10 +63,10 @@ classical limit, which avoids floating-point error;
 ADCD then returns one of two verdicts: IDENTIFIABLE (the data support the discovered
 structure) or WITHHELD (they do not).
 On three synthetic tests with 1\% noise, ADCD recovers the Screened Coulomb correction
-exactly ($\Delta\mathrm{BIC}=30.65$), recovers the Entropy Expansion correction at the
+exactly (Bayesian Information Criterion, $\Delta\mathrm{BIC}=30.65$), recovers the Entropy Expansion correction at the
 level of its function family ($\Delta\mathrm{BIC}=14.70$; borderline, 2 of 5 noise seeds),
 and withholds judgment on Time Dilation at $v\le0.3c$, where measurement noise alone
-already accounts for $\mathrm{NMSE}\approx0.41$, far above our 0.05 acceptance threshold.
+already accounts for a normalized mean squared error of $\mathrm{NMSE}\approx0.41$, far above our 0.05 acceptance threshold.
 Results are reproducible given the same software and random seed.
 
 \vspace{0.3em}
@@ -95,7 +95,7 @@ to the true Debye length (1.50~m).
 Just as important, when the data are too noisy to support any conclusion, ADCD says so
 instead of returning its best guess.
 
-General-purpose symbolic regression engines such as PySR~\cite{cranmer2020,cranmer2023},
+General-purpose symbolic regression (SR) engines such as PySR~\cite{cranmer2020,cranmer2023},
 AI Feynman~\cite{udrescu2020}, and PhySO~\cite{tenachi2023} excel at open-ended equation discovery from scratch.
 However, when repurposed directly to find small asymptotic corrections to an established law,
 unconstrained search encounters three practical hurdles:
@@ -214,12 +214,11 @@ over mass (M), length (L), time (T), temperature ($\Theta$), and electric charge
 (note: uppercase $\Theta$ denotes temperature dimension, distinct from lowercase model parameters $\theta_k$).
 Instead of solving the full dimensional-analysis problem, it uses a simple two-step
 heuristic: first, it groups variables with identical dimensions into pairwise ratios
-(e.g., $q_1/q_2$); second, it divides each dimensional variable by a free scale
-parameter, linearly or quadratically ($v/\theta_{2k},\, v^2/\theta_{2k+1}$; e.g., $r/\theta_4$).
+(e.g., $q_1/q_2$); second, for each dimensional variable $v_k$ ($k{=}0,1,\dots$), it generates two single-parameter free-scale ratios---linear $v_k/\theta_{2k}$ and quadratic $v_k^2/\theta_{2k+1}$.
 Charge is tracked separately so that two charges can form a dimensionless ratio; a
 three-dimensional (MLT) engine would treat them as dimensionless scalars and skip this step.
-In Screened Coulomb, four charge-related candidates are enumerated first, so the distance
-ratio receives the index $\theta_4$. The index only reflects enumeration order; what
+In Screened Coulomb, $q_1$ and $q_2$ consume $\theta_0$--$\theta_3$, so the distance
+ratios receive $\theta_4$ and $\theta_5$ ($r/\theta_4$, $r^2/\theta_5$). The index only reflects enumeration order; what
 matters is that the fitted value lands near the true Debye length.
 
 \subsection{Phenomenon-specific taxonomy as structural prior}
@@ -230,7 +229,7 @@ derived exclusively from its fundamental equations.
 For example, \texttt{yukawa\_debye\_screening} permits only \texttt{D\_exp}
 and \texttt{D\_rat}: the Klein-Gordon equation yields $V\propto e^{-mr}/r$ and
 Debye-H\"{u}ckel theory yields $\phi\propto e^{-r/\lambda_D}/r$; both involve
-only exponential and rational families.
+only exponential and rational families (applied phenomenologically to the Coulomb force in our benchmark).
 The taxonomy restricts \emph{which family} is searched; it says nothing about
 \emph{which variable} enters the argument or \emph{what the scale is}---both
 are determined by the dimensional grouping heuristic and numerical optimizer.
@@ -280,8 +279,8 @@ Gate~4 (Asymptotic Regularization Check, ARC) evaluates the symbolic classical l
 \subsection{Physical gate cascade}
 \label{sec:gates}
 
-Before fitting, each candidate must pass a five-gate cascade
-(Table~\ref{tab:gates}) applied to the theta-intact expression.
+Before fitting, each candidate must pass Table~\ref{tab:gates}:
+Gates~1--3 inspect the symbolic theta-intact expression; Gates~4--5 probe at $\boldsymbol{\theta}=\mathbf{1}$ (Gate~4 is re-verified post-fit at $\hat{\boldsymbol{\theta}}$).
 
 \begin{table}[ht]
 \small
@@ -292,7 +291,7 @@ Before fitting, each candidate must pass a five-gate cascade
 \toprule
 Gate & Rejection criterion \\
 \midrule
-1. AST complexity & SymPy tree depth $>12$ or token count $>50$. \\
+1. AST complexity & Post-expansion SymPy AST depth $>12$ or node count $>50$ (beyond grammar budget). \\
 2. Dimensional consistency & Physical dimensions mismatch target (allowing free-scale $v/\theta_k$). \\
 3. Transcendental safety & Arguments to $\exp$, $\ln$, $\sqrt{\cdot}$ not dimensionless or $\theta_k$-scaled. \\
 4. Asymptotic check (ARC) & Classical limit at $\boldsymbol{\theta}=\mathbf{1}$ (and post-fit $\hat{\boldsymbol{\theta}}$) does not vanish. \\
@@ -307,7 +306,7 @@ The top-ranked Stage-1 surviving candidates ($K=30$, shortlisted by coarse pre-f
 Parameters are log-reparameterized ($\theta_i{=}s_i e^{u_i}$,
 $s_i{\in}\{-1,+1\}$) for order-of-magnitude traversal; multiple restarts
 reduce sensitivity to local optima.
-Model selection uses an Extended BIC~\cite{schwarz1978,chen2008}: $\mathrm{BIC}=k\ln N - 2\ln\hat{L} + 2\ln|\mathcal{C}|$,
+Model selection uses an Extended BIC~\cite{schwarz1978,chen2008}: $\mathrm{BIC}=k\ln N - 2\ln\hat{L} + 2\ln|\mathcal{C}|$ (implemented as $-2\ln\hat{L}=N\ln\mathrm{NMSE}$, floored at $10^{-6}$, up to a data-variance constant that cancels in $\Delta\mathrm{BIC}$),
 incorporating a multiple-testing penalty over the search space size $|\mathcal{C}|$.
 By the Kass--Raftery scale~\cite{kass1995}, $\Delta\mathrm{BIC}>10$ is the
 adopted identifiability threshold.
@@ -318,14 +317,14 @@ adopted identifiability threshold.
 \textbf{In plain terms.} IDENTIFIABLE means the data are informative enough to single out
 the discovered function family. WITHHELD means they are not, so ADCD makes no structural
 claim even if it found a good-looking fit.
-An IDENTIFIABLE verdict requires all four checks to pass:
+Here, \emph{domain-guided} refers to searching within the taxonomy prior, \emph{ablated} searches all remaining primitives with the target family removed, and \emph{Rank-1} denotes the candidate with the lowest Extended BIC. An IDENTIFIABLE verdict requires all four checks to pass:
 \begin{enumerate}[noitemsep,leftmargin=*]
   \item \textbf{Budget disclosure.} Before looking at results, we state how many candidate
         formulas are searched ($|\mathcal{C}|$) and which function families are allowed,
         so the size of the search is visible.
   \item \textbf{Positive control} (can the method recover the right answer at all?).
         Using only the true function family, the fit must explain at least 95\% of the
-        variance in the data ($\mathrm{NMSE}<0.05$). If even the correct family fails,
+        variance in the residual data ($\mathrm{NMSE} = \mathrm{MSE}/\mathrm{Var}(\Delta_\mathrm{obs}) < 0.05$). If even the correct family fails,
         the data are too noisy to support a claim.
   \item \textbf{Ablation control} (is the family really needed?). We remove the target
         family and search over all remaining primitives. We require the domain-guided candidate to
@@ -400,45 +399,39 @@ Entropy Expansion & Thermodynamics  & $dV/V_i\le1.0$   &
   \centering
   \includegraphics[width=\textwidth]{fig2_bic.pdf}
   \caption{%
-    BIC identifiability comparison.
-    \textit{Left (a)}: absolute BIC of the Rank-1 domain-guided search candidate
-    (dark blue) and the best alternative produced with the ground-truth
-    primitive family excluded (gray).
+    BIC identifiability comparison ($\text{seed}=42$).
+    \textit{Left (a)}: absolute BIC of the Rank-1 domain-guided candidate
+    (dark blue) vs.\ the best ablated alternative excluding the ground-truth
+    family (gray).
     \textit{Right (b)}: $\Delta\mathrm{BIC} = \mathrm{BIC}_{\mathrm{ablated}} -
-    \mathrm{BIC}_{\mathrm{best}}$ on a log scale; positive values indicate
-    the full-primitive Rank-1 candidate is preferred over the ablated best.
-    Red dashed: Kass--Raftery ``very strong evidence'' threshold
-    ($\Delta\mathrm{BIC}=10$)~\cite{kass1995}.
-    At seed~42 all three scenarios exceed this threshold (across 5 seeds,
-    $\Delta\mathrm{BIC}$ spans 11.0--263, 5.1--14.7, and 5.5--13.8 for Screened
-    Coulomb, Entropy Expansion, and Time Dilation), yet Time Dilation is WITHHELD
-    because its positive control fails (Step~2, Positive Control, of the
-    four-step protocol; see Table~\ref{tab:results}): a positive
-    $\Delta\mathrm{BIC}$ is necessary but not sufficient for an IDENTIFIABLE
-    verdict (for Time Dilation, $\Delta\mathrm{BIC}=13.79$ is driven by search-space penalty and parsimony, with $\Delta D \approx 0$; Table~\ref{tab:app_bic}).
+    \mathrm{BIC}_{\mathrm{best}}$ on a log scale; positive values favor
+    the domain-guided Rank-1 candidate over the ablated best, with the
+    Kass--Raftery ``very strong evidence'' threshold ($\Delta\mathrm{BIC}=10$,
+    red dashed)~\cite{kass1995}.
+    Although Time Dilation exceeds $\Delta\mathrm{BIC}=10$ via parsimony and
+    search-space penalties ($\Delta D \approx 0$; Table~\ref{tab:app_bic}), it is
+    WITHHELD because its Positive Control fails (Table~\ref{tab:results}).
   }
   \label{fig:bic}
+  \vspace{-4pt}
 \end{figure*}
 
 \begin{figure*}[t]
   \centering
   \includegraphics[width=\textwidth]{fig3_parity.pdf}
   \caption{%
-    Parity plots: exact analytical recovered correction ($\Delta_\mathrm{rec}$,
-    evaluated directly from the discovered symbolic expression with fitted
-    parameters $\boldsymbol{\theta}$) vs.\ true correction
-    ($\Delta_\mathrm{true}$) for $N=200$ data points.
-    Black dashed: 1:1 reference line.
-    All three scenarios closely track the 1:1 diagonal because the
-    domain-guided search placed the true mathematical structure
-    (exact or class-level match) at Rank-1 in every case.
-    Crucially, Time Dilation achieves structural parity here, yet is still
-    WITHHELD by the system: its high fit error ($\mathrm{NMSE}=0.41$) on the
-    \emph{noisy} observational data (Figure~\ref{fig:recovery}a) causes it to
-    fail the Positive Control, demonstrating ADCD's ability to abstain from
-    claiming discoveries when the signal-to-noise ratio is insufficient.
+    Parity plots: recovered correction ($\Delta_\mathrm{rec}$, evaluated with
+    fitted parameters $\boldsymbol{\theta}$) vs.\ true correction
+    ($\Delta_\mathrm{true}$) for $N=200$ points (dashed: 1:1 line).
+    All three scenarios track the 1:1 diagonal because domain-guided search
+    placed the true structure at Rank-1 in every case.
+    Crucially, Time Dilation achieves structural parity here yet is WITHHELD:
+    its high error ($\mathrm{NMSE}=0.41$) on the \emph{noisy} data (left panel
+    of Fig.~\ref{fig:recovery}) fails the Positive Control, demonstrating
+    principled abstention under insufficient SNR.
   }
   \label{fig:parity}
+  \vspace{-4pt}
 \end{figure*}
 
 Table~\ref{tab:results} summarizes the quantitative results.
@@ -468,11 +461,11 @@ Reporting all three shows what drives each verdict.
 
 \begin{table}[ht]
   \small
-  \caption{Four-step validation results for all three scenarios.
+  \caption{Four-step validation results for all three scenarios (all rows report Rank-1 candidates).
   PC = Positive Control (pass/fail).
   $\Delta\mathrm{BIC} = \mathrm{BIC}_{\mathrm{ablated}} - \mathrm{BIC}_{\mathrm{best}}$,
   where $\mathrm{BIC}_{\mathrm{best}}$ is the Rank-1 domain-guided search BIC;
-  positive values indicate the full-primitive set is preferred over the ablated set.
+  positive values indicate the domain-guided set is preferred over the ablated set.
   $\Delta D$: penalty-free fit-quality difference (see footnote).
   Match level: \textit{exact} = symbolic equivalence verified;
   \textit{class} = correct functional family confirmed; amplitude absorbs
@@ -483,21 +476,21 @@ Reporting all three shows what drives each verdict.
   \label{tab:results}
   \centering
   \resizebox{\columnwidth}{!}{%
-    \begin{tabular}{@{}llcccrrcl@{}}
+    \begin{tabular}{@{}llccrrcl@{}}
     \toprule
     \textbf{Scenario} & \textbf{Discovered structure} &
-    \textbf{Rank} & \textbf{NMSE} & \textbf{PC} &
+    \textbf{NMSE} & \textbf{PC} &
     \textbf{$\Delta D$} & \textbf{$\Delta$BIC} & \textbf{Match} & \textbf{Verdict} \\
     \midrule
     Screened Coulomb ($r\le4$~m) &
       $\theta_0(e^{-r/\theta_4}-1)$ &
-      1 & $2.77\times10^{-4}$ & PASS & $20.14$ & $30.65$ & exact & \textbf{IDENTIFIABLE} \\
+      $2.77\times10^{-4}$ & PASS & $20.14$ & $30.65$ & exact & \textbf{IDENTIFIABLE} \\
     Entropy Expansion ($dV/V_i\le1$) &
       $\theta_0\ln(1+dV/V_i)$ &
-      1 & $1.59\times10^{-2}$ & PASS & $-1.08$ & $14.70$ & class & \textbf{IDENTIFIABLE} (2/5 seeds) \\
+      $1.59\times10^{-2}$ & PASS & $-1.08$ & $14.70$ & class & \textbf{IDENTIFIABLE} (2/5 seeds) \\
     Time Dilation ($v\le0.3c$) &
       $\theta_0\frac{v^2/c^2}{\sqrt{1{-}v^2/c^2}(1{+}\sqrt{1{-}v^2/c^2})}$ &
-      1 & $0.41$ & FAIL & $-0.00$ & $13.79$ & class & \textbf{WITHHELD} \\
+      $0.41$ & FAIL & $-0.00$ & $13.79$ & class & \textbf{WITHHELD} \\
     \bottomrule
     \end{tabular}%
   }
@@ -547,7 +540,7 @@ Over 5 noise seeds this verdict is stable (5/5 WITHHELD).
 \textbf{Why withholding is a useful answer.}
 A method that always returns a formula, whatever the data quality, cannot tell the reader
 when to trust it. ADCD's WITHHELD verdict on Time Dilation marks the limit of the data:
-lowering noise ($\sigma\lesssim0.29\%$) or widening the velocity window ($v\gtrsim0.5c$ at $\sigma=1\%$) reduces the noise floor below $0.05$, while separating $D_\mathrm{lor}$ from competing rational/polynomial families on pure fit ($\Delta D>10$) requires extending into the relativistic regime ($v>0.3c$).
+lowering noise ($\sigma\lesssim0.28\%$) or widening the velocity window ($v\gtrsim0.52c$ at $\sigma=1\%$) reduces the noise floor below $0.05$, while separating $D_\mathrm{lor}$ from competing rational/polynomial families on pure fit ($\Delta D>10$) is expected to require extending into the relativistic regime ($v>0.3c$).
 
 \textbf{Taxonomy as prior, not hint.}
 The taxonomy restricts \emph{which primitive family} is active;
@@ -726,7 +719,7 @@ To evaluate sensitivity to random measurement fluctuations under $1\%$ Gaussian 
 \begin{table}[!ht]
   \vspace{-4pt}
   \small
-  \caption{Verdict and $\Delta\mathrm{BIC}$ stability across five independent $1\%$ Gaussian noise realizations ($\text{seed}\in\{0, 42, 99, 256, 512\}$). Standard deviations denote unbiased sample standard deviations ($s$, $\mathrm{ddof}=1$; Screened Coulomb median $\Delta\mathrm{BIC}=30.65$).}
+  \caption{Verdict and $\Delta\mathrm{BIC}$ stability across five independent $1\%$ Gaussian noise realizations ($\text{seed}\in\{0, 42, 99, 256, 512\}$). Standard deviations denote unbiased sample standard deviations ($s$, $\mathrm{ddof}=1$; Screened Coulomb median $\Delta\mathrm{BIC}=30.65$, skewed upward by the seed-99 outlier).}
   \label{tab:app_seeds}
   \centering
   \resizebox{\columnwidth}{!}{%
@@ -751,7 +744,7 @@ To verify that the phenomenon-specific taxonomy prior does not induce false disc
 \begin{table}[!ht]
   \vspace{-4pt}
   \small
-  \caption{$3\times3$ taxonomy cross-misspecification safety audit ($\text{seed}=42$). PC Pass tests the scenario's target family ($\mathrm{NMSE}_{\mathrm{PC}}<0.05$), while $\mathrm{NMSE}_{\mathrm{best}}$ and $\Delta\mathrm{BIC}$ reflect the blind search under the supplied prior.}
+  \caption{$3\times3$ taxonomy cross-misspecification safety audit ($\text{seed}=42$). PC Pass tests the scenario's target family ($\mathrm{NMSE}_{\mathrm{PC}}<0.05$), while $\mathrm{NMSE}_{\mathrm{best}}$ and $\Delta\mathrm{BIC}$ reflect the blind search under the supplied prior; negative $\Delta\mathrm{BIC}$ values indicate that the unrestricted ablation set outperforms the misspecified prior, triggering WITHHELD.}
   \label{tab:app_misspec}
   \centering
   \resizebox{\columnwidth}{!}{%
